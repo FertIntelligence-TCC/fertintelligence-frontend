@@ -8,7 +8,8 @@ import { User } from "../interfaces/Models";
 import axiosInstace from "../services/axios";
 import { ENDPOINT } from "../constants/Endpoint";
 import { PasswordInput } from "@/components/ui/password-input";
-import CardOnly from "@/components/Layouts/CardOnly";
+import HomeLayout from "@/components/Layouts/Home";
+import FertName from "@/components/FertName/FertName";
 
 import {
   Button,
@@ -16,6 +17,8 @@ import {
   Input,
   VStack,
   Heading,
+  Box,
+  Flex,
 } from "@chakra-ui/react";
 
 import { FormControl, FormLabel } from "@chakra-ui/form-control";
@@ -78,57 +81,78 @@ export default function LoginPage() {
   };
 
   return (
-    <CardOnly>
-
-      <Heading mb={6} textAlign="center" size="lg">
-        Login
-      </Heading>
-
-      <VStack spacing={4} align="stretch">
-        <FormControl>
-          <FormLabel textAlign="left">Username</FormLabel>
-          <Input
-            name="login"
-            value={signInForm.login || ""}
-            onChange={handleSignInChange}
-            placeholder="Username"
-            width="100%"
-            _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel textAlign="left">Senha</FormLabel>
-          <PasswordInput
-            name="senha"
-            value={signInForm.senha || ""}
-            onChange={(e) =>
-              setSignInForm({ ...signInForm, senha: e.target.value })
-            }
-            placeholder="Senha"
-            width="100%"
-            _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
-          />
-        </FormControl>
-
-        <Button colorScheme="blue" width="full" onClick={submitLogin}>
-          Entrar
-        </Button>
-
-        <Text
-          fontSize="sm"
-          color="blue.800"
-          _dark={{ color: "blue.500" }}
-          cursor="pointer"
-          onClick={() => navigate("/fertintelligence/signup")}
-          textAlign="center"
-          userSelect="none"
-          position="relative"
-          zIndex={2}
+    <HomeLayout>
+      <FertName subtitle="Acesse sua conta" /> {/* Adiciona a legenda no canto */}
+      <Flex
+        justifyContent="center"
+        alignItems="center"
+        minH="100vh"
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+      >
+        <Box
+          bg="whiteAlpha.600"
+          _dark={{ bg: "blackAlpha.600" }}
+          p={8}
+          borderRadius="md"
+          boxShadow="lg"
+          width={{ base: "90%", md: "400px" }}
+          backdropFilter="blur(4px)"
+          zIndex={1}
         >
-          Não tem uma conta? Cadastre-se!
-        </Text>
-      </VStack>
-    </CardOnly>
+          <Heading mb={6} textAlign="center" size="lg">
+            Login
+          </Heading>
+          <VStack spacing={4} align="stretch">
+            <FormControl>
+              <FormLabel textAlign="left">Username</FormLabel>
+              <Input
+                name="login"
+                value={signInForm.login || ""}
+                onChange={handleSignInChange}
+                placeholder="Digite aqui seu nome de usuário"
+                width="100%"
+                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
+              />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel textAlign="left">Senha</FormLabel>
+              <PasswordInput
+                name="senha"
+                value={signInForm.senha || ""}
+                onChange={(e) =>
+                  setSignInForm({ ...signInForm, senha: e.target.value })
+                }
+                placeholder="Digite aqui sua senha"
+                width="100%"
+                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
+              />
+            </FormControl>
+
+            <Button colorScheme="blue" width="full" onClick={submitLogin}>
+              Entrar
+            </Button>
+
+            <Text
+              fontSize="sm"
+              color="blue.800"
+              _dark={{ color: "blue.500" }}
+              cursor="pointer"
+              onClick={() => navigate("/fertintelligence/signup")}
+              textAlign="center"
+              userSelect="none"
+              position="relative"
+              zIndex={2}
+            >
+              Não tem uma conta? Cadastre-se!
+            </Text>
+          </VStack>
+        </Box>
+      </Flex>
+    </HomeLayout>
   );
 }

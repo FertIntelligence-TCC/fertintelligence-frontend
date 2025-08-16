@@ -3,6 +3,7 @@ import { PrivateRoute } from "./PrivateRoute";
 import LoginPage from "../pages/Login";
 import SignUpPage from "../pages/Signup";
 import UpdateProfile from "../pages/UpdateProfile";
+import DeleteProfile from "../pages/DeleteProfile";
 import Home from "@/pages/Home";
 
 export const PublicRoutes: RouteObject[] = [
@@ -25,6 +26,10 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/update-profile",
     element: <UpdateProfile />,
+  },
+  {
+    path: "/fertintelligence/delete-profile",
+    element: <DeleteProfile />,
   },
   {
     element: <PrivateRoute />,

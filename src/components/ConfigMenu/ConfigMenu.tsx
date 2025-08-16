@@ -73,6 +73,8 @@ export default function ConfigMenu() {
             width="100%"
             justifyContent="flex-start"
             onClick={() => handleMenuItemClick("/fertintelligence/delete-profile")}
+            color="pink.500" // Cor do texto rosa
+            _hover={{ bg: "red.500", color: "white" }} // Cor vermelha no hover
           >
             Deletar Perfil
           </Button>
