@@ -1,6 +1,6 @@
-import { Box, Button, Flex, Text, Heading } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import HomeLayout from "@/components/Layouts/Home";
+import UserLayout from "@/components/Layouts/UserLayout";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertName from "@/components/FertName/FertName";
 
@@ -8,7 +8,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <HomeLayout>
+    <UserLayout>
       {/* Componente da legenda, agora separado */}
       <FertName subtitle="Painel principal" />
 
@@ -104,6 +104,6 @@ export default function Home() {
           </Flex>
         </Box>
       </Flex>
-    </HomeLayout>
+    </UserLayout>
   );
 }

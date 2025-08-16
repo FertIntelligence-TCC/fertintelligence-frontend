@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import FertName from "@/components/FertName/FertName";
-import HomeLayout from "@/components/Layouts/Home";
+import UserLayout from "@/components/Layouts/UserLayout";
 
 export default function DeleteProfile() {
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ export default function DeleteProfile() {
   };
 
   return (
-    <HomeLayout>
+    <UserLayout>
       {/* Legenda no canto superior esquerdo */}
       <FertName subtitle="Confirme a deleção do perfil" />
 
@@ -97,9 +97,20 @@ export default function DeleteProfile() {
             >
               Confirmar
             </Button>
+
+            <Button
+              onClick={() => navigate("/fertintelligence/home")}
+              width="full"
+              color="green.500"
+              _hover={{ bg: "green.500", color: "white" }}
+              variant="outline"
+            >
+              Cancelar
+            </Button>
+
           </VStack>
         </Box>
       </Flex>
-    </HomeLayout>
+    </UserLayout>
   );
 }

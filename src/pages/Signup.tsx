@@ -4,8 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { createUser, authenticateUser } from "@/services/userService";
 import { SignUpPayload } from "@/interfaces/ServicePayload";
 import { PasswordInput } from "@/components/ui/password-input";
-import HomeLayout from "@/components/Layouts/Home"; // Usa o HomeLayout para a legenda no canto
-import FertName from "@/components/FertName/FertName"; // Importa a legenda
+import UserLayout from "@/components/Layouts/UserLayout";
+import FertName from "@/components/FertName/FertName";
 
 import {
   Button,
@@ -74,7 +74,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <HomeLayout>
+    <UserLayout>
       <FertName subtitle="Crie sua conta" />
 
       <Flex
@@ -189,6 +189,6 @@ export default function SignUpPage() {
           </VStack>
         </Box>
       </Flex>
-    </HomeLayout>
+    </UserLayout>
   );
 }

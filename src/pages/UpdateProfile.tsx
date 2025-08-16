@@ -12,7 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FiUploadCloud } from "react-icons/fi"; // Importa um ícone de upload
 import FertName from "@/components/FertName/FertName";
-import HomeLayout from "@/components/Layouts/Home";
+import UserLayout from "@/components/Layouts/UserLayout";
 
 export default function UpdateProfile() {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export default function UpdateProfile() {
   };
 
   return (
-    <HomeLayout>
+    <UserLayout>
       {/* Legenda no canto superior esquerdo */}
       <FertName subtitle="Atualize seus dados" />
 
@@ -136,6 +136,6 @@ export default function UpdateProfile() {
           </VStack>
         </Box>
       </Flex>
-    </HomeLayout>
+    </UserLayout>
   );
 }

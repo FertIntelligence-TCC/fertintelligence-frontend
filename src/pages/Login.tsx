@@ -8,7 +8,7 @@ import { User } from "../interfaces/Models";
 import axiosInstace from "../services/axios";
 import { ENDPOINT } from "../constants/Endpoint";
 import { PasswordInput } from "@/components/ui/password-input";
-import HomeLayout from "@/components/Layouts/Home";
+import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 
 import {
@@ -81,7 +81,7 @@ export default function LoginPage() {
   };
 
   return (
-    <HomeLayout>
+    <UserLayout>
       <FertName subtitle="Acesse sua conta" /> {/* Adiciona a legenda no canto */}
       <Flex
         justifyContent="center"
@@ -153,6 +153,6 @@ export default function LoginPage() {
           </VStack>
         </Box>
       </Flex>
-    </HomeLayout>
+    </UserLayout>
   );
 }

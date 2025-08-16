@@ -3,11 +3,11 @@ import { ReactNode } from "react";
 import { ToggleTheme } from "@/components/ToggleTheme/ToggleTheme";
 import agricultoresImg from '@/assets/agricultores.jpeg';
 
-type HomeLayoutProps = {
+type UserLayoutProps = {
   children: ReactNode;
 };
 
-export default function HomeLayout({ children }: HomeLayoutProps) {
+export default function UserLayout({ children }: UserLayoutProps) {
   return (
     <Flex
       direction="column"
@@ -23,8 +23,8 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
         objectFit="cover"
         position="absolute"
         inset={0}
-        opacity={0.15} // Reduz a opacidade para que o conteúdo seja legível
-        zIndex={0} // Garante que a imagem fique no fundo
+        opacity={0.15}
+        zIndex={0}
         userSelect="none"
         width="100%"
         height="100%"
