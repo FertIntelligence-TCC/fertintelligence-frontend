@@ -1,25 +1,41 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
+import { PublicRoutes } from "./routes/Routes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useUserStore } from "./stores/user/user.store";
 
 function App() {
+  const user = useUserStore((state) => state.user);
+
+  const router = createBrowserRouter([
+    ...PublicRoutes,
+    {
+      path: "*",
+      element: (
+        <Navigate
+          to={
+            user ? "/fertintelligence/home" : "/fertintelligence"
+          }
+          replace
+        />
+      ),
+    },
+  ]);
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 15000,
+      },
+    },
+  });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+      </QueryClientProvider>
   );
 }
 

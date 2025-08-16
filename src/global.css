@@ -1,0 +1,169 @@
+@font-face {
+    font-family: 'Agreloy';
+    src: url('./fonts/Agreloy/Agreloy.otf');
+}
+
+@font-face {
+    font-family: 'FogtwoNo5';
+    src: url('./fonts/FogtwoNo5/FogtwoNo5.otf');
+}
+
+@font-face {
+    font-family: 'Resagokr';
+    src: url('./fonts/Resagokr/Resagokr.otf');
+}
+
+
+.agreloy{
+    font-family: 'Agreloy';
+}
+
+p,span,h1,h2,h3,h4,h5,h6,div{
+    font-family: 'Resagokr';
+}
+
+.title{
+    font-size: 96px;
+}
+
+.text{
+    font-size: 18px;
+}
+
+.text-large{
+    font-size: 24px;
+}
+
+.padding-bottom{
+    padding-bottom: 3%;
+}
+
+.padding-dialog-sm{
+    padding: 5% 5%;
+}
+
+.padding-dialog-lg{
+    padding: 3% 3%;
+}
+
+.front{
+    z-index: 999999999;
+}
+
+.margin-top{
+    margin-top: 6%;
+}
+
+.m-b-s{
+    margin-bottom: 4%;
+}
+
+.m-b{
+    margin-bottom: 8%;
+}
+
+.margin{
+    margin-top: 5%;
+}
+
+.margin-top-s{
+    margin-top:2%;
+}
+
+.margin-top-xs{
+    margin-top:1%;
+}
+
+
+.margin-sides{
+    margin-left: 2%;
+    margin-right: 2%;
+}
+
+.subtitle{
+    font-size: 36px;
+}
+
+.subtitle-s{
+    font-size: 30px;
+}
+
+.padding{
+    padding-left: 4%;
+    padding-right: 4%;
+}
+
+.padding-xl{
+    padding-left: 8%;
+    padding-right: 8%;
+}
+
+.right-bottom{
+    position: absolute;
+    left: 1%;
+    bottom: 2%;
+}
+
+.left-bottom{
+    position: absolute;
+    right: 1%;
+    bottom: 2%;
+}
+
+.right-bottom-s{
+    position: absolute;
+    bottom: 1%;
+    left: 1%;
+}
+
+.bg-paper{
+    background-color: #f0d7c2;
+}
+
+.text-licorice{
+    color: #23170d;
+}
+
+.height{
+    width: 200px;
+    height: 40px;
+    margin-right: 0.5%;
+    margin-left: 0.5%;
+}
+
+.height-l{
+    width: 410px;
+    height: 40px;
+    margin-right: 0.5%;
+    margin-left: 0.5%;
+}
+
+.margin-geral{
+    margin: 5%;
+}
+
+.header-title{
+    font-size: 56px;
+}
+
+.content-spacing{
+    margin: 3% 3%;
+}
+.margin-right{
+    margin-right: 4%;
+}
+
+.padding-left{
+    padding-left: 3%;
+}
+
+.gradiente {
+    width: 100%;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
+    -webkit-mask-size: cover; /* Para navegadores WebKit (como o Safari) */
+    mask-size: cover;
+}
