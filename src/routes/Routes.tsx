@@ -4,6 +4,9 @@ import LoginPage from "../pages/Login";
 import SignUpPage from "../pages/Signup";
 import UpdateProfile from "../pages/UpdateProfile";
 import DeleteProfile from "../pages/DeleteProfile";
+import PasswordVerification from "../pages/UpdateVerification";
+import UpdatePassword from "../pages/UpdatePassword";
+import ChangePassword from "../pages/ChangePassword";
 import Home from "@/pages/Home";
 
 export const PublicRoutes: RouteObject[] = [
@@ -26,6 +29,18 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/update-profile",
     element: <UpdateProfile />,
+  },
+  {
+    path: "/fertintelligence/update-password",
+    element: <UpdatePassword />,
+  },
+  {
+    path: "/fertintelligence/change-password",
+    element: <ChangePassword />,
+  },
+  {
+    path: "/fertintelligence/password-verification",
+    element: <PasswordVerification />,
   },
   {
     path: "/fertintelligence/delete-profile",

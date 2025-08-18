@@ -64,7 +64,7 @@ export default function ConfigMenu() {
             variant="ghost"
             width="100%"
             justifyContent="flex-start"
-            onClick={() => handleMenuItemClick("/mudar-senha")}
+            onClick={() => handleMenuItemClick("/fertintelligence/update-password")}
           >
             Mudar senha
           </Button>

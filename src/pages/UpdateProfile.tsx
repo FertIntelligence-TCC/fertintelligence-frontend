@@ -36,7 +36,7 @@ export default function UpdateProfile() {
 
   const handleSubmit = () => {
     console.log("Dados do perfil a serem atualizados:", profileForm);
-    navigate("/fertintelligence/home");
+    navigate("/fertintelligence/password-verification");
   };
 
   return (
