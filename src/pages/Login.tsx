@@ -10,7 +10,6 @@ import { ENDPOINT } from "../constants/Endpoint";
 import { PasswordInput } from "@/components/ui/password-input";
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
-
 import {
   Button,
   Text,
@@ -20,7 +19,6 @@ import {
   Box,
   Flex,
 } from "@chakra-ui/react";
-
 import { FormControl, FormLabel } from "@chakra-ui/form-control";
 
 export default function LoginPage() {
@@ -28,7 +26,29 @@ export default function LoginPage() {
   const setUser = useUserStore((state) => state.setUser);
   const user = useUserStore((state) => state.user);
 
+  const [signInForm, setSignInForm] = useState<{
+    login?: string;
+    senha?: string;
+  }>({});
+  const [isServerHealthy, setIsServerHealthy] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
   useEffect(() => {
+    const checkServerHealth = async () => {
+      try {
+        const { data } = await axiosInstace.get("/health");
+        if (data === "Ok") {
+          setIsServerHealthy(true);
+          setServerError(null);
+        }
+      } catch (error) {
+        setIsServerHealthy(false);
+        setServerError("Não foi possível conectar ao servidor.");
+      }
+    };
+    
+    checkServerHealth();
+
     if (user) return;
     const payload = sessionStorage.getItem("tcc_user_token");
     const getUserFromStorage = async (token: string) => {
@@ -39,15 +59,13 @@ export default function LoginPage() {
         setUser(data);
       } catch (error) {
         console.log(error);
-        sessionStorage.removeItem("tcc_user_token");
+        sessionStorage.removeItem("fertintelligence_user_token");
       }
     };
     if (payload) {
       getUserFromStorage(payload);
     }
   }, [navigate, setUser, user]);
-
-  const [signInForm, setSignInForm] = useState<{ login?: string; senha?: string }>({});
 
   const handleSignInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSignInForm({ ...signInForm, [e.target.name]: e.target.value });
@@ -82,7 +100,7 @@ export default function LoginPage() {
 
   return (
     <UserLayout>
-      <FertName subtitle="Acesse sua conta" /> {/* Adiciona a legenda no canto */}
+      <FertName subtitle="Acesse sua conta" />
       <Flex
         justifyContent="center"
         alignItems="center"
@@ -106,8 +124,21 @@ export default function LoginPage() {
           <Heading mb={6} textAlign="center" size="lg">
             Login
           </Heading>
+          {serverError && (
+            <Box
+              bg="red.100"
+              color="red.700"
+              p={3}
+              borderRadius="md"
+              mb={4}
+              textAlign="center"
+              fontSize="sm"
+            >
+              <Text>{serverError}</Text>
+            </Box>
+          )}
           <VStack spacing={4} align="stretch">
-            <FormControl>
+            <FormControl isDisabled={!isServerHealthy}>
               <FormLabel textAlign="left">Username</FormLabel>
               <Input
                 name="login"
@@ -115,11 +146,13 @@ export default function LoginPage() {
                 onChange={handleSignInChange}
                 placeholder="Digite aqui seu nome de usuário"
                 width="100%"
-                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
+                _placeholder={{
+                  color: "gray.800",
+                  _dark: { color: "gray.400" },
+                }}
               />
             </FormControl>
-
-            <FormControl>
+            <FormControl isDisabled={!isServerHealthy}>
               <FormLabel textAlign="left">Senha</FormLabel>
               <PasswordInput
                 name="senha"
@@ -129,14 +162,20 @@ export default function LoginPage() {
                 }
                 placeholder="Digite aqui sua senha"
                 width="100%"
-                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
+                _placeholder={{
+                  color: "gray.800",
+                  _dark: { color: "gray.400" },
+                }}
               />
             </FormControl>
-
-            <Button colorScheme="blue" width="full" onClick={submitLogin}>
+            <Button
+              colorScheme="blue"
+              width="full"
+              onClick={submitLogin}
+              isDisabled={!isServerHealthy}
+            >
               Entrar
             </Button>
-
             <Text
               fontSize="sm"
               color="blue.800"
