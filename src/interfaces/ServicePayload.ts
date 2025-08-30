@@ -1,19 +1,19 @@
 export type SignUpPayload = {
-    login: string;
+    name: string;
     email: string;
-    idade: number;
-    senha: string;
+    age: number;
+    password: string;
     id_foto: string;
 };
 
 export type SignInPayload = {
-    login: string;
-    senha: string;
+    username: string;
+    password: string;
 };
 
 export type UpdateUserPayload = {
-    nova_senha: string,
+    nova_password: string,
     novo_email: string,
-    nova_idade: string,
+    nova_age: string,
     id_nova_foto: string
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { createUser, authenticateUser } from "@/services/userService";
+import { createUser } from "@/services/userService";
 import { SignUpPayload } from "@/interfaces/ServicePayload";
 import { PasswordInput } from "@/components/ui/password-input";
 import UserLayout from "@/components/Layouts/UserLayout";
@@ -17,60 +17,71 @@ import {
   Flex,
 } from "@chakra-ui/react";
 
-import { FormControl, FormLabel } from "@chakra-ui/form-control";
-
 export default function SignUpPage() {
   const navigate = useNavigate();
-
-  const [signUpForm, setSignUpForm] = useState<{
-    login?: string;
-    email?: string;
-    idade?: string;
-    senha?: string;
-    senhaRepetida?: string;
-  }>({});
+  const [signUpForm, setSignUpForm] = useState({
+    name: "",
+    email: "",
+    age: "",
+    password: "",
+    repeatPassword: "",
+  });
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignUpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSignUpForm({ ...signUpForm, [e.target.name]: e.target.value });
+    setError(null);
   };
 
-  function validateSignUp() {
-    return (
-      signUpForm.login &&
-      signUpForm.email &&
-      signUpForm.idade &&
-      signUpForm.senha &&
-      signUpForm.senha === signUpForm.senhaRepetida
-    );
-  }
+  const validateSignUp = () => {
+    const { name, email, age, password, repeatPassword } = signUpForm;
 
-  const sendSignUpForm = useMutation({
+    if (!name || !email || !age || !password || !repeatPassword) {
+      setError("Por favor, preencha todos os campos.");
+      return false;
+    }
+
+    if (password !== repeatPassword) {
+      setError("As senhas não coincidem.");
+      return false;
+    }
+
+    const ageNumber = parseInt(age, 10);
+    if (isNaN(ageNumber) || ageNumber <= 0) {
+      setError("A idade deve ser um número positivo.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const signUpMutation = useMutation({
     mutationKey: ["createUser"],
-    mutationFn: createUser,
+    mutationFn: (payload: SignUpPayload) => createUser(payload),
     onSuccess: () => {
-      authenticateUser({
-        login: signUpForm.login!,
-        senha: signUpForm.senha!,
-      });
+      alert("Cadastro realizado com sucesso! Faça login para continuar.");
       navigate("/fertintelligence/login");
     },
-    onError: (error) => {
-      console.log(error);
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Erro ao criar o usuário. Verifique os dados e tente novamente.";
+      setError(errorMessage);
     },
   });
 
   const submitSignUp = () => {
-    if (validateSignUp()) {
-      const payload: SignUpPayload = {
-        login: signUpForm.login!,
-        email: signUpForm.email!,
-        idade: parseInt(signUpForm.idade!, 10),
-        senha: signUpForm.senha!,
-      };
-      sendSignUpForm.mutate(payload);
-    } else {
-      console.log("Campos inválidos no cadastro ou senhas não coincidem");
-    }
+    if (!validateSignUp()) return;
+
+    const payload: SignUpPayload = {
+      name: signUpForm.name,
+      email: signUpForm.email,
+      age: parseInt(signUpForm.age, 10),
+      password: signUpForm.password,
+      id_foto: "",
+    };
+
+    signUpMutation.mutate(payload);
   };
 
   return (
@@ -82,10 +93,7 @@ export default function SignUpPage() {
         alignItems="center"
         minH="100vh"
         position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
+        inset={0}
       >
         <Box
           bg="whiteAlpha.600"
@@ -102,74 +110,83 @@ export default function SignUpPage() {
           </Heading>
 
           <VStack spacing={4} align="stretch">
-            <FormControl>
-              <FormLabel textAlign="left">Username</FormLabel>
+            {error && (
+              <Box
+                bg="red.100"
+                color="red.700"
+                p={3}
+                borderRadius="md"
+                textAlign="center"
+                fontSize="sm"
+              >
+                <Text>{error}</Text>
+              </Box>
+            )}
+
+            <Box>
+              <Text mb={1}>Nome de usuário</Text>
               <Input
-                name="login"
-                value={signUpForm.login || ""}
+                name="name"
+                value={signUpForm.name}
                 onChange={handleSignUpChange}
                 placeholder="Digite seu nome de usuário"
                 width="100%"
-                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
               />
-            </FormControl>
+            </Box>
 
-            <FormControl>
-              <FormLabel textAlign="left">Email</FormLabel>
+            <Box>
+              <Text mb={1}>Email</Text>
               <Input
                 type="email"
                 name="email"
-                value={signUpForm.email || ""}
+                value={signUpForm.email}
                 onChange={handleSignUpChange}
                 placeholder="Digite seu email"
                 width="100%"
-                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
               />
-            </FormControl>
+            </Box>
 
-            <FormControl>
-              <FormLabel textAlign="left">Idade</FormLabel>
+            <Box>
+              <Text mb={1}>Idade</Text>
               <Input
                 type="number"
                 min={0}
-                name="idade"
-                value={signUpForm.idade || ""}
+                name="age"
+                value={signUpForm.age}
                 onChange={handleSignUpChange}
                 placeholder="Informe sua idade"
                 width="100%"
-                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
               />
-            </FormControl>
+            </Box>
 
-            <FormControl>
-              <FormLabel textAlign="left">Senha</FormLabel>
+            <Box>
+              <Text mb={1}>Senha</Text>
               <PasswordInput
-                name="senha"
-                value={signUpForm.senha || ""}
-                onChange={(e) =>
-                  setSignUpForm({ ...signUpForm, senha: e.target.value })
-                }
+                name="password"
+                value={signUpForm.password}
+                onChange={handleSignUpChange}
                 placeholder="Digite sua senha"
                 width="100%"
-                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
               />
-            </FormControl>
+            </Box>
 
-            <FormControl>
-              <FormLabel textAlign="left">Repita a senha</FormLabel>
+            <Box>
+              <Text mb={1}>Repita a senha</Text>
               <PasswordInput
-                name="senhaRepetida"
-                value={signUpForm.senhaRepetida || ""}
-                onChange={(e) =>
-                  setSignUpForm({ ...signUpForm, senhaRepetida: e.target.value })
-                }
+                name="repeatPassword"
+                value={signUpForm.repeatPassword}
+                onChange={handleSignUpChange}
                 placeholder="Repita a senha"
                 width="100%"
-                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
               />
-            </FormControl>
+            </Box>
 
-            <Button colorScheme="blue" width="full" onClick={submitSignUp}>
+            <Button
+              colorScheme="blue"
+              width="full"
+              onClick={submitSignUp}
+              isLoading={signUpMutation.isLoading}
+            >
               Cadastrar
             </Button>
 
@@ -180,9 +197,6 @@ export default function SignUpPage() {
               cursor="pointer"
               onClick={() => navigate("/fertintelligence/login")}
               textAlign="center"
-              userSelect="none"
-              position="relative"
-              zIndex={2}
             >
               Já tem uma conta? Entre aqui!
             </Text>

@@ -1,7 +1,8 @@
-import { useUserStore } from "../stores/user/user.store";
 import axios, { AxiosError } from "axios";
 
-const api_url = import.meta.env.VITE_API_URL ??  "http://localhost:8080/" // "https://fertintelligence/fertintelligence-backend/api/"; //
+const api_url = import.meta.env.VITE_API_URL ?? "http://localhost:8080/";
+
+const PUBLIC_ROUTES = ["/user/register", "/authentication/authenticate"];
 
 export const axiosInstace = axios.create({
   baseURL: api_url,
@@ -13,8 +14,11 @@ export const axiosInstace = axios.create({
 });
 
 axiosInstace.interceptors.request.use((config) => {
-  let token = sessionStorage.getItem("fertintelligenceToken")
-  if (token) {
+  const token = sessionStorage.getItem("fertintelligenceToken");
+
+  const isPublic = PUBLIC_ROUTES.some((route) => config.url?.includes(route));
+
+  if (token && !isPublic) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -22,12 +26,12 @@ axiosInstace.interceptors.request.use((config) => {
 });
 
 axiosInstace.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error: AxiosError) => {
     if (error?.response?.status === 401) {
-      window.location.href = "/fertintelligence/";
+      if (sessionStorage.getItem("fertintelligenceToken")) {
+        window.location.href = "/fertintelligence/";
+      }
     }
     return Promise.reject(error);
   }
