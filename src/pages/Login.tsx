@@ -50,7 +50,7 @@ export default function LoginPage() {
     checkServerHealth();
 
     if (user) return;
-    const payload = sessionStorage.getItem("tcc_user_token");
+    const payload = sessionStorage.getItem("fertintelligence_user_token");
     const getUserFromStorage = async (token: string) => {
       try {
         const { data } = await axiosInstace.get<User>(`/${ENDPOINT.ME}`, {
@@ -89,8 +89,8 @@ export default function LoginPage() {
   const submitLogin = () => {
     if (validateSignIn()) {
       const payload: SignInPayload = {
-        login: signInForm.login!,
-        senha: signInForm.senha!,
+        username: signInForm.login!,
+        password: signInForm.senha!,
       };
       sendSignInForm.mutate(payload);
     } else {

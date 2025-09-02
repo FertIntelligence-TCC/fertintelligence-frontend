@@ -7,23 +7,19 @@ import { SignInPayload, SignUpPayload, UpdateUserPayload } from "@/interfaces/Se
 // 🔹 LOGIN (autenticação)
 export const authenticateUser = async (credentials: SignInPayload) => {
     try {
-        const encodedCredentials: string = btoa(`${credentials.email}:${credentials.senha}`);
-        const authorization = `Basic ${encodedCredentials}`;
-
         const { data } = await axiosInstace.post<string>(
             `/${ENDPOINT.SIGN_IN}`,
-            {},
-            { headers: { Authorization: authorization }, withCredentials: true }
+            credentials,
+            { withCredentials: true }
         );
-
         sessionStorage.setItem("fertintelligenceToken", data);
-
         return data;
     } catch (error: any) {
         console.error("Erro ao autenticar usuário:", error.response?.data || error.message);
         throw error;
     }
 };
+
 
 // 🔹 CADASTRO
 export const createUser = async (body: SignUpPayload) => {
