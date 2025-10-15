@@ -12,6 +12,7 @@ export type SignInPayload = {
 };
 
 export type UpdateUserPayload = {
+    novo_nome: string,
     nova_password: string,
     novo_email: string,
     nova_age: string,

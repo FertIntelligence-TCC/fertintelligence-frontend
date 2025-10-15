@@ -1,3 +1,5 @@
+// pages/UpdateProfile.tsx
+
 import { useState } from "react";
 import {
   Button,
@@ -7,20 +9,33 @@ import {
   Box,
   Text,
   Flex,
-  Icon // Importa Icon
+  Icon // Mantém Icon
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { FiUploadCloud } from "react-icons/fi"; // Importa um ícone de upload
+import { FiUploadCloud } from "react-icons/fi";
 import FertName from "@/components/FertName/FertName";
 import UserLayout from "@/components/Layouts/UserLayout";
+import { useUserStore } from "../stores/user/user.store";
+import { User } from "../interfaces/Models";
+
+// Chave para salvar os dados temporariamente
+const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
 
 export default function UpdateProfile() {
   const navigate = useNavigate();
+  // REMOVIDO: const toast = useToast();
+  
+  // Assume que 'user' está disponível via PrivateRoute
+  const user = useUserStore((state) => state.user) as User; 
+  
   const [profileForm, setProfileForm] = useState({
-    name: "",
-    email: "",
-    age: "",
-    photo: null,
+    // Usa 'login' para nome de usuário (baseado na estrutura SignInResponse/User)
+    name: user?.login || "", 
+    // Usa 'email' (baseado na estrutura SignInResponse/User)
+    email: user?.email || "",
+    // Usa 'idade' (baseado na estrutura SignInResponse/User)
+    age: user?.idade?.toString() || "", 
+    photo: null as File | null,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,16 +50,29 @@ export default function UpdateProfile() {
   };
 
   const handleSubmit = () => {
-    console.log("Dados do perfil a serem atualizados:", profileForm);
+    // 1. Validação básica
+    if (!profileForm.name || !profileForm.email || !profileForm.age) {
+        alert("Erro de validação: Preencha todos os campos obrigatórios.");
+        return;
+    }
+
+    // 2. Salva os novos dados na sessão
+    sessionStorage.setItem(UPDATE_PROFILE_DATA_KEY, JSON.stringify({
+        novo_login: profileForm.name,
+        novo_email: profileForm.email,
+        nova_age: parseInt(profileForm.age, 10),
+        // Mantém o id_foto atual
+        id_nova_foto: user?.id_foto || "", 
+    }));
+    
+    // 3. Navega para a verificação de senha
     navigate("/fertintelligence/password-verification");
   };
 
   return (
     <UserLayout>
-      {/* Legenda no canto superior esquerdo */}
       <FertName subtitle="Atualize seus dados" />
 
-      {/* Container Flex que centraliza o cardbox vertical e horizontalmente */}
       <Flex
         justifyContent="center"
         alignItems="center"
@@ -71,7 +99,7 @@ export default function UpdateProfile() {
 
           <VStack spacing={4} align="stretch">
             <Box>
-              <Text textAlign="left" mb={1}>Nome</Text>
+              <Text textAlign="left" mb={1}>Nome de Usuário</Text>
               <Input
                 name="name"
                 value={profileForm.name}
@@ -108,25 +136,23 @@ export default function UpdateProfile() {
             {/* Campo de Foto de Perfil estilizado */}
             <Box>
               <Text textAlign="left" mb={1}>Foto de Perfil</Text>
-              {/* Input escondido */}
               <Input
                 type="file"
                 name="photo"
-                id="photo-upload" // Adiciona um ID para vincular ao label
+                id="photo-upload"
                 onChange={handleFileChange}
-                display="none" // Esconde o input de arquivo padrão
+                display="none"
               />
-              {/* Botão para acionar o Input de arquivo */}
               <Button
                 as="label"
-                htmlFor="photo-upload" // Ativa o input de arquivo ao clicar no botão
+                htmlFor="photo-upload"
                 width="100%"
                 variant="outline"
                 colorScheme="gray"
                 cursor="pointer"
               >
-                <Icon as={FiUploadCloud} mr={2} /> {/* Adiciona um ícone */}
-                {profileForm.photo ? "Arquivo selecionado" : "Procurar..."}
+                <Icon as={FiUploadCloud} mr={2} />
+                {profileForm.photo ? profileForm.photo.name : "Procurar..."}
               </Button>
             </Box>
 

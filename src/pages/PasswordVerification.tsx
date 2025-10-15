@@ -5,36 +5,70 @@ import {
     Heading,
     Box,
     Text,
-    Flex
+    Flex,
+    Alert, 
 } from "@chakra-ui/react";
 import { PasswordInput } from "@/components/ui/password-input";
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
+import { useMutation } from "@tanstack/react-query";
 
 type PasswordVerificationProps = {
     subtitle: string;
     cardHeading: string;
-    onConfirm: (password: string, repeatPassword: string) => void;
-    onCancel: () => void;
+    // onConfirm recebe a senha e retorna uma Promise (para uso com useMutation)
+    onConfirm: (password: string, repeatPassword: string) => Promise<unknown>; 
+    onCancel: () => void; // A função de cancelamento
+    isNewPassword?: boolean;
 };
 
-export default function PasswordVerification({ subtitle, cardHeading, onConfirm, onCancel }: PasswordVerificationProps) {
+export default function PasswordVerification({ subtitle, cardHeading, onConfirm, onCancel, isNewPassword = false }: PasswordVerificationProps) {
     const [passwordForm, setPasswordForm] = useState({
         senha: "",
         senhaRepetida: "",
     });
+    const [error, setError] = useState<string | null>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setPasswordForm({ ...passwordForm, [name]: value });
+        setError(null);
     };
+
+    const confirmMutation = useMutation({
+        mutationFn: (payload: { password: string, repeatPassword: string }) => onConfirm(payload.password, payload.repeatPassword),
+        onSuccess: () => {
+            console.log("Ação de confirmação (API) executada com sucesso!");
+        },
+        onError: (err: any) => {
+            console.error("Erro na confirmação:", err);
+            const errorMessage = err.response?.data?.message || "Erro ao executar a ação. Verifique a senha e tente novamente.";
+            setError(errorMessage);
+        }
+    });
 
     const handleConfirmClick = () => {
-        onConfirm(passwordForm.senha, passwordForm.senhaRepetida);
-    };
+        const { senha, senhaRepetida } = passwordForm;
 
-    const handleCancelClick = () => {
-        onCancel();
+        // Validação da senha atual/nova
+        if (!senha) {
+            setError("A senha é obrigatória.");
+            return;
+        }
+
+        // Validação para nova senha (se for o caso)
+        if (isNewPassword) {
+            if (!senhaRepetida) {
+                setError("A repetição da nova senha é obrigatória.");
+                return;
+            }
+            if (senha !== senhaRepetida) {
+                setError("As novas senhas não coincidem.");
+                return;
+            }
+        }
+        
+        confirmMutation.mutate({ password: senha, repeatPassword: senhaRepetida });
     };
 
     return (
@@ -66,27 +100,39 @@ export default function PasswordVerification({ subtitle, cardHeading, onConfirm,
                     </Heading>
 
                     <VStack spacing={4} align="stretch">
+                        {(error || (confirmMutation.isError && !error)) && (
+                            <Alert status="error" borderRadius="md" variant="subtle">
+                                <Box flex="1">
+                                    <Text fontWeight="bold" fontSize="sm">
+                                        {error || "Houve um erro inesperado. Tente novamente."}
+                                    </Text>
+                                </Box>
+                            </Alert>
+                        )}
+
                         <Box>
-                            <Text textAlign="left" mb={1}>Senha</Text>
+                            <Text textAlign="left" mb={1}>{isNewPassword ? "Nova Senha" : "Senha Atual"}</Text>
                             <PasswordInput
                                 name="senha"
                                 value={passwordForm.senha}
                                 onChange={handleInputChange}
-                                placeholder="Digite sua senha"
+                                placeholder={isNewPassword ? "Digite sua nova senha" : "Digite sua senha atual"}
                                 _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
                             />
                         </Box>
 
-                        <Box>
-                            <Text textAlign="left" mb={1}>Repita a senha</Text>
-                            <PasswordInput
-                                name="senhaRepetida"
-                                value={passwordForm.senhaRepetida}
-                                onChange={handleInputChange}
-                                placeholder="Digite novamente sua senha"
-                                _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
-                            />
-                        </Box>
+                        {isNewPassword && (
+                            <Box>
+                                <Text textAlign="left" mb={1}>Repita a Nova Senha</Text>
+                                <PasswordInput
+                                    name="senhaRepetida"
+                                    value={passwordForm.senhaRepetida}
+                                    onChange={handleInputChange}
+                                    placeholder="Digite novamente sua nova senha"
+                                    _placeholder={{ color: "gray.800", _dark: { color: "gray.400" } }}
+                                />
+                            </Box>
+                        )}
 
                         <Button
                             onClick={handleConfirmClick}
@@ -94,16 +140,20 @@ export default function PasswordVerification({ subtitle, cardHeading, onConfirm,
                             color="green.700"
                             _hover={{ bg: "green.500", color: "white" }}
                             variant="outline"
+                            isLoading={confirmMutation.isLoading}
+                            isDisabled={confirmMutation.isLoading}
                         >
                             Concluir
                         </Button>
 
+                        {/* CORREÇÃO: Chama a prop onCancel diretamente. Comentário movido para cima. */}
                         <Button
-                            onClick={handleCancelClick}
+                            onClick={onCancel} 
                             width="full"
                             color="pink.700"
                             _hover={{ bg: "red.500", color: "white" }}
                             variant="outline"
+                            isDisabled={confirmMutation.isLoading}
                         >
                             Cancelar
                         </Button>
