@@ -1,6 +1,6 @@
 export type SignInResponse = {
     id?: number;
-    login?: string;
+    nome?: string;
     email?: string;
     idade?: number;
     id_foto?: string;
