@@ -198,7 +198,7 @@ export default function SignUpPage() {
 
     const payload: SignUpPayload = {
       name: signUpForm.name,
-      username: signUpForm.username, // backend espera "login"
+      username: signUpForm.username,
       email: signUpForm.email,
       cpf: signUpForm.cpf,
       datanasc: parsedDataNasc,

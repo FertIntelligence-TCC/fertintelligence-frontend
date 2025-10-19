@@ -1,87 +1,147 @@
 // pages/UpdateVerification.tsx
 import { useNavigate } from "react-router-dom";
 import PasswordVerification from "./PasswordVerification";
-import { UpdateUserPayload } from "../interfaces/ServicePayload";
 import { useUserStore } from "../stores/user/user.store";
-import { updateUser } from "@/services/userService"; // Importa o serviço real de atualização
-import { User } from "../interfaces/Models";
+import { updateUser } from "@/services/userService";
 
-// Chave para recuperar os dados temporários
+import type { User } from "../interfaces/Models";
+import type {
+  UpdateUserPayload,
+  DataNasc,
+  Telefone,
+  Genero,
+  Formacao,
+  Cargo,
+} from "../interfaces/ServicePayload";
+
 const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
 
+// Normaliza o objeto vindo do sessionStorage para o "shape" unificado do cadastro
+function normalizeFromSession(parsed: any) {
+  // Caso novo: salvamos { payload: { name, username, email, cpf, datanasc, telefone, genero, formacao, profissao, cargo, foto } }
+  if (parsed?.payload) {
+    const p = parsed.payload;
+    return {
+      name: String(p.name ?? ""),
+      username: String(p.username ?? ""),
+      email: String(p.email ?? ""),
+      cpf: String(p.cpf ?? ""),
+      datanasc: p.datanasc as DataNasc, // { dia, mes, ano }
+      telefone: p.telefone as Telefone, // { pais, ddd, numero }
+      genero: p.genero as keyof typeof Genero,
+      formacao: p.formacao as keyof typeof Formacao,
+      profissao: String(p.profissao ?? ""),
+      cargo: p.cargo as keyof typeof Cargo,
+      foto: String(p.foto ?? ""),
+    };
+  }
+
+  // Legado: chaves novo_* usadas anteriormente na página de UpdateProfile
+  // Mapeamos para o shape unificado
+  return {
+    name: String(parsed.novo_name ?? parsed.novo_nome ?? ""),
+    username: String(parsed.novo_username ?? parsed.novo_login ?? ""),
+    email: String(parsed.novo_email ?? ""),
+    cpf: String(parsed.novo_cpf ?? ""),
+    datanasc: (parsed.nova_datanasc ?? parsed.nova_age) as DataNasc, // suporte a "nova_age" legado (evite, mas mantém compat)
+    telefone: parsed.novo_telefone as Telefone,
+    genero: parsed.novo_genero as keyof typeof Genero,
+    formacao: parsed.nova_formacao as keyof typeof Formacao,
+    profissao: String(parsed.nova_profissao ?? ""),
+    cargo: parsed.novo_cargo as keyof typeof Cargo,
+    foto: String(parsed.id_nova_foto ?? parsed.nova_foto ?? ""),
+  };
+}
+
 export default function UpdateVerification() {
-    const navigate = useNavigate();
-    // REMOVIDO: const toast = useToast();
-    const setUser = useUserStore((state) => state.setUser);
-    const user = useUserStore((state) => state.user);
+  const navigate = useNavigate();
+  const setUser = useUserStore((s) => s.setUser);
+  const currentUser = useUserStore((s) => s.user) as User | null;
 
-    const handleConfirm = async (password: string) => {
-        // 1. Recupera os dados salvos
-        const profileDataString = sessionStorage.getItem(UPDATE_PROFILE_DATA_KEY);
-        sessionStorage.removeItem(UPDATE_PROFILE_DATA_KEY);
-        
-        if (!profileDataString) {
-            // Substituído toast por alert()
-            alert("Erro de dados: Dados de perfil não encontrados. Tente novamente.");
-            navigate("/fertintelligence/update-profile");
-            // Lança um erro para o useMutation
-            throw new Error("Dados de perfil não encontrados."); 
-        }
+  const handleConfirm = async (password: string) => {
+    // 1) Recupera e limpa os dados temporários
+    const raw = sessionStorage.getItem(UPDATE_PROFILE_DATA_KEY);
+    sessionStorage.removeItem(UPDATE_PROFILE_DATA_KEY);
 
-        try {
-            const newProfileData = JSON.parse(profileDataString);
-            
-            // 2. Monta o payload completo
-            const payload: UpdateUserPayload = {
-                // Usamos a senha ATUAL para que o backend a valide.
-                novo_nome: newProfileData.novo_login,
-                nova_password: password, 
-                novo_email: newProfileData.novo_email,
-                nova_age: newProfileData.nova_age.toString(),
-                id_nova_foto: newProfileData.id_nova_foto
-            }
-            
-            // 3. Chama o serviço de atualização
-            await updateUser(payload);
+    if (!raw) {
+      alert("Erro de dados: Dados de perfil não encontrados. Tente novamente.");
+      navigate("/fertintelligence/update-profile");
+      throw new Error("Dados de perfil não encontrados.");
+    }
 
-            // 4. Feedback de sucesso
-            // Substituído toast por alert()
-            alert("Perfil atualizado com sucesso!");
+    // 2) Normaliza para o shape unificado
+    const parsed = JSON.parse(raw);
+    const unified = normalizeFromSession(parsed);
 
-            // 5. Atualiza o estado global do usuário com os novos dados
-            if(user) {
-                // Tipagem para garantir que 'user' é do tipo User
-                const updatedUser: User = { 
-                    ...user,
-                    login: newProfileData.novo_login,
-                    email: newProfileData.novo_email,
-                    idade: newProfileData.nova_age,
-                    id_foto: newProfileData.id_nova_foto
-                };
-                setUser(updatedUser);
-            }
+    // 3) Monta o payload de atualização (todos os campos do cadastro)
+    // Mantemos prefixos 'novo_' para compatibilidade com o backend existente.
+    const payload: UpdateUserPayload = {
+      novo_name: unified.name,
+      novo_username: unified.username,
+      novo_email: unified.email,
+      novo_cpf: unified.cpf,
+      nova_datanasc: unified.datanasc,   // DataNasc
+      novo_telefone: unified.telefone,   // Telefone
+      novo_genero: unified.genero,       // keyof typeof Genero
+      nova_formacao: unified.formacao,   // keyof typeof Formacao
+      nova_profissao: unified.profissao,
+      novo_cargo: unified.cargo,         // keyof typeof Cargo
+      id_nova_foto: unified.foto,        // string (URL/base64/ID). Mantemos nome legado por compat.
+      nova_password: password,           // senha atual para validação no backend
+    } as UpdateUserPayload;
 
-            // 6. Navega para a home
-            navigate("/fertintelligence/home");
-        } catch (error: any) {
-            console.error("Erro na atualização do perfil:", error);
-            // Re-lança o erro para que o useMutation no PasswordVerification possa capturá-lo
-            throw error; 
-        }
-    };
+    try {
+      // 4) Chama o serviço real
+      await updateUser(payload);
 
-    const handleCancel = () => {
-        // Limpa os dados temporários e volta para a página anterior/home
-        sessionStorage.removeItem(UPDATE_PROFILE_DATA_KEY);
-        navigate("/fertintelligence/home");
-    };
+      // 5) Feedback
+      alert("Perfil atualizado com sucesso!");
 
-    return (
-        <PasswordVerification
-            subtitle="Confirme as mudanças no perfil"
-            cardHeading="Digite sua senha atual para confirmar as mudanças no perfil"
-            onConfirm={handleConfirm}
-            onCancel={handleCancel}
-        />
-    );
+      // 6) Atualiza store local (mantendo campos existentes no tipo User)
+      if (currentUser) {
+        const updatedUser: User = {
+          ...currentUser,
+          // nomes podem variar conforme seu backend; ajuste se seu `User` tiver outros nomes
+          name: unified.name ?? (currentUser as any).name,
+          login: unified.username ?? currentUser.login,
+          email: unified.email ?? currentUser.email,
+          cpf: unified.cpf ?? (currentUser as any).cpf,
+          datanasc: unified.datanasc ?? (currentUser as any).datanasc,
+          telefone: unified.telefone ?? (currentUser as any).telefone,
+          genero: (unified.genero as any) ?? (currentUser as any).genero,
+          formacao: (unified.formacao as any) ?? (currentUser as any).formacao,
+          profissao: unified.profissao ?? (currentUser as any).profissao,
+          cargo: (unified.cargo as any) ?? (currentUser as any).cargo,
+          // Mantemos compat com id_foto legado
+          id_foto: unified.foto ?? (currentUser as any).id_foto,
+          // Caso seu `User` possua um campo `foto`, também setamos:
+          ...(typeof (currentUser as any).foto !== "undefined"
+            ? { foto: unified.foto }
+            : {}),
+        };
+        setUser(updatedUser);
+      }
+
+      // 7) Redireciona
+      navigate("/fertintelligence/home");
+    } catch (err) {
+      console.error("Erro na atualização do perfil:", err);
+      // re-lança para o PasswordVerification capturar
+      throw err;
+    }
+  };
+
+  const handleCancel = () => {
+    sessionStorage.removeItem(UPDATE_PROFILE_DATA_KEY);
+    navigate("/fertintelligence/home");
+  };
+
+  return (
+    <PasswordVerification
+      subtitle="Confirme as mudanças no perfil"
+      cardHeading="Digite sua senha atual para confirmar as mudanças no perfil"
+      onConfirm={handleConfirm}
+      onCancel={handleCancel}
+    />
+  );
 }

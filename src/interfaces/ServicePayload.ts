@@ -1,4 +1,3 @@
-// Enums definidos no backend (ex: Genero.java, Formacao.java, Cargo.java)
 export enum Genero {
   MASCULINO = "MASCULINO",
   FEMININO = "FEMININO",
@@ -23,7 +22,6 @@ export enum Cargo {
   SECRETARIO = "SECRETARIO",
 }
 
-// Tipos de atributos compostos esperados pelo backend
 export type DataNasc = {
   dia: number;
   mes: number;
@@ -36,12 +34,8 @@ export type Telefone = {
   numero: string;
 };
 
-/**
- * Payload para criar um novo usuário.
- * Corresponde a UserCreateRequestDto.java
- */
 export type SignUpPayload = {
-  username: string; // @JsonProperty("login")
+  username: string;
   cpf: string;
   email: string;
   datanasc: DataNasc;
@@ -51,24 +45,14 @@ export type SignUpPayload = {
   profissao: string;
   cargo: Cargo;
   senha: string;
-  name: string; // @JsonProperty("name")
-  // id_foto removido
+  name: string;
 };
 
-/**
- * Payload para autenticar (login).
- * Corresponde aos parâmetros esperados pelo Spring Security.
- */
 export type SignInPayload = {
   username: string;
   password: string;
 };
 
-/**
- * Payload para atualizar um usuário.
- * Corresponde a UserPostRequestDto.java.
- * Todos os campos são opcionais para permitir atualização parcial.
- */
 export type UpdateUserPayload = {
   novo_nome?: string;
   novo_cpf?: string;
@@ -80,5 +64,4 @@ export type UpdateUserPayload = {
   nova_profissao?: string;
   novo_cargo?: Cargo;
   nova_senha?: string;
-  // id_nova_foto removido
 };
