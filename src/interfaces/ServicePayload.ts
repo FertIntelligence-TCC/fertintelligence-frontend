@@ -41,7 +41,7 @@ export type Telefone = {
  * Corresponde a UserCreateRequestDto.java
  */
 export type SignUpPayload = {
-  login: string; // @JsonProperty("login")
+  username: string; // @JsonProperty("login")
   cpf: string;
   email: string;
   datanasc: DataNasc;
@@ -50,7 +50,7 @@ export type SignUpPayload = {
   formacao: Formacao;
   profissao: string;
   cargo: Cargo;
-  password: string;
+  senha: string;
   name: string; // @JsonProperty("name")
   // id_foto removido
 };

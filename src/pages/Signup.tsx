@@ -60,6 +60,25 @@ export default function SignUpPage() {
     setError(null);
   };
 
+  // Suporte a componentes que disparam string OU event (PasswordInput)
+  const getChangeValue = (
+    v: string | React.ChangeEvent<HTMLInputElement>
+  ): string => (typeof v === "string" ? v : v.target.value);
+
+  const handlePasswordChange = (
+    v: string | React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSignUpForm((s) => ({ ...s, password: getChangeValue(v) }));
+    setError(null);
+  };
+
+  const handleRepeatPasswordChange = (
+    v: string | React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSignUpForm((s) => ({ ...s, repeatPassword: getChangeValue(v) }));
+    setError(null);
+  };
+
   // Converte "dd/mm/aaaa" em DataNasc
   const parseDataNasc = (dateString: string): DataNasc | null => {
     const parts = dateString.split("/");
@@ -149,10 +168,25 @@ export default function SignUpPage() {
       navigate("/fertintelligence/login");
     },
     onError: (error: any) => {
-      const errorMessage =
-        error.response?.data?.message ||
+      const status = error?.response?.status;
+      if (status === 400) {
+        const backendMsg =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.response?.data?.detail;
+        setError(
+          backendMsg || "Dados inválidos. Verifique os campos e tente novamente."
+        );
+        return;
+      }
+      if (status === 401) {
+        setError("Não autorizado. Faça login e tente novamente.");
+        return;
+      }
+      const fallbackMsg =
+        error?.response?.data?.message ||
         "Erro ao criar o usuário. Verifique os dados e tente novamente.";
-      setError(errorMessage);
+      setError(fallbackMsg);
     },
   });
 
@@ -164,7 +198,7 @@ export default function SignUpPage() {
 
     const payload: SignUpPayload = {
       name: signUpForm.name,
-      login: signUpForm.username,
+      username: signUpForm.username, // backend espera "login"
       email: signUpForm.email,
       cpf: signUpForm.cpf,
       datanasc: parsedDataNasc,
@@ -173,8 +207,11 @@ export default function SignUpPage() {
       formacao: signUpForm.formacao as Formacao,
       profissao: signUpForm.profissao,
       cargo: signUpForm.cargo as Cargo,
-      password: signUpForm.password,
+      senha: signUpForm.password,
     };
+
+    // Debug para confirmar que password está indo preenchido
+    console.log("SignUp payload:", payload);
 
     signUpMutation.mutate(payload);
   };
@@ -359,7 +396,7 @@ export default function SignUpPage() {
                 <PasswordInput
                   name="password"
                   value={signUpForm.password}
-                  onChange={handleSignUpChange}
+                  onChange={handlePasswordChange}
                   placeholder="Digite sua senha"
                   width="100%"
                 />
@@ -370,7 +407,7 @@ export default function SignUpPage() {
                 <PasswordInput
                   name="repeatPassword"
                   value={signUpForm.repeatPassword}
-                  onChange={handleSignUpChange}
+                  onChange={handleRepeatPasswordChange}
                   placeholder="Repita a senha"
                   width="100%"
                 />
