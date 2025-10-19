@@ -1,4 +1,4 @@
-import { SignInResponse } from "./ServiceResponse";
+import { UserResponse } from "./ServiceResponse";
 
 export type User = {
-} & SignInResponse;
+} & UserResponse;

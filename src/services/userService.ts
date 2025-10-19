@@ -1,6 +1,7 @@
 import { ENDPOINT } from "../constants/Endpoint";
 import axiosInstace from "./axios";
-import { SignInResponse } from "../interfaces/ServiceResponse";
+// Importa a nova UserResponse
+import { UserResponse } from "../interfaces/ServiceResponse";
 import {
   SignInPayload,
   SignUpPayload,
@@ -44,7 +45,8 @@ export const createUser = async (body: SignUpPayload) => {
 };
 
 export const getUser = async () => {
-  const { data } = await axiosInstace.get<SignInResponse>(
+  // Usa a nova interface UserResponse
+  const { data } = await axiosInstace.get<UserResponse>(
     `/${ENDPOINT.GET_USER}`
   );
 
@@ -52,7 +54,8 @@ export const getUser = async () => {
 };
 
 export const getUserId = async () => {
-  const { data } = await axiosInstace.get<SignInResponse>(
+  // Usa a nova interface UserResponse
+  const { data } = await axiosInstace.get<UserResponse>(
     `/${ENDPOINT.GET_USER}`
   );
 

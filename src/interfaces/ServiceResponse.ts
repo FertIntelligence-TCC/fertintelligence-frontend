@@ -1,13 +1,29 @@
-export type SignInResponse = {
+export type DataNascDto = {
+    dia: number;
+    mes: number;
+    ano: number;
+  };
+  
+  export type TelefoneDto = {
+    pais: string;
+    ddd: string;
+    numero: string;
+  };
+
+  export type UserResponse = {
     id?: number;
-    nome?: string;
+    login?: string;
+    cpf?: string;
     email?: string;
-    idade?: number;
-    id_foto?: string;
-};
-
-// export type GetCampaigsResponse = Campaign[];
-
-// export type GetCharactersResponse = Character[];
-
-// export type GetSystemsResponse = System[];
+    datanasc?: DataNascDto;
+    genero?: string;
+    telefone?: TelefoneDto;
+    formacao?: string;
+    profissao?: string;
+    cargo?: string;
+    name?: string;
+  };
+  
+  // export type GetCampaigsResponse = Campaign[];
+  // export type GetCharactersResponse = Character[];
+  // export type GetSystemsResponse = System[];
