@@ -14,7 +14,7 @@ export default function UpdatePassword() {
     }
 
     const payload: UpdateUserPayload = {
-      nova_password: password
+      nova_senha: password
     };
 
     await updateUser(payload);
