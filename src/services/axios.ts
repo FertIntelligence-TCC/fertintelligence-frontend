@@ -4,7 +4,7 @@ const api_url = import.meta.env.VITE_API_URL ?? "http://localhost:8080/";
 
 const PUBLIC_ROUTES = ["/user/register", "/authentication/authenticate"];
 
-export const axiosInstace = axios.create({
+export const api = axios.create({
   baseURL: api_url,
   withCredentials: true,
   headers: {
@@ -13,7 +13,7 @@ export const axiosInstace = axios.create({
   }
 });
 
-axiosInstace.interceptors.request.use((config) => {
+api.interceptors.request.use((config) => {
   const token = sessionStorage.getItem("fertintelligenceToken");
 
   const isPublic = PUBLIC_ROUTES.some((route) => config.url?.includes(route));
@@ -25,7 +25,7 @@ axiosInstace.interceptors.request.use((config) => {
   return config;
 });
 
-axiosInstace.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error?.response?.status === 401) {
@@ -37,4 +37,4 @@ axiosInstace.interceptors.response.use(
   }
 );
 
-export default axiosInstace;
+export default api;

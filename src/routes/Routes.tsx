@@ -7,6 +7,8 @@ import DeleteProfile from "../pages/DeleteProfile";
 import PasswordVerification from "../pages/UpdateVerification";
 import UpdatePassword from "../pages/UpdatePassword";
 import Home from "@/pages/Home";
+import OthersPropertyManagement from "@/pages/OthersPropertyManagement";
+import OwnerPropertyManagement from "@/pages/OwnerPropertyManagement";
 
 export const PublicRoutes: RouteObject[] = [
   {
@@ -14,7 +16,7 @@ export const PublicRoutes: RouteObject[] = [
     element: <LoginPage />,
   },
   {
-    path: "/fertintelligence/login/",
+    path: "/fertintelligence/login",
     element: <LoginPage />,
   },
   {
@@ -40,6 +42,14 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/delete-profile",
     element: <DeleteProfile />,
+  },
+  {
+    path: "/fertintelligence/owner-property-management",
+    element: <OwnerPropertyManagement />,
+  },
+  {
+    path: "/fertintelligence/others-property-management",
+    element: <OthersPropertyManagement />,
   },
   {
     element: <PrivateRoute />,

@@ -6,4 +6,12 @@ export const ENDPOINT = {
     GET_USER: "user/get",
     DELETE_USER: "user/delete",
 
+    // Property Endpoints (Estilo Grimoire)
+    PROPERTY_BASE: "property",
+    CREATE_PROPERTY: "property/register",
+    GET_PROPERTY_BY_ID: "property/get",
+    GET_MY_PROPERTIES: "property/get-my-properties",
+    UPDATE_PROPERTY: "property/update",
+    DELETE_PROPERTY: "property/delete",
+
 } as const;

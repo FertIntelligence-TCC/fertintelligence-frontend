@@ -1,3 +1,5 @@
+import { LocalizacaoPayload } from "./ServicePayload";
+
 export type DataNascDto = {
     dia: number;
     mes: number;
@@ -23,6 +25,16 @@ export type DataNascDto = {
     cargo?: string;
     name?: string;
   };
+
+  export interface PropertyResponse { //
+    id: number;
+    nome: string;
+    endereco: string;
+    cnpj: string;
+    localizacao: LocalizacaoPayload;
+    ownerId: number;
+    ownerNome: string;
+}
   
   // export type GetCampaigsResponse = Campaign[];
   // export type GetCharactersResponse = Character[];

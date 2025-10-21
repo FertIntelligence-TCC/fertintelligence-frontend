@@ -3,9 +3,21 @@ import { useNavigate } from "react-router-dom";
 import UserLayout from "@/components/Layouts/UserLayout";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertName from "@/components/FertName/FertName";
+import { Cargo } from "@/interfaces/ServicePayload";
+import { useUserStore } from "@/stores/user/user.store";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { user } = useUserStore();
+
+  const handleManageProperties = () => {
+    //
+    if (user?.cargo === Cargo.PROPRIETARIO) {
+      navigate('/owner-property-management');
+    } else {
+      navigate('/others-property-management');
+    }
+  };
 
   return (
     <UserLayout>
@@ -38,10 +50,10 @@ export default function Home() {
           </Heading>
           <Flex direction="column" gap={6}> {/* Aumentado o gap para separar mais os botões */}
             <Button
-              colorScheme="blue"
-              onClick={() => navigate("/gerenciar-propriedades")}
-              h="50px" // Aumenta a altura do botão
-              fontSize="md" // Aumenta o tamanho da fonte
+              colorScheme="teal"
+              onClick={handleManageProperties}
+              h="50px"
+              fontSize="md"
             >
               Gerenciar propriedades
             </Button>

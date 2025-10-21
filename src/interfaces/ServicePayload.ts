@@ -22,6 +22,16 @@ export enum Cargo {
   SECRETARIO = "SECRETARIO",
 }
 
+export enum LatitudeDirection {
+  NORTE = 'NORTE',
+  SUL = 'SUL',
+}
+
+export enum LongitudeDirection {
+  LESTE = 'LESTE',
+  OESTE = 'OESTE',
+}
+
 export type DataNasc = {
   dia: number;
   mes: number;
@@ -65,3 +75,25 @@ export type UpdateUserPayload = {
   novo_cargo?: Cargo;
   nova_senha?: string;
 };
+
+export interface LocalizacaoPayload { //
+  latitude: number;
+  latitudeDirection: LatitudeDirection;
+  longitude: number;
+  longitudeDirection: LongitudeDirection;
+  altitude?: number | null;
+}
+
+export interface PropertyCreatePayload { //
+  nome: string;
+  endereco: string;
+  cnpj: string;
+  localizacao: LocalizacaoPayload;
+}
+
+export interface PropertyUpdatePayload { //
+  nome?: string;
+  endereco?: string;
+  cnpj?: string;
+  localizacao?: LocalizacaoPayload | null;
+}
