@@ -10,12 +10,20 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useUserStore();
 
+  const normalizeCargo = (cargo?: string) =>
+    cargo
+      ?.normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "")
+      .toUpperCase();
+
+  const isOwner = normalizeCargo(user?.cargo) === Cargo.PROPRIETARIO;
+
   const handleManageProperties = () => {
-    //
-    if (user?.cargo === Cargo.PROPRIETARIO) {
-      navigate('/owner-property-management');
+    if (isOwner) {
+      navigate('/fertintelligence/owner-property-management');
     } else {
-      navigate('/others-property-management');
+      navigate('/fertintelligence/others-property-management');
     }
   };
 

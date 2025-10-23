@@ -2,11 +2,13 @@ import { Box, Button, VStack, Icon } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { FiSettings } from "react-icons/fi";
+import { useUserStore } from "@/stores/user/user.store";
 
 export default function ConfigMenu() {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Estado para controlar a abertura do menu
-  const menuRef = useRef(null); // Referência para o menu
+  const setUser = useUserStore((state) => state.setUser);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   // Função para lidar com o clique fora do menu
   useEffect(() => {
@@ -25,6 +27,13 @@ export default function ConfigMenu() {
   const handleMenuItemClick = (path: string) => {
     setIsMenuOpen(false); // Fecha o menu
     navigate(path);
+  };
+
+  const handleLogout = () => {
+    setIsMenuOpen(false);
+    sessionStorage.removeItem("fertintelligenceToken");
+    setUser(undefined);
+    navigate("/fertintelligence/", { replace: true });
   };
 
   return (
@@ -82,7 +91,7 @@ export default function ConfigMenu() {
             variant="ghost"
             width="100%"
             justifyContent="flex-start"
-            onClick={() => handleMenuItemClick("/logout")}
+            onClick={handleLogout}
           >
             Sair
           </Button>

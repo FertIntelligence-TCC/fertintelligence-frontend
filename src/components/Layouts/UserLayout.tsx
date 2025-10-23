@@ -39,8 +39,8 @@ export default function UserLayout({ children }: UserLayoutProps) {
         {children}
       </Box>
 
-      {/* Canto inferior direito: alternador de tema */}
-      <Box mt={8} textAlign="center" zIndex = {1}>
+      {/* Canto inferior esquerdo: alternador de tema */}
+      <Box mt={8} textAlign="left" zIndex = {1} alignSelf="flex-start" pl={6}>
         <ToggleTheme />
       </Box>
     </Flex>

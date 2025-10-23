@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useUserStore } from "../stores/user/user.store";
-import { authenticateUser } from "@/services/userService";
+import { authenticateUser, getUser } from "@/services/userService";
 import { SignInPayload } from "@/interfaces/ServicePayload";
 import { User } from "../interfaces/Models";
 import axiosInstace from "../services/axios";
@@ -50,20 +50,21 @@ export default function LoginPage() {
     checkServerHealth();
 
     if (user) return;
-    const payload = sessionStorage.getItem("fertintelligence_user_token");
-    const getUserFromStorage = async (token: string) => {
+    const token = sessionStorage.getItem("fertintelligenceToken");
+    const getUserFromStorage = async (authToken: string) => {
       try {
         const { data } = await axiosInstace.get<User>(`/${ENDPOINT.ME}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${authToken}` },
         });
         setUser(data);
       } catch (error) {
         console.log(error);
-        sessionStorage.removeItem("fertintelligence_user_token");
+        sessionStorage.removeItem("fertintelligenceToken");
+        setServerError("Sessão expirada. Faça login novamente.");
       }
     };
-    if (payload) {
-      getUserFromStorage(payload);
+    if (token) {
+      getUserFromStorage(token);
     }
   }, [navigate, setUser, user]);
 
@@ -78,7 +79,16 @@ export default function LoginPage() {
   const sendSignInForm = useMutation({
     mutationKey: ["authenticateUser"],
     mutationFn: authenticateUser,
-    onSuccess: () => {
+    onSuccess: async () => {
+      try {
+        const authenticatedUser = await getUser();
+        setUser(authenticatedUser);
+      } catch (error) {
+        console.error("Erro ao recuperar usuário autenticado:", error);
+        sessionStorage.removeItem("fertintelligenceToken");
+        setServerError("Não foi possível carregar os dados do usuário. Tente novamente.");
+        return;
+      }
       navigate("/fertintelligence/home");
     },
     onError: (error) => {
