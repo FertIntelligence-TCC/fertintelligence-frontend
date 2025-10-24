@@ -163,7 +163,7 @@ const formStateToPayload = (
         latitudeDirection: form.latitudeDirection,
         longitude: Number(form.longitude),
         longitudeDirection: form.longitudeDirection,
-        altitude: form.altitude !== "" ? Number(form.altitude) : null,
+        altitude: Number(form.altitude),
     },
 });
 
@@ -178,7 +178,7 @@ const formStateToUpdatePayload = (
         latitudeDirection: form.latitudeDirection,
         longitude: Number(form.longitude),
         longitudeDirection: form.longitudeDirection,
-        altitude: form.altitude !== "" ? Number(form.altitude) : null,
+        altitude: Number(form.altitude),
     },
 });
 
@@ -592,7 +592,7 @@ export default function OwnerPropertyManagement() {
                         <Input
                             variant="outline"
                             {...commonFieldStyles}
-                            placeholder="ex: Rodovia PB 031, KM 25, Minicípio Sapé, CEP: XXXXX-XXX"
+                            placeholder="ex: Rodovia PB 031, KM 25, Município Sapé, CEP: XXXXX-XXX"
                             value={createForm.endereco}
                             onChange={(event) =>
                                 setCreateForm((prev) => ({
