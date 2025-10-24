@@ -515,7 +515,7 @@ export default function OwnerPropertyManagement() {
                     ) : properties.length === 0 ? (
                         <Text>Nenhuma propriedade encontrada.</Text>
                     ) : (
-                        <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
+                        <SimpleGrid columns={{ base: 3, md: 4 }} gap={6} alignItems="flex-start">
                             {properties.map((property) => {
                                 const isSelected = selectedPropertyId === property.id;
                                 return (
@@ -575,7 +575,7 @@ export default function OwnerPropertyManagement() {
                     Adicionar Propriedade
                 </Heading>
                 <VStack gap={4} align="stretch">
-                    <Field label="Nome da Propriedade" isRequired>
+                    <Field label="Nome da Propriedade:" isRequired>
                         <Input
                             variant="outline"
                             {...commonFieldStyles}
@@ -588,7 +588,7 @@ export default function OwnerPropertyManagement() {
                             }
                         />
                     </Field>
-                    <Field label="Endereço" isRequired>
+                    <Field label="Endereço:" isRequired>
                         <Input
                             variant="outline"
                             {...commonFieldStyles}
@@ -602,7 +602,7 @@ export default function OwnerPropertyManagement() {
                             }
                         />
                     </Field>
-                    <Field label="CNPJ" isRequired>
+                    <Field label="CNPJ:" isRequired>
                         <Input
                             variant="outline"
                             {...commonFieldStyles}
@@ -617,10 +617,10 @@ export default function OwnerPropertyManagement() {
                         />
                     </Field>
                     <Heading as="h3" size="sm">
-                        Localização geográfica da sede
+                        Localização geográfica da sede:
                     </Heading>
                     <HStack align="start" gap={4}>
-                        <Field label="Latitude" isRequired>
+                        <Field label="Latitude:" isRequired>
                             <Input
                                 type="number"
                                 min={0}
@@ -636,7 +636,7 @@ export default function OwnerPropertyManagement() {
                                 }
                             />
                         </Field>
-                        <Field label="Direção" isRequired>
+                        <Field label="Direção:" isRequired>
                             <SelectElement
                                 value={createForm.latitudeDirection}
                                 onChange={(event: ChangeEvent<HTMLSelectElement>) =>
@@ -654,7 +654,7 @@ export default function OwnerPropertyManagement() {
                         </Field>
                     </HStack>
                     <HStack align="start" gap={4}>
-                        <Field label="Longitude" isRequired>
+                        <Field label="Longitude:" isRequired>
                             <Input
                                 type="number"
                                 min={0}
@@ -670,7 +670,7 @@ export default function OwnerPropertyManagement() {
                                 }
                             />
                         </Field>
-                        <Field label="Direção" isRequired>
+                        <Field label="Direção:" isRequired>
                             <SelectElement
                                 value={createForm.longitudeDirection}
                                 onChange={(event: ChangeEvent<HTMLSelectElement>) =>
@@ -687,7 +687,7 @@ export default function OwnerPropertyManagement() {
                             </SelectElement>
                         </Field>
                     </HStack>
-                    <Field label="Altitude">
+                    <Field label="Altitude, em metros:">
                         <Input
                             type="number"
                             variant="outline"
@@ -719,7 +719,7 @@ export default function OwnerPropertyManagement() {
 
             <DialogContainer isOpen={viewDisclosure.open} onClose={handleCloseView}>
                 <Heading as="h2" size="md" mb={4}>
-                    Detalhes da Propriedade
+                    Detalhes da Propriedade:
                 </Heading>
                 {activeProperty ? (
                     <VStack align="start" gap={3}>
@@ -761,7 +761,7 @@ export default function OwnerPropertyManagement() {
                         </Text>
                         <Text>
                             <Text as="span" fontWeight="bold">
-                                Altitude:
+                                Altitude, em metros:
                             </Text>{" "}
                             {activeProperty.localizacao?.altitude ?? "-"}
                         </Text>
@@ -779,7 +779,7 @@ export default function OwnerPropertyManagement() {
                     Editar Propriedade
                 </Heading>
                 <VStack gap={4} align="stretch">
-                    <Field label="Nome da Propriedade" isRequired>
+                    <Field label="Nome da Propriedade:" isRequired>
                         <Input
                             variant="outline"
                             {...commonFieldStyles}
@@ -792,11 +792,11 @@ export default function OwnerPropertyManagement() {
                             }
                         />
                     </Field>
-                    <Field label="Endereço" isRequired>
+                    <Field label="Endereço:" isRequired>
                         <Input
                             variant="outline"
                             {...commonFieldStyles}
-                            placeholder="ex: Rodovia PB 031, KM 25, Minicípio Sapé, CEP: XXXXX-XXX"
+                            placeholder="ex: Rodovia PB 031, KM 25, Município Sapé, CEP: XXXXX-XXX"
                             value={editForm.endereco}
                             onChange={(event) =>
                                 setEditForm((prev) => ({
@@ -806,7 +806,7 @@ export default function OwnerPropertyManagement() {
                             }
                         />
                     </Field>
-                    <Field label="CNPJ" isRequired>
+                    <Field label="CNPJ:" isRequired>
                         <Input
                             variant="outline"
                             {...commonFieldStyles}
@@ -821,10 +821,10 @@ export default function OwnerPropertyManagement() {
                         />
                     </Field>
                     <Heading as="h3" size="sm">
-                        Localização geográfica da sede
+                        Localização geográfica da sede:
                     </Heading>
                     <HStack align="start" gap={4}>
-                        <Field label="Latitude" isRequired>
+                        <Field label="Latitude:" isRequired>
                             <Input
                                 type="number"
                                 min={0}
@@ -840,7 +840,7 @@ export default function OwnerPropertyManagement() {
                                 }
                             />
                         </Field>
-                        <Field label="Direção" isRequired>
+                        <Field label="Direção:" isRequired>
                             <SelectElement
                                 value={editForm.latitudeDirection}
                                 onChange={(event: ChangeEvent<HTMLSelectElement>) =>
@@ -858,7 +858,7 @@ export default function OwnerPropertyManagement() {
                         </Field>
                     </HStack>
                     <HStack align="start" gap={4}>
-                        <Field label="Longitude" isRequired>
+                        <Field label="Longitude:" isRequired>
                             <Input
                                 type="number"
                                 min={0}
@@ -874,7 +874,7 @@ export default function OwnerPropertyManagement() {
                                 }
                             />
                         </Field>
-                        <Field label="Direção" isRequired>
+                        <Field label="Direção:" isRequired>
                             <SelectElement
                                 value={editForm.longitudeDirection}
                                 onChange={(event: ChangeEvent<HTMLSelectElement>) =>
@@ -891,7 +891,7 @@ export default function OwnerPropertyManagement() {
                             </SelectElement>
                         </Field>
                     </HStack>
-                    <Field label="Altitude">
+                    <Field label="Altitude, em metros:">
                         <Input
                             type="number"
                             variant="outline"
