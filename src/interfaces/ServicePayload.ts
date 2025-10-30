@@ -92,8 +92,8 @@ export interface PropertyCreatePayload { //
 }
 
 export interface PropertyUpdatePayload { //
-  nome?: string;
-  endereco?: string;
-  cnpj?: string;
-  localizacao?: LocalizacaoPayload | null;
+  novo_nome?: string;
+  novo_endereco?: string;
+  novo_cnpj?: string;
+  nova_localizacao?: LocalizacaoPayload;
 }

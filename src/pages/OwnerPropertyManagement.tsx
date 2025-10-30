@@ -170,10 +170,10 @@ const formStateToPayload = (
 const formStateToUpdatePayload = (
     form: PropertyFormState,
 ): PropertyUpdatePayload => ({
-    nome: form.nome || undefined,
-    endereco: form.endereco || undefined,
-    cnpj: form.cnpj || undefined,
-    localizacao: {
+    novo_nome: form.nome || undefined,
+    novo_endereco: form.endereco || undefined,
+    novo_cnpj: form.cnpj || undefined,
+    nova_localizacao: {
         latitude: Number(form.latitude),
         latitudeDirection: form.latitudeDirection,
         longitude: Number(form.longitude),
