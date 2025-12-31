@@ -79,22 +79,27 @@ export default function LoginPage() {
   const sendSignInForm = useMutation({
     mutationKey: ["authenticateUser"],
     mutationFn: authenticateUser,
+  
     onSuccess: async () => {
       try {
         const authenticatedUser = await getUser();
         setUser(authenticatedUser);
+        navigate("/fertintelligence/home");
       } catch (error) {
         console.error("Erro ao recuperar usuário autenticado:", error);
+  
         sessionStorage.removeItem("fertintelligenceToken");
-        setServerError("Não foi possível carregar os dados do usuário. Tente novamente.");
-        return;
+        setServerError(
+          "Não foi possível carregar os dados do usuário. Tente novamente."
+        );
       }
-      navigate("/fertintelligence/home");
     },
+  
     onError: (error) => {
-      console.log(error);
+      alert("Entradas inválidas ou usuário inexistente.");
+      console.log("Erro na autenticação:", error);
     },
-  });
+  });  
 
   const submitLogin = () => {
     if (validateSignIn()) {
