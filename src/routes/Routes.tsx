@@ -9,6 +9,8 @@ import UpdatePassword from "../pages/UpdatePassword";
 import Home from "@/pages/Home";
 import OthersPropertyManagement from "@/pages/OthersPropertyManagement";
 import OwnerPropertyManagement from "@/pages/OwnerPropertyManagement";
+import FertilizerManagement from "@/pages/FertilizerManagement";
+import FertilizationTableManagement from "@/pages/FertilizationTableManagement";
 
 export const PublicRoutes: RouteObject[] = [
   {
@@ -52,10 +54,18 @@ export const PublicRoutes: RouteObject[] = [
     element: <OthersPropertyManagement />,
   },
   {
+    path: "/fertintelligence/fertilization-table-management",
+    element: <FertilizationTableManagement />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management",
+    element: <FertilizerManagement />,
+  },
+  {
     element: <PrivateRoute />,
     children: [
       {
-        path: "/grimoire/home",
+        path: "/fertintelligence/home",
         element: <Home />,
       },
     ],

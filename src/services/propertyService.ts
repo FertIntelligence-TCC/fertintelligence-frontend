@@ -59,3 +59,13 @@ export const getPropertyById = async (id: number): Promise<PropertyResponse> => 
         throw error;
     }
 };
+
+export const fetchApprovedProperties = async (): Promise<PropertyResponse[]> => {
+    try {
+        const response = await api.get<PropertyResponse[]>(ENDPOINT.GET_APPROVED_REQUESTS_BY_USER);
+        return response.data;
+    } catch (error: any) {
+        console.error("Erro ao buscar propriedades aprovadas:", error.response?.data || error.message);
+        throw error;
+    }
+};

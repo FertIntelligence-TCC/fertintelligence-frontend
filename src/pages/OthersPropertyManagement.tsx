@@ -24,7 +24,8 @@ import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import { useUserStore } from "@/stores/user/user.store";
 import { Cargo } from "@/interfaces/ServicePayload";
 import { PropertyResponse } from "@/interfaces/ServiceResponse";
-import { fetchMyProperties } from "@/services/propertyService";
+// ALTERADO: Importando a função correta para buscar propriedades aprovadas
+import { fetchApprovedProperties } from "@/services/propertyService"; 
 
 import { toaster } from "@/components/ui/toaster";
 import DialogContainer from "@/components/Property/DialogContainer";
@@ -43,84 +44,117 @@ const getErrorMessage = (error: unknown) => {
   ) {
     const data = (error as any).response.data as { message?: string } | string;
     if (typeof data === "string") return data;
-    if (data?.message) return data.message;
+    if (data.message) return data.message;
   }
   if (error instanceof Error) return error.message;
-  return "Ocorreu um erro inesperado.";
-};
-
-const normalizeCargo = (cargo?: string) =>
-  cargo
-    ?.normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "")
-    .toUpperCase();
-
-const normalizeText = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-
-/**
- * Rotas reais (do seu listed_routes.txt):
- * - GET  /property/search
- * - POST /property-access/request
- */
-const searchPropertiesByName = async (
-  name: string
-): Promise<PropertyResponse[]> => {
-  const hasName = name.trim().length > 0;
-
-  const { data } = await api.get<PropertyResponse[]>("/property/search", {
-    // Se o backend aceitar, sem params tende a retornar "todas".
-    // Se não aceitar, a mutation faz try/catch no fallback.
-    params: hasName ? { nome: name, name } : undefined,
-  });
-
-  return data;
-};
-
-const requestAccessToProperty = async (propertyId: number) => {
-  const { data } = await api.post("/property-access/request", {
-    propertyId,
-    property_id: propertyId,
-  });
-  return data;
+  return "Erro desconhecido";
 };
 
 export default function OthersPropertyManagement() {
   const { user } = useUserStore();
-
-  const addDisclosure = useDisclosure(); // modal de busca (botão "Adicionar Propriedade")
-  const viewDisclosure = useDisclosure(); // modal de detalhes da propriedade
-
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
-    null
-  );
-  const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(
-    null
-  );
-
-  // Busca
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<PropertyResponse[]>([]);
+  const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(null);
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["myProperties"],
-    queryFn: fetchMyProperties,
-    enabled: !!user,
+  // Modais
+  const addDisclosure = useDisclosure();
+  const viewDisclosure = useDisclosure();
+
+  // Estados para busca de nova propriedade (Modal Adicionar)
+  const [searchName, setSearchName] = useState("");
+  const [foundProperties, setFoundProperties] = useState<PropertyResponse[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // 1. Fetch das propriedades (AGORA BUSCA AS APROVADAS)
+  const {
+    data: approvedProperties, // Renomeado de myProperties para approvedProperties
+    isLoading: isLoadingProps,
+    error: errorProps,
+  } = useQuery({
+    queryKey: ["approvedProperties"], // Chave atualizada
+    queryFn: fetchApprovedProperties, // Função atualizada
   });
 
-  const isOwner =
-    normalizeCargo(user?.cargo) === normalizeCargo(Cargo.PROPRIETARIO);
-  const properties = data ?? [];
+  // Filtragem local baseada no input de busca da tela principal
+  const filteredProperties = useMemo(() => {
+    if (!approvedProperties) return [];
+    return approvedProperties.filter((p) =>
+      p.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, approvedProperties]);
+
+  // Mutation para buscar propriedades por nome (no Modal de solicitação)
+  const searchMutation = useMutation({
+    mutationFn: async (nome: string) => {
+      const response = await api.get<PropertyResponse[]>("/property/search", {
+        params: { nome },
+      });
+      return response.data;
+    },
+    onMutate: () => setIsSearching(true),
+    onSettled: () => setIsSearching(false),
+    onSuccess: (data) => {
+      setFoundProperties(data);
+    },
+    onError: (error) => {
+      toaster.create({
+        title: "Erro na busca",
+        description: getErrorMessage(error),
+        type: "error",
+      });
+    },
+  });
+
+  // Mutation para solicitar acesso
+  const requestAccessMutation = useMutation({
+    mutationFn: async (propertyId: number) => {
+      const response = await api.post("/property-access/request", {
+        id_propriedade: propertyId,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      toaster.create({
+        title: "Sucesso",
+        description: "Solicitação enviada com sucesso!",
+        type: "success",
+      });
+      handleCloseAdd();
+    },
+    onError: (error) => {
+      toaster.create({
+        title: "Erro ao solicitar",
+        description: getErrorMessage(error),
+        type: "error",
+      });
+    },
+  });
+
+  // Handlers
+  const handleSearchProperty = () => {
+    if (searchName.trim().length < 3) {
+      toaster.create({
+        title: "Atenção",
+        description: "Digite pelo menos 3 caracteres para buscar.",
+        type: "warning",
+      });
+      return;
+    }
+    searchMutation.mutate(searchName);
+  };
+
+  const handleOpenAdd = () => {
+    setSearchName("");
+    setFoundProperties([]);
+    addDisclosure.onOpen();
+  };
 
   const handleCloseAdd = () => {
-    setSearchTerm("");
-    setSearchResults([]);
     addDisclosure.onClose();
+  };
+
+  const handleViewDetails = (property: PropertyResponse) => {
+    setActiveProperty(property);
+    viewDisclosure.onOpen();
   };
 
   const handleCloseView = () => {
@@ -128,239 +162,110 @@ export default function OthersPropertyManagement() {
     viewDisclosure.onClose();
   };
 
-  const handlePropertySelection = (property: PropertyResponse) => {
-    setSelectedPropertyId((prev) =>
-      prev === property.id ? null : property.id
-    );
-  };
+  // Verifica permissão (apenas não-proprietários deveriam estar aqui, mas segurança extra não faz mal)
+  const normalizeCargo = (c?: string) =>
+    c
+      ?.normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "")
+      .toUpperCase();
 
-  const openViewModal = (property: PropertyResponse) => {
-    setActiveProperty(property);
-    viewDisclosure.onOpen();
-  };
-
-  // Mesma aparência do Owner (mostra os ícones), mas comportamento restrito
-  const handleRestrictedAction = (_property: PropertyResponse) => {
-    toaster.create({
-      title: "Ação restrita",
-      description:
-        "Somente o proprietário pode editar ou remover propriedades.",
-      type: "info",
-      duration: 4000,
-    });
-  };
-
-  const canSearch = useMemo(() => searchTerm.trim().length > 0, [searchTerm]);
-
-  const searchMutation = useMutation({
-    mutationFn: async (name: string) => {
-      // 1) tenta buscar com o termo (pode ser exato no backend)
-      const first = await searchPropertiesByName(name);
-
-      // 2) se vier vazio, tenta fallback: buscar "todas" e filtrar no front
-      if (first && first.length > 0) return first;
-
-      try {
-        const all = await searchPropertiesByName("");
-        return all ?? [];
-      } catch {
-        // se o backend não aceitar search sem params, mantém vazio
-        return first ?? [];
-      }
-    },
-    onSuccess: (results, searchedName) => {
-      const term = normalizeText(searchedName);
-
-      const matches = (results ?? []).filter((p) =>
-        normalizeText(p.nome ?? "").includes(term)
-      );
-
-      if (matches.length === 0) {
-        alert("Propriedade não encontrada!");
-        setSearchResults([]);
-        return;
-      }
-
-      setSearchResults(matches);
-    },
-    onError: (error) => {
-      toaster.create({
-        title: "Erro ao buscar propriedade.",
-        description: getErrorMessage(error),
-        type: "error",
-        duration: 4000,
-      });
-    },
-  });
-
-  const requestAccessMutation = useMutation({
-    mutationFn: (propertyId: number) => requestAccessToProperty(propertyId),
-    onSuccess: () => {
-      toaster.create({
-        title: "Solicitação enviada.",
-        description: "O proprietário foi notificado para avaliar seu pedido.",
-        type: "success",
-        duration: 4000,
-      });
-    },
-    onError: (error) => {
-      toaster.create({
-        title: "Erro ao solicitar entrada.",
-        description: getErrorMessage(error),
-        type: "error",
-        duration: 4000,
-      });
-    },
-  });
-
-  if (!user) {
-    return (
-      <UserLayout>
-        <FertName subtitle="Gerenciar Propriedades" />
-        <ConfigMenu />
-        <Flex justify="center" align="center" minH="calc(100vh - 200px)">
-          <Spinner size="xl" />
-        </Flex>
-      </UserLayout>
-    );
-  }
-
-  // Proprietário continua indo para a página específica
-  if (isOwner) {
-    return (
-      <Navigate to="/fertintelligence/owner-property-management" replace />
-    );
+  if (user && normalizeCargo(user.cargo) === Cargo.PROPRIETARIO) {
+    return <Navigate to="/fertintelligence/owner-property-management" replace />;
   }
 
   return (
     <UserLayout>
-      <FertName subtitle="Gerenciar Propriedades" />
+      <FertName subtitle="Gerenciamento de Propriedades (Acesso)" />
       <ConfigMenu />
 
-      {/* Layout idêntico ao OwnerPropertyManagement */}
-      <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
-        <Flex direction="column" gap={6}>
-          <Heading as="h1" size="lg" color="white">
-            Minhas Propriedades
-          </Heading>
-
-          {/* Mesmo botão e posição, mas abre a BUSCA */}
-          <Button
-            alignSelf="flex-start"
-            colorScheme="green"
-            onClick={() => {
-              setSearchTerm("");
-              setSearchResults([]);
-              addDisclosure.onOpen();
-            }}
-            display="inline-flex"
-            alignItems="center"
-            gap={2}
-          >
-            <FiPlus />
-            Adicionar Propriedade
-          </Button>
-
-          <Box mt={2}>
-            {isLoading ? (
-              <Flex justify="center" align="center" minH="200px">
-                <Spinner size="lg" />
-              </Flex>
-            ) : isError ? (
-              <Flex direction="column" align="center" gap={4} minH="200px">
-                <Text>Não foi possível carregar as propriedades.</Text>
-                <Button onClick={() => refetch()} colorScheme="blue">
-                  Tentar novamente
-                </Button>
-              </Flex>
-            ) : properties.length === 0 ? (
-              <Text mt={4}>Nenhuma propriedade encontrada.</Text>
-            ) : (
-              <PropertyList
-                properties={properties}
-                selectedPropertyId={selectedPropertyId}
-                onSelect={handlePropertySelection}
-                onView={openViewModal}
-                onEdit={handleRestrictedAction}
-                onDelete={handleRestrictedAction}
+      <Flex
+        direction="column"
+        align="center"
+        justify="flex-start"
+        mt={20}
+        px={4}
+        w="100%"
+        maxW="1200px"
+        mx="auto"
+        gap={6}
+      >
+        {/* Cabeçalho e Barra de Busca */}
+        <Flex w="100%" justify="space-between" align="center" wrap="wrap" gap={4}>
+          <Heading size="md">Propriedades Vinculadas</Heading>
+          
+          <Flex gap={2} w={{ base: "100%", md: "auto" }}>
+            <InputGroup flex="1" startElement={<FiSearch />}>
+              <Input
+                placeholder="Buscar propriedades..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                bg={{ base: "white", _dark: "gray.700" }}
               />
-            )}
-          </Box>
+            </InputGroup>
+            
+            <Button colorScheme="green" leftIcon={<FiPlus />} onClick={handleOpenAdd}>
+              Solicitar Acesso
+            </Button>
+          </Flex>
         </Flex>
-      </Box>
 
-      {/* Modal de busca (acionado pelo botão "Adicionar Propriedade") */}
+        <Separator w="100%" />
+
+        {/* Lista de Propriedades */}
+        {isLoadingProps ? (
+          <Spinner size="xl" mt={10} />
+        ) : errorProps ? (
+          <Text color="red.500">Erro ao carregar propriedades: {getErrorMessage(errorProps)}</Text>
+        ) : (
+          <PropertyList 
+            properties={filteredProperties || []} 
+            onViewDetails={handleViewDetails} 
+          />
+        )}
+      </Flex>
+
+      {/* Modal: Solicitar Acesso (Buscar Propriedade) */}
       <DialogContainer isOpen={addDisclosure.open} onClose={handleCloseAdd}>
-        <VStack align="stretch" gap={4}>
-          <Heading as="h2" size="md">
-            Buscar Propriedade
-          </Heading>
+        <VStack align="stretch" spacing={4}>
+          <Heading size="md">Solicitar Acesso a Propriedade</Heading>
+          <Text fontSize="sm" color="gray.500">
+            Busque pelo nome da propriedade para enviar uma solicitação ao proprietário.
+          </Text>
 
-          <InputGroup
-            endElement={
-              <IconButton
-                aria-label="Buscar"
-                borderRadius="full"
-                size="sm"
-                onClick={() => {
-                  if (!canSearch) return;
-                  searchMutation.mutate(searchTerm.trim());
-                }}
-                isLoading={searchMutation.isPending}
-              >
-                <FiSearch />
-              </IconButton>
-            }
-          >
+          <Flex gap={2}>
             <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Digite o nome da propriedade"
-              onKeyDown={(e) => {
-                if (
-                  e.key === "Enter" &&
-                  canSearch &&
-                  !searchMutation.isPending
-                ) {
-                  searchMutation.mutate(searchTerm.trim());
-                }
-              }}
+              placeholder="Nome da propriedade..."
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
             />
-          </InputGroup>
+            <IconButton
+              aria-label="Buscar"
+              icon={<FiSearch />}
+              onClick={handleSearchProperty}
+              isLoading={isSearching}
+            />
+          </Flex>
 
-          <Box>
-            <Heading as="h3" size="sm" mb={2}>
-              Resultados encontrados
-            </Heading>
-            <Separator mb={4} />
-
-            {searchMutation.isPending ? (
-              <Flex justify="center" align="center" minH="120px">
-                <Spinner size="md" />
-              </Flex>
-            ) : searchResults.length === 0 ? (
-              <Text color="gray.500">
-                Faça uma busca para ver os resultados.
+          <Box maxH="300px" overflowY="auto" mt={2}>
+            {foundProperties.length === 0 && !isSearching && searchName.length > 2 && (
+              <Text fontSize="sm" color="gray.500" textAlign="center">
+                Nenhuma propriedade encontrada.
               </Text>
-            ) : (
-              <VStack align="stretch" gap={4}>
-                {searchResults.map((p) => (
+            )}
+
+            {foundProperties.length > 0 && (
+              <VStack align="stretch" spacing={2}>
+                {foundProperties.map((p) => (
                   <Box
                     key={p.id}
+                    p={3}
                     borderWidth="1px"
                     borderRadius="md"
-                    boxShadow="md"
-                    bg={{ base: "white", _dark: "gray.700" }}
-                    p={4}
+                    _hover={{ bg: "gray.50", _dark: { bg: "gray.700" } }}
                   >
-                    <Heading as="h4" size="sm" mb={2}>
-                      {p.nome}
-                    </Heading>
-
-                    <Text
-                      fontSize="sm"
-                      color={{ base: "gray.600", _dark: "gray.200" }}
-                    >
+                    <Text fontWeight="bold">{p.nome}</Text>
+                    <Text fontSize="xs" color="gray.500">
                       {p.endereco}
                     </Text>
 
@@ -397,7 +302,7 @@ export default function OthersPropertyManagement() {
         </VStack>
       </DialogContainer>
 
-      {/* Modal de detalhes (mesmo do Owner) */}
+      {/* Modal de detalhes (reutiliza visualização padrão) */}
       <DialogContainer isOpen={viewDisclosure.open} onClose={handleCloseView}>
         <PropertyDetails property={activeProperty} />
         <Flex justify="flex-end" mt={6}>

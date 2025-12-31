@@ -67,7 +67,7 @@ export default function Home() {
             </Button>
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/gerenciar-tabelas-adubacao")}
+              onClick={() => navigate("/fertintelligence/fertilization-table-manegement")}
               h="50px"
               fontSize="md"
             >
@@ -75,7 +75,7 @@ export default function Home() {
             </Button>
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/gerenciar-adubos")}
+              onClick={() => navigate("/fertintelligence/fertilizer-management")}
               h="50px"
               fontSize="md"
             >
