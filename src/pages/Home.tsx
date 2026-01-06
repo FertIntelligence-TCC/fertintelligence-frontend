@@ -67,7 +67,7 @@ export default function Home() {
             </Button>
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/fertintelligence/fertilization-table-manegement")}
+              onClick={() => navigate("/fertintelligence/fertilization-table-management")}
               h="50px"
               fontSize="md"
             >
