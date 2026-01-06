@@ -1,16 +1,16 @@
 import { RouteObject } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
 import LoginPage from "../pages/Login";
-import SignUpPage from "../pages/Signup";
-import UpdateProfile from "../pages/UpdateProfile";
-import DeleteProfile from "../pages/DeleteProfile";
-import PasswordVerification from "../pages/UpdateVerification";
-import UpdatePassword from "../pages/UpdatePassword";
+import SignUpPage from "../pages/profile/Signup";
+import UpdateProfile from "../pages/profile/UpdateProfile";
+import DeleteProfile from "../pages/profile/DeleteProfile";
+import PasswordVerification from "../pages/profile/UpdateVerification";
+import UpdatePassword from "../pages/profile/UpdatePassword";
 import Home from "@/pages/Home";
-import OthersPropertyManagement from "@/pages/OthersPropertyManagement";
-import OwnerPropertyManagement from "@/pages/OwnerPropertyManagement";
-import FertilizerManagement from "@/pages/FertilizerManagement";
-import FertilizationTableManagement from "@/pages/FertilizationTableManagement";
+import OthersPropertyManagement from "@/pages/property/OthersPropertyManagement";
+import OwnerPropertyManagement from "@/pages/property/OwnerPropertyManagement";
+import FertilizerManagement from "@/pages/fertilizer/FertilizerManagement";
+import FertilizationTableManagement from "@/pages/fertilization-table/FertilizationTableManagement";
 
 export const PublicRoutes: RouteObject[] = [
   {

@@ -93,7 +93,7 @@ export default function FertilizerManagement() {
             <VStack spacing={4} align="stretch">
                 <Button
                 colorScheme="green"
-                onClick={() => navigate("/mineral-fertilizer-foliar")}
+                onClick={() => navigate("/foliar-mineral-fertilizer")}
                 h="50px"
                 fontSize="md"
                 >
