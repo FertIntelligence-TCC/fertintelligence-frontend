@@ -11,6 +11,15 @@ import OthersPropertyManagement from "@/pages/property/OthersPropertyManagement"
 import OwnerPropertyManagement from "@/pages/property/OwnerPropertyManagement";
 import FertilizerManagement from "@/pages/fertilizer/FertilizerManagement";
 import FertilizationTableManagement from "@/pages/fertilization-table/FertilizationTableManagement";
+import CropFertilizationTable from "@/pages/fertilization-table/CropFertilizationTable";
+import FoliarAnalysisInterpretationTable from "@/pages/fertilization-table/FoliarAnalysisInterpretationTable";
+import SoilFertilityInterpretationTable from "@/pages/fertilization-table/SoilFertilityInterpretationTable";
+import BioFertilizer from "@/pages/fertilizer/BioFertilizer";
+import ChelatedFertilizer from "@/pages/fertilizer/ChelatedFertilizer";
+import FoliarMineralFertilizer from "@/pages/fertilizer/FoliarMineralFertilizer";
+import FormulatedMineralFertilizer from "@/pages/fertilizer/FormulatedMineralFertilizer";
+import GreenFertilizer from "@/pages/fertilizer/GreenFertilizer";
+import SimpleMineralFertilizer from "@/pages/fertilizer/SimpleMineralFertilizer";
 
 export const PublicRoutes: RouteObject[] = [
   {
@@ -60,6 +69,46 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/fertilizer-management",
     element: <FertilizerManagement />,
+  },
+  {
+    path: "/fertintelligence/fertilization-table-management/crop-fertilization-table",
+    element: <CropFertilizationTable />,
+  },
+  {
+    path: "/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table",
+    element: <FoliarAnalysisInterpretationTable />,
+  },
+  {
+    path: "/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table",
+    element: <SoilFertilityInterpretationTable />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/bio-fertilizer",
+    element: <BioFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/chelated-fertilizer",
+    element: <ChelatedFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/foliar-fertilizer",
+    element: <FoliarMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/formulated-mineral-fertilizer",
+    element: <FormulatedMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/green-fertilizer",
+    element: <GreenFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/organo-mineral-fertilizer",
+    element: <OrnagoMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/simple-mineral-fertilizer",
+    element: <SimpleMineralFertilizer />,
   },
   {
     element: <PrivateRoute />,
