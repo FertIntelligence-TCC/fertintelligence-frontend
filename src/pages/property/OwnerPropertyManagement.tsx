@@ -267,44 +267,6 @@ export default function OwnerPropertyManagement() {
         }));
     };
 
-    if (!user) {
-        return (
-            <UserLayout>
-                <FertName subtitle="Gerenciar Propriedades" />
-                <ConfigMenu />
-                <Flex justify="center" align="center" minH="calc(100vh - 200px)">
-                    <Spinner size="xl" />
-                </Flex>
-            </UserLayout>
-        );
-    }
-
-    if (!isOwner) {
-        return (
-            <UserLayout>
-                <FertName subtitle="Gerenciar Propriedades" />
-                <ConfigMenu />
-                <Flex justify="center" align="center" minH="calc(100vh - 200px)">
-                    <Box
-                        p={8}
-                        borderWidth="1px"
-                        borderRadius="md"
-                        boxShadow="md"
-                        w={{ base: "100%", md: "60%", lg: "40%" }}
-                        bg={{ base: "white", _dark: "gray.700" }}
-                    >
-                        <Heading as="h2" size="md" mb={4}>
-                            Acesso restrito
-                        </Heading>
-                        <Text>
-                            Apenas usuários com o cargo de Proprietário podem gerenciar propriedades.
-                        </Text>
-                    </Box>
-                </Flex>
-            </UserLayout>
-        );
-    }
-
     return (
         <UserLayout>
             <FertName subtitle="Gerenciar Propriedades" />

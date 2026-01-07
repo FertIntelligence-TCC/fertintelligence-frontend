@@ -40,7 +40,7 @@ export default function FertilizationTableManagement() {
           <VStack spacing={4} align="stretch">
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/crop-fertilization-table")}
+              onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table")}
               h="auto" // Altura automática para suportar quebras de linha se necessário
               py={4}
               fontSize="md"

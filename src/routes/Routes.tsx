@@ -20,6 +20,7 @@ import FoliarMineralFertilizer from "@/pages/fertilizer/FoliarMineralFertilizer"
 import FormulatedMineralFertilizer from "@/pages/fertilizer/FormulatedMineralFertilizer";
 import GreenFertilizer from "@/pages/fertilizer/GreenFertilizer";
 import SimpleMineralFertilizer from "@/pages/fertilizer/SimpleMineralFertilizer";
+import OrganoMineralFertilizer from "@/pages/fertilizer/OrganoMineralFertilizer"; // Import Adicionado
 
 export const PublicRoutes: RouteObject[] = [
   {
@@ -104,7 +105,7 @@ export const PublicRoutes: RouteObject[] = [
   },
   {
     path: "/fertintelligence/fertilizer-management/organo-mineral-fertilizer",
-    element: <OrnagoMineralFertilizer />,
+    element: <OrganoMineralFertilizer />, // Nome Corrigido (Era Ornago...)
   },
   {
     path: "/fertintelligence/fertilizer-management/simple-mineral-fertilizer",
