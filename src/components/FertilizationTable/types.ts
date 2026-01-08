@@ -1,18 +1,18 @@
 // src/components/FertilizationTable/types.ts
 
-// --- Enums do Backend (devem dar match com os Enums Java) ---
+// --- Enums do Backend ---
 
 export enum SpacingType {
-    ENTRE_LINHAS = "ENTRE_LINHAS",
-    ENTRE_PLANTAS_COVAS = "ENTRE_PLANTAS_COVAS",
-    PLANTAS_POR_METRO_LINEAR = "PLANTAS_POR_METRO_LINEAR"
+    ENTRE_LINHAS = "BETWEEN_LINES_IN_METERS",
+    ENTRE_PLANTAS_COVAS = "BETWEEN_PLANTS_OR_HOLES_IN_METERS",
+    PLANTAS_POR_METRO_LINEAR = "PLANTAS_PER_LINEAR_METER"
 }
 
 export enum LimingCriteria {
-    SATURACAO_POR_BASES = "SATURACAO_POR_BASES",
-    NEUTRALIZACAO_AL_TROCAVEL = "NEUTRALIZACAO_AL_TROCAVEL",
-    ELEVACAO_TEOR_CA_MG = "ELEVACAO_TEOR_CA_MG",
-    NEUTRALIZACAO_AL_ELEVACAO_CA_MG = "NEUTRALIZACAO_AL_ELEVACAO_CA_MG"
+    SATURACAO_POR_BASES = "SATURACAO_POR_BASES_TROCAVEIS",
+    NEUTRALIZACAO_AL_TROCAVEL = "NEUTRALIZACAO_ALUMINIO_TROCAVEL",
+    ELEVACAO_TEOR_CA_MG = "ELEVACAO__DO_TEOR_DE_CALCIO_MAIS_MAGNESIO",
+    NEUTRALIZACAO_AL_ELEVACAO_CA_MG = "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL_MAIS_ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO"
 }
 
 export enum ManureType {
@@ -20,16 +20,52 @@ export enum ManureType {
     CAPRINO = "CAPRINO",
     OVINO = "OVINO",
     FRANGO = "FRANGO",
-    TORTA_MAMONA = "TORTA_MAMONA"
+    TORTA_MAMONA = "TORTAS"
 }
 
-export enum NutrientType {
-    N = "N",
-    P2O5 = "P2O5",
-    K2O = "K2O"
+// Novo Enum para Nome Comum da Cultura
+export enum CropType {
+    ALGODAO = "ALGODAO",
+    AMENDOIM = "AMENDOIM",
+    CANA_DE_ACUCAR = "CANA_DE_ACUCAR",
+    FEIJAO_CAUPI = "FEIJAO_CAUPI",
+    FEIJAO_COMUM = "FEIJAO_COMUM",
+    GERGELIM = "GERGELIM",
+    MAMONA = "MAMONA",
+    MILHO = "MILHO",
+    SISAL = "SISAL",
+    SOJA = "SOJA"
 }
 
-// --- Labels para Exibição no Frontend ---
+// --- Mapeamentos e Labels ---
+
+// Mapeamento automático para Nome Científico
+export const CropScientificNames: Record<CropType, string> = {
+    [CropType.ALGODAO]: "Gossypium_hirsutum",
+    [CropType.AMENDOIM]: "Arachis_hypogaea",
+    [CropType.CANA_DE_ACUCAR]: "Saccharum_officinarum",
+    [CropType.FEIJAO_CAUPI]: "Vigna_unguiculata",
+    [CropType.FEIJAO_COMUM]: "Phaseolus_vulgaris",
+    [CropType.GERGELIM]: "Sesamum_indicum",
+    [CropType.MAMONA]: "Ricinus_communis",
+    [CropType.MILHO]: "Zea_mays",
+    [CropType.SISAL]: "Agave_sisalana",
+    [CropType.SOJA]: "Glycine_max"
+};
+
+// Labels amigáveis para o Select (Opcional, mas melhora a UX)
+export const CropLabels: Record<CropType, string> = {
+    [CropType.ALGODAO]: "Algodão",
+    [CropType.AMENDOIM]: "Amendoim",
+    [CropType.CANA_DE_ACUCAR]: "Cana-de-açúcar",
+    [CropType.FEIJAO_CAUPI]: "Feijão-caupi",
+    [CropType.FEIJAO_COMUM]: "Feijão-comum",
+    [CropType.GERGELIM]: "Gergelim",
+    [CropType.MAMONA]: "Mamona",
+    [CropType.MILHO]: "Milho",
+    [CropType.SISAL]: "Sisal",
+    [CropType.SOJA]: "Soja"
+};
 
 export const SpacingLabels: Record<SpacingType, string> = {
     [SpacingType.ENTRE_LINHAS]: "Entre linhas",
@@ -52,18 +88,19 @@ export const ManureLabels: Record<ManureType, string> = {
     [ManureType.TORTA_MAMONA]: "Torta Mamona"
 };
 
-// --- Tipos de Estado do Formulário (Frontend UI State) ---
+// --- Tipos de Estado do Formulário ---
 
 export type NutrientRangeRow = {
-    id: string; // ID temporário para key do React
-    label: string; // Ex: "P2O5 < 10"
+    id: string; 
+    label: string; 
+    operatorType: "less" | "between" | "more"; 
     plantio: string; 
     coberturas: string[]; 
 };
 
 export type FertilizationTableFormState = {
     id?: number;
-    nomeComum: string;
+    nomeComum: CropType | ""; // Agora é tipado com o Enum ou vazio
     nomeCientifico: string;
     cultivares: string;
     
@@ -89,24 +126,17 @@ export type FertilizationTableFormState = {
     sugestaoP: string;
     sugestaoK: string;
 
-    // Campos Dinâmicos da Tabela
     coberturaLabels: string[]; 
-    
-    // Nitrogênio (Linha Única Fixa)
     plantioN: string;
     coberturasN: string[];
-
-    // Fósforo (Múltiplas Faixas)
     faixasP: NutrientRangeRow[];
-
-    // Potássio (Múltiplas Faixas)
     faixasK: NutrientRangeRow[];
 
     observacoes: string;
 };
 
 export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
-    nomeComum: "",
+    nomeComum: "", // Inicializa vazio
     nomeCientifico: "",
     cultivares: "",
     espacamentoSugeridoTipo: SpacingType.ENTRE_LINHAS,
