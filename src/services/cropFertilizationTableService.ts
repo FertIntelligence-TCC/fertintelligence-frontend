@@ -20,5 +20,5 @@ export const updateCropFertilizationTable = async (payload: CropFertilizationTab
 };
 
 export const deleteCropFertilizationTable = async (id: number): Promise<void> => {
-    await api.delete(`${ENDPOINT}/delete`, { params: { id } });
+    await api.delete(`${ENDPOINT}/delete`, { params: { tableId: id } });
 };

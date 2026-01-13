@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
     Box, HStack, Input, Text, VStack, chakra, Heading, Button, 
-    Table, Grid, GridItem, Flex
+    Table, Grid, Flex
 } from "@chakra-ui/react";
 import { FiPlus, FiMinus } from "react-icons/fi";
 import { 
@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/popover";
 import { 
     FertilizationTableFormState, SpacingType, LimingCriteria, ManureType, NutrientRangeRow,
-    SpacingLabels, LimingLabels, ManureLabels, CropType, CropScientificNames, CropLabels
+    SpacingLabels, LimingLabels, ManureLabels, CropType, CropScientificNames, CropLabels,
+    RegionType, RegionLabels
 } from "./types";
 
 const SelectElement = chakra("select");
@@ -23,25 +24,36 @@ const commonFieldStyles = {
     _hover: { borderColor: "gray.400" },
     _focus: { borderColor: "green.500", boxShadow: "0 0 0 1px var(--chakra-colors-green-500)" },
     _dark: { bg: "gray.800", borderColor: "gray.600", color: "white" },
+    // CORREÇÃO VISUAL: Estilo para inputs desabilitados (Modo Leitura)
+    _disabled: { 
+        opacity: 1, 
+        cursor: "not-allowed", 
+        bg: "gray.100", 
+        color: "gray.700",
+        borderColor: "gray.300",
+        _dark: { bg: "gray.700", color: "gray.300", borderColor: "gray.600" }
+    },
+    _readOnly: {
+        opacity: 1, 
+        cursor: "not-allowed", 
+        bg: "gray.100",
+        color: "gray.700",
+        _dark: { bg: "gray.700", color: "gray.300" }
+    }
 };
 
-const readOnlyFieldStyles = {
-    ...commonFieldStyles,
-    bg: "gray.100",
-    _dark: { bg: "gray.700", borderColor: "gray.600", color: "gray.300" },
-    cursor: "not-allowed",
-    _focus: { boxShadow: "none", borderColor: "gray.300" }
+const selectFieldStyles = { 
+    ...commonFieldStyles, 
+    px: 3, 
+    py: 2, 
+    cursor: "pointer" 
 };
 
-const selectFieldStyles = { ...commonFieldStyles, px: 3, py: 2, cursor: "pointer" };
-
-// Estilos específicos para células de cabeçalho no Dark Mode
 const headerCellStyles = {
     bg: "gray.100",
     _dark: { bg: "gray.700", color: "gray.200", borderColor: "gray.600" }
 };
 
-// Estilos para linhas divisórias (Fósforo/Potássio)
 const sectionHeaderStyles = {
     bg: "gray.200",
     fontWeight: "bold",
@@ -53,9 +65,9 @@ const sectionHeaderStyles = {
 type Props = {
     form: FertilizationTableFormState;
     onFormChange: (field: keyof FertilizationTableFormState, value: any) => void;
+    readOnly?: boolean;
 };
 
-// ... [O código do AddRangePopover permanece o mesmo] ...
 const AddRangePopover = ({ type, currentCount, onAdd }: { type: "P2O5" | "K2O", currentCount: number, onAdd: (label: string, operator: "less" | "between" | "more") => void }) => {
     const [mode, setMode] = useState<"less" | "between" | "more">("between");
     const [n1, setN1] = useState("");
@@ -105,9 +117,8 @@ const AddRangePopover = ({ type, currentCount, onAdd }: { type: "P2O5" | "K2O", 
         </PopoverRoot>
     );
 };
-// ... [Fim do AddRangePopover] ...
 
-export default function FertilizationTableFormFields({ form, onFormChange }: Props) {
+export default function FertilizationTableFormFields({ form, onFormChange, readOnly = false }: Props) {
     
     const handleCropChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedCrop = e.target.value as CropType;
@@ -173,6 +184,7 @@ export default function FertilizationTableFormFields({ form, onFormChange }: Pro
                         value={form.nomeComum} 
                         onChange={handleCropChange}
                         placeholder="Selecione uma cultura"
+                        disabled={readOnly}
                     >
                         {Object.values(CropType).map(key => (
                             <option key={key} value={key}>{CropLabels[key]}</option>
@@ -181,12 +193,28 @@ export default function FertilizationTableFormFields({ form, onFormChange }: Pro
                 </Box>
                 <Box>
                     <Text fontWeight="semibold" mb={1} fontSize="sm" _dark={{ color: "gray.300" }}>Nome científico:</Text>
-                    <Input {...readOnlyFieldStyles} value={form.nomeCientifico} isReadOnly tabIndex={-1} />
+                    <Input {...commonFieldStyles} value={form.nomeCientifico} readOnly={true} tabIndex={-1} />
                 </Box>
-                <GridItem colSpan={{ base: 1, md: 2 }}>
+                
+                <Box>
+                    <Text fontWeight="semibold" mb={1} fontSize="sm" _dark={{ color: "gray.300" }}>Região:</Text>
+                    <SelectElement 
+                        {...selectFieldStyles} 
+                        value={form.regiao} 
+                        onChange={(e: any) => onFormChange("regiao", e.target.value)}
+                        placeholder="Selecione a região"
+                        disabled={readOnly}
+                    >
+                        {Object.values(RegionType).map(key => (
+                            <option key={key} value={key}>{RegionLabels[key]}</option>
+                        ))}
+                    </SelectElement>
+                </Box>
+
+                <Box>
                     <Text fontWeight="semibold" mb={1} fontSize="sm" _dark={{ color: "gray.300" }}>Cultivares:</Text>
-                    <Input {...commonFieldStyles} value={form.cultivares} onChange={(e) => onFormChange("cultivares", e.target.value)} />
-                </GridItem>
+                    <Input {...commonFieldStyles} value={form.cultivares} onChange={(e) => onFormChange("cultivares", e.target.value)} readOnly={readOnly} />
+                </Box>
             </Grid>
 
             {/* 2. Parâmetros Técnicos */}
@@ -195,34 +223,34 @@ export default function FertilizationTableFormFields({ form, onFormChange }: Pro
                 <Box borderWidth="1px" p={3} borderRadius="md" bg="gray.50" _dark={{ bg: "gray.700", borderColor: "gray.600" }}>
                     <Text fontWeight="bold" mb={2} fontSize="xs" textTransform="uppercase" color="gray.500" _dark={{ color: "gray.400" }}>Espaçamento Sugerido</Text>
                     <VStack gap={2}>
-                        <SelectElement {...selectFieldStyles} value={form.espacamentoSugeridoTipo} onChange={(e: any) => onFormChange("espacamentoSugeridoTipo", e.target.value)}>
+                        <SelectElement {...selectFieldStyles} value={form.espacamentoSugeridoTipo} onChange={(e: any) => onFormChange("espacamentoSugeridoTipo", e.target.value)} disabled={readOnly}>
                             {Object.values(SpacingType).map(key => <option key={key} value={key}>{SpacingLabels[key]}</option>)}
                         </SelectElement>
                         <HStack width="full">
-                            <Input placeholder="Mín (m)" type="number" {...commonFieldStyles} value={form.espacamentoSugeridoMin} onChange={(e) => onFormChange("espacamentoSugeridoMin", e.target.value)} />
-                            <Input placeholder="Máx (m)" type="number" {...commonFieldStyles} value={form.espacamentoSugeridoMax} onChange={(e) => onFormChange("espacamentoSugeridoMax", e.target.value)} />
+                            <Input placeholder="Mín (m)" type="number" {...commonFieldStyles} value={form.espacamentoSugeridoMin} onChange={(e) => onFormChange("espacamentoSugeridoMin", e.target.value)} readOnly={readOnly} />
+                            <Input placeholder="Máx (m)" type="number" {...commonFieldStyles} value={form.espacamentoSugeridoMax} onChange={(e) => onFormChange("espacamentoSugeridoMax", e.target.value)} readOnly={readOnly} />
                         </HStack>
                     </VStack>
                 </Box>
                 <Box borderWidth="1px" p={3} borderRadius="md" bg="gray.50" _dark={{ bg: "gray.700", borderColor: "gray.600" }}>
                     <Text fontWeight="bold" mb={2} fontSize="xs" textTransform="uppercase" color="gray.500" _dark={{ color: "gray.400" }}>Espaçamento Usado na Região</Text>
                     <VStack gap={2}>
-                        <SelectElement {...selectFieldStyles} value={form.espacamentoUsadoTipo} onChange={(e: any) => onFormChange("espacamentoUsadoTipo", e.target.value)}>
+                        <SelectElement {...selectFieldStyles} value={form.espacamentoUsadoTipo} onChange={(e: any) => onFormChange("espacamentoUsadoTipo", e.target.value)} disabled={readOnly}>
                             {Object.values(SpacingType).map(key => <option key={key} value={key}>{SpacingLabels[key]}</option>)}
                         </SelectElement>
-                        <Input placeholder="Valor (m)" type="number" {...commonFieldStyles} value={form.espacamentoUsadoValor} onChange={(e) => onFormChange("espacamentoUsadoValor", e.target.value)} />
+                        <Input placeholder="Valor (m)" type="number" {...commonFieldStyles} value={form.espacamentoUsadoValor} onChange={(e) => onFormChange("espacamentoUsadoValor", e.target.value)} readOnly={readOnly} />
                     </VStack>
                 </Box>
             </Grid>
 
             <HStack gap={4}>
-                <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Prod. Regional (Kg/ha):</Text><Input type="number" {...commonFieldStyles} value={form.produtividadeRegional} onChange={(e) => onFormChange("produtividadeRegional", e.target.value)} /></Box>
-                <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Prod. Esperada (Kg/ha):</Text><Input type="number" {...commonFieldStyles} value={form.produtividadeEsperada} onChange={(e) => onFormChange("produtividadeEsperada", e.target.value)} /></Box>
+                <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Prod. Regional (Kg/ha):</Text><Input type="number" {...commonFieldStyles} value={form.produtividadeRegional} onChange={(e) => onFormChange("produtividadeRegional", e.target.value)} readOnly={readOnly} /></Box>
+                <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Prod. Esperada (Kg/ha):</Text><Input type="number" {...commonFieldStyles} value={form.produtividadeEsperada} onChange={(e) => onFormChange("produtividadeEsperada", e.target.value)} readOnly={readOnly} /></Box>
             </HStack>
 
             <Box>
                 <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Critério de Calagem:</Text>
-                <SelectElement {...selectFieldStyles} value={form.criterioCalagem} onChange={(e: any) => onFormChange("criterioCalagem", e.target.value)}>
+                <SelectElement {...selectFieldStyles} value={form.criterioCalagem} onChange={(e: any) => onFormChange("criterioCalagem", e.target.value)} disabled={readOnly}>
                     {Object.values(LimingCriteria).map(key => <option key={key} value={key}>{LimingLabels[key]}</option>)}
                 </SelectElement>
             </Box>
@@ -232,28 +260,24 @@ export default function FertilizationTableFormFields({ form, onFormChange }: Pro
             <HStack align="end" gap={4}>
                 <Box flex={1}>
                     <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Sugestão de Esterco:</Text>
-                    <SelectElement {...selectFieldStyles} value={form.sugestaoEstercoTipo} onChange={(e: any) => onFormChange("sugestaoEstercoTipo", e.target.value)}>
+                    <SelectElement {...selectFieldStyles} value={form.sugestaoEstercoTipo} onChange={(e: any) => onFormChange("sugestaoEstercoTipo", e.target.value)} disabled={readOnly}>
                         {Object.values(ManureType).map(key => <option key={key} value={key}>{ManureLabels[key]}</option>)}
                     </SelectElement>
                 </Box>
-                <Box w="140px"><Text fontWeight="semibold" fontSize="xs" mb={1} color="gray.500" _dark={{ color: "gray.400" }}>Qtd (t/ha)</Text><Input placeholder="0.0" type="number" {...commonFieldStyles} value={form.sugestaoEstercoQtd} onChange={(e) => onFormChange("sugestaoEstercoQtd", e.target.value)} /></Box>
+                <Box w="140px"><Text fontWeight="semibold" fontSize="xs" mb={1} color="gray.500" _dark={{ color: "gray.400" }}>Qtd (t/ha)</Text><Input placeholder="0.0" type="number" {...commonFieldStyles} value={form.sugestaoEstercoQtd} onChange={(e) => onFormChange("sugestaoEstercoQtd", e.target.value)} readOnly={readOnly} /></Box>
             </HStack>
 
             <HStack gap={4}>
-                <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Gessagem (t/ha):</Text><Input type="number" {...commonFieldStyles} value={form.sugestaoGessagem} onChange={(e) => onFormChange("sugestaoGessagem", e.target.value)} /></Box>
-                <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Micronutrientes (g/ha):</Text><Input type="number" {...commonFieldStyles} value={form.sugestaoMicronutrientes} onChange={(e) => onFormChange("sugestaoMicronutrientes", e.target.value)} /></Box>
+                <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Gessagem (t/ha):</Text><Input type="number" {...commonFieldStyles} value={form.sugestaoGessagem} onChange={(e) => onFormChange("sugestaoGessagem", e.target.value)} readOnly={readOnly} /></Box>
+                <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Micronutrientes (g/ha):</Text><Input type="number" {...commonFieldStyles} value={form.sugestaoMicronutrientes} onChange={(e) => onFormChange("sugestaoMicronutrientes", e.target.value)} readOnly={readOnly} /></Box>
             </HStack>
             
             <Box>
                 <Text fontWeight="semibold" fontSize="sm" mb={1} _dark={{ color: "gray.300" }}>Sugestão Adubação NPK (Kg/ha):</Text>
-                <HStack>
-                    <Input placeholder="N" type="number" {...commonFieldStyles} value={form.sugestaoN} onChange={(e) => onFormChange("sugestaoN", e.target.value)} />
-                    <Input placeholder="P2O5" type="number" {...commonFieldStyles} value={form.sugestaoP} onChange={(e) => onFormChange("sugestaoP", e.target.value)} />
-                    <Input placeholder="K2O" type="number" {...commonFieldStyles} value={form.sugestaoK} onChange={(e) => onFormChange("sugestaoK", e.target.value)} />
-                </HStack>
+                <Input placeholder="Valor NPK" type="number" {...commonFieldStyles} value={form.sugestaoNPK} onChange={(e) => onFormChange("sugestaoNPK", e.target.value)} readOnly={readOnly} />
             </Box>
 
-            {/* 4. Tabela de Faixas de Teores (Corrigida para Dark Mode) */}
+            {/* 4. Tabela de Faixas de Teores */}
             <Box mt={4} borderTopWidth="2px" pt={4} _dark={{ borderColor: "gray.600" }}>
                 <Flex justify="space-between" align="center" mb={3}><Heading size="md" _dark={{ color: "white" }}>Tabela de Faixas de Teores</Heading></Flex>
                 <Box overflowX="auto" borderWidth="1px" borderRadius="md" bg="white" _dark={{ bg: "gray.800", borderColor: "gray.600" }}>
@@ -264,10 +288,12 @@ export default function FertilizationTableFormFields({ form, onFormChange }: Pro
                                 <Table.ColumnHeader minW="100px" {...headerCellStyles}>Plantio (kg/ha)</Table.ColumnHeader>
                                 {form.coberturaLabels.map((lbl, idx) => (<Table.ColumnHeader key={idx} minW="100px" {...headerCellStyles}>{lbl}</Table.ColumnHeader>))}
                                 <Table.ColumnHeader minW="140px" {...headerCellStyles}>
-                                    <HStack gap={1}>
-                                        <Button size="xs" colorScheme="blue" variant="solid" onClick={addCoverageColumn} title="Adicionar Cobertura">(+) Cob.</Button>
-                                        <Button size="xs" colorScheme="red" variant="outline" onClick={removeCoverageColumn} disabled={form.coberturaLabels.length <= 1} title="Remover última cobertura">(-) Cob.</Button>
-                                    </HStack>
+                                    {!readOnly && (
+                                        <HStack gap={1}>
+                                            <Button size="xs" colorScheme="blue" variant="solid" onClick={addCoverageColumn} title="Adicionar Cobertura">(+) Cob.</Button>
+                                            <Button size="xs" colorScheme="red" variant="outline" onClick={removeCoverageColumn} disabled={form.coberturaLabels.length <= 1} title="Remover última cobertura">(-) Cob.</Button>
+                                        </HStack>
+                                    )}
                                 </Table.ColumnHeader>
                             </Table.Row>
                         </Table.Header>
@@ -275,8 +301,8 @@ export default function FertilizationTableFormFields({ form, onFormChange }: Pro
                             {/* Nitrogênio */}
                             <Table.Row bg="blue.50" _dark={{ bg: "whiteAlpha.100" }}>
                                 <Table.Cell fontWeight="bold" _dark={{ color: "blue.200" }}>Nitrogênio (N)</Table.Cell>
-                                <Table.Cell><Input size="sm" type="number" {...commonFieldStyles} value={form.plantioN} onChange={(e) => updateRowValue("N", null, "plantio", e.target.value)} /></Table.Cell>
-                                {form.coberturasN.map((val, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={val} onChange={(e) => updateRowValue("N", null, idx, e.target.value)} /></Table.Cell>))}
+                                <Table.Cell><Input size="sm" type="number" {...commonFieldStyles} value={form.plantioN} onChange={(e) => updateRowValue("N", null, "plantio", e.target.value)} readOnly={readOnly} /></Table.Cell>
+                                {form.coberturasN.map((val, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={val} onChange={(e) => updateRowValue("N", null, idx, e.target.value)} readOnly={readOnly} /></Table.Cell>))}
                                 <Table.Cell bg="transparent" />
                             </Table.Row>
 
@@ -285,43 +311,47 @@ export default function FertilizationTableFormFields({ form, onFormChange }: Pro
                             {form.faixasP.map((row) => (
                                  <Table.Row key={row.id} _dark={{ bg: "transparent" }}>
                                     <Table.Cell fontSize="sm" _dark={{ color: "gray.200" }}>{row.label}</Table.Cell>
-                                    <Table.Cell><Input size="sm" type="number" {...commonFieldStyles} value={row.plantio} onChange={(e) => updateRowValue("P", row.id, "plantio", e.target.value)} /></Table.Cell>
-                                    {row.coberturas.map((val, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={val} onChange={(e) => updateRowValue("P", row.id, idx, e.target.value)} /></Table.Cell>))}
+                                    <Table.Cell><Input size="sm" type="number" {...commonFieldStyles} value={row.plantio} onChange={(e) => updateRowValue("P", row.id, "plantio", e.target.value)} readOnly={readOnly} /></Table.Cell>
+                                    {row.coberturas.map((val, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={val} onChange={(e) => updateRowValue("P", row.id, idx, e.target.value)} readOnly={readOnly} /></Table.Cell>))}
                                     <Table.Cell bg="transparent"></Table.Cell>
                                  </Table.Row>
                             ))}
-                            <Table.Row>
-                                <Table.Cell colSpan={10} p={3}>
-                                    <VStack align="start" gap={2}>
-                                        <AddRangePopover type="P2O5" currentCount={form.faixasP.length} onAdd={(lbl, op) => addRangeRow("P", lbl, op)} />
-                                        <Button size="sm" variant="ghost" colorScheme="red" onClick={() => removeLastRangeRow("P")} isDisabled={form.faixasP.length === 0}><FiMinus /> Remover faixa</Button>
-                                    </VStack>
-                                </Table.Cell>
-                            </Table.Row>
+                            {!readOnly && (
+                                <Table.Row>
+                                    <Table.Cell colSpan={10} p={3}>
+                                        <VStack align="start" gap={2}>
+                                            <AddRangePopover type="P2O5" currentCount={form.faixasP.length} onAdd={(lbl, op) => addRangeRow("P", lbl, op)} />
+                                            <Button size="sm" variant="ghost" colorScheme="red" onClick={() => removeLastRangeRow("P")} isDisabled={form.faixasP.length === 0}><FiMinus /> Remover faixa</Button>
+                                        </VStack>
+                                    </Table.Cell>
+                                </Table.Row>
+                            )}
 
                             {/* Potássio */}
                             <Table.Row><Table.Cell colSpan={10} {...sectionHeaderStyles}>Potássio (K2O)</Table.Cell></Table.Row>
                             {form.faixasK.map((row) => (
                                  <Table.Row key={row.id} _dark={{ bg: "transparent" }}>
                                     <Table.Cell fontSize="sm" _dark={{ color: "gray.200" }}>{row.label}</Table.Cell>
-                                    <Table.Cell><Input size="sm" type="number" {...commonFieldStyles} value={row.plantio} onChange={(e) => updateRowValue("K", row.id, "plantio", e.target.value)} /></Table.Cell>
-                                    {row.coberturas.map((val, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={val} onChange={(e) => updateRowValue("K", row.id, idx, e.target.value)} /></Table.Cell>))}
+                                    <Table.Cell><Input size="sm" type="number" {...commonFieldStyles} value={row.plantio} onChange={(e) => updateRowValue("K", row.id, "plantio", e.target.value)} readOnly={readOnly} /></Table.Cell>
+                                    {row.coberturas.map((val, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={val} onChange={(e) => updateRowValue("K", row.id, idx, e.target.value)} readOnly={readOnly} /></Table.Cell>))}
                                     <Table.Cell bg="transparent"></Table.Cell>
                                  </Table.Row>
                             ))}
-                            <Table.Row>
-                                <Table.Cell colSpan={10} p={3}>
-                                    <VStack align="start" gap={2}>
-                                        <AddRangePopover type="K2O" currentCount={form.faixasK.length} onAdd={(lbl, op) => addRangeRow("K", lbl, op)} />
-                                        <Button size="sm" variant="ghost" colorScheme="red" onClick={() => removeLastRangeRow("K")} isDisabled={form.faixasK.length === 0}><FiMinus /> Remover faixa</Button>
-                                    </VStack>
-                                </Table.Cell>
-                            </Table.Row>
+                            {!readOnly && (
+                                <Table.Row>
+                                    <Table.Cell colSpan={10} p={3}>
+                                        <VStack align="start" gap={2}>
+                                            <AddRangePopover type="K2O" currentCount={form.faixasK.length} onAdd={(lbl, op) => addRangeRow("K", lbl, op)} />
+                                            <Button size="sm" variant="ghost" colorScheme="red" onClick={() => removeLastRangeRow("K")} isDisabled={form.faixasK.length === 0}><FiMinus /> Remover faixa</Button>
+                                        </VStack>
+                                    </Table.Cell>
+                                </Table.Row>
+                            )}
                         </Table.Body>
                     </Table.Root>
                 </Box>
             </Box>
-            <Box><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Observações:</Text><Input maxLength={100} {...commonFieldStyles} value={form.observacoes} onChange={(e) => onFormChange("observacoes", e.target.value)} /></Box>
+            <Box><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Observações:</Text><Input maxLength={100} {...commonFieldStyles} value={form.observacoes} onChange={(e) => onFormChange("observacoes", e.target.value)} readOnly={readOnly} /></Box>
         </VStack>
     );
 }
