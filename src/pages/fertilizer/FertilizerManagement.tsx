@@ -41,7 +41,7 @@ export default function FertilizerManagement() {
           <VStack spacing={4} align="stretch">
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/simple-mineral-fertilizer")}
+              onClick={() => navigate("/fertintelligence/fertilizer-management/simple-mineral-fertilizer")}
               h="50px"
               fontSize="md"
             >
@@ -49,7 +49,7 @@ export default function FertilizerManagement() {
             </Button>
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/formulated-mineral-fertilizer")}
+              onClick={() => navigate("/fertintelligence/fertilizer-management/formulated-mineral-fertilizer")}
               h="50px"
               fontSize="md"
             >
@@ -57,7 +57,7 @@ export default function FertilizerManagement() {
             </Button>
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/organo-mineral-fertilizer")}
+              onClick={() => navigate("/fertintelligence/fertilizer-management/organo-mineral-fertilizer")}
               h="50px"
               fontSize="md"
             >
@@ -65,7 +65,7 @@ export default function FertilizerManagement() {
             </Button>
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/green-fertilizer")}
+              onClick={() => navigate("/fertintelligence/fertilizer-management/green-fertilizer")}
               h="50px"
               fontSize="md"
             >
@@ -93,7 +93,7 @@ export default function FertilizerManagement() {
             <VStack spacing={4} align="stretch">
                 <Button
                 colorScheme="green"
-                onClick={() => navigate("/foliar-mineral-fertilizer")}
+                onClick={() => navigate("/fertintelligence/fertilizer-management/foliar-mineral-fertilizer")}
                 h="50px"
                 fontSize="md"
                 >
@@ -101,7 +101,7 @@ export default function FertilizerManagement() {
                 </Button>
                 <Button
                 colorScheme="green"
-                onClick={() => navigate("/chelated-fertilizer")}
+                onClick={() => navigate("/fertintelligence/fertilizer-management/chelated-fertilizer")}
                 h="50px"
                 fontSize="md"
                 >
@@ -109,7 +109,7 @@ export default function FertilizerManagement() {
                 </Button>
                 <Button
                 colorScheme="green"
-                onClick={() => navigate("/bio-fertilizer")}
+                onClick={() => navigate("/fertintelligence/fertilizer-management/bio-fertilizer")}
                 h="50px"
                 fontSize="md"
                 >

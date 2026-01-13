@@ -52,7 +52,7 @@ export default function FertilizationTableManagement() {
             
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/soil-fertility-interpretation-table")}
+              onClick={() => navigate("/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table")}
               h="auto"
               py={4}
               fontSize="md"
@@ -64,7 +64,7 @@ export default function FertilizationTableManagement() {
 
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/foliar-analysis-interpretation-table")}
+              onClick={() => navigate("/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table")}
               h="auto"
               py={4}
               fontSize="md"
