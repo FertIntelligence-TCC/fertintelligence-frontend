@@ -1,68 +1,149 @@
-// src/interfaces/CropFertilizationTable.ts
+// --- Enums (Devem corresponder aos Enums do Java) ---
 
 export enum SpacingType {
-    ENTRE_LINHAS = "ENTRE_LINHAS", // Ajuste conforme o enum do backend
-    ENTRE_PLANTAS = "ENTRE_PLANTAS",
-    PLANTAS_POR_METRO = "PLANTAS_POR_METRO"
+    ENTRE_LINHAS = "BETWEEN_LINES_IN_METERS",
+    ENTRE_PLANTAS_COVAS = "BETWEEN_PLANTS_OR_HOLES_IN_METERS",
+    PLANTAS_POR_METRO_LINEAR = "PLANTAS_PER_LINEAR_METER"
+}
+
+export enum LimingCriteria {
+    SATURACAO_POR_BASES = "SATURACAO_POR_BASES_TROCAVEIS",
+    NEUTRALIZACAO_AL_TROCAVEL = "NEUTRALIZACAO_ALUMINIO_TROCAVEL",
+    ELEVACAO_TEOR_CA_MG = "ELEVACAO__DO_TEOR_DE_CALCIO_MAIS_MAGNESIO",
+    NEUTRALIZACAO_AL_ELEVACAO_CA_MG = "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL_MAIS_ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO"
+}
+
+export enum ManureType {
+    BOVINO = "BOVINO",
+    CAPRINO = "CAPRINO",
+    OVINO = "OVINO",
+    FRANGO = "FRANGO", // Ou AVES, verifique seu DataSeeder
+    TORTA_MAMONA = "TORTAS"
+}
+
+export enum CropType {
+    ALGODAO = "ALGODAO",
+    AMENDOIM = "AMENDOIM",
+    CANA_DE_ACUCAR = "CANA_DE_ACUCAR",
+    FEIJAO_CAUPI = "FEIJAO_CAUPI",
+    FEIJAO_COMUM = "FEIJAO_COMUM",
+    GERGELIM = "GERGELIM",
+    MAMONA = "MAMONA",
+    MILHO = "MILHO",
+    SISAL = "SISAL",
+    SOJA = "SOJA"
+}
+
+export enum RegionType {
+    NORDESTE = "NORDESTE",
+    SUL = "SUL",
+    CENTRO_OESTE = "CENTRO_OESTE",
+    SUDESTE = "SUDESTE",
+    NORTE = "NORTE"
 }
 
 export enum NutrientType {
-    N = "N",
-    P2O5 = "P2O5",
-    K2O = "K2O"
+    NITROGENIO = "NITROGENIO",
+    FOSFORO = "FOSFORO",
+    POTASSIO = "POTASSIO"
 }
 
-export interface CoverageDto {
-    id?: number;
-    label: string; // Ex: "1ª cobertura"
-    orderIndex?: number;
+// --- DTOs de Resposta (GET) - snake_case ---
+
+export interface CoverageResponseDto {
+    id: number;
+    id_intervalo_teor: number;
+    ordem_cobertura: number;
+    aplicacao_recomendada_cobertura: number;
 }
 
-export interface ContentRangeDto {
-    id?: number;
-    nutrient: NutrientType;
-    min?: number;
-    max?: number;
-    operatorLabel: string; // Ex: "P2O5 < 10" ou construído no front
-    plantioValue: number;
-    coverageValues: number[]; // Lista ordenada correspondente às Coverages
+export interface ContentRangeResponseDto {
+    id: number;
+    id_tabela: number;
+    nutriente: string; // ou NutrientType
+    ordem_teor: number;
+    menor_teor?: number | null;
+    maior_teor?: number | null;
+    aplicacao_recomendada_plantio?: number | null;
+    
+    // Auxiliar para frontend (não vem do backend puro, mas usado na hidratação)
+    coverages?: CoverageResponseDto[]; 
 }
 
 export interface CropFertilizationTableResponseDto {
     id: number;
-    nomeComum: string;
-    nomeCientifico: string;
+    id_criador: number;
+    nome_criador: string;
+    
+    regioes_cultura: RegionType;
+    nome_comum_cultura: CropType;
+    nome_cientifico_cultura: string;
     cultivares: string;
     
-    // Espaçamento Sugerido
-    espacamentoSugeridoTipo: SpacingType;
-    espacamentoSugeridoMin: number;
-    espacamentoSugeridoMax: number;
-
-    // Espaçamento Usado
-    espacamentoUsadoTipo: SpacingType;
-    espacamentoUsadoValor: number;
-
-    produtividadeRegional: number;
-    produtividadeEsperada: number;
-    criterioCalagem: string; // Enum no backend
-
-    sugestaoEstercoTipo: string;
-    sugestaoEstercoQtd: number;
-    sugestaoGessagem: number;
-    sugestaoMicronutrientes: number;
-
-    sugestaoN: number;
-    sugestaoP: number;
-    sugestaoK: number;
-
+    espacamentos_sugeridos: SpacingType;
+    valor_inicial: number;
+    valor_final: number;
+    
+    espacamento_usado: SpacingType;
+    valor_espacamento_usado: number;
+    
+    produtividade_regional: number;
+    produtividade_esperada: number;
+    
+    criterio_de_calagem: LimingCriteria;
+    
+    tipo_de_esterco: ManureType;
+    quantidade_de_esterco: number;
+    
+    sugestao_gessagem: number;
+    sugestao_micronutrientes: number;
+    sugestao_npk: number;
+    
     observacoes: string;
 
-    coverages: CoverageDto[];
-    contentRanges: ContentRangeDto[];
+    // Auxiliar para frontend (usado após hidratação)
+    rangesWithCoverages?: ContentRangeResponseDto[];
 }
 
-export interface CropFertilizationTableCreateRequestDto extends Omit<CropFertilizationTableResponseDto, 'id' | 'coverages' | 'contentRanges'> {
-    coverages: Omit<CoverageDto, 'id'>[];
-    contentRanges: Omit<ContentRangeDto, 'id'>[];
+// --- DTOs de Requisição (POST/Register) ---
+
+export interface CoverageCreateRequestDto {
+    ordem_cobertura: number;
+    aplicacao_recomendada_cobertura: number | null;
+}
+
+export interface ContentRangeCreateRequestDto {
+    nutriente: string;
+    ordem_teor: number;
+    menor_teor: number | null;
+    maior_teor: number | null;
+    aplicacao_recomendada_plantio: number | null;
+}
+
+export interface CropFertilizationTableCreateRequestDto {
+    nome_comum_cultura: CropType;
+    nome_cientifico_cultura: string;
+    cultivares: string;
+    regioes_cultura: RegionType;
+    
+    espacamentos_sugeridos: SpacingType;
+    valor_inicial: number;
+    valor_final: number;
+    
+    espacamento_usado: SpacingType;
+    valor_espacamento_usado: number;
+    
+    produtividade_regional: number;
+    produtividade_esperada: number;
+    
+    criterio_de_calagem: LimingCriteria;
+    
+    tipo_de_esterco: ManureType;
+    quantidade_de_esterco: number;
+    
+    sugestao_gessagem: number;
+    sugestao_micronutrientes: number;
+    sugestao_npk: number;
+    
+    observacoes: string;
 }

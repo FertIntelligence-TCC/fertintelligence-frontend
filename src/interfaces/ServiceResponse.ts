@@ -1,4 +1,5 @@
 import { LocalizacaoPayload } from "./ServicePayload";
+import { CropFertilizationTableResponseDto, ContentRangeResponseDto, CoverageResponseDto } from "./CropFertilizationTable";
 
 export type DataNascDto = {
     dia: number;
@@ -26,7 +27,7 @@ export type DataNascDto = {
     name?: string;
   };
 
-  export interface PropertyResponse { //
+  export interface PropertyResponse { 
     id: number;
     nome: string;
     endereco: string;
@@ -35,7 +36,6 @@ export type DataNascDto = {
     ownerId: number;
     ownerNome: string;
 }
-  
-  // export type GetCampaigsResponse = Campaign[];
-  // export type GetCharactersResponse = Character[];
-  // export type GetSystemsResponse = System[];
+
+// Exports para consistência
+export type { CropFertilizationTableResponseDto, ContentRangeResponseDto, CoverageResponseDto };
