@@ -366,3 +366,94 @@ export interface FormulatedFertilizerFormState {
     zn: string;
     numeroFormulaIndicada: string;
 }
+
+// --- ORGANO MINERAL FERTILIZER ---
+
+// GET /get-all
+export interface OrganoMineralFertilizerResponseDto {
+    id: number;
+    nome_adubo: string;
+    c: number; // Carbono Orgânico
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// POST /register
+export interface OrganoMineralFertilizerCreateRequestDto {
+    nome_adubo: string;
+    c: number;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// PUT /update (prefixo "novo_")
+export interface OrganoMineralFertilizerPostRequestDto {
+    novo_nome_adubo: string;
+    novo_c: number;
+    novo_n: number;
+    novo_p2o5: number;
+    novo_k2o: number;
+    novo_ca: number;
+    novo_mg: number;
+    novo_s: number;
+    novo_b: number;
+    novo_cu: number;
+    novo_fe: number;
+    novo_mn: number;
+    novo_mo: number;
+    novo_zn: number;
+    novo_indice_salino: number;
+    novo_indice_acidez: number;
+}
+
+// Estado do Formulário
+export interface OrganoMineralFertilizerFormState {
+    nome: string;
+    c: string;
+    n: string;
+    p2o5: string;
+    k2o: string;
+    ca: string;
+    mg: string;
+    s: string;
+    b: string;
+    cu: string;
+    fe: string;
+    mn: string;
+    mo: string;
+    zn: string;
+    indiceSalino: string;
+    indiceAcidez: string;
+}
+
+export const DEFAULT_ORGANO_MINERAL_FORM_STATE: OrganoMineralFertilizerFormState = {
+    nome: "",
+    c: "", n: "", p2o5: "", k2o: "",
+    ca: "", mg: "", s: "",
+    b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
+    indiceSalino: "", indiceAcidez: ""
+};
