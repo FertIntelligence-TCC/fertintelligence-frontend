@@ -92,7 +92,7 @@ export const PublicRoutes: RouteObject[] = [
     element: <ChelatedFertilizer />,
   },
   {
-    path: "/fertintelligence/fertilizer-management/foliar-fertilizer",
+    path: "/fertintelligence/fertilizer-management/foliar-mineral-fertilizer",
     element: <FoliarMineralFertilizer />,
   },
   {
@@ -105,7 +105,7 @@ export const PublicRoutes: RouteObject[] = [
   },
   {
     path: "/fertintelligence/fertilizer-management/organo-mineral-fertilizer",
-    element: <OrganoMineralFertilizer />, // Nome Corrigido (Era Ornago...)
+    element: <OrganoMineralFertilizer />,
   },
   {
     path: "/fertintelligence/fertilizer-management/simple-mineral-fertilizer",

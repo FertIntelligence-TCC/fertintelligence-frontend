@@ -457,3 +457,355 @@ export const DEFAULT_ORGANO_MINERAL_FORM_STATE: OrganoMineralFertilizerFormState
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
     indiceSalino: "", indiceAcidez: ""
 };
+
+// --- GREEN FERTILIZER ---
+
+// GET /get-all
+export interface GreenFertilizerResponseDto {
+    id: number;
+    nome_adubo: string;
+    c: number; // Carbono
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// POST /register
+export interface GreenFertilizerCreateRequestDto {
+    nome_adubo: string;
+    c: number;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// PUT /update (prefixo "novo_")
+export interface GreenFertilizerPostRequestDto {
+    novo_nome_adubo: string;
+    novo_c: number;
+    novo_n: number;
+    novo_p2o5: number;
+    novo_k2o: number;
+    novo_ca: number;
+    novo_mg: number;
+    novo_s: number;
+    novo_b: number;
+    novo_cu: number;
+    novo_fe: number;
+    novo_mn: number;
+    novo_mo: number;
+    novo_zn: number;
+    novo_indice_salino: number;
+    novo_indice_acidez: number;
+}
+
+// Estado do Formulário (Strings para inputs controlados)
+export interface GreenFertilizerFormState {
+    nome: string;
+    c: string;
+    n: string;
+    p2o5: string;
+    k2o: string;
+    ca: string;
+    mg: string;
+    s: string;
+    b: string;
+    cu: string;
+    fe: string;
+    mn: string;
+    mo: string;
+    zn: string;
+    indiceSalino: string;
+    indiceAcidez: string;
+}
+
+export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
+    nome: "",
+    c: "", n: "", p2o5: "", k2o: "",
+    ca: "", mg: "", s: "",
+    b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
+    indiceSalino: "", indiceAcidez: ""
+};
+
+// --- FOLIAR MINERAL FERTILIZER ---
+
+// GET /get-all
+export interface MineralFertilizerResponseDto {
+    id: number;
+    nome_adubo: string;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// POST /register
+export interface MineralFertilizerCreateRequestDto {
+    nome_adubo: string;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// PUT /update (prefixo "novo_")
+export interface MineralFertilizerPostRequestDto {
+    novo_nome_adubo: string;
+    novo_n: number;
+    novo_p2o5: number;
+    novo_k2o: number;
+    novo_ca: number;
+    novo_mg: number;
+    novo_s: number;
+    novo_b: number;
+    novo_cu: number;
+    novo_fe: number;
+    novo_mn: number;
+    novo_mo: number;
+    novo_zn: number;
+    novo_indice_salino: number;
+    novo_indice_acidez: number;
+}
+
+// Estado do Formulário
+export interface MineralFertilizerFormState {
+    nome: string;
+    n: string;
+    p2o5: string;
+    k2o: string;
+    ca: string;
+    mg: string;
+    s: string;
+    b: string;
+    cu: string;
+    fe: string;
+    mn: string;
+    mo: string;
+    zn: string;
+    indiceSalino: string;
+    indiceAcidez: string;
+}
+
+export const DEFAULT_MINERAL_FERTILIZER_FORM_STATE: MineralFertilizerFormState = {
+    nome: "",
+    n: "", p2o5: "", k2o: "",
+    ca: "", mg: "", s: "",
+    b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
+    indiceSalino: "", indiceAcidez: ""
+};
+
+// --- CHELATED FERTILIZER (QUELATADOS) ---
+
+// GET /get-all
+export interface ChelatedFertilizerResponseDto {
+    id: number;
+    nome_adubo: string;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// POST /register
+export interface ChelatedFertilizerCreateRequestDto {
+    nome_adubo: string;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// PUT /update (prefixo "novo_")
+export interface ChelatedFertilizerPostRequestDto {
+    novo_nome_adubo: string;
+    novo_n: number;
+    novo_p2o5: number;
+    novo_k2o: number;
+    novo_ca: number;
+    novo_mg: number;
+    novo_s: number;
+    novo_b: number;
+    novo_cu: number;
+    novo_fe: number;
+    novo_mn: number;
+    novo_mo: number;
+    novo_zn: number;
+    novo_indice_salino: number;
+    novo_indice_acidez: number;
+}
+
+// Estado do Formulário
+export interface ChelatedFertilizerFormState {
+    nome: string;
+    n: string;
+    p2o5: string;
+    k2o: string;
+    ca: string;
+    mg: string;
+    s: string;
+    b: string;
+    cu: string;
+    fe: string;
+    mn: string;
+    mo: string;
+    zn: string;
+    indiceSalino: string;
+    indiceAcidez: string;
+}
+
+export const DEFAULT_CHELATED_FERTILIZER_FORM_STATE: ChelatedFertilizerFormState = {
+    nome: "",
+    n: "", p2o5: "", k2o: "",
+    ca: "", mg: "", s: "",
+    b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
+    indiceSalino: "", indiceAcidez: ""
+};
+
+// --- BIOFERTILIZER ---
+
+// GET /get-all
+export interface BioFertilizerResponseDto {
+    id: number;
+    nome_adubo: string;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// POST /register
+export interface BioFertilizerCreateRequestDto {
+    nome_adubo: string;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+    indice_salino: number;
+    indice_acidez: number;
+}
+
+// PUT /update (prefixo "novo_")
+export interface BioFertilizerPostRequestDto {
+    novo_nome_adubo: string;
+    novo_n: number;
+    novo_p2o5: number;
+    novo_k2o: number;
+    novo_ca: number;
+    novo_mg: number;
+    novo_s: number;
+    novo_b: number;
+    novo_cu: number;
+    novo_fe: number;
+    novo_mn: number;
+    novo_mo: number;
+    novo_zn: number;
+    novo_indice_salino: number;
+    novo_indice_acidez: number;
+}
+
+// Estado do Formulário
+export interface BioFertilizerFormState {
+    nome: string;
+    n: string;
+    p2o5: string;
+    k2o: string;
+    ca: string;
+    mg: string;
+    s: string;
+    b: string;
+    cu: string;
+    fe: string;
+    mn: string;
+    mo: string;
+    zn: string;
+    indiceSalino: string;
+    indiceAcidez: string;
+}
+
+export const DEFAULT_BIO_FERTILIZER_FORM_STATE: BioFertilizerFormState = {
+    nome: "",
+    n: "", p2o5: "", k2o: "",
+    ca: "", mg: "", s: "",
+    b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
+    indiceSalino: "", indiceAcidez: ""
+};
