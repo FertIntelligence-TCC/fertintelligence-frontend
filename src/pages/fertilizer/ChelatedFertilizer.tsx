@@ -33,8 +33,8 @@ import {
     deleteChelatedFertilizer 
 } from "@/services/chelatedFertilizerService";
 
-import ChelatedFertilizerFormFields from "@/components/Fertilizers/ChelatedFertilizerFormFields";
-import ChelatedFertilizerCard from "@/components/Fertilizers/ChelatedFertilizerCard";
+import ChelatedFertilizerFormFields from "@/components/Fertilizers/FormFields/ChelatedFertilizerFormFields";
+import ChelatedFertilizerCard from "@/components/Fertilizers/Cards/ChelatedFertilizerCard";
 
 // --- Mappers ---
 

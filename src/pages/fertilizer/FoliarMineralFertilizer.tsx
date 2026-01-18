@@ -33,8 +33,8 @@ import {
     deleteMineralFertilizer 
 } from "@/services/foliarMineralFertilizerService";
 
-import FoliarMineralFertilizerFormFields from "@/components/Fertilizers/FoliarMineralFertilizerFormFields";
-import FoliarMineralFertilizerCard from "@/components/Fertilizers/FoliarMineralFertilizerCard";
+import FoliarMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FoliarMineralFertilizerFormFields";
+import FoliarMineralFertilizerCard from "@/components/Fertilizers/Cards/FoliarMineralFertilizerCard";
 
 // --- Mappers ---
 

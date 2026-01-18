@@ -33,8 +33,8 @@ import {
     deleteOrganoMineralFertilizer 
 } from "@/services/organoMineralFertilizerService";
 
-import OrganoMineralFertilizerFormFields from "@/components/Fertilizers/OrganoMineralFertilizerFormFields";
-import OrganoMineralFertilizerCard from "@/components/Fertilizers/OrganoMineralFertilizerCard";
+import OrganoMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/OrganoMineralFertilizerFormFields";
+import OrganoMineralFertilizerCard from "@/components/Fertilizers/Cards/OrganoMineralFertilizerCard";
 
 // --- Mappers ---
 

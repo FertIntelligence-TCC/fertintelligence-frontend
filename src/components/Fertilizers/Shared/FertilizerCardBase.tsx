@@ -1,28 +1,30 @@
 import { Box, Text, HStack, IconButton, Badge, Flex } from "@chakra-ui/react";
 import { FiEye, FiEdit, FiTrash } from "react-icons/fi";
-import { ChelatedFertilizerResponseDto } from "@/interfaces/Fertilizer";
+import { ReactNode } from "react";
 
-type Props = {
-    item: ChelatedFertilizerResponseDto;
+interface FertilizerCardBaseProps {
+    title: string;
+    badgeLabel: string;
+    colorScheme?: string; // "green", "blue", "purple", "teal", "orange", etc.
     isSelected: boolean;
     onSelect: () => void;
     onView: () => void;
     onEdit: () => void;
     onDelete: () => void;
-};
+    children: ReactNode; // O conteúdo específico (nutrientes, fórmulas) vai aqui
+}
 
-export default function ChelatedFertilizerCard({ item, isSelected, onSelect, onView, onEdit, onDelete }: Props) {
-    // Helper para formatar lista de micros presentes
-    const getMicrosSummary = () => {
-        const parts = [];
-        if (item.fe > 0) parts.push(`Fe: ${item.fe}%`);
-        if (item.mn > 0) parts.push(`Mn: ${item.mn}%`);
-        if (item.zn > 0) parts.push(`Zn: ${item.zn}%`);
-        if (item.cu > 0) parts.push(`Cu: ${item.cu}%`);
-        if (item.b > 0) parts.push(`B: ${item.b}%`);
-        return parts.length > 0 ? parts.join(" | ") : "Nenhum micro declarado";
-    };
-
+export default function FertilizerCardBase({
+    title,
+    badgeLabel,
+    colorScheme = "green",
+    isSelected,
+    onSelect,
+    onView,
+    onEdit,
+    onDelete,
+    children
+}: FertilizerCardBaseProps) {
     return (
         <Box
             borderWidth="1px"
@@ -32,34 +34,26 @@ export default function ChelatedFertilizerCard({ item, isSelected, onSelect, onV
             p={4}
             cursor="pointer"
             transition="all 0.2s"
-            _hover={{ borderColor: "purple.400", shadow: "lg" }}
-            borderColor={isSelected ? "purple.500" : "gray.200"}
+            _hover={{ borderColor: `${colorScheme}.400`, shadow: "lg" }}
+            borderColor={isSelected ? `${colorScheme}.500` : "gray.200"}
             borderLeftWidth={isSelected ? "4px" : "1px"}
             onClick={onSelect}
             position="relative"
         >
             <Flex justify="space-between" align="start">
-                <Text fontWeight="bold" fontSize="lg" color="purple.700" _dark={{ color: "purple.300" }} mb={1}>
-                    {item.nome_adubo}
+                <Text fontWeight="bold" fontSize="lg" color={`${colorScheme}.700`} _dark={{ color: `${colorScheme}.300` }} mb={1}>
+                    {title}
                 </Text>
-                <Badge colorPalette="purple" variant="solid">Quelatado</Badge>
+                <Badge colorPalette={colorScheme} variant="surface">{badgeLabel}</Badge>
             </Flex>
             
-            <Text fontSize="xs" color="gray.500" mt={1}>
-                Micronutrientes Principais:
-            </Text>
-            <Text fontSize="sm" fontWeight="semibold" mb={2}>
-                {getMicrosSummary()}
-            </Text>
-            
-            {(item.n > 0 || item.p2o5 > 0 || item.k2o > 0) && (
-                <Text fontSize="xs" color="gray.400">
-                   Macros: N: {item.n}% | P: {item.p2o5}% | K: {item.k2o}%
-                </Text>
-            )}
+            {/* Conteúdo Específico do Card Injetado Aqui */}
+            <Box mb={2}>
+                {children}
+            </Box>
 
             {isSelected && (
-                <HStack justify="flex-end" gap={2} mt={4} animation="fade-in 0.2s">
+                <HStack justify="flex-end" gap={2} mt={2} animation="fade-in 0.2s">
                     <IconButton
                         size="sm"
                         aria-label="Visualizar"

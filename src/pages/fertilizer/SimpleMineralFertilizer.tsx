@@ -35,8 +35,8 @@ import {
     deleteSimpleMineralFertilizer 
 } from "@/services/simpleMineralFertilizerService";
 
-import SimpleMineralFertilizerFormFields from "@/components/Fertilizers/SimpleMineralFertilizerFormFields";
-import SimpleMineralFertilizerCard from "@/components/Fertilizers/SimpleMineralFertilizerCard";
+import SimpleMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/SimpleMineralFertilizerFormFields";
+import SimpleMineralFertilizerCard from "@/components/Fertilizers/Cards/SimpleMineralFertilizerCard";
 
 // --- Mappers Corrigidos ---
 

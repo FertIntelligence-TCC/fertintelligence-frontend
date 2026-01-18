@@ -33,8 +33,8 @@ import {
     deleteBioFertilizer 
 } from "@/services/bioFertilizerService";
 
-import BioFertilizerFormFields from "@/components/Fertilizers/BioFertilizerFormFields";
-import BioFertilizerCard from "@/components/Fertilizers/BioFertilizerCard";
+import BioFertilizerFormFields from "@/components/Fertilizers/FormFields/BioFertilizerFormFields";
+import BioFertilizerCard from "@/components/Fertilizers/Cards/BioFertilizerCard";
 
 // --- Mappers ---
 
