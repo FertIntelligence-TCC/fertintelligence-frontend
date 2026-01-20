@@ -41,7 +41,7 @@ export default function FertilizationTableManagement() {
             <Button
               colorScheme="blue"
               onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table")}
-              h="auto" // Altura automática para suportar quebras de linha se necessário
+              h="auto"
               py={4}
               fontSize="md"
               whiteSpace="normal"

@@ -3,10 +3,10 @@ import { FertilizationTableFormState } from "./types";
 import { commonFieldStyles } from "./styles";
 
 // Importando as novas seções
-import IdentificationSection from "./sections/IdentificationSection";
-import ParametersSection from "./sections/ParametersSection";
-import RecommendationsSection from "./sections/RecommendationsSection";
-import NutrientTableSection from "./sections/NutrientTableSection";
+import IdentificationSection from "./Sections/IdentificationSection";
+import ParametersSection from "./Sections/ParametersSection";
+import RecommendationsSection from "./Sections/RecommendationsSection";
+import NutrientTableSection from "./Sections/NutrientTableSection";
 
 type Props = {
     form: FertilizationTableFormState;
