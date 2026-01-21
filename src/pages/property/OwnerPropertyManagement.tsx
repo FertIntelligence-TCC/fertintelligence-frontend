@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { Box, Button, Flex, Heading, Spinner, Text, useDisclosure } from "@chakra-ui/react";
 import { FiPlus } from "react-icons/fi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
+
 import { useUserStore } from "@/stores/user/user.store";
 import { Cargo, PropertyCreatePayload, PropertyUpdatePayload } from "@/interfaces/ServicePayload";
 import { PropertyResponse } from "@/interfaces/ServiceResponse";
@@ -14,6 +16,7 @@ import {
     fetchMyProperties,
     updateProperty,
 } from "@/services/propertyService";
+
 import { toaster } from "@/components/ui/toaster";
 import PropertyFormDialog from "@/components/Property/PropertyFormDialog";
 import PropertyList from "@/components/Property/PropertyList";
@@ -34,128 +37,82 @@ const getErrorMessage = (error: unknown) => {
         "response" in error &&
         (error as any).response?.data
     ) {
-        const data = (error as any).response.data as { message?: string } | string;
-        if (typeof data === "string") return data;
-        if (data?.message) return data.message;
+        const data = (error as any).response.data as { message?: string; error?: string };
+        return data.message || data.error || "Ocorreu um erro desconhecido.";
     }
-    if (error instanceof Error) return error.message;
-    return "Ocorreu um erro inesperado.";
+    return "Ocorreu um erro ao conectar com o servidor.";
 };
 
-const formStateToPayload = (form: PropertyFormState): PropertyCreatePayload => ({
-    nome: form.nome,
-    endereco: form.endereco,
-    cnpj: form.cnpj,
-    localizacao: {
-        latitude: Number(form.latitude),
-        latitudeDirection: form.latitudeDirection,
-        longitude: Number(form.longitude),
-        longitudeDirection: form.longitudeDirection,
-        altitude: Number(form.altitude),
-    },
-});
-
-const formStateToUpdatePayload = (form: PropertyFormState): PropertyUpdatePayload => ({
-    novo_nome: form.nome || undefined,
-    novo_endereco: form.endereco || undefined,
-    novo_cnpj: form.cnpj || undefined,
-    nova_localizacao: {
-        latitude: Number(form.latitude),
-        latitudeDirection: form.latitudeDirection,
-        longitude: Number(form.longitude),
-        longitudeDirection: form.longitudeDirection,
-        altitude: Number(form.altitude),
-    },
-});
-
-const normalizeCargo = (cargo?: string) =>
-    cargo
-        ?.normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, "")
-        .toUpperCase();
-
 export default function OwnerPropertyManagement() {
-    const { user } = useUserStore();
+    const user = useUserStore((state) => state.user);
     const queryClient = useQueryClient();
 
-    const addDisclosure = useDisclosure();
-    const viewDisclosure = useDisclosure();
+    const createDisclosure = useDisclosure();
     const editDisclosure = useDisclosure();
     const deleteDisclosure = useDisclosure();
+    const viewDisclosure = useDisclosure();
 
-    const handleCloseAdd = () => {
-        setCreateForm(DEFAULT_FORM_STATE);
-        addDisclosure.onClose();
-    };
-
-    const handleCloseView = () => {
-        setActiveProperty(null);
-        viewDisclosure.onClose();
-    };
-
-    const handleCloseEdit = () => {
-        setActiveProperty(null);
-        setEditingPropertyId(null);
-        editDisclosure.onClose();
-    };
-
-    const handleCloseDelete = () => {
-        setActiveProperty(null);
-        deleteDisclosure.onClose();
-    };
-
-    const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
     const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(null);
     const [editingPropertyId, setEditingPropertyId] = useState<number | null>(null);
+    const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+
     const [createForm, setCreateForm] = useState<PropertyFormState>(DEFAULT_FORM_STATE);
     const [editForm, setEditForm] = useState<PropertyFormState>(DEFAULT_FORM_STATE);
 
-    const { data, isLoading, isError, refetch } = useQuery({
-        queryKey: ["myProperties"],
+    // Queries
+    const {
+        data: properties = [],
+        isLoading,
+        isError,
+        error,
+    } = useQuery({
+        queryKey: ["my-properties", user?.id],
         queryFn: fetchMyProperties,
         enabled: !!user,
     });
 
+    // Mutations
     const createMutation = useMutation({
         mutationFn: createProperty,
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["my-properties"] });
             toaster.create({
-                title: "Propriedade criada com sucesso.",
+                title: "Propriedade criada com sucesso!",
                 type: "success",
-                duration: 4000,
+                duration: 3000,
             });
-            handleCloseAdd();
-            queryClient.invalidateQueries({ queryKey: ["myProperties"] });
+            handleCloseCreate();
         },
         onError: (error) => {
             toaster.create({
                 title: "Erro ao criar propriedade.",
                 description: getErrorMessage(error),
                 type: "error",
-                duration: 4000,
+                duration: 5000,
+                meta: { closable: true },
             });
         },
     });
 
     const updateMutation = useMutation({
-        mutationFn: (variables: { id: number; payload: PropertyUpdatePayload }) =>
-            updateProperty(variables.id, variables.payload),
+        mutationFn: ({ id, payload }: { id: number; payload: PropertyUpdatePayload }) =>
+            updateProperty(id, payload),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["my-properties"] });
             toaster.create({
-                title: "Propriedade atualizada com sucesso.",
+                title: "Propriedade atualizada com sucesso!",
                 type: "success",
-                duration: 4000,
+                duration: 3000,
             });
             handleCloseEdit();
-            queryClient.invalidateQueries({ queryKey: ["myProperties"] });
         },
         onError: (error) => {
             toaster.create({
                 title: "Erro ao atualizar propriedade.",
                 description: getErrorMessage(error),
                 type: "error",
-                duration: 4000,
+                duration: 5000,
+                meta: { closable: true },
             });
         },
     });
@@ -163,182 +120,212 @@ export default function OwnerPropertyManagement() {
     const deleteMutation = useMutation({
         mutationFn: deleteProperty,
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["my-properties"] });
             toaster.create({
-                title: "Propriedade deletada com sucesso.",
+                title: "Propriedade removida com sucesso!",
                 type: "success",
-                duration: 4000,
+                duration: 3000,
             });
             handleCloseDelete();
-            queryClient.invalidateQueries({ queryKey: ["myProperties"] });
         },
         onError: (error) => {
             toaster.create({
-                title: "Erro ao deletar propriedade.",
+                title: "Erro ao remover propriedade.",
                 description: getErrorMessage(error),
-                type: "error",
-                duration: 4000,
-            });
-        },
-    });
-
-    const properties = data ?? [];
-    const isOwner = normalizeCargo(user?.cargo) === normalizeCargo(Cargo.PROPRIETARIO);
-
-    const createFormValidations = useMemo(() => {
-        const isLatitudeValid = !!createForm.latitude && !isNaN(Number(createForm.latitude));
-        const isLongitudeValid = !!createForm.longitude && !isNaN(Number(createForm.longitude));
-
-        return {
-            canSubmit:
-                !!createForm.nome &&
-                !!createForm.endereco &&
-                !!createForm.cnpj &&
-                isLatitudeValid &&
-                isLongitudeValid,
-        };
-    }, [createForm]);
-
-    const editFormValidations = useMemo(() => {
-        const isLatitudeValid = !!editForm.latitude && !isNaN(Number(editForm.latitude));
-        const isLongitudeValid = !!editForm.longitude && !isNaN(Number(editForm.longitude));
-
-        return {
-            canSubmit:
-                !!editForm.nome &&
-                !!editForm.endereco &&
-                !!editForm.cnpj &&
-                isLatitudeValid &&
-                isLongitudeValid,
-        };
-    }, [editForm]);
-
-    const handlePropertySelection = (property: PropertyResponse) => {
-        setSelectedPropertyId((prev) => (prev === property.id ? null : property.id));
-    };
-
-    const openViewModal = (property: PropertyResponse) => {
-        setActiveProperty(property);
-        viewDisclosure.onOpen();
-    };
-
-    const openEditModal = (property: PropertyResponse) => {
-        const numericId =
-            typeof property.id === "number" ? property.id : Number(property.id);
-
-        if (Number.isNaN(numericId)) {
-            toaster.create({
-                title: "Não foi possível abrir a edição.",
-                description: "Identificador da propriedade inválido.",
                 type: "error",
                 duration: 5000,
                 meta: { closable: true },
             });
-            return;
-        }
+        },
+    });
 
+    // Handlers
+    const handleSelectProperty = (property: PropertyResponse) => {
+        if (selectedPropertyId === property.id) {
+            setSelectedPropertyId(null);
+            setActiveProperty(null);
+        } else {
+            setSelectedPropertyId(property.id);
+            setActiveProperty(property);
+        }
+    };
+
+    const handleOpenCreate = () => {
+        setCreateForm(DEFAULT_FORM_STATE);
+        createDisclosure.onOpen();
+    };
+
+    const handleCloseCreate = () => {
+        createDisclosure.onClose();
+        setCreateForm(DEFAULT_FORM_STATE);
+    };
+
+    const handleOpenView = (property: PropertyResponse) => {
         setActiveProperty(property);
-        setEditingPropertyId(numericId);
+        viewDisclosure.onOpen();
+    };
+
+    const handleCloseView = () => {
+        viewDisclosure.onClose();
+        setActiveProperty(null);
+    };
+
+    const handleOpenEdit = (property: PropertyResponse) => {
+        setEditingPropertyId(property.id);
+        setActiveProperty(property); // Importante para o contexto
         setEditForm(propertyToFormState(property));
         editDisclosure.onOpen();
     };
 
-    const openDeleteModal = (property: PropertyResponse) => {
+    const handleCloseEdit = () => {
+        editDisclosure.onClose();
+        setEditingPropertyId(null);
+        setEditForm(DEFAULT_FORM_STATE);
+    };
+
+    const handleOpenDelete = (property: PropertyResponse) => {
         setActiveProperty(property);
         deleteDisclosure.onOpen();
     };
 
+    const handleCloseDelete = () => {
+        deleteDisclosure.onClose();
+        setActiveProperty(null);
+    };
+
+    // Form Handlers
     const handleCreateFormChange = <Field extends keyof PropertyFormState>(
         field: Field,
         value: PropertyFormState[Field],
     ) => {
-        setCreateForm((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
+        setCreateForm((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleEditFormChange = <Field extends keyof PropertyFormState>(
         field: Field,
         value: PropertyFormState[Field],
     ) => {
-        setEditForm((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
+        setEditForm((prev) => ({ ...prev, [field]: value }));
     };
+
+    // Converters
+    const formStateToCreatePayload = (form: PropertyFormState): PropertyCreatePayload => ({
+        nome: form.nome,
+        endereco: form.endereco,
+        cnpj: form.cnpj,
+        latitude: parseFloat(form.latitude),
+        latitudeDirection: form.latitudeDirection,
+        longitude: parseFloat(form.longitude),
+        longitudeDirection: form.longitudeDirection,
+        altitude: form.altitude ? parseFloat(form.altitude) : undefined,
+    });
+
+    const formStateToUpdatePayload = (form: PropertyFormState): PropertyUpdatePayload => ({
+        novo_nome: form.nome,
+        novo_endereco: form.endereco,
+        novo_cnpj: form.cnpj,
+        nova_latitude: parseFloat(form.latitude),
+        nova_latitudeDirection: form.latitudeDirection,
+        nova_longitude: parseFloat(form.longitude),
+        nova_longitudeDirection: form.longitudeDirection,
+        nova_altitude: form.altitude ? parseFloat(form.altitude) : undefined,
+    });
+
+    // Validations
+    const validateForm = (form: PropertyFormState) => {
+        const isNameValid = form.nome.trim().length > 0;
+        const isAddressValid = form.endereco.trim().length > 0;
+        const isCnpjValid = form.cnpj.trim().length === 14; // Validação simplificada
+        const isLatValid = !isNaN(parseFloat(form.latitude));
+        const isLngValid = !isNaN(parseFloat(form.longitude));
+
+        return {
+            isNameValid,
+            isAddressValid,
+            isCnpjValid,
+            isLatValid,
+            isLngValid,
+            canSubmit: isNameValid && isAddressValid && isCnpjValid && isLatValid && isLngValid,
+        };
+    };
+
+    const createFormValidations = useMemo(() => validateForm(createForm), [createForm]);
+    const editFormValidations = useMemo(() => validateForm(editForm), [editForm]);
+
+    if (!user || user.cargo !== Cargo.PROPRIETARIO) {
+        return (
+            <UserLayout>
+                <Flex justify="center" align="center" h="50vh">
+                    <Text color="red.500">Acesso restrito a proprietários.</Text>
+                </Flex>
+            </UserLayout>
+        );
+    }
 
     return (
         <UserLayout>
-            <FertName subtitle="Gerenciar Propriedades" />
+            <FertName subtitle="Gerenciamento de Propriedades" />
             <ConfigMenu />
 
-            <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
-                <Flex direction="column" gap={6}>
-                    <Heading as="h1" size="lg" color="white">
+            <Box pt={{ base: 24, md: 32 }} px={{ base: 4, md: 8 }} w="full" maxW="1600px" mx="auto">
+                <Flex justify="space-between" align="center" mb={8}>
+                    <Heading size="lg" color="gray.700" _dark={{ color: "gray.200" }}>
                         Minhas Propriedades
                     </Heading>
-
-                    <Button
-                        alignSelf="flex-start"
-                        colorScheme="green"
-                        onClick={() => {
-                            setCreateForm(DEFAULT_FORM_STATE);
-                            addDisclosure.onOpen();
-                        }}
-                        display="inline-flex"
-                        alignItems="center"
-                        gap={2}
-                    >
-                        <FiPlus />
-                        Adicionar Propriedade
+                    <Button colorScheme="green" onClick={handleOpenCreate} leftIcon={<FiPlus />}>
+                        Nova Propriedade
                     </Button>
-
-                    <Box mt={2}>
-                        {isLoading ? (
-                            <Flex justify="center" align="center" minH="200px">
-                                <Spinner size="lg" />
-                            </Flex>
-                        ) : isError ? (
-                            <Flex direction="column" align="center" gap={4} minH="200px">
-                                <Text>Não foi possível carregar as propriedades.</Text>
-                                <Button onClick={() => refetch()} colorScheme="blue">
-                                    Tentar novamente
-                                </Button>
-                            </Flex>
-                        ) : properties.length === 0 ? (
-                            <Text mt={4}>Nenhuma propriedade encontrada.</Text>
-                        ) : (
-                            <PropertyList
-                                properties={properties}
-                                selectedPropertyId={selectedPropertyId}
-                                onSelect={handlePropertySelection}
-                                onView={openViewModal}
-                                onEdit={openEditModal}
-                                onDelete={openDeleteModal}
-                            />
-                        )}
-                    </Box>
                 </Flex>
+
+                {isLoading ? (
+                    <Flex justify="center" align="center" minH="200px">
+                        <Spinner size="xl" color="green.500" />
+                    </Flex>
+                ) : isError ? (
+                    <Flex justify="center" align="center" minH="200px" direction="column">
+                        <Text color="red.500" mb={2}>Erro ao carregar propriedades.</Text>
+                        <Text fontSize="sm" color="gray.500">{getErrorMessage(error)}</Text>
+                    </Flex>
+                ) : properties.length === 0 ? (
+                    <Flex
+                        justify="center"
+                        align="center"
+                        minH="200px"
+                        borderWidth="2px"
+                        borderStyle="dashed"
+                        borderColor="gray.300"
+                        borderRadius="lg"
+                    >
+                        <Text color="gray.500">Nenhuma propriedade cadastrada.</Text>
+                    </Flex>
+                ) : (
+                    <PropertyList
+                        properties={properties}
+                        selectedPropertyId={selectedPropertyId}
+                        onSelect={handleSelectProperty}
+                        onView={handleOpenView}
+                        onEdit={handleOpenEdit}
+                        onDelete={handleOpenDelete}
+                    />
+                )}
             </Box>
 
+            {/* Modal de Criação */}
             <PropertyFormDialog
-                title="Adicionar Propriedade"
-                isOpen={addDisclosure.open}
-                onClose={handleCloseAdd}
-                onSubmit={() => createMutation.mutate(formStateToPayload(createForm))}
+                title="Criar Nova Propriedade"
+                isOpen={createDisclosure.open}
+                onClose={handleCloseCreate}
+                onSubmit={() => createMutation.mutate(formStateToCreatePayload(createForm))}
                 isSubmitting={createMutation.isPending}
                 canSubmit={createFormValidations.canSubmit}
                 form={createForm}
                 onFormChange={handleCreateFormChange}
+                submitLabel="Criar"
+                // Na criação, não passamos propertyId, pois a propriedade ainda não existe.
+                // Isso ocultará a seção de Talhões.
             />
 
-            <DialogContainer isOpen={viewDisclosure.open} onClose={handleCloseView}>
-                <PropertyDetails property={activeProperty} />
-                <Flex justify="flex-end" mt={6}>
-                    <Button onClick={handleCloseView}>Fechar</Button>
-                </Flex>
-            </DialogContainer>
-
+            {/* Modal de Edição */}
             <PropertyFormDialog
                 title="Editar Propriedade"
                 isOpen={editDisclosure.open}
@@ -347,8 +334,7 @@ export default function OwnerPropertyManagement() {
                     if (editingPropertyId === null) {
                         toaster.create({
                             title: "Não foi possível atualizar a propriedade.",
-                            description:
-                                "Selecione uma propriedade válida e tente novamente.",
+                            description: "Selecione uma propriedade válida e tente novamente.",
                             type: "error",
                             duration: 5000,
                             meta: { closable: true },
@@ -365,8 +351,17 @@ export default function OwnerPropertyManagement() {
                 canSubmit={editFormValidations.canSubmit}
                 form={editForm}
                 onFormChange={handleEditFormChange}
+                // AQUI ESTÁ A MUDANÇA: Passamos o ID para habilitar a gestão de talhões
+                propertyId={editingPropertyId ?? undefined}
             />
 
+            {/* Modal de Visualização (Detalhes) */}
+            <DialogContainer isOpen={viewDisclosure.open} onClose={handleCloseView}>
+                {/* O componente PropertyDetails agora exibe a lista de talhões no modo leitura */}
+                <PropertyDetails property={activeProperty} />
+            </DialogContainer>
+
+            {/* Modal de Exclusão */}
             <DeletePropertyDialog
                 isOpen={deleteDisclosure.open}
                 onClose={handleCloseDelete}
