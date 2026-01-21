@@ -235,7 +235,7 @@ export default function FoliarAnalysisInterpretationTable() {
 
   return (
     <UserLayout>
-      <FertName subtitle="Análise Foliar (TIAF)" />
+      <FertName subtitle="Tabelas de Interpretação para Análise Foliar (TIAF)" />
       <ConfigMenu />
 
       <Box 
