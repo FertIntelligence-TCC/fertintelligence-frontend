@@ -54,7 +54,7 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                         {plot.area} ha
                     </Text>
 
-                    {/* Overlay de Ações */}
+                    {/* Overlay de Ações - Só aparece quando clicado */}
                     {activePlotId === plot.id && (
                         <Flex 
                             position="absolute" 
@@ -64,36 +64,43 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                             align="center" 
                             justify="center"
                             animation="fade-in 0.2s"
+                            onClick={(e) => e.stopPropagation()} // Evita fechar ao clicar no fundo preto
                         >
                             <HStack gap={2}>
+                                {/* Modo Visualização: Apenas o Olho */}
                                 {mode === "view" && onView && (
                                     <IconButton
                                         aria-label="Visualizar"
-                                        icon={<FiEye />}
                                         size="sm"
-                                        colorScheme="blue"
-                                        isRound
+                                        colorPalette="blue"
+                                        rounded="full"
                                         onClick={(e) => { e.stopPropagation(); onView(plot); }}
-                                    />
+                                    >
+                                        <FiEye />
+                                    </IconButton>
                                 )}
+
+                                {/* Modo Edição: Editar e Excluir */}
                                 {mode === "edit" && onEdit && onDelete && (
                                     <>
                                         <IconButton
                                             aria-label="Editar"
-                                            icon={<FiEdit />}
                                             size="sm"
-                                            colorScheme="yellow"
-                                            isRound
+                                            colorPalette="yellow"
+                                            rounded="full"
                                             onClick={(e) => { e.stopPropagation(); onEdit(plot); }}
-                                        />
+                                        >
+                                            <FiEdit />
+                                        </IconButton>
                                         <IconButton
                                             aria-label="Excluir"
-                                            icon={<FiTrash />}
                                             size="sm"
-                                            colorScheme="red"
-                                            isRound
+                                            colorPalette="red"
+                                            rounded="full"
                                             onClick={(e) => { e.stopPropagation(); onDelete(plot); }}
-                                        />
+                                        >
+                                            <FiTrash />
+                                        </IconButton>
                                     </>
                                 )}
                             </HStack>

@@ -98,7 +98,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
             
             <VStack gap={4} align="stretch">
                 <Box>
-                    <Text fontSize="sm" fontWeight="bold" mb={1}>Identificação *</Text>
+                    <Text fontSize="sm" fontWeight="bold" mb={1}>Identificação</Text>
                     <Input 
                         value={form.identificacao} 
                         onChange={e => handleChange("identificacao", e.target.value)} 
@@ -108,7 +108,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
 
                 <Grid templateColumns="1fr 1fr" gap={4}>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Área (ha) *</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Área (ha)</Text>
                         <Input 
                             type="number" 
                             value={form.area} 
@@ -116,7 +116,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         />
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Ano Incorp. Safra *</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Ano de Incorporação da Safra</Text>
                         <Input 
                             type="number" 
                             value={form.ano_incorporacao_safra} 
@@ -127,7 +127,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
 
                 <Grid templateColumns="1fr 1fr" gap={4}>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Classe de Solo *</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Classe de Solo</Text>
                         <SelectRoot
                             collection={classesSoloCollection}
                             value={[form.classe_solo]}
@@ -146,7 +146,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         </SelectRoot>
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Textura do Solo *</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Textura do Solo</Text>
                         <SelectRoot
                             collection={texturasSoloCollection}
                             value={[form.textura_solo]}
@@ -167,7 +167,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                 </Grid>
 
                 <Box>
-                    <Text fontSize="sm" fontWeight="bold" mb={1}>Área Irrigada? *</Text>
+                    <Text fontSize="sm" fontWeight="bold" mb={1}>Área Irrigada?</Text>
                     <SelectRoot
                         collection={areaIrrigadaCollection}
                         value={[form.area_irrigada]}
@@ -192,11 +192,11 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         <Input type="number" value={form.declividade} onChange={e => handleChange("declividade", parseFloat(e.target.value))} />
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Mensal</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Mensal (mm)</Text>
                         <Input type="number" value={form.pluviosidade_mensal} onChange={e => handleChange("pluviosidade_mensal", parseFloat(e.target.value))} />
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Anual</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Anual (mm)</Text>
                         <Input type="number" value={form.pluviosidade_anual} onChange={e => handleChange("pluviosidade_anual", parseFloat(e.target.value))} />
                     </Box>
                 </Grid>

@@ -97,13 +97,21 @@ const PropertyFormDialog = ({
                 <VStack align="stretch" gap={6}>
                     <PropertyFormFields form={form} onFormChange={onFormChange} />
 
+                    {/* Exibe a mensagem apenas se estiver no modo de criação (sem propertyId) */}
+                    {!propertyId && (
+                        <Box bg="blue.50" _dark={{ bg: "blue.900" }} p={3} borderRadius="md">
+                            <Text fontSize="sm" color="blue.600" _dark={{ color: "blue.200" }} textAlign="center">
+                                Você pode editar a propriedade para adicionar talhões!
+                            </Text>
+                        </Box>
+                    )}
+
                     <Separator />
 
                     {propertyId && (
                         <Box>
                             <Flex justify="space-between" align="center" mb={2}>
                                 <Heading as="h4" size="sm" color="gray.600">Talhões</Heading>
-                                {/* CORREÇÃO: Botão sem leftIcon, usando children */}
                                 <Button size="xs" colorScheme="blue" onClick={handleAddPlot}>
                                     <HStack gap={1}>
                                         <FiPlus />
@@ -130,7 +138,6 @@ const PropertyFormDialog = ({
                 </Flex>
             </DialogContainer>
 
-            {/* Renderiza o modal de Talhão por cima do modal de Propriedade */}
             <PlotFormDialog 
                 isOpen={plotFormDisclosure.open}
                 onClose={plotFormDisclosure.onClose}

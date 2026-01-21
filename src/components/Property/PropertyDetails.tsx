@@ -82,7 +82,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
             )}
 
             <PlotDetailsDialog 
-                isOpen={viewPlotDisclosure.isOpen}
+                isOpen={viewPlotDisclosure.open}
                 onClose={viewPlotDisclosure.onClose}
                 plot={selectedPlot}
             />
