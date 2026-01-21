@@ -132,7 +132,7 @@ const PropertyFormDialog = ({
 
             {/* Renderiza o modal de Talhão por cima do modal de Propriedade */}
             <PlotFormDialog 
-                isOpen={plotFormDisclosure.isOpen}
+                isOpen={plotFormDisclosure.open}
                 onClose={plotFormDisclosure.onClose}
                 onSubmit={handleSavePlot}
                 initialData={editingPlot}

@@ -41,8 +41,8 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
                 </Grid>
 
                 <Grid templateColumns="1fr 1fr" gap={4}>
-                    <DetailItem label="Pluv. Mensal" value={`${plot.pluviosidade_mensal} mm`} />
-                    <DetailItem label="Pluv. Anual" value={`${plot.pluviosidade_anual} mm`} />
+                    <DetailItem label="Pluv. Mensal (mm)" value={`${plot.pluviosidade_mensal} mm`} />
+                    <DetailItem label="Pluv. Anual (mm)" value={`${plot.pluviosidade_anual} mm`} />
                 </Grid>
             </VStack>
 
