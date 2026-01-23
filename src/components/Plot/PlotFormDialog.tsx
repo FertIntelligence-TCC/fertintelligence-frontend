@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Button,
-    Flex,
     Heading,
     Input,
     VStack,
     Grid,
     Text,
     Box,
-    createListCollection
+    createListCollection,
+    Separator,
+    Flex
 } from "@chakra-ui/react";
 import {
     SelectContent,
@@ -17,7 +19,7 @@ import {
     SelectTrigger,
     SelectValueText,
 } from "@/components/ui/select";
-console.log("SelectRoot typeof:", typeof SelectRoot, SelectRoot)
+
 import DialogContainer from "@/components/Property/DialogContainer";
 import { 
     ClasseSolo, 
@@ -64,6 +66,7 @@ const areaIrrigadaCollection = createListCollection({
 
 export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData, isSubmitting }: Props) {
     const [form, setForm] = useState<PlotCreatePayload>(INITIAL_STATE);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (isOpen) {
@@ -89,8 +92,20 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
         setForm(prev => ({ ...prev, [field]: value }));
     };
 
+    // CORREÇÃO: Recebe o evento para prevenir comportamento padrão (submit/refresh)
+    const handleNavigate = (e: React.MouseEvent, path: string) => {
+        e.preventDefault();  // Impede o envio do formulário
+        e.stopPropagation(); // Impede a propagação do clique para elementos pai
+        
+        if (initialData?.id) {
+            onClose(); // Fecha o modal atual
+            // Navega para a rota absoluta correta
+            navigate(`/fertintelligence/plots/${initialData.id}/${path}`);
+        }
+    };
+
     return (
-        // CORREÇÃO: zIndex maior que o modal pai (1400 > 1000)
+        // zIndex alto para garantir que o modal fique sobreposto corretamente
         <DialogContainer isOpen={isOpen} onClose={onClose} zIndex={1400}>
             <Heading as="h2" size="md" mb={4}>
                 {initialData ? "Editar Talhão" : "Novo Talhão"}
@@ -116,7 +131,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         />
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Ano de Incorporação da Safra</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Ano Safra</Text>
                         <Input 
                             type="number" 
                             value={form.ano_incorporacao_safra} 
@@ -146,7 +161,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         </SelectRoot>
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Textura do Solo</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Textura</Text>
                         <SelectRoot
                             collection={texturasSoloCollection}
                             value={[form.textura_solo]}
@@ -192,19 +207,65 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         <Input type="number" value={form.declividade} onChange={e => handleChange("declividade", parseFloat(e.target.value))} />
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Mensal (mm)</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Mês (mm)</Text>
                         <Input type="number" value={form.pluviosidade_mensal} onChange={e => handleChange("pluviosidade_mensal", parseFloat(e.target.value))} />
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Anual (mm)</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Ano (mm)</Text>
                         <Input type="number" value={form.pluviosidade_anual} onChange={e => handleChange("pluviosidade_anual", parseFloat(e.target.value))} />
                     </Box>
                 </Grid>
+
+                {/* --- SEÇÃO DE GERENCIAMENTO DE ENTIDADES --- */}
+                {initialData && (
+                    <>
+                        <Separator my={2} borderColor="gray.300" />
+                        <Text fontSize="md" fontWeight="bold" color="gray.700">
+                            Gerenciar Dados do Talhão
+                        </Text>
+                        <VStack gap={3} width="100%">
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                width="100%" 
+                                onClick={(e) => handleNavigate(e, "physical-analysis")}
+                            >
+                                Gerenciar Análises Físicas
+                            </Button>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                width="100%" 
+                                onClick={(e) => handleNavigate(e, "chemical-analysis")}
+                            >
+                                Gerenciar Análises Químicas
+                            </Button>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                width="100%" 
+                                onClick={(e) => handleNavigate(e, "saturation-extract")}
+                            >
+                                Gerenciar Análises de Extrato de Saturação
+                            </Button>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                width="100%" 
+                                onClick={(e) => handleNavigate(e, "annual-crop-folder")}
+                            >
+                                Gerenciar Pastas de Culturas Anuais
+                            </Button>
+                        </VStack>
+                    </>
+                )}
+
             </VStack>
 
             <Flex justify="flex-end" gap={3} mt={6}>
-                <Button onClick={onClose} variant="outline" colorScheme="red">Cancelar</Button>
-                <Button onClick={() => onSubmit(form)} colorScheme="green" loading={isSubmitting}>Salvar</Button>
+                <Button onClick={onClose} variant="outline" colorPalette="red">Cancelar</Button>
+                {/* O botão Salvar mantém o comportamento padrão de submit */}
+                <Button onClick={() => onSubmit(form)} colorPalette="green" loading={isSubmitting}>Salvar</Button>
             </Flex>
         </DialogContainer>
     );

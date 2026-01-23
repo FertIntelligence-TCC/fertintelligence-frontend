@@ -20,7 +20,12 @@ import FoliarMineralFertilizer from "@/pages/fertilizer/FoliarMineralFertilizer"
 import FormulatedMineralFertilizer from "@/pages/fertilizer/FormulatedMineralFertilizer";
 import GreenFertilizer from "@/pages/fertilizer/GreenFertilizer";
 import SimpleMineralFertilizer from "@/pages/fertilizer/SimpleMineralFertilizer";
-import OrganoMineralFertilizer from "@/pages/fertilizer/OrganoMineralFertilizer"; // Import Adicionado
+import OrganoMineralFertilizer from "@/pages/fertilizer/OrganoMineralFertilizer";
+import { PhysicalAnalysis } from "@/pages/plot-entities/PhysicalAnalysis";
+import { FertilityAnalysis } from "@/pages/plot-entities/FertilityAnalysis";
+import { SaturationExtractAnalysis } from "@/pages/plot-entities/SaturationExtractAnalysis";
+import { AnnualCropFolder } from "@/pages/plot-entities/AnnualCropFolder";
+
 
 export const PublicRoutes: RouteObject[] = [
   {
@@ -110,6 +115,22 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/fertilizer-management/simple-mineral-fertilizer",
     element: <SimpleMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/plots/:plotId/physical-analysis",
+    element: <PhysicalAnalysis />,
+  },
+  {
+    path: "/fertintelligence/plots/:plotId/fertility-analysis",
+    element: <FertilityAnalysis />,
+  },
+  {
+    path: "/fertintelligence/plots/:plotId/saturation-extract",
+    element: <SaturationExtractAnalysis />,
+  },
+  {
+    path: "/fertintelligence/plots/:plotId/annual-crop-folder",
+    element: <AnnualCropFolder />,
   },
   {
     element: <PrivateRoute />,
