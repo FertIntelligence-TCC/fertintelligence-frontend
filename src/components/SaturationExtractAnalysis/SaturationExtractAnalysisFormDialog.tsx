@@ -36,13 +36,13 @@ import { LuTrash2, LuPlus } from "react-icons/lu";
 import { soilAnalysisService } from "@/services/soilAnalysisService";
 import { layerExtractService } from "@/services/layerExtractService";
 import { rangeExtractService } from "@/services/rangeExtractService";
-import { physicalAnalysisExtractService } from "@/services/physicalAnalysisExtractService";
+import { saturationExtractAnalysisExtractService } from "@/services/saturationExtractAnalysisExtractService";
 import { TipoExtrato } from "@/interfaces/SoilAnalysis";
 import { Camada } from "@/interfaces/LayerExtract";
-import { AnalysisMode, PhysicalExtractFormData } from "@/interfaces/PhysicalAnalysisFormTypes";
+import { AnalysisMode, SaturationExtractFormData } from "@/interfaces/SaturationExtractAnalysisFormTypes";
 
 // --- Componentes Auxiliares de Estilo ---
-const SectionHeader = ({ title, colorPalette = "green" }: { title: string, colorPalette?: string }) => (
+const SectionHeader = ({ title, colorPalette = "purple" }: { title: string, colorPalette?: string }) => (
     <Flex align="center" w="full" mb={3} mt={1}>
         <Text 
             fontWeight="bold" 
@@ -67,7 +67,7 @@ const Field = ({ label, ...props }: InputProps & { label: string }) => (
             bg="white" 
             _dark={{ bg: "gray.800", borderColor: "gray.600", color: "white" }}
             borderColor="gray.300"
-            _focus={{ borderColor: "green.500", ring: 1, ringColor: "green.200", _dark: { borderColor: "green.400", ringColor: "green.900" } }} 
+            _focus={{ borderColor: "purple.500", ring: 1, ringColor: "purple.200", _dark: { borderColor: "purple.400", ringColor: "purple.900" } }} 
             {...props} 
         />
     </Box>
@@ -86,11 +86,11 @@ interface Props {
     initialData?: any;
 }
 
-export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId, plotIdentification }: Props) => {
+export const SaturationExtractAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId, plotIdentification }: Props) => {
     const [analysisYear, setAnalysisYear] = useState<string>(new Date().getFullYear().toString());
     const [lab, setLab] = useState("");
     const [mode, setMode] = useState<AnalysisMode>('INITIAL');
-    const [extracts, setExtracts] = useState<PhysicalExtractFormData[]>([]);
+    const [extracts, setExtracts] = useState<SaturationExtractFormData[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -103,17 +103,36 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
     }, [isOpen]);
 
     const handleAddExtract = () => {
-        const newExtract: PhysicalExtractFormData = {
+        const newExtract: SaturationExtractFormData = {
             tempId: Math.random().toString(36).substr(2, 9),
             profundidadeInicial: 0, 
             profundidadeFinal: 20, 
             camada: mode === 'LAYER' ? Camada.A : undefined, 
             subcamada: 1,
-            teorAreia: 0, teorSilte: 0, teorArgila: 0,
-            densidadeAparente: 0, densidadeReal: 0, porosidadeTotal: 0, microporosidade: 0,
-            umidadeCapacidadeCampo: 0, umidadePontoMurchaPermanente: 0, aguaDisponivel: 0, resistenciaPenetracao: 0,
-            percAgregados6_0mm: 0, percAgregados4_1a6_0mm: 0, percAgregados2_1a4_0mm: 0, percAgregados1_0a2_0mm: 0,
-            percAgregados0_5a1_0mm: 0, percAgregados0_25a0_5mm: 0, percAgregadosMenor0_25mm: 0, dmAgregados: 0
+            
+            // Físico-Química e Resíduos
+            ph: 0, 
+            ce: 0,
+            residuosSuspensao: 0,
+
+            // Cátions
+            teorCa: 0, 
+            teorMg: 0,
+            teorNa: 0, 
+            teorK: 0, 
+            
+            // Ânions
+            teorCO3: 0, 
+            teorHCO3: 0, 
+            teorNO3: 0, 
+            teorH2PO4: 0,
+            teorSO4: 0, 
+            
+            // Dureza e Indicadores
+            durezaCaCO3: 0,
+            durezaTotalCaCO3: 0,
+            ras: 0, 
+            pst: 0
         };
         const updated = [...extracts, newExtract];
         if (mode === 'LAYER') recalculateSubLayers(updated);
@@ -126,9 +145,8 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
         else setExtracts(updated);
     };
 
-    const handleChangeExtract = (tempId: string, field: keyof PhysicalExtractFormData, value: any) => {
+    const handleChangeExtract = (tempId: string, field: keyof SaturationExtractFormData, value: any) => {
         const updated = extracts.map(e => e.tempId === tempId ? { ...e, [field]: value } : e);
-        
         if (mode === 'LAYER' && field === 'camada') {
             recalculateSubLayers(updated);
         } else {
@@ -136,7 +154,7 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
         }
     };
 
-    const recalculateSubLayers = (list: PhysicalExtractFormData[]) => {
+    const recalculateSubLayers = (list: SaturationExtractFormData[]) => {
         const counts: Record<string, number> = {};
         const newList = list.map(item => {
             if (!item.camada) return item;
@@ -164,18 +182,12 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
         if (!validate()) return;
         setIsSubmitting(true);
         try {
-            const safePlotIdentification = (plotIdentification && plotIdentification.trim() !== "") 
-                ? plotIdentification 
-                : `Talhão ${plotId}`;
-
-            // CORREÇÃO: Usando 'plotIdentification' (camelCase) em vez de 'identificacao_talhao' (snake_case)
-            // O backend espera o nome do campo Java quando a anotação @JsonProperty falha ou não existe.
-            const analysisPayload: any = {
+            const analysisPayload = {
                 ano_analise: parseInt(analysisYear),
                 laboratorio_responsavel: lab,
                 tipo_extrato: mode === 'LAYER' ? TipoExtrato.CAMADAS : TipoExtrato.INTERVALOS,
                 id_talhao: plotId,
-                plotIdentification: safePlotIdentification // Correção aqui!
+                identificacao_talhao: plotIdentification
             };
 
             const analysis = await soilAnalysisService.create(analysisPayload);
@@ -198,25 +210,33 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
                     extractId = res.id;
                 }
                 
-                await physicalAnalysisExtractService.create({
-                    teor_areia: ext.teorAreia, teor_silte: ext.teorSilte, teor_argila: ext.teorArgila,
-                    densidade_aparente: ext.densidadeAparente, densidade_real: ext.densidadeReal,
-                    porosidade_total: ext.porosidadeTotal, microporosidade: ext.microporosidade,
-                    umidade_capacidade_campo: ext.umidadeCapacidadeCampo, umidade_ponto_murcha_permanente: ext.umidadePontoMurchaPermanente,
-                    agua_disponivel: ext.aguaDisponivel, resistencia_penetracao: ext.resistenciaPenetracao,
-                    perc_agregados_6_0mm: ext.percAgregados6_0mm, perc_agregados_4_1_a_6_0mm: ext.percAgregados4_1a6_0mm,
-                    perc_agregados_2_1_a_4_0mm: ext.percAgregados2_1a4_0mm, perc_agregados_1_0_a_2_0mm: ext.percAgregados1_0a2_0mm,
-                    perc_agregados_0_5_a_1_0mm: ext.percAgregados0_5a1_0mm, perc_agregados_0_25_a_0_5mm: ext.percAgregados0_25a0_5mm,
-                    perc_agregados_menor_0_25mm: ext.percAgregadosMenor0_25mm, dm_agregados: ext.dmAgregados
+                // Mapeamento completo conforme SaturationExtractAnalysisExtractCreateRequestDto.java
+                await saturationExtractAnalysisExtractService.create({
+                    ph: ext.ph,
+                    ce: ext.ce,
+                    teor_co3: ext.teorCO3,
+                    teor_hco3: ext.teorHCO3,
+                    teor_no3: ext.teorNO3,
+                    teor_h2po4: ext.teorH2PO4, // Novo campo
+                    teor_so4: ext.teorSO4,
+                    teor_na: ext.teorNa,
+                    teor_k: ext.teorK,
+                    teor_ca: ext.teorCa,
+                    teor_mg: ext.teorMg,
+                    residuos_suspensao: ext.residuosSuspensao, // Novo campo
+                    dureza_caco3: ext.durezaCaCO3, // Novo campo
+                    dureza_total_caco3: ext.durezaTotalCaCO3, // Novo campo
+                    ras: ext.ras,
+                    pst: ext.pst
                 }, mode === 'RANGE' ? extractId : undefined, mode === 'LAYER' ? extractId : undefined);
             }
             
-            toaster.create({ title: "Análise salva com sucesso!", type: "success" });
+            toaster.create({ title: "Análise Salva!", type: "success" });
             onSuccess(); 
             onClose();
         } catch (error) {
             console.error("Erro ao salvar análise:", error);
-            toaster.create({ title: "Erro ao salvar", description: "Verifique os dados e tente novamente.", type: "error" });
+            toaster.create({ title: "Erro ao salvar", description: "Verifique os dados.", type: "error" });
         } finally { 
             setIsSubmitting(false); 
         }
@@ -226,7 +246,7 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
         <DialogRoot open={isOpen} onOpenChange={onClose} size="xl">
             <DialogContent bg="gray.50" _dark={{ bg: "gray.900", color: "gray.100" }}>
                 <DialogHeader borderBottomWidth="1px" borderColor="gray.200" _dark={{ bg: "gray.800", borderColor: "gray.700" }} bg="white">
-                    <DialogTitle color="gray.800" _dark={{ color: "white" }}>Nova Análise Física</DialogTitle>
+                    <DialogTitle color="gray.800" _dark={{ color: "white" }}>Nova Análise de Saturação</DialogTitle>
                 </DialogHeader>
                 <DialogBody py={6}>
                     <VStack gap={6} align="stretch">
@@ -244,7 +264,7 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
                                 <Text fontWeight="bold" color="gray.700" _dark={{ color: "gray.200" }}>Selecione o método de estratificação:</Text>
                                 <HStack gap={4} w="full">
                                     <Button flex={1} variant="surface" colorPalette="blue" onClick={() => setMode('LAYER')}>Por Camadas (A, B...)</Button>
-                                    <Button flex={1} variant="surface" colorPalette="green" onClick={() => setMode('RANGE')}>Por Profundidade (0-20...)</Button>
+                                    <Button flex={1} variant="surface" colorPalette="purple" onClick={() => setMode('RANGE')}>Por Profundidade (0-20...)</Button>
                                 </HStack>
                             </VStack>
                         )}
@@ -252,10 +272,10 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
                         {mode !== 'INITIAL' && (
                             <Box>
                                 <Flex justify="space-between" align="center" mb={4}>
-                                    <Text fontWeight="bold" fontSize="lg" color="gray.700" _dark={{ color: "gray.200" }}>Amostras / Extratos</Text>
+                                    <Text fontWeight="bold" fontSize="lg" color="gray.700" _dark={{ color: "gray.200" }}>Extratos</Text>
                                     <HStack>
                                         <Button size="xs" variant="ghost" colorPalette="red" onClick={handleCancelMode}>Cancelar</Button>
-                                        <Button size="sm" colorPalette="green" onClick={handleAddExtract}><LuPlus /> Adicionar</Button>
+                                        <Button size="sm" colorPalette="purple" onClick={handleAddExtract}><LuPlus /> Adicionar</Button>
                                     </HStack>
                                 </Flex>
 
@@ -272,7 +292,6 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
                                             </Flex>
 
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
-                                                {/* CORREÇÃO DO SELETOR DE CAMADA */}
                                                 {mode === 'LAYER' && (
                                                     <Box gridColumn="span 2">
                                                         <Text fontSize="xs" fontWeight="bold" color="gray.600" _dark={{ color: "gray.400" }} mb={1}>Camada</Text>
@@ -295,44 +314,40 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
                                                         </SelectRoot>
                                                     </Box>
                                                 )}
-                                                
                                                 <Box gridColumn="span 2"><Field label="Prof. Inicial (cm)" type="number" value={ext.profundidadeInicial} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeInicial', parseFloat(e.target.value))} /></Box>
                                                 <Box gridColumn="span 2"><Field label="Prof. Final (cm)" type="number" value={ext.profundidadeFinal} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeFinal', parseFloat(e.target.value))} /></Box>
                                             </Grid>
 
-                                            <SectionHeader title="Granulometria (g/kg)" colorPalette="blue" />
+                                            <SectionHeader title="Físico-Química e Resíduos" colorPalette="blue" />
                                             <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                                                <Field label="Areia" type="number" value={ext.teorAreia} onChange={e => handleChangeExtract(ext.tempId, 'teorAreia', parseFloat(e.target.value))} />
-                                                <Field label="Silte" type="number" value={ext.teorSilte} onChange={e => handleChangeExtract(ext.tempId, 'teorSilte', parseFloat(e.target.value))} />
-                                                <Field label="Argila" type="number" value={ext.teorArgila} onChange={e => handleChangeExtract(ext.tempId, 'teorArgila', parseFloat(e.target.value))} />
+                                                <Field label="pH" type="number" value={ext.ph} onChange={e => handleChangeExtract(ext.tempId, 'ph', parseFloat(e.target.value))} />
+                                                <Field label="CE (dS/m)" type="number" value={ext.ce} onChange={e => handleChangeExtract(ext.tempId, 'ce', parseFloat(e.target.value))} />
+                                                <Field label="Resíduos Susp." type="number" value={ext.residuosSuspensao} onChange={e => handleChangeExtract(ext.tempId, 'residuosSuspensao', parseFloat(e.target.value))} />
                                             </Grid>
 
-                                            <SectionHeader title="Física do Solo" colorPalette="orange" />
+                                            <SectionHeader title="Cátions Solúveis" colorPalette="orange" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Dens. Aparente" type="number" value={ext.densidadeAparente} onChange={e => handleChangeExtract(ext.tempId, 'densidadeAparente', parseFloat(e.target.value))} />
-                                                <Field label="Dens. Real" type="number" value={ext.densidadeReal} onChange={e => handleChangeExtract(ext.tempId, 'densidadeReal', parseFloat(e.target.value))} />
-                                                <Field label="Poros. Total (%)" type="number" value={ext.porosidadeTotal} onChange={e => handleChangeExtract(ext.tempId, 'porosidadeTotal', parseFloat(e.target.value))} />
-                                                <Field label="Microporos. (%)" type="number" value={ext.microporosidade} onChange={e => handleChangeExtract(ext.tempId, 'microporosidade', parseFloat(e.target.value))} />
+                                                <Field label="Ca" type="number" value={ext.teorCa} onChange={e => handleChangeExtract(ext.tempId, 'teorCa', parseFloat(e.target.value))} />
+                                                <Field label="Mg" type="number" value={ext.teorMg} onChange={e => handleChangeExtract(ext.tempId, 'teorMg', parseFloat(e.target.value))} />
+                                                <Field label="Na" type="number" value={ext.teorNa} onChange={e => handleChangeExtract(ext.tempId, 'teorNa', parseFloat(e.target.value))} />
+                                                <Field label="K" type="number" value={ext.teorK} onChange={e => handleChangeExtract(ext.tempId, 'teorK', parseFloat(e.target.value))} />
                                             </Grid>
 
-                                            <SectionHeader title="Hídrico & Resistência" colorPalette="teal" />
-                                            <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Umidade CC (%)" type="number" value={ext.umidadeCapacidadeCampo} onChange={e => handleChangeExtract(ext.tempId, 'umidadeCapacidadeCampo', parseFloat(e.target.value))} />
-                                                <Field label="Umidade PMP (%)" type="number" value={ext.umidadePontoMurchaPermanente} onChange={e => handleChangeExtract(ext.tempId, 'umidadePontoMurchaPermanente', parseFloat(e.target.value))} />
-                                                <Field label="Água Disp." type="number" value={ext.aguaDisponivel} onChange={e => handleChangeExtract(ext.tempId, 'aguaDisponivel', parseFloat(e.target.value))} />
-                                                <Field label="Resist. Penetr. (MPa)" type="number" value={ext.resistenciaPenetracao} onChange={e => handleChangeExtract(ext.tempId, 'resistenciaPenetracao', parseFloat(e.target.value))} />
+                                            <SectionHeader title="Ânions" colorPalette="teal" />
+                                            <Grid templateColumns="repeat(5, 1fr)" gap={4} mb={4}>
+                                                <Field label="CO₃" type="number" value={ext.teorCO3} onChange={e => handleChangeExtract(ext.tempId, 'teorCO3', parseFloat(e.target.value))} />
+                                                <Field label="HCO₃" type="number" value={ext.teorHCO3} onChange={e => handleChangeExtract(ext.tempId, 'teorHCO3', parseFloat(e.target.value))} />
+                                                <Field label="NO₃" type="number" value={ext.teorNO3} onChange={e => handleChangeExtract(ext.tempId, 'teorNO3', parseFloat(e.target.value))} />
+                                                <Field label="H₂PO₄" type="number" value={ext.teorH2PO4} onChange={e => handleChangeExtract(ext.tempId, 'teorH2PO4', parseFloat(e.target.value))} />
+                                                <Field label="SO₄" type="number" value={ext.teorSO4} onChange={e => handleChangeExtract(ext.tempId, 'teorSO4', parseFloat(e.target.value))} />
                                             </Grid>
 
-                                            <SectionHeader title="Agregados (%)" colorPalette="green" />
+                                            <SectionHeader title="Dureza e Indicadores" colorPalette="pink" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-                                                <Field label="DM (mm)" type="number" value={ext.dmAgregados} onChange={e => handleChangeExtract(ext.tempId, 'dmAgregados', parseFloat(e.target.value))} />
-                                                <Field label="> 6.0mm" type="number" value={ext.percAgregados6_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados6_0mm', parseFloat(e.target.value))} />
-                                                <Field label="4-6mm" type="number" value={ext.percAgregados4_1a6_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados4_1a6_0mm', parseFloat(e.target.value))} />
-                                                <Field label="2-4mm" type="number" value={ext.percAgregados2_1a4_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados2_1a4_0mm', parseFloat(e.target.value))} />
-                                                <Field label="1-2mm" type="number" value={ext.percAgregados1_0a2_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados1_0a2_0mm', parseFloat(e.target.value))} />
-                                                <Field label="0.5-1mm" type="number" value={ext.percAgregados0_5a1_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados0_5a1_0mm', parseFloat(e.target.value))} />
-                                                <Field label="0.25-0.5mm" type="number" value={ext.percAgregados0_25a0_5mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados0_25a0_5mm', parseFloat(e.target.value))} />
-                                                <Field label="< 0.25mm" type="number" value={ext.percAgregadosMenor0_25mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregadosMenor0_25mm', parseFloat(e.target.value))} />
+                                                <Field label="Dureza CaCO₃" type="number" value={ext.durezaCaCO3} onChange={e => handleChangeExtract(ext.tempId, 'durezaCaCO3', parseFloat(e.target.value))} />
+                                                <Field label="Dureza Total" type="number" value={ext.durezaTotalCaCO3} onChange={e => handleChangeExtract(ext.tempId, 'durezaTotalCaCO3', parseFloat(e.target.value))} />
+                                                <Field label="RAS" type="number" value={ext.ras} onChange={e => handleChangeExtract(ext.tempId, 'ras', parseFloat(e.target.value))} />
+                                                <Field label="PST (%)" type="number" value={ext.pst} onChange={e => handleChangeExtract(ext.tempId, 'pst', parseFloat(e.target.value))} />
                                             </Grid>
                                         </Box>
                                     ))}
@@ -343,7 +358,7 @@ export const PhysicalAnalysisFormDialog = ({ isOpen, onClose, onSuccess, plotId,
                 </DialogBody>
                 <DialogFooter bg="gray.100" _dark={{ bg: "gray.800", borderColor: "gray.700" }} borderTopWidth="1px" borderColor="gray.200">
                     <Button variant="ghost" colorPalette="gray" onClick={onClose}>Cancelar</Button>
-                    <Button onClick={handleSubmit} loading={isSubmitting} colorPalette="green" disabled={mode === 'INITIAL'}>Salvar Análise</Button>
+                    <Button onClick={handleSubmit} loading={isSubmitting} colorPalette="purple" disabled={mode === 'INITIAL'}>Salvar Análise</Button>
                 </DialogFooter>
                 <DialogCloseTrigger color="gray.500" />
             </DialogContent>

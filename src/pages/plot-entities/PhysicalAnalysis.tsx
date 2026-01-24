@@ -15,7 +15,12 @@ import {
     HStack
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons"; // Ou use ícones do Lucide/Fa se preferir
+import { LuTrash2, LuPencil } from "react-icons/lu";
+
+// Layout Imports
+import UserLayout from "@/components/Layouts/UserLayout";
+import FertName from "@/components/FertName/FertName";
+import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 
 // Componentes
 import { PhysicalAnalysisFormDialog } from "@/components/PhysicalAnalysis/PhysicalAnalysisFormDialog";
@@ -32,24 +37,21 @@ import { Camada } from "@/interfaces/LayerExtract";
 import { PhysicalExtractFormData } from "@/interfaces/PhysicalAnalysisFormTypes";
 import { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
 
-// Interface local para a visualização agrupada (Card da Análise)
 interface GroupedAnalysis {
     analysisId: number;
     year: number;
     lab: string;
     type: TipoExtrato;
-    extracts: PhysicalExtractFormData[]; // Reutilizamos o tipo do formulário para facilitar a passagem de dados
+    extracts: PhysicalExtractFormData[];
 }
 
 export const PhysicalAnalysis = () => {
     const { plotId } = useParams();
     const navigate = useNavigate();
     
-    // Estados
     const [isLoading, setIsLoading] = useState(false);
     const [groupedAnalyses, setGroupedAnalyses] = useState<GroupedAnalysis[]>([]);
     
-    // Controle do Modal
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingData, setEditingData] = useState<GroupedAnalysis | undefined>(undefined);
     const [hoveredAnalysisId, setHoveredAnalysisId] = useState<number | null>(null);
@@ -62,12 +64,9 @@ export const PhysicalAnalysis = () => {
         if (!plotId) return;
         setIsLoading(true);
         try {
-            // 1. Busca todas as análises de solo do talhão
             const analyses = await soilAnalysisService.getByPlotId(plotId);
             const groups: GroupedAnalysis[] = [];
 
-            // 2. Para cada análise, busca seus extratos e dados físicos
-            // Nota: Em produção, um endpoint "Eager Loading" no backend seria mais performático que esse loop N+1
             for (const analysis of analyses) {
                 const group: GroupedAnalysis = {
                     analysisId: analysis.id,
@@ -101,9 +100,7 @@ export const PhysicalAnalysis = () => {
                     }
                 }
 
-                // Apenas adiciona na lista se tiver dados físicos (ou se for uma análise vazia criada para esse fim)
                 if (hasPhysicalData || group.extracts.length > 0) {
-                    // Ordena extratos por profundidade para visualização correta
                     group.extracts.sort((a, b) => a.profundidadeInicial - b.profundidadeInicial);
                     groups.push(group);
                 }
@@ -117,7 +114,6 @@ export const PhysicalAnalysis = () => {
         }
     };
 
-    // Função auxiliar para converter snake_case (Backend) -> camelCase (Frontend Form)
     const mapBackendToFormData = (
         p: PhysicalAnalysisExtractResponse, 
         rangeId?: number, 
@@ -128,16 +124,12 @@ export const PhysicalAnalysis = () => {
         subcamada?: number
     ): PhysicalExtractFormData => {
         return {
-            tempId: p.id.toString(), // Usamos o ID real como tempId para edição
-            databaseId: rangeId || layerId, // Guardamos o ID do Extrato aqui para update do container
-            
-            // Container Data
+            tempId: p.id.toString(),
+            databaseId: rangeId || layerId,
             profundidadeInicial: initial || 0,
             profundidadeFinal: final || 0,
             camada: camada,
             subcamada: subcamada,
-
-            // Physical Data
             teorAreia: p.teor_areia,
             teorSilte: p.teor_silte,
             teorArgila: p.teor_argila,
@@ -149,8 +141,6 @@ export const PhysicalAnalysis = () => {
             umidadePontoMurchaPermanente: p.umidade_ponto_murcha_permanente,
             aguaDisponivel: p.agua_disponivel,
             resistenciaPenetracao: p.resistencia_penetracao,
-            
-            // Agregados
             percAgregados6_0mm: p.perc_agregados_6_0mm,
             percAgregados4_1a6_0mm: p.perc_agregados_4_1_a_6_0mm,
             percAgregados2_1a4_0mm: p.perc_agregados_2_1_a_4_0mm,
@@ -185,128 +175,132 @@ export const PhysicalAnalysis = () => {
     };
 
     return (
-        <Box p={6} maxWidth="1200px" margin="0 auto">
-            <Button onClick={() => navigate(-1)} mb={4} variant="outline" size="sm">
-                Voltar
-            </Button>
-            
-            <Flex justify="space-between" align="center" mb={8}>
-                <Heading size="lg" color="green.700">Gerenciar Análises Físicas</Heading>
-                <Button colorScheme="green" onClick={handleAddNew}>
-                    + Adicionar Análise Física
+        <UserLayout>
+            <FertName subtitle="Gerenciar Análises Físicas" />
+            <ConfigMenu />
+
+            <Box mt={{ base: 24, md: 32 }} p={6} maxWidth="1400px" marginX="auto">
+                <Button onClick={() => navigate(-1)} mb={4} variant="outline" size="sm">
+                    Voltar
                 </Button>
-            </Flex>
-
-            {isLoading ? (
-                <Flex justify="center" align="center" minH="200px">
-                    <Spinner size="xl" color="green.500" />
+                
+                <Flex justify="space-between" align="center" mb={8} wrap="wrap" gap={4}>
+                    <Heading size="lg" color="green.700">Análises Físicas do Talhão</Heading>
+                    <Button colorPalette="green" onClick={handleAddNew}>
+                        + Adicionar Análise Física
+                    </Button>
                 </Flex>
-            ) : groupedAnalyses.length === 0 ? (
-                <Flex direction="column" align="center" justify="center" p={10} borderWidth="1px" borderRadius="lg" bg="gray.50">
-                    <Text color="gray.500" fontSize="lg" mb={2}>Nenhuma análise física encontrada.</Text>
-                    <Text color="gray.400" fontSize="sm">Clique em "Adicionar" para cadastrar a primeira.</Text>
-                </Flex>
-            ) : (
-                <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={6}>
-                    {groupedAnalyses.map((group) => (
-                        <Box
-                            key={group.analysisId}
-                            borderWidth="1px"
-                            borderRadius="lg"
-                            overflow="hidden"
-                            bg="white"
-                            shadow="md"
-                            position="relative"
-                            onMouseEnter={() => setHoveredAnalysisId(group.analysisId)}
-                            onMouseLeave={() => setHoveredAnalysisId(null)}
-                            _hover={{ shadow: "xl", borderColor: "green.400" }}
-                            transition="all 0.2s"
-                        >
-                            {/* Header do Card */}
-                            <Box bg="gray.100" p={4} borderBottomWidth="1px">
-                                <Flex justify="space-between" align="center">
-                                    <Badge colorScheme="green" fontSize="0.9em" borderRadius="full" px={2}>
-                                        {group.year}
-                                    </Badge>
-                                    <Badge variant="outline" colorScheme={group.type === TipoExtrato.CAMADAS ? "purple" : "blue"}>
-                                        {group.type}
-                                    </Badge>
-                                </Flex>
-                                <Text fontWeight="bold" mt={2} noOfLines={1} title={group.lab}>
-                                    {group.lab}
-                                </Text>
+
+                {isLoading ? (
+                    <Flex justify="center" align="center" minH="200px">
+                        <Spinner size="xl" color="green.500" />
+                    </Flex>
+                ) : groupedAnalyses.length === 0 ? (
+                    <Flex direction="column" align="center" justify="center" p={10} borderWidth="1px" borderRadius="lg" bg="white" _dark={{ bg: "gray.800" }}>
+                        <Text color="gray.500" fontSize="lg" mb={2}>Nenhuma análise física encontrada.</Text>
+                        <Text color="gray.400" fontSize="sm">Clique em "Adicionar" para cadastrar a primeira.</Text>
+                    </Flex>
+                ) : (
+                    <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap={6}>
+                        {groupedAnalyses.map((group) => (
+                            <Box
+                                key={group.analysisId}
+                                borderWidth="1px"
+                                borderRadius="lg"
+                                overflow="hidden"
+                                bg="white"
+                                _dark={{ bg: "gray.700", borderColor: "gray.600" }}
+                                shadow="md"
+                                position="relative"
+                                onMouseEnter={() => setHoveredAnalysisId(group.analysisId)}
+                                onMouseLeave={() => setHoveredAnalysisId(null)}
+                                _hover={{ shadow: "xl", borderColor: "green.400" }}
+                                transition="all 0.2s"
+                            >
+                                <Box bg="gray.100" _dark={{ bg: "gray.600" }} p={4} borderBottomWidth="1px">
+                                    <Flex justify="space-between" align="center">
+                                        <Badge colorPalette="green" fontSize="0.9em" borderRadius="full" px={2}>
+                                            {group.year}
+                                        </Badge>
+                                        <Badge variant="outline" colorPalette={group.type === TipoExtrato.CAMADAS ? "purple" : "blue"}>
+                                            {group.type}
+                                        </Badge>
+                                    </Flex>
+                                    <Text fontWeight="bold" mt={2} noOfLines={1} title={group.lab}>
+                                        {group.lab}
+                                    </Text>
+                                </Box>
+
+                                <Box p={4}>
+                                    <Stack separator={<Separator />} gap={3}>
+                                        {group.extracts.map((ext, idx) => (
+                                            <Box key={idx} fontSize="sm">
+                                                <Flex justify="space-between" mb={1}>
+                                                    <Text fontWeight="bold" color="gray.700" _dark={{ color: "gray.200" }}>
+                                                        {group.type === TipoExtrato.CAMADAS 
+                                                            ? `Camada ${ext.camada}${ext.subcamada ? ext.subcamada : ''}`
+                                                            : `Prof. ${ext.profundidadeInicial} - ${ext.profundidadeFinal} cm`
+                                                        }
+                                                    </Text>
+                                                </Flex>
+                                                <HStack color="gray.500" _dark={{ color: "gray.400" }} fontSize="xs" gap={3}>
+                                                    <Text>Areia: <b>{ext.teorAreia}</b></Text>
+                                                    <Text>Silte: <b>{ext.teorSilte}</b></Text>
+                                                    <Text>Argila: <b>{ext.teorArgila}</b></Text>
+                                                </HStack>
+                                            </Box>
+                                        ))}
+                                        {group.extracts.length === 0 && (
+                                            <Text fontStyle="italic" color="gray.400" fontSize="sm">Sem dados físicos cadastrados.</Text>
+                                        )}
+                                    </Stack>
+                                </Box>
+
+                                {hoveredAnalysisId === group.analysisId && (
+                                    <Flex
+                                        position="absolute"
+                                        top={0} right={0} left={0} bottom={0}
+                                        bg="black/60"
+                                        align="center"
+                                        justify="center"
+                                        gap={4}
+                                        backdropFilter="blur(2px)"
+                                    >
+                                        <IconButton
+                                            aria-label="Editar"
+                                            colorPalette="yellow"
+                                            rounded="full"
+                                            size="lg"
+                                            onClick={() => handleEdit(group)}
+                                        >
+                                            <LuPencil />
+                                        </IconButton>
+                                        <IconButton
+                                            aria-label="Deletar"
+                                            colorPalette="red"
+                                            rounded="full"
+                                            size="lg"
+                                            onClick={() => handleDelete(group.analysisId)}
+                                        >
+                                            <LuTrash2 />
+                                        </IconButton>
+                                    </Flex>
+                                )}
                             </Box>
+                        ))}
+                    </SimpleGrid>
+                )}
 
-                            {/* Corpo do Card (Lista de Extratos) */}
-                            <Box p={4}>
-                                <Stack divider={<Separator />} spacing={3}>
-                                    {group.extracts.map((ext, idx) => (
-                                        <Box key={idx} fontSize="sm">
-                                            <Flex justify="space-between" mb={1}>
-                                                <Text fontWeight="bold" color="gray.700">
-                                                    {group.type === TipoExtrato.CAMADAS 
-                                                        ? `Camada ${ext.camada}${ext.subcamada ? ext.subcamada : ''}`
-                                                        : `Prof. ${ext.profundidadeInicial} - ${ext.profundidadeFinal} cm`
-                                                    }
-                                                </Text>
-                                            </Flex>
-                                            <HStack color="gray.500" fontSize="xs" spacing={3}>
-                                                <Text>Areia: <b>{ext.teorAreia}</b></Text>
-                                                <Text>Silte: <b>{ext.teorSilte}</b></Text>
-                                                <Text>Argila: <b>{ext.teorArgila}</b></Text>
-                                            </HStack>
-                                        </Box>
-                                    ))}
-                                    {group.extracts.length === 0 && (
-                                        <Text fontStyle="italic" color="gray.400" fontSize="sm">Sem dados físicos cadastrados.</Text>
-                                    )}
-                                </Stack>
-                            </Box>
-
-                            {/* Overlay de Ações (Aparece no Hover) */}
-                            {hoveredAnalysisId === group.analysisId && (
-                                <Flex
-                                    position="absolute"
-                                    top={0} right={0} left={0} bottom={0}
-                                    bg="blackAlpha.600"
-                                    align="center"
-                                    justify="center"
-                                    gap={4}
-                                    backdropFilter="blur(2px)"
-                                >
-                                    <IconButton
-                                        aria-label="Editar"
-                                        icon={<EditIcon />}
-                                        colorScheme="yellow"
-                                        isRound
-                                        size="lg"
-                                        onClick={() => handleEdit(group)}
-                                    />
-                                    <IconButton
-                                        aria-label="Deletar"
-                                        icon={<DeleteIcon />}
-                                        colorScheme="red"
-                                        isRound
-                                        size="lg"
-                                        onClick={() => handleDelete(group.analysisId)}
-                                    />
-                                </Flex>
-                            )}
-                        </Box>
-                    ))}
-                </SimpleGrid>
-            )}
-
-            {/* Modal de Criação/Edição */}
-            {isFormOpen && plotId && (
-                <PhysicalAnalysisFormDialog 
-                    isOpen={isFormOpen} 
-                    onClose={() => setIsFormOpen(false)} 
-                    onSuccess={fetchData}
-                    plotId={parseInt(plotId)}
-                    initialData={editingData}
-                />
-            )}
-        </Box>
+                {isFormOpen && plotId && (
+                    <PhysicalAnalysisFormDialog 
+                        isOpen={isFormOpen} 
+                        onClose={() => setIsFormOpen(false)} 
+                        onSuccess={fetchData}
+                        plotId={parseInt(plotId)}
+                        initialData={editingData}
+                    />
+                )}
+            </Box>
+        </UserLayout>
     );
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { generatePath, useNavigate } from "react-router-dom";
 import {
     Button,
     Heading,
@@ -93,15 +93,22 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
     };
 
     // CORREÇÃO: Recebe o evento para prevenir comportamento padrão (submit/refresh)
-    const handleNavigate = (e: React.MouseEvent, path: string) => {
+    const handleNavigate = (e: React.MouseEvent, routeTemplate: string) => {
         e.preventDefault();  // Impede o envio do formulário
         e.stopPropagation(); // Impede a propagação do clique para elementos pai
         
         if (initialData?.id) {
             onClose(); // Fecha o modal atual
             // Navega para a rota absoluta correta
-            navigate(`/fertintelligence/plots/${initialData.id}/${path}`);
+            navigate(generatePath(routeTemplate, { plotId: initialData.id }));
         }
+    };
+
+    const plotEntityRoutes = {
+        physicalAnalysis: "/fertintelligence/plots/:plotId/physical-analysis",
+        fertilityAnalysis: "/fertintelligence/plots/:plotId/fertility-analysis",
+        saturationExtract: "/fertintelligence/plots/:plotId/saturation-extract",
+        annualCropFolder: "/fertintelligence/plots/:plotId/annual-crop-folder",
     };
 
     return (
@@ -228,7 +235,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                                 type="button" 
                                 variant="outline" 
                                 width="100%" 
-                                onClick={(e) => handleNavigate(e, "physical-analysis")}
+                                onClick={(e) => handleNavigate(e, plotEntityRoutes.physicalAnalysis)}
                             >
                                 Gerenciar Análises Físicas
                             </Button>
@@ -236,15 +243,15 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                                 type="button" 
                                 variant="outline" 
                                 width="100%" 
-                                onClick={(e) => handleNavigate(e, "chemical-analysis")}
+                                onClick={(e) => handleNavigate(e, plotEntityRoutes.fertilityAnalysis)}
                             >
-                                Gerenciar Análises Químicas
+                                Gerenciar Análises de Fertilidade
                             </Button>
                             <Button 
                                 type="button" 
                                 variant="outline" 
                                 width="100%" 
-                                onClick={(e) => handleNavigate(e, "saturation-extract")}
+                                onClick={(e) => handleNavigate(e, plotEntityRoutes.saturationExtract)}
                             >
                                 Gerenciar Análises de Extrato de Saturação
                             </Button>
@@ -252,7 +259,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                                 type="button" 
                                 variant="outline" 
                                 width="100%" 
-                                onClick={(e) => handleNavigate(e, "annual-crop-folder")}
+                                onClick={(e) => handleNavigate(e, plotEntityRoutes.annualCropFolder)}
                             >
                                 Gerenciar Pastas de Culturas Anuais
                             </Button>
