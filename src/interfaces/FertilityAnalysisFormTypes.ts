@@ -10,7 +10,8 @@ export type AnalysisMode = 'INITIAL' | 'LAYER' | 'RANGE';
 export interface FertilityExtractFormData {
     // Controles do Frontend
     tempId: string;       // ID temporário para manipulação na lista visual
-    databaseId?: number;  // ID real no banco (apenas para edição futura)
+    databaseId?: number;  // ID real no banco (ID da tabela de fertilidade)
+    containerId?: number; // <--- NOVO: ID do container (LayerExtract ou RangeExtract)
 
     // Dados do Extrato (Container)
     profundidadeInicial: number;

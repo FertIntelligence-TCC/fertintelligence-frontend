@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
     Box,
     Button,
@@ -23,13 +23,14 @@ import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 
 // Componentes
-import { PhysicalAnalysisFormDialog } from "@/components/PhysicalAnalysis/PhysicalAnalysisFormDialog";
+import { PhysicalAnalysisFormDialog } from "@/components/PlotAnalysis/PhysicalAnalysisFormDialog";
 
 // Services
 import { soilAnalysisService } from "@/services/soilAnalysisService";
 import { rangeExtractService } from "@/services/rangeExtractService";
 import { layerExtractService } from "@/services/layerExtractService";
 import { physicalAnalysisExtractService } from "@/services/physicalAnalysisExtractService";
+import { getPlotById } from "@/services/plotService";
 
 // Interfaces
 import { TipoExtrato } from "@/interfaces/SoilAnalysis";
@@ -48,14 +49,51 @@ interface GroupedAnalysis {
 export const PhysicalAnalysis = () => {
     const { plotId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     
+    // Estados de Dados
     const [isLoading, setIsLoading] = useState(false);
     const [groupedAnalyses, setGroupedAnalyses] = useState<GroupedAnalysis[]>([]);
     
+    // Estados de Controle do Talhão
+    const [plotIdentification, setPlotIdentification] = useState(location.state?.plotIdentification || "");
+    const [isLoadingPlot, setIsLoadingPlot] = useState(!location.state?.plotIdentification);
+
+    // Estados do Modal
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingData, setEditingData] = useState<GroupedAnalysis | undefined>(undefined);
     const [hoveredAnalysisId, setHoveredAnalysisId] = useState<number | null>(null);
 
+    // Efeito 1: Garantir que temos o nome do talhão (Correção do Erro 400)
+    useEffect(() => {
+        if (location.state?.plotIdentification) {
+            setPlotIdentification(location.state.plotIdentification);
+            setIsLoadingPlot(false);
+            return;
+        }
+
+        if (plotId) {
+            setIsLoadingPlot(true);
+            getPlotById(parseInt(plotId))
+                .then(plot => {
+                    if (plot && plot.identificacao) {
+                        setPlotIdentification(plot.identificacao);
+                    } else {
+                        // Fallback caso venha vazio
+                        setPlotIdentification(`Talhão ${plotId}`);
+                    }
+                })
+                .catch(err => {
+                    console.error("Erro ao carregar talhão:", err);
+                    // Fallback para não travar a UI em caso de erro de rede
+                    setPlotIdentification(`Talhão ${plotId}`);
+                    toaster.create({ title: "Erro ao carregar identificação do talhão", type: "warning" });
+                })
+                .finally(() => setIsLoadingPlot(false));
+        }
+    }, [plotId, location.state]);
+
+    // Efeito 2: Carregar as análises
     useEffect(() => {
         if (plotId) fetchData();
     }, [plotId]);
@@ -125,7 +163,8 @@ export const PhysicalAnalysis = () => {
     ): PhysicalExtractFormData => {
         return {
             tempId: p.id.toString(),
-            databaseId: rangeId || layerId,
+            databaseId: p.id,
+            containerId: rangeId || layerId,
             profundidadeInicial: initial || 0,
             profundidadeFinal: final || 0,
             camada: camada,
@@ -153,6 +192,10 @@ export const PhysicalAnalysis = () => {
     };
 
     const handleAddNew = () => {
+        if (isLoadingPlot) {
+            toaster.create({ title: "Aguarde o carregamento do talhão...", type: "info" });
+            return;
+        }
         setEditingData(undefined);
         setIsFormOpen(true);
     };
@@ -163,7 +206,7 @@ export const PhysicalAnalysis = () => {
     };
 
     const handleDelete = async (analysisId: number) => {
-        if (!confirm("Tem certeza? Isso apagará a análise de solo e todos os seus extratos físicos.")) return;
+        if (!confirm("Tem certeza? Isso apagará a análise e todos os seus dados.")) return;
         try {
             await soilAnalysisService.delete(analysisId);
             toaster.create({ title: "Análise excluída", type: "success" });
@@ -180,13 +223,23 @@ export const PhysicalAnalysis = () => {
             <ConfigMenu />
 
             <Box mt={{ base: 24, md: 32 }} p={6} maxWidth="1400px" marginX="auto">
-                <Button onClick={() => navigate(-1)} mb={4} variant="outline" size="sm">
+                <Button 
+                    onClick={() => navigate(-1)} 
+                    mb={4} 
+                    variant="outline" 
+                    size="sm"
+                    color={{ base: "gray.800", _dark: "white" }} 
+                    borderColor={{ base: "gray.300", _dark: "gray.600" }}
+                    _hover={{ bg: { base: "gray.100", _dark: "gray.700" } }}
+                >
                     Voltar
                 </Button>
                 
                 <Flex justify="space-between" align="center" mb={8} wrap="wrap" gap={4}>
-                    <Heading size="lg" color="green.700">Análises Físicas do Talhão</Heading>
-                    <Button colorPalette="green" onClick={handleAddNew}>
+                    <Heading size="lg" color="green.700">
+                        Análises Físicas: {isLoadingPlot ? <Spinner size="xs" ml={2}/> : plotIdentification}
+                    </Heading>
+                    <Button colorPalette="green" onClick={handleAddNew} disabled={isLoadingPlot}>
                         + Adicionar Análise Física
                     </Button>
                 </Flex>
@@ -196,7 +249,7 @@ export const PhysicalAnalysis = () => {
                         <Spinner size="xl" color="green.500" />
                     </Flex>
                 ) : groupedAnalyses.length === 0 ? (
-                    <Flex direction="column" align="center" justify="center" p={10} borderWidth="1px" borderRadius="lg" bg="white" _dark={{ bg: "gray.800" }}>
+                    <Flex direction="column" align="center" justify="center" p={10} borderWidth="1px" borderRadius="lg" bg="white" _dark={{ bg: "gray.800", borderColor: "gray.700" }}>
                         <Text color="gray.500" fontSize="lg" mb={2}>Nenhuma análise física encontrada.</Text>
                         <Text color="gray.400" fontSize="sm">Clique em "Adicionar" para cadastrar a primeira.</Text>
                     </Flex>
@@ -297,6 +350,7 @@ export const PhysicalAnalysis = () => {
                         onClose={() => setIsFormOpen(false)} 
                         onSuccess={fetchData}
                         plotId={parseInt(plotId)}
+                        plotIdentification={plotIdentification}
                         initialData={editingData}
                     />
                 )}

@@ -17,6 +17,13 @@ export const createPlot = async (propertyId: number, payload: PlotCreatePayload)
     return data;
 };
 
+export const getPlotById = async (plotId: number): Promise<PlotResponse> => {
+    const response = await api.get<PlotResponse>(`${ENDPOINT}/get`, {
+        params: { plotId }
+    });
+    return response.data;
+};
+
 export const updatePlot = async (plotId: number, payload: PlotUpdatePayload): Promise<PlotResponse> => {
     const { data } = await api.put(`${ENDPOINT}/update`, payload, {
         params: { plotId }

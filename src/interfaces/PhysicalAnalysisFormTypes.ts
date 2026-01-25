@@ -11,6 +11,7 @@ export interface PhysicalExtractFormData {
     // Controles do Frontend
     tempId: string;       // ID temporário para manipulação na lista
     databaseId?: number;  // ID real no banco (apenas para edição)
+    containerId?: number;
 
     // Dados do Extrato (Container)
     profundidadeInicial: number;

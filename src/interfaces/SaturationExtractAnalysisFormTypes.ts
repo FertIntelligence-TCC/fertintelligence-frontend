@@ -9,7 +9,8 @@ export type AnalysisMode = 'INITIAL' | 'LAYER' | 'RANGE';
 export interface SaturationExtractFormData {
     // Controles do Frontend
     tempId: string;       // ID temporário
-    databaseId?: number;  // ID real (para edição)
+    databaseId?: number;  // ID real (ID da tabela de saturação)
+    containerId?: number; // <--- NOVO: ID do container (LayerExtract ou RangeExtract)
 
     // Dados do Extrato (Container)
     profundidadeInicial: number;

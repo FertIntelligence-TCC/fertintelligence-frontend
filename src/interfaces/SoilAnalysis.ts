@@ -18,6 +18,7 @@ export interface SoilAnalysisCreatePayload {
     tipo_extrato: TipoExtrato;
     id_talhao: number;
     identificacao_talhao: string;
+    plotIdentification?: string;
 }
 
 export interface SoilAnalysisUpdatePayload {
