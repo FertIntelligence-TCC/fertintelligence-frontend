@@ -24,7 +24,7 @@ import OrganoMineralFertilizer from "@/pages/fertilizer/OrganoMineralFertilizer"
 import { PhysicalAnalysis } from "@/pages/plot-entities/PhysicalAnalysis";
 import { FertilityAnalysis } from "@/pages/plot-entities/FertilityAnalysis";
 import { SaturationExtractAnalysis } from "@/pages/plot-entities/SaturationExtractAnalysis";
-// import { AnnualCropFolder } from "@/pages/plot-entities/AnnualCropFolder";
+import { AnnualCropFolder } from "@/pages/plot-entities/AnnualCropFolder";
 
 
 export const PublicRoutes: RouteObject[] = [
@@ -128,10 +128,10 @@ export const PublicRoutes: RouteObject[] = [
     path: "/fertintelligence/plots/:plotId/saturation-extract",
     element: <SaturationExtractAnalysis />,
   },
-  // {
-    // path: "/fertintelligence/plots/:plotId/annual-crop-folder",
-    // element: <AnnualCropFolder />,
-  // },
+  {
+    path: "/fertintelligence/plots/:folderId/annual-crop-folder",
+    element: <AnnualCropFolder />,
+  },
   {
     element: <PrivateRoute />,
     children: [
