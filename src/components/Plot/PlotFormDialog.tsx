@@ -108,7 +108,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
         physicalAnalysis: "/fertintelligence/plots/:plotId/physical-analysis",
         fertilityAnalysis: "/fertintelligence/plots/:plotId/fertility-analysis",
         saturationExtract: "/fertintelligence/plots/:plotId/saturation-extract",
-        annualCropFolder: "/fertintelligence/plots/:plotId/annual-crop-folder",
+        annualCropFolder: "/fertintelligence/plots/:plotId/annual-crop-folders",
     };
 
     return (
