@@ -5,17 +5,11 @@ import {
   Button,
   Flex,
   Heading,
-  Spinner,
   Text,
-  SimpleGrid,
-  HStack,
   VStack,
-  IconButton,
-  Separator,
-  Badge,
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
-import { LuPencil, LuTrash2, LuPlus, LuFolderOpen } from "react-icons/lu";
+import { LuPlus } from "react-icons/lu";
 
 // Layout Imports
 import UserLayout from "@/components/Layouts/UserLayout";
@@ -24,7 +18,9 @@ import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 
 // Componentes
 import { AnnualCropFolderFormDialog } from "@/components/AnnualCropFolder/AnnualCropFolderFormDialog";
-import { CropManagementDialog } from "@/components/Crop/CropManagementDialog"; // Importação do novo Dialog
+// Importante: Certifique-se de que está importando a versão refatorada da lista
+import { AnnualCropFolderList } from "@/components/AnnualCropFolder/AnnualCropFolderList"; 
+import { CropManagementDialog } from "@/components/Crop/CropManagementDialog";
 
 // Services
 import { 
@@ -38,7 +34,10 @@ import { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
 
 export const AnnualCropFolders = () => {
   const { plotId } = useParams<{ plotId: string }>();
-  const navigate = useNavigate(); // Mantido para o botão de voltar, se necessário
+  // Correção 1: Garantir que plotId é numérico para uso seguro
+  const plotIdNum = plotId ? Number(plotId) : 0;
+
+  const navigate = useNavigate(); 
 
   const [folders, setFolders] = useState<AnnualCropFolderResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,26 +47,26 @@ export const AnnualCropFolders = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<AnnualCropFolderResponseDto | null>(null);
 
-  // Estado para o Modal de Gerenciamento de Culturas (O "Box" de CRUD)
+  // Estado para o Modal de Gerenciamento de Culturas (O BOX Solicitado)
   const [isManagementOpen, setIsManagementOpen] = useState(false);
   const [managementFolder, setManagementFolder] = useState<AnnualCropFolderResponseDto | null>(null);
 
   const fetchPlotDetails = useCallback(async () => {
-    if (!plotId) return;
+    if (!plotIdNum) return;
     try {
-      const plot = await getPlotById(Number(plotId));
+      const plot = await getPlotById(plotIdNum);
       setPlotIdentification(plot.identification);
     } catch (error) {
       console.error("Erro ao buscar detalhes do talhão", error);
     }
-  }, [plotId]);
+  }, [plotIdNum]);
 
   const fetchFolders = useCallback(async () => {
-    if (!plotId) return;
+    if (!plotIdNum) return;
 
     setIsLoading(true);
     try {
-      const data = await getAllAnnualCropFoldersByPlot(Number(plotId));
+      const data = await getAllAnnualCropFoldersByPlot(plotIdNum);
       const sortedData = data.sort((a, b) => b.ano_culturas - a.ano_culturas);
       setFolders(sortedData);
     } catch (error) {
@@ -80,7 +79,7 @@ export const AnnualCropFolders = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [plotId]);
+  }, [plotIdNum]);
 
   useEffect(() => {
     fetchPlotDetails();
@@ -120,16 +119,16 @@ export const AnnualCropFolders = () => {
     }
   };
 
-  // Handler Atualizado: Abre o Dialog em vez de navegar
+  // Handler: Abre o Dialog de Gerenciamento
   const handleManage = (folder: AnnualCropFolderResponseDto) => {
     setManagementFolder(folder);
     setIsManagementOpen(true);
   };
 
-  if (!plotId) {
+  if (!plotIdNum) {
     return (
       <UserLayout>
-        <Box p={8}><Text color="red.500">Erro: ID do talhão não fornecido.</Text></Box>
+        <Box p={8}><Text color="red.500">Erro: ID do talhão inválido ou não fornecido.</Text></Box>
       </UserLayout>
     );
   }
@@ -166,114 +165,37 @@ export const AnnualCropFolders = () => {
           </Button>
         </Flex>
 
-        {isLoading ? (
-          <Flex justify="center" align="center" h="200px">
-            <Spinner size="xl" />
-          </Flex>
-        ) : folders.length === 0 ? (
-          <Flex 
-            direction="column" 
-            align="center" 
-            justify="center" 
-            p={10} 
-            borderWidth="1px" 
-            borderRadius="lg" 
-            borderStyle="dashed"
-            bg="bg.panel"
-          >
-            <Box fontSize="4xl" mb={4}>📂</Box>
-            <Text fontSize="lg" fontWeight="medium" color="gray.600">Nenhuma pasta encontrada</Text>
-            <Text color="gray.500">Crie uma nova pasta para começar a organizar suas safras.</Text>
-          </Flex>
-        ) : (
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
-            {folders.map((folder) => (
-              <Box
-                key={folder.id}
-                borderWidth="1px"
-                borderRadius="lg"
-                bg="bg.panel"
-                shadow="sm"
-                _hover={{ shadow: "md", borderColor: "green.400" }}
-                transition="all 0.2s"
-                overflow="hidden"
-              >
-                <Box p={5}>
-                  <Flex justify="space-between" align="start" mb={4}>
-                    <HStack gap={3}>
-                        <Box 
-                            p={2} 
-                            bg="green.100" 
-                            color="green.700" 
-                            rounded="md"
-                        >
-                            <LuFolderOpen size={24} />
-                        </Box>
-                        <VStack align="start" gap={0}>
-                            <Heading size="md" fontWeight="semibold">
-                                Safra {folder.ano_culturas}/{folder.ano_culturas + 1}
-                            </Heading>
-                            <Text fontSize="xs" color="gray.500">
-                                ID: {folder.id}
-                            </Text>
-                        </VStack>
-                    </HStack>
-                    <Badge colorPalette="blue" variant="subtle">Ativo</Badge>
-                  </Flex>
-
-                  <Separator mb={4} />
-
-                  <Flex justify="space-between" align="center">
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        colorPalette="green"
-                        onClick={() => handleManage(folder)}
-                    >
-                        Abrir Pasta
-                    </Button>
-
-                    <HStack gap={1}>
-                        <IconButton
-                            aria-label="Editar"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(folder)}
-                        >
-                            <LuPencil />
-                        </IconButton>
-                        <IconButton
-                            aria-label="Excluir"
-                            variant="ghost"
-                            colorPalette="red"
-                            size="sm"
-                            onClick={() => handleDelete(folder.id)}
-                        >
-                            <LuTrash2 />
-                        </IconButton>
-                    </HStack>
-                  </Flex>
-                </Box>
-              </Box>
-            ))}
-          </SimpleGrid>
-        )}
+        {/* Correção 2: Reutilizando o componente AnnualCropFolderList 
+           Isso mantém a UI limpa e usa a lógica de listagem que já corrigimos antes (sem redirecionamento)
+        */}
+        <AnnualCropFolderList
+          folders={folders}
+          isLoading={isLoading}
+          onEdit={handleEdit}
+          onManage={handleManage}
+          onRefresh={fetchFolders}
+          // Se quiser habilitar o delete direto no card, passe onDelete={handleDelete}
+          // Caso contrário, o componente List provavelmente oculta ou mostra msg informativa
+        />
       </Box>
 
-      {/* Modal de Formulário de Pasta */}
+      {/* Modal de Formulário de Pasta (Criação/Edição da PASTA em si) */}
       <AnnualCropFolderFormDialog
         open={isFormOpen}
         onOpenChange={({ open }) => setIsFormOpen(open)}
-        plotId={Number(plotId)}
+        plotId={plotIdNum}
         selectedFolder={selectedFolder}
         onSuccess={fetchFolders}
       />
 
-      {/* Modal de Gerenciamento de Culturas (O BOX Solicitado) */}
+      {/* Correção 3: Passagem correta do plotId para o Modal de Culturas 
+         Isso é CRÍTICO para que o formulário de culturas consiga calcular a área %
+      */}
       <CropManagementDialog
         open={isManagementOpen}
         onOpenChange={({ open }) => setIsManagementOpen(open)}
         folder={managementFolder}
+        plotId={plotIdNum} // <--- AQUI ESTÁ A CORREÇÃO PRINCIPAL
       />
     </UserLayout>
   );

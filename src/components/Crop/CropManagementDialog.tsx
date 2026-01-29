@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Box,
-  Flex,
-  Button,
+  Heading,
+  Text,
   VStack,
   Spinner,
-  Text
+  Flex,
+  Button
 } from "@chakra-ui/react";
 import {
   DialogBody,
@@ -29,17 +30,18 @@ interface CropManagementDialogProps {
   open: boolean;
   onOpenChange: (details: { open: boolean }) => void;
   folder: AnnualCropFolderResponseDto | null;
+  plotId: number; // <--- NOVO CAMPO OBRIGATÓRIO
 }
 
 export const CropManagementDialog = ({
   open,
   onOpenChange,
   folder,
+  plotId, // <--- Recebendo o ID explicitamente
 }: CropManagementDialogProps) => {
   const [crops, setCrops] = useState<CropResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Estado único para o Modal Unificado
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState<CropResponseDto | null>(null);
 
@@ -66,13 +68,11 @@ export const CropManagementDialog = ({
     fetchCrops();
   }, [fetchCrops]);
 
-  // Handler para Criar (Abre modal vazio, abas bloqueadas)
   const handleCreate = () => {
     setSelectedCrop(null);
     setIsFormOpen(true);
   };
 
-  // Handler para Editar/Gerenciar (Abre modal preenchido, abas liberadas)
   const handleEditOrManage = (crop: CropResponseDto) => {
     setSelectedCrop(crop);
     setIsFormOpen(true);
@@ -144,13 +144,11 @@ export const CropManagementDialog = ({
         </DialogContent>
       </DialogRoot>
 
-      {/* Modal Unificado (Criação + Manejo) */}
-      {/* Passamos o plotId vindo da pasta para calcular a % de área */}
       <CropFormDialog
         open={isFormOpen}
         onOpenChange={({ open }) => setIsFormOpen(open)}
         folderId={folder.id}
-        plotId={folder.plotId} 
+        plotId={plotId} // <--- Passando o ID correto para o Form
         selectedCrop={selectedCrop}
         onSuccess={fetchCrops}
       />
