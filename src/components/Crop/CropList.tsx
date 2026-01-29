@@ -8,9 +8,9 @@ import {
   Badge,
   Spinner,
   Center,
-  Separator, // Se não tiver Separator, use <Divider /> ou <Box borderBottomWidth="1px" />
+  Separator,
 } from "@chakra-ui/react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@chakra-ui/react";
 import {
   DialogActionTrigger,
   DialogBody,
@@ -29,7 +29,7 @@ interface CropListProps {
   crops: CropResponseDto[];
   isLoading: boolean;
   onEdit: (crop: CropResponseDto) => void;
-  onManage: (crop: CropResponseDto) => void; // Ação para abrir o gerenciamento de adubações/análises
+  onManage: (crop: CropResponseDto) => void;
   onRefresh: () => void;
 }
 
@@ -75,8 +75,8 @@ export const CropList = ({
   // Função auxiliar para formatar a data que vem como objeto {day, month, year}
   const formatDate = (date: CropDate | undefined) => {
     if (!date) return "-";
-    const day = date.day.toString().padStart(2, '0');
-    const month = date.month.toString().padStart(2, '0');
+    const day = date.day.toString().padStart(2, "0");
+    const month = date.month.toString().padStart(2, "0");
     return `${day}/${month}/${date.year}`;
   };
 
@@ -89,16 +89,17 @@ export const CropList = ({
   }
 
   if (crops.length === 0) {
-    return (
-      <Center p={8} borderWidth="1px" borderRadius="md" borderStyle="dashed">
-        <VStack>
-          <Text color="gray.500">Nenhuma cultura cadastrada nesta pasta.</Text>
-          <Text fontSize="sm" color="gray.400">
-            Clique em "Nova Cultura" para adicionar.
-          </Text>
-        </VStack>
-      </Center>
-    );
+    // Retornamos null aqui porque o componente pai (CropManagementDialog) 
+    // já trata o estado vazio com uma UI específica.
+    // Se quiser exibir algo aqui, pode descomentar o código abaixo.
+    return null; 
+    /*
+    <Center p={8} borderWidth="1px" borderRadius="md" borderStyle="dashed">
+      <VStack>
+        <Text color="gray.500">Nenhuma cultura cadastrada nesta pasta.</Text>
+      </VStack>
+    </Center>
+    */
   }
 
   return (
@@ -108,11 +109,12 @@ export const CropList = ({
           <Box
             key={crop.id}
             borderWidth="1px"
+            borderColor="border.subtle" // Borda adaptável ao tema
             borderRadius="lg"
-            bg="bg.panel"
+            bg="bg.panel" // Fundo do painel adaptável
             shadow="sm"
             overflow="hidden"
-            _hover={{ shadow: "md", borderColor: "gray.400" }}
+            _hover={{ shadow: "md", borderColor: "green.400" }}
             transition="all 0.2s"
           >
             <Box p={4}>
@@ -120,38 +122,48 @@ export const CropList = ({
               <HStack justify="space-between" mb={2}>
                 <VStack align="start" gap={0}>
                   <Text fontWeight="bold" fontSize="lg" color="fg.default">
-                    {crop.nome}
+                    {crop.nome.replace(/_/g, " ")}
                   </Text>
-                  <Text fontSize="sm" color="gray.500">
+                  <Text fontSize="sm" color="fg.muted">
                     {crop.variedade}
                   </Text>
                 </VStack>
-                <Badge colorPalette={crop.tipo_cultivo === 'SAFRA' ? 'green' : 'orange'}>
+                <Badge
+                  colorPalette={
+                    crop.tipo_cultivo === "SAFRA" ? "green" : "orange"
+                  }
+                >
                   {crop.tipo_cultivo}
                 </Badge>
               </HStack>
 
-              <Separator my={3} />
+              <Separator my={3} borderColor="border.subtle" />
 
               {/* Corpo com Detalhes */}
               <VStack align="stretch" gap={2} fontSize="sm">
                 <HStack justify="space-between">
-                  <Text color="gray.500">Ciclo:</Text>
-                  <Text fontWeight="medium">{crop.ciclo} dias</Text>
+                  <Text color="fg.muted">Ciclo:</Text>
+                  <Text fontWeight="medium" color="fg.default">
+                    {crop.ciclo} dias
+                  </Text>
                 </HStack>
                 <HStack justify="space-between">
-                  <Text color="gray.500">Plantio:</Text>
-                  <Text fontWeight="medium">{formatDate(crop.data_plantio)}</Text>
+                  <Text color="fg.muted">Plantio:</Text>
+                  <Text fontWeight="medium" color="fg.default">
+                    {formatDate(crop.data_plantio)}
+                  </Text>
                 </HStack>
                 <HStack justify="space-between">
-                  <Text color="gray.500">Colheita (Prev.):</Text>
-                  <Text fontWeight="medium">{formatDate(crop.data_colheita)}</Text>
+                  <Text color="fg.muted">Colheita (Prev.):</Text>
+                  <Text fontWeight="medium" color="fg.default">
+                    {formatDate(crop.data_colheita)}
+                  </Text>
                 </HStack>
                 <HStack justify="space-between">
-                  <Text color="gray.500">Produtividade:</Text>
-                  <Text fontWeight="medium">
-                    {crop.produtividade_obtida > 0 
-                      ? `${crop.produtividade_obtida} kg/ha` 
+                  <Text color="fg.muted">Produtividade:</Text>
+                  <Text fontWeight="medium" color="fg.default">
+                    {crop.produtividade_obtida > 0
+                      ? `${crop.produtividade_obtida} kg/ha`
                       : `${crop.produtividade_esperada} kg/ha (Esp.)`}
                   </Text>
                 </HStack>
@@ -159,12 +171,17 @@ export const CropList = ({
             </Box>
 
             {/* Rodapé com Ações */}
-            <Box bg="gray.50" p={3} borderTopWidth="1px">
+            <Box 
+              p={3} 
+              borderTopWidth="1px" 
+              borderColor="border.subtle"
+              // bg="gray.50" REMOVIDO para corrigir o modo escuro
+            >
               <HStack justify="space-between">
                 <HStack>
                   <Button
                     size="xs"
-                    variant="outline"
+                    variant="ghost" // Mudado para ghost para limpar visualmente
                     onClick={() => onEdit(crop)}
                   >
                     Editar
@@ -203,10 +220,12 @@ export const CropList = ({
           </DialogHeader>
           <DialogBody>
             <Text>
-              Tem certeza que deseja excluir a cultura <strong>{cropToDelete?.nome}</strong> ({cropToDelete?.variedade})?
+              Tem certeza que deseja excluir a cultura{" "}
+              <strong>{cropToDelete?.nome}</strong> ({cropToDelete?.variedade})?
             </Text>
             <Text mt={2} fontSize="sm" color="red.500">
-              Isso excluirá permanentemente todos os dados associados, incluindo adubações e análises foliares.
+              Isso excluirá permanentemente todos os dados associados, incluindo
+              adubações e análises foliares.
             </Text>
           </DialogBody>
           <DialogFooter>

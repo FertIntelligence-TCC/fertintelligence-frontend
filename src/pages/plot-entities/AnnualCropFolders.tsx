@@ -24,6 +24,7 @@ import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 
 // Componentes
 import { AnnualCropFolderFormDialog } from "@/components/AnnualCropFolder/AnnualCropFolderFormDialog";
+import { CropManagementDialog } from "@/components/Crop/CropManagementDialog"; // Importação do novo Dialog
 
 // Services
 import { 
@@ -37,20 +38,20 @@ import { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
 
 export const AnnualCropFolders = () => {
   const { plotId } = useParams<{ plotId: string }>();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Mantido para o botão de voltar, se necessário
 
   const [folders, setFolders] = useState<AnnualCropFolderResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Estado para contexto do Talhão (Breadcrumbs)
   const [plotIdentification, setPlotIdentification] = useState<string>("");
 
   // Estados dos Modais
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedFolder, setSelectedFolder] =
-    useState<AnnualCropFolderResponseDto | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<AnnualCropFolderResponseDto | null>(null);
 
-  // Busca dados do Talhão para o Cabeçalho
+  // Estado para o Modal de Gerenciamento de Culturas (O "Box" de CRUD)
+  const [isManagementOpen, setIsManagementOpen] = useState(false);
+  const [managementFolder, setManagementFolder] = useState<AnnualCropFolderResponseDto | null>(null);
+
   const fetchPlotDetails = useCallback(async () => {
     if (!plotId) return;
     try {
@@ -61,14 +62,12 @@ export const AnnualCropFolders = () => {
     }
   }, [plotId]);
 
-  // Busca as Pastas
   const fetchFolders = useCallback(async () => {
     if (!plotId) return;
 
     setIsLoading(true);
     try {
       const data = await getAllAnnualCropFoldersByPlot(Number(plotId));
-      // Ordena decrescente por ano (mais recente primeiro)
       const sortedData = data.sort((a, b) => b.ano_culturas - a.ano_culturas);
       setFolders(sortedData);
     } catch (error) {
@@ -88,7 +87,7 @@ export const AnnualCropFolders = () => {
     fetchFolders();
   }, [fetchFolders, fetchPlotDetails]);
 
-  // Handlers
+  // Handlers CRUD Pasta
   const handleCreate = () => {
     setSelectedFolder(null);
     setIsFormOpen(true);
@@ -103,7 +102,6 @@ export const AnnualCropFolders = () => {
     if (!window.confirm("Tem certeza que deseja excluir esta pasta? Todos os dados contidos nela serão perdidos.")) {
         return;
     }
-
     try {
       await deleteAnnualCropFolder(folderId);
       toaster.create({
@@ -122,8 +120,10 @@ export const AnnualCropFolders = () => {
     }
   };
 
+  // Handler Atualizado: Abre o Dialog em vez de navegar
   const handleManage = (folder: AnnualCropFolderResponseDto) => {
-    navigate(`/annual-crop-folder/${folder.id}/crops`);
+    setManagementFolder(folder);
+    setIsManagementOpen(true);
   };
 
   if (!plotId) {
@@ -137,19 +137,17 @@ export const AnnualCropFolders = () => {
   return (
     <UserLayout>
       <Box pt={{ base: 4, md: 8 }} pb={8} px={{ base: 4, md: 8 }}>
-        {/* Cabeçalho de Navegação e Configuração */}
         <Flex justify="space-between" align="center" mb={6} wrap="wrap" gap={4}>
           <FertName
             label={`Talhão: ${plotIdentification || "Carregando..."}`}
             crumbs={[
               { label: "Propriedades", to: "/owner-properties" },
-              { label: "Detalhes", to: "#" }, // Idealmente voltaria para o modal/página do talhão
+              { label: "Detalhes", to: "#" },
             ]}
           />
           <ConfigMenu />
         </Flex>
 
-        {/* Título e Ação Principal */}
         <Flex justify="space-between" align="center" mb={8}>
           <VStack align="start" gap={1}>
             <Heading size="2xl" fontWeight="bold" color="fg.default">
@@ -168,7 +166,6 @@ export const AnnualCropFolders = () => {
           </Button>
         </Flex>
 
-        {/* Conteúdo Principal */}
         {isLoading ? (
           <Flex justify="center" align="center" h="200px">
             <Spinner size="xl" />
@@ -263,13 +260,20 @@ export const AnnualCropFolders = () => {
         )}
       </Box>
 
-      {/* Modal de Formulário */}
+      {/* Modal de Formulário de Pasta */}
       <AnnualCropFolderFormDialog
         open={isFormOpen}
         onOpenChange={({ open }) => setIsFormOpen(open)}
         plotId={Number(plotId)}
         selectedFolder={selectedFolder}
         onSuccess={fetchFolders}
+      />
+
+      {/* Modal de Gerenciamento de Culturas (O BOX Solicitado) */}
+      <CropManagementDialog
+        open={isManagementOpen}
+        onOpenChange={({ open }) => setIsManagementOpen(open)}
+        folder={managementFolder}
       />
     </UserLayout>
   );
