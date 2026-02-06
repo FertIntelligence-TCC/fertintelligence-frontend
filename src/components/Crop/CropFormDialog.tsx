@@ -1,0 +1,424 @@
+import { useEffect, useState, useMemo } from "react";
+import { 
+  VStack, 
+  SimpleGrid, 
+  Heading, 
+  Input, 
+  NativeSelect,
+  Tabs,
+  Box,
+  Text,
+  HStack,
+  Separator
+} from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
+import {
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogRoot,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field } from "@/components/ui/field";
+import { toaster } from "@/components/ui/toaster";
+import { 
+  CropResponseDto, 
+  CropDate, 
+  CultivationType, 
+  NomeComum 
+} from "@/interfaces/Crop";
+import { createCrop, updateCrop } from "@/services/cropService";
+import { getPlotById } from "@/services/plotService";
+
+// --- IMPORTS DOS GERENCIADORES (FILHOS) ---
+import { TopDressingManager } from "./TopDressingManager";
+import { FoliarAnalysisManager } from "./FoliarAnalysisManager";
+// NOVO IMPORT:
+import { FoliarFertilizationManager } from "./FoliarFertilizationManager";
+
+interface CropFormDialogProps {
+  open: boolean;
+  onOpenChange: (details: { open: boolean }) => void;
+  folderId: number;
+  plotId?: number;
+  selectedCrop?: CropResponseDto | null;
+  onSuccess: () => void;
+}
+
+// Helpers de Data
+const dateToIso = (date?: CropDate): string => {
+  if (!date) return "";
+  const y = date.year.toString().padStart(4, '0');
+  const m = date.month.toString().padStart(2, '0');
+  const d = date.day.toString().padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const isoToCropDate = (iso: string): CropDate => {
+  const [year, month, day] = iso.split('-').map(Number);
+  return { day, month, year };
+};
+
+// Listas de Opções
+const CULTIVATION_TYPES: CultivationType[] = ['SAFRA', 'SAFRINHA'];
+const CROP_NAMES: NomeComum[] = [
+  'ALGODAO', 'AMENDOIM', 'CANA_DE_ACUCAR', 'FEIJAO_CAUPI', 
+  'FEIJAO_COMUM', 'GERGELIM', 'MAMONA', 'MILHO', 'SISAL', 'SOJA'
+];
+
+export const CropFormDialog = ({
+  open,
+  onOpenChange,
+  folderId,
+  plotId,
+  selectedCrop,
+  onSuccess,
+}: CropFormDialogProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentCrop, setCurrentCrop] = useState<CropResponseDto | null>(null);
+  
+  // Dados do Talhão
+  const [plotTotalArea, setPlotTotalArea] = useState<number>(0);
+
+  // Estados dos Campos
+  const [nome, setNome] = useState<NomeComum | string>("");
+  const [variedade, setVariedade] = useState("");
+  const [tipoCultivo, setTipoCultivo] = useState<CultivationType | string>("");
+  const [ciclo, setCiclo] = useState("");
+  const [distanciaEntreLinhas, setDistanciaEntreLinhas] = useState("");
+  const [plantasPorMetro, setPlantasPorMetro] = useState("");
+  const [areaUsada, setAreaUsada] = useState("");
+  const [produtividadeEsperada, setProdutividadeEsperada] = useState("");
+  const [produtividadeObtida, setProdutividadeObtida] = useState("");
+  
+  // Datas
+  const [dataPlantio, setDataPlantio] = useState("");
+  const [dataEmergencia, setDataEmergencia] = useState("");
+  const [dataBotonamento, setDataBotonamento] = useState("");
+  const [dataFlorescimento, setDataFlorescimento] = useState("");
+  const [dataColheita, setDataColheita] = useState("");
+
+  // Cálculos Automáticos
+  const population = useMemo(() => {
+    const dist = parseFloat(distanciaEntreLinhas);
+    const plants = parseFloat(plantasPorMetro);
+    if (!dist || !plants || dist === 0) return "0";
+    return Math.round((10000 * plants) / dist).toLocaleString('pt-BR');
+  }, [distanciaEntreLinhas, plantasPorMetro]);
+
+  const areaPercentage = useMemo(() => {
+    const used = parseFloat(areaUsada);
+    if (!used || !plotTotalArea || plotTotalArea === 0) return "0%";
+    return ((used / plotTotalArea) * 100).toFixed(2) + "%";
+  }, [areaUsada, plotTotalArea]);
+
+  useEffect(() => {
+    if (open && plotId) {
+      getPlotById(plotId).then((plot) => {
+        if (plot && plot.area) setPlotTotalArea(plot.area);
+      }).catch(console.error);
+    }
+  }, [open, plotId]);
+
+  useEffect(() => {
+    if (open) {
+      const target = selectedCrop || null;
+      setCurrentCrop(target);
+      if (target) {
+        populateFields(target);
+      } else {
+        resetFields();
+      }
+    }
+  }, [open, selectedCrop]);
+
+  const populateFields = (crop: CropResponseDto) => {
+    setNome(crop.nome);
+    setVariedade(crop.variedade);
+    setTipoCultivo(crop.tipo_cultivo);
+    setCiclo(crop.ciclo?.toString() || "");
+    setDistanciaEntreLinhas(crop.distancia_entre_linhas?.toString() || "");
+    setPlantasPorMetro(crop.numero_plantas_por_metro?.toString() || "");
+    setAreaUsada(crop.area_usada_no_talhao?.toString() || "");
+    setProdutividadeEsperada(crop.produtividade_esperada?.toString() || "");
+    setProdutividadeObtida(crop.produtividade_obtida?.toString() || "");
+    
+    setDataPlantio(dateToIso(crop.data_plantio));
+    setDataEmergencia(dateToIso(crop.data_emergencia));
+    setDataBotonamento(dateToIso(crop.data_botonamento));
+    setDataFlorescimento(dateToIso(crop.data_florescimento));
+    setDataColheita(dateToIso(crop.data_colheita));
+  };
+
+  const resetFields = () => {
+    setNome("");
+    setVariedade("");
+    setTipoCultivo("");
+    setCiclo("");
+    setDistanciaEntreLinhas("");
+    setPlantasPorMetro("");
+    setAreaUsada("");
+    setProdutividadeEsperada("");
+    setProdutividadeObtida("");
+    setDataPlantio("");
+    setDataEmergencia("");
+    setDataBotonamento("");
+    setDataFlorescimento("");
+    setDataColheita("");
+  };
+
+  const handleSaveBasicInfo = async () => {
+    if (!nome || !variedade || !tipoCultivo || !dataPlantio) {
+      toaster.create({
+        title: "Campos obrigatórios",
+        description: "Preencha Nome, Variedade, Tipo e Data de Plantio.",
+        type: "error",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const commonData = {
+        nome: nome as NomeComum,
+        variedade,
+        tipo_cultivo: tipoCultivo as CultivationType,
+        ciclo: Number(ciclo) || 0,
+        distancia_entre_linhas: Number(distanciaEntreLinhas) || 0,
+        numero_plantas_por_metro: Number(plantasPorMetro) || 0,
+        area_usada_no_talhao: Number(areaUsada) || 0,
+        produtividade_esperada: Number(produtividadeEsperada) || 0,
+        produtividade_obtida: Number(produtividadeObtida) || 0,
+        
+        data_plantio: isoToCropDate(dataPlantio),
+        data_emergencia: isoToCropDate(dataEmergencia),
+        data_botonamento: isoToCropDate(dataBotonamento),
+        data_florescimento: isoToCropDate(dataFlorescimento),
+        data_colheita: isoToCropDate(dataColheita),
+      };
+
+      if (currentCrop) {
+        // UPDATE
+        const response = await updateCrop(currentCrop.id, {
+          novo_nome: commonData.nome,
+          novo_variedade: commonData.variedade,
+          novo_tipo_cultivo: commonData.tipo_cultivo,
+          novo_ciclo: commonData.ciclo,
+          novo_distancia_entre_linhas: commonData.distancia_entre_linhas,
+          novo_numero_plantas_por_metro: commonData.numero_plantas_por_metro,
+          novo_area_usada_no_talhao: commonData.area_usada_no_talhao,
+          novo_produtividade_esperada: commonData.produtividade_esperada,
+          novo_produtividade_obtida: commonData.produtividade_obtida,
+          
+          novo_data_plantio: commonData.data_plantio,
+          novo_data_emergencia: commonData.data_emergencia,
+          novo_data_botonamento: commonData.data_botonamento,
+          novo_data_florescimento: commonData.data_florescimento,
+          novo_data_colheita: commonData.data_colheita,
+        });
+        setCurrentCrop(response);
+        toaster.create({ title: "Dados atualizados com sucesso!", type: "success" });
+      } else {
+        // CREATE
+        const response = await createCrop(folderId, commonData);
+        setCurrentCrop(response);
+        toaster.create({ 
+          title: "Cultura Criada!", 
+          description: "Agora você pode adicionar adubações e análises nas abas acima.", 
+          type: "success" 
+        });
+      }
+      onSuccess();
+    } catch (error) {
+      console.error(error);
+      toaster.create({ title: "Erro ao salvar", type: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <DialogRoot 
+      open={open} 
+      onOpenChange={onOpenChange} 
+      placement="center" 
+      size="xl" 
+      scrollBehavior="inside"
+    >
+      <DialogContent height="90vh" maxWidth="1100px">
+        <DialogHeader>
+          <DialogTitle fontSize="xl">
+            {currentCrop ? `Cultura: ${currentCrop.nome} - ${currentCrop.variedade}` : "Nova Cultura"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <DialogBody display="flex" flexDirection="column" gap={4}>
+          <Tabs.Root defaultValue="dados-gerais" variant="enclosed" width="100%">
+            <Tabs.List>
+              <Tabs.Trigger value="dados-gerais">Dados Gerais</Tabs.Trigger>
+              <Tabs.Trigger value="top-dressing" disabled={!currentCrop}>
+                Adubação Cobertura
+              </Tabs.Trigger>
+              <Tabs.Trigger value="foliar-analysis" disabled={!currentCrop}>
+                Análise Foliar
+              </Tabs.Trigger>
+              <Tabs.Trigger value="foliar-fert" disabled={!currentCrop}>
+                Adubação Foliar
+              </Tabs.Trigger>
+            </Tabs.List>
+
+            <Tabs.Content value="dados-gerais">
+              <VStack gap={6} align="stretch" pt={4}>
+                {/* Seção 1: Identificação */}
+                <VStack align="stretch" gap={3}>
+                  <Heading size="sm" color="gray.600">Identificação</Heading>
+                  <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
+                    <Field label="Nome da Cultura" required>
+                      <NativeSelect.Root size="sm" width="100%">
+                        <NativeSelect.Field 
+                          placeholder="Selecione..." 
+                          value={nome} 
+                          onChange={(e) => setNome(e.target.value)}
+                        >
+                          {CROP_NAMES.map(name => (
+                            <option key={name} value={name}>{name.replace(/_/g, ' ')}</option>
+                          ))}
+                        </NativeSelect.Field>
+                      </NativeSelect.Root>
+                    </Field>
+
+                    <Field label="Variedade" required>
+                      <Input value={variedade} onChange={(e) => setVariedade(e.target.value)} placeholder="Ex: TMG 7062" />
+                    </Field>
+
+                    <Field label="Tipo de Cultivo" required>
+                      <NativeSelect.Root size="sm" width="100%">
+                        <NativeSelect.Field 
+                          placeholder="Selecione..." 
+                          value={tipoCultivo} 
+                          onChange={(e) => setTipoCultivo(e.target.value)}
+                        >
+                          {CULTIVATION_TYPES.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </NativeSelect.Field>
+                      </NativeSelect.Root>
+                    </Field>
+
+                    <Field label="Ciclo (dias)">
+                      <Input type="number" value={ciclo} onChange={(e) => setCiclo(e.target.value)} />
+                    </Field>
+                  </SimpleGrid>
+                </VStack>
+
+                <Separator />
+
+                {/* Seção 2: Espaçamento */}
+                <VStack align="stretch" gap={3}>
+                  <Heading size="sm" color="gray.600">Espaçamento</Heading>
+                  <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} alignItems="end">
+                    <Field label="Distância entre linhas (m)">
+                      <Input type="number" step="0.01" value={distanciaEntreLinhas} onChange={(e) => setDistanciaEntreLinhas(e.target.value)} placeholder="Ex: 0.5" />
+                    </Field>
+                    <Field label="Plantas por metro">
+                      <Input type="number" step="0.1" value={plantasPorMetro} onChange={(e) => setPlantasPorMetro(e.target.value)} placeholder="Ex: 12" />
+                    </Field>
+                    <Box pb={2}>
+                      <Text fontSize="sm" color="gray.500">População Estimada</Text>
+                      <Text fontWeight="bold" fontSize="lg">{population} plantas/ha</Text>
+                    </Box>
+                  </SimpleGrid>
+                </VStack>
+
+                <Separator />
+
+                {/* Seção 3: Produção */}
+                <VStack align="stretch" gap={3}>
+                  <Heading size="sm" color="gray.600">Produção e Área</Heading>
+                  <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
+                    <Field label="Produtividade Esperada (kg/ha)">
+                      <Input type="number" value={produtividadeEsperada} onChange={(e) => setProdutividadeEsperada(e.target.value)} />
+                    </Field>
+                    <Field label="Produtividade Obtida (kg/ha)">
+                      <Input type="number" value={produtividadeObtida} onChange={(e) => setProdutividadeObtida(e.target.value)} />
+                    </Field>
+                  </SimpleGrid>
+                  
+                  <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} alignItems="end">
+                    <Field label="Área Usada no Talhão (ha)">
+                      <Input type="number" step="0.01" value={areaUsada} onChange={(e) => setAreaUsada(e.target.value)} />
+                    </Field>
+                    <Box pb={2}>
+                      <Text fontSize="sm" color="gray.500">Porcentagem do Talhão</Text>
+                      <HStack>
+                        <Text fontWeight="bold">{areaPercentage}</Text>
+                        <Text fontSize="xs" color="gray.400">(Área Total: {plotTotalArea} ha)</Text>
+                      </HStack>
+                    </Box>
+                  </SimpleGrid>
+                </VStack>
+
+                <Separator />
+
+                {/* Seção 4: Datas */}
+                <VStack align="stretch" gap={3}>
+                  <Heading size="sm" color="gray.600">Cronograma</Heading>
+                  <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+                    <Field label="Data de Plantio" required>
+                      <Input type="date" value={dataPlantio} onChange={(e) => setDataPlantio(e.target.value)} />
+                    </Field>
+                    <Field label="Data de Emergência">
+                      <Input type="date" value={dataEmergencia} onChange={(e) => setDataEmergencia(e.target.value)} />
+                    </Field>
+                    <Field label="Data de Abotoamento">
+                      <Input type="date" value={dataBotonamento} onChange={(e) => setDataBotonamento(e.target.value)} />
+                    </Field>
+                    <Field label="Data de Florescimento">
+                      <Input type="date" value={dataFlorescimento} onChange={(e) => setDataFlorescimento(e.target.value)} />
+                    </Field>
+                    <Field label="Data de Colheita">
+                      <Input type="date" value={dataColheita} onChange={(e) => setDataColheita(e.target.value)} />
+                    </Field>
+                  </SimpleGrid>
+                </VStack>
+
+                <Box pt={4}>
+                  <Button 
+                    width="full" 
+                    colorPalette="blue" 
+                    onClick={handleSaveBasicInfo} 
+                    loading={isLoading}
+                  >
+                    {currentCrop ? "Salvar Alterações de Dados Básicos" : "Criar Cultura e Habilitar Manejos"}
+                  </Button>
+                </Box>
+              </VStack>
+            </Tabs.Content>
+
+            <Tabs.Content value="top-dressing">
+              {currentCrop && <TopDressingManager cropId={currentCrop.id} />}
+            </Tabs.Content>
+
+            <Tabs.Content value="foliar-analysis">
+              {currentCrop && <FoliarAnalysisManager cropId={currentCrop.id} />}
+            </Tabs.Content>
+
+            {/* ABA 4: ADUBAÇÃO FOLIAR (INTEGRADA) */}
+            <Tabs.Content value="foliar-fert">
+              {currentCrop ? (
+                <FoliarFertilizationManager cropId={currentCrop.id} />
+              ) : (
+                <Box p={4} textAlign="center" color="gray.500">
+                  Salve a cultura primeiro para adicionar adubações foliares.
+                </Box>
+              )}
+            </Tabs.Content>
+
+          </Tabs.Root>
+        </DialogBody>
+        <DialogCloseTrigger />
+      </DialogContent>
+    </DialogRoot>
+  );
+};

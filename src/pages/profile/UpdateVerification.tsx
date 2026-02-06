@@ -1,10 +1,10 @@
 // pages/UpdateVerification.tsx
 import { useNavigate } from "react-router-dom";
 import PasswordVerification from "./PasswordVerification";
-import { useUserStore } from "../stores/user/user.store";
+import { useUserStore } from "../../stores/user/user.store";
 import { updateUser } from "@/services/userService";
 
-import type { User } from "../interfaces/Models";
+import type { User } from "../../interfaces/Models";
 import type {
   UpdateUserPayload,
   DataNasc,
@@ -12,7 +12,7 @@ import type {
   Genero,
   Formacao,
   Cargo,
-} from "../interfaces/ServicePayload";
+} from "../../interfaces/ServicePayload";
 
 const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
 

@@ -23,4 +23,26 @@ export const ENDPOINT = {
     DECIDE_REQUEST: "property-access/{requestedId}/decision",
     GET_APPROVED_REQUESTS_BY_USER: "property-access/my-approved-properties",
 
+    // --- Crop Fertilization Table Endpoints ---
+    CROP_TABLE_BASE: "crop-fertilization-table",
+    CREATE_CROP_TABLE: "crop-fertilization-table/register",
+    GET_ALL_CROP_TABLES: "crop-fertilization-table/get-all",
+    GET_CROP_TABLE_BY_ID: "crop-fertilization-table/get",
+    UPDATE_CROP_TABLE: "crop-fertilization-table/update",
+    DELETE_CROP_TABLE: "crop-fertilization-table/delete",
+
+    // --- Content Range Endpoints ---
+    CONTENT_RANGE_BASE: "content-range",
+    CREATE_CONTENT_RANGE: "content-range/register",
+    GET_CONTENT_RANGES_BY_TABLE: "content-range/get-by-table",
+    UPDATE_CONTENT_RANGE: "content-range/update",
+    DELETE_CONTENT_RANGE: "content-range/delete",
+
+    // --- Coverage Endpoints ---
+    COVERAGE_BASE: "coverage",
+    CREATE_COVERAGE: "coverage/register",
+    GET_COVERAGES_BY_RANGE: "coverage/get-by-range",
+    UPDATE_COVERAGE: "coverage/update",
+    DELETE_COVERAGE: "coverage/delete",
+
 } as const;

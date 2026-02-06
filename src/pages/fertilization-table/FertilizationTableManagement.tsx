@@ -40,8 +40,8 @@ export default function FertilizationTableManagement() {
           <VStack spacing={4} align="stretch">
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/crop-fertilization-table")}
-              h="auto" // Altura automática para suportar quebras de linha se necessário
+              onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table")}
+              h="auto"
               py={4}
               fontSize="md"
               whiteSpace="normal"
@@ -52,7 +52,7 @@ export default function FertilizationTableManagement() {
             
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/soil-fertility-interpretation-table")}
+              onClick={() => navigate("/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table")}
               h="auto"
               py={4}
               fontSize="md"
@@ -64,7 +64,7 @@ export default function FertilizationTableManagement() {
 
             <Button
               colorScheme="blue"
-              onClick={() => navigate("/foliar-analysis-interpretation-table")}
+              onClick={() => navigate("/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table")}
               h="auto"
               py={4}
               fontSize="md"

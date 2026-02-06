@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import PasswordVerification from "./PasswordVerification";
 import { deleteUser } from "@/services/userService"; // Importar o serviço
-import { useUserStore } from "../stores/user/user.store"; // Importar o store
+import { useUserStore } from "../../stores/user/user.store"; // Importar o store
 
 export default function DeleteVerification() {
     const navigate = useNavigate();

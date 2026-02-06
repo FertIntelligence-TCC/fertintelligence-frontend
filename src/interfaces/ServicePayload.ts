@@ -1,3 +1,5 @@
+import { CropFertilizationTableCreateRequestDto, ContentRangeCreateRequestDto, CoverageCreateRequestDto } from "./CropFertilizationTable";
+
 export enum Genero {
   MASCULINO = "MASCULINO",
   FEMININO = "FEMININO",
@@ -76,24 +78,27 @@ export type UpdateUserPayload = {
   nova_senha?: string;
 };
 
-export interface LocalizacaoPayload { //
+export interface LocalizacaoPayload { 
   latitude: number;
   latitudeDirection: LatitudeDirection;
   longitude: number;
   longitudeDirection: LongitudeDirection;
-  altitude?: number | null;
+  altitude: number;
 }
 
-export interface PropertyCreatePayload { //
-  nome: string;
-  endereco: string;
-  cnpj: string;
-  localizacao: LocalizacaoPayload;
+export interface PropertyCreatePayload {
+    nome: string;
+    endereco: string;
+    cnpj: string;
+    localizacao: LocalizacaoPayload;
 }
 
-export interface PropertyUpdatePayload { //
-  novo_nome?: string;
-  novo_endereco?: string;
-  novo_cnpj?: string;
-  nova_localizacao?: LocalizacaoPayload;
+export interface PropertyUpdatePayload {
+    novo_nome?: string;
+    novo_endereco?: string;
+    novo_cnpj?: string;
+    nova_localizacao?: LocalizacaoPayload;
 }
+
+// Exports dos DTOs de Adubação para uso centralizado (Opcional, mas útil)
+export type { CropFertilizationTableCreateRequestDto, ContentRangeCreateRequestDto, CoverageCreateRequestDto };

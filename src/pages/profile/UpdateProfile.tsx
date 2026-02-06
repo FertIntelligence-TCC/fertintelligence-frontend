@@ -16,15 +16,15 @@ import { useNavigate } from "react-router-dom";
 import { FiUploadCloud } from "react-icons/fi";
 import FertName from "@/components/FertName/FertName";
 import UserLayout from "@/components/Layouts/UserLayout";
-import { useUserStore } from "../stores/user/user.store";
-import type { User } from "../interfaces/Models";
+import { useUserStore } from "../../stores/user/user.store";
+import type { User } from "@/interfaces/Models";
 import {
   DataNasc,
   Telefone,
   Genero,
   Formacao,
   Cargo,
-} from "../interfaces/ServicePayload";
+} from "@/interfaces/ServicePayload";
 
 const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
 
