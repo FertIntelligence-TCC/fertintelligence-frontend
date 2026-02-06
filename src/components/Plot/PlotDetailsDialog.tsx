@@ -4,12 +4,17 @@ import { toaster } from "@/components/ui/toaster";
 
 import DialogContainer from "@/components/Property/DialogContainer";
 import AnalysisListDialog from "@/components/Plot/AnalysisListDialog";
+import { AnnualCropFolderListDialog } from "@/components/Plot/AnnualCropFolderListDialog";
+import { AnnualCropFolderCropsDialog } from "@/components/Plot/AnnualCropFolderCropsDialog";
+import { CropReadOnlyDialog } from "@/components/Crop/CropReadOnlyDialog";
 
 // Interfaces
 import { PlotResponse } from "@/interfaces/Plot";
 import { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import { TipoExtrato } from "@/interfaces/SoilAnalysis";
 import { Camada } from "@/interfaces/LayerExtract";
+import { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
+import { CropResponseDto } from "@/interfaces/Crop";
 
 // Modais de Visualização
 import { PhysicalAnalysisFormDialog } from "@/components/PlotAnalysis/PhysicalAnalysisFormDialog";
@@ -41,6 +46,11 @@ type AnalysisType = "PHYSICAL" | "CHEMICAL" | "SATURATION" | null;
 export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
     const [activeListType, setActiveListType] = useState<AnalysisType>(null);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+    const [isAnnualCropFoldersOpen, setIsAnnualCropFoldersOpen] = useState(false);
+    const [selectedFolder, setSelectedFolder] = useState<AnnualCropFolderResponseDto | null>(null);
+    const [isCropsOpen, setIsCropsOpen] = useState(false);
+    const [selectedCrop, setSelectedCrop] = useState<CropResponseDto | null>(null);
+    const [isCropDetailsOpen, setIsCropDetailsOpen] = useState(false);
     
     const physicalDisclosure = useDisclosure();
     const fertilityDisclosure = useDisclosure();
@@ -52,6 +62,18 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
 
     const handleOpenList = (type: AnalysisType) => setActiveListType(type);
     const handleCloseList = () => setActiveListType(null);
+    const handleOpenAnnualCropFolders = () => setIsAnnualCropFoldersOpen(true);
+    const handleCloseAnnualCropFolders = () => setIsAnnualCropFoldersOpen(false);
+    const handleSelectFolder = (folder: AnnualCropFolderResponseDto) => {
+        setSelectedFolder(folder);
+        setIsCropsOpen(true);
+    };
+    const handleCloseCrops = () => setIsCropsOpen(false);
+    const handleSelectCrop = (crop: CropResponseDto) => {
+        setSelectedCrop(crop);
+        setIsCropDetailsOpen(true);
+    };
+    const handleCloseCropDetails = () => setIsCropDetailsOpen(false);
 
     // Carrega dados completos da análise para exibição no formulário
     const handleSelectAnalysis = async (analysis: SoilAnalysisResponse) => {
@@ -220,7 +242,7 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
                         <Button variant="outline" width="100%" colorScheme="green" onClick={() => handleOpenList("PHYSICAL")} loading={isLoadingDetails && activeListType === "PHYSICAL"}>Análises Físicas</Button>
                         <Button variant="outline" width="100%" colorScheme="teal" onClick={() => handleOpenList("CHEMICAL")} loading={isLoadingDetails && activeListType === "CHEMICAL"}>Análises Químicas</Button>
                         <Button variant="outline" width="100%" colorScheme="purple" onClick={() => handleOpenList("SATURATION")} loading={isLoadingDetails && activeListType === "SATURATION"}>Análises de Extrato de Saturação</Button>
-                        <Button variant="outline" width="100%" colorScheme="orange" disabled={true} _disabled={{ opacity: 0.6, cursor: "not-allowed" }} title="Em breve">Pastas de Culturas Anuais</Button>
+                        <Button variant="outline" width="100%" colorScheme="orange" onClick={handleOpenAnnualCropFolders}>Pastas de Culturas Anuais</Button>
                     </VStack>
                 </VStack>
                 <Flex justify="flex-end" mt={8}><Button onClick={onClose} colorScheme="blue">Fechar</Button></Flex>
@@ -230,6 +252,24 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
             {activeListType === "PHYSICAL" && <AnalysisListDialog isOpen={true} onClose={handleCloseList} title="Análises Físicas" plotId={plot.id} analysisType="PHYSICAL" onSelectAnalysis={handleSelectAnalysis} />}
             {activeListType === "CHEMICAL" && <AnalysisListDialog isOpen={true} onClose={handleCloseList} title="Análises Químicas" plotId={plot.id} analysisType="CHEMICAL" onSelectAnalysis={handleSelectAnalysis} />}
             {activeListType === "SATURATION" && <AnalysisListDialog isOpen={true} onClose={handleCloseList} title="Análises de Extrato de Saturação" plotId={plot.id} analysisType="SATURATION" onSelectAnalysis={handleSelectAnalysis} />}
+
+            <AnnualCropFolderListDialog
+                isOpen={isAnnualCropFoldersOpen}
+                onClose={handleCloseAnnualCropFolders}
+                plotId={plot.id}
+                onSelectFolder={handleSelectFolder}
+            />
+            <AnnualCropFolderCropsDialog
+                isOpen={isCropsOpen}
+                onClose={handleCloseCrops}
+                folder={selectedFolder}
+                onSelectCrop={handleSelectCrop}
+            />
+            <CropReadOnlyDialog
+                isOpen={isCropDetailsOpen}
+                onClose={handleCloseCropDetails}
+                crop={selectedCrop}
+            />
 
             {/* Modais de Visualização (ReadOnly) */}
             <PhysicalAnalysisFormDialog isOpen={physicalDisclosure.open} onClose={physicalDisclosure.onClose} onSuccess={() => physicalDisclosure.onClose()} plotId={plot.id} plotIdentification={plot.identificacao} initialData={selectedAnalysisData} isReadOnly={true} />
