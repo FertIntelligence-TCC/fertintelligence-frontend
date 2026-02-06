@@ -1,15 +1,36 @@
+import { useMemo } from "react";
 import {
   Box,
   Button,
+  Center,
   Flex,
   Grid,
   Heading,
   Separator,
+  SimpleGrid,
+  Spinner,
+  Table,
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
 import DialogContainer from "@/components/Property/DialogContainer";
 import { CropDate, CropResponseDto } from "@/interfaces/Crop";
+import {
+  BeneficialElementsContent,
+  FoliarAnalysisResponseDto,
+  MacronutrientsContent,
+  MicronutrientsContent,
+} from "@/interfaces/FoliarAnalysis";
+import {
+  LiquidSourceResponseDto,
+  SolidSourceResponseDto,
+} from "@/interfaces/FoliarFertilization";
+import { TopDressingFertilizationResponseDto } from "@/interfaces/TopDressingFertilization";
+import { getFoliarAnalysesByCrop } from "@/services/foliarAnalysisService";
+import { getLiquidSourcesByCrop } from "@/services/liquidSourceService";
+import { getSolidSourcesByCrop } from "@/services/solidSourceService";
+import { getTopDressingFertilizationsByCrop } from "@/services/topDressingFertilizationService";
 
 interface CropReadOnlyDialogProps {
   isOpen: boolean;
@@ -22,6 +43,11 @@ const formatDate = (date?: CropDate) => {
   const day = date.day.toString().padStart(2, "0");
   const month = date.month.toString().padStart(2, "0");
   return `${day}/${month}/${date.year}`;
+};
+
+const formatValue = (value?: string | number | null) => {
+  if (value === null || value === undefined || value === "") return "-";
+  return value;
 };
 
 const DetailItem = ({
@@ -46,11 +72,171 @@ const DetailItem = ({
   </Box>
 );
 
+const NUTRIENT_LABELS: Record<string, Record<string, string>> = {
+  macronutrients: {
+    n_content: "N",
+    p_content: "P",
+    k_content: "K",
+    ca_content: "Ca",
+    mg_content: "Mg",
+    s_content: "S",
+  },
+  micronutrients: {
+    b_content: "B",
+    cu_content: "Cu",
+    fe_content: "Fe",
+    ni_content: "Ni",
+    mn_content: "Mn",
+    mo_content: "Mo",
+    zn_content: "Zn",
+  },
+  beneficial: {
+    na_content: "Na",
+    si_content: "Si",
+    v_content: "V",
+    co_content: "Co",
+    se_content: "Se",
+  },
+};
+
+const TOP_DRESSING_LABELS: Array<{
+  key: keyof TopDressingFertilizationResponseDto;
+  label: string;
+}> = [
+  { key: "formulado", label: "Formulado" },
+  { key: "sulfato_de_amonio", label: "Sulfato de amônio" },
+  { key: "ureia", label: "Ureia" },
+  { key: "cloreto_de_potassio", label: "Cloreto de potássio" },
+  { key: "superfosfato_triplo", label: "Superfosfato triplo" },
+  { key: "superfosfato_simples", label: "Superfosfato simples" },
+  { key: "monoamonio_fosfato", label: "Monoamônio fosfato" },
+];
+
+const renderNutrientGrid = (
+  values:
+    | MacronutrientsContent
+    | MicronutrientsContent
+    | BeneficialElementsContent
+    | undefined,
+  labels: Record<string, string>,
+) => {
+  const entries = Object.entries(labels)
+    .map(([key, label]) => ({
+      key,
+      label,
+      value:
+        values?.[
+          key as keyof (
+            | MacronutrientsContent
+            | MicronutrientsContent
+            | BeneficialElementsContent
+          )
+        ],
+    }))
+    .filter((entry) => entry.value !== undefined && entry.value !== null);
+
+  if (entries.length === 0) {
+    return <Text color="gray.500">Sem registros.</Text>;
+  }
+
+  return (
+    <SimpleGrid columns={{ base: 2, md: 3 }} gap={3} mt={2}>
+      {entries.map((entry) => (
+        <DetailItem
+          key={entry.key}
+          label={entry.label}
+          value={entry.value as number}
+        />
+      ))}
+    </SimpleGrid>
+  );
+};
+
+const renderTopDressingDetails = (item: TopDressingFertilizationResponseDto) => {
+  const entries = TOP_DRESSING_LABELS.filter(
+    (entry) => item[entry.key] !== undefined && item[entry.key] !== null,
+  );
+
+  if (entries.length === 0) {
+    return (
+      <Text fontSize="sm" color="gray.500">
+        Nenhum fertilizante registrado.
+      </Text>
+    );
+  }
+
+  return (
+    <VStack align="start" gap={1}>
+      {entries.map((entry) => (
+        <Text key={String(entry.key)} fontSize="sm">
+          {entry.label}: {String(item[entry.key])}
+        </Text>
+      ))}
+    </VStack>
+  );
+};
+
 export const CropReadOnlyDialog = ({
   isOpen,
   onClose,
   crop,
 }: CropReadOnlyDialogProps) => {
+  const cropId = crop?.id;
+  const queriesEnabled = isOpen && !!cropId;
+
+  const { data: foliarAnalyses = [], isLoading: isLoadingFoliar } = useQuery({
+    queryKey: ["crop", cropId, "foliar-analyses"],
+    queryFn: () => getFoliarAnalysesByCrop(cropId as number),
+    enabled: queriesEnabled,
+  });
+
+  const { data: topDressing = [], isLoading: isLoadingTopDressing } = useQuery(
+    {
+      queryKey: ["crop", cropId, "top-dressing"],
+      queryFn: () => getTopDressingFertilizationsByCrop(cropId as number),
+      enabled: queriesEnabled,
+    },
+  );
+
+  const { data: liquidSources = [], isLoading: isLoadingLiquid } = useQuery({
+    queryKey: ["crop", cropId, "liquid-sources"],
+    queryFn: () => getLiquidSourcesByCrop(cropId as number),
+    enabled: queriesEnabled,
+  });
+
+  const { data: solidSources = [], isLoading: isLoadingSolid } = useQuery({
+    queryKey: ["crop", cropId, "solid-sources"],
+    queryFn: () => getSolidSourcesByCrop(cropId as number),
+    enabled: queriesEnabled,
+  });
+
+  const sortedTopDressing = useMemo(() => {
+    return [...topDressing].sort((a, b) => a.ordem - b.ordem);
+  }, [topDressing]);
+
+  const sortedFoliarAnalyses = useMemo(() => {
+    return [...foliarAnalyses].sort((a, b) => {
+      if (!a.data_coleta || !b.data_coleta) return 0;
+      const dateA = new Date(
+        a.data_coleta.year,
+        a.data_coleta.month - 1,
+        a.data_coleta.day,
+      ).getTime();
+      const dateB = new Date(
+        b.data_coleta.year,
+        b.data_coleta.month - 1,
+        b.data_coleta.day,
+      ).getTime();
+      return dateB - dateA;
+    });
+  }, [foliarAnalyses]);
+
+  const renderLoading = () => (
+    <Center py={6}>
+      <Spinner size="sm" />
+    </Center>
+  );
+
   if (!isOpen || !crop) return null;
 
   return (
@@ -77,44 +263,17 @@ export const CropReadOnlyDialog = ({
             label="Distância entre linhas"
             value={`${crop.distancia_entre_linhas} m`}
           />
-          <DetailItem
-            label="Plantas por metro"
-            value={crop.numero_plantas_por_metro}
-          />
+          <Box />
         </Grid>
 
-        <Separator my={1} />
-
         <Grid templateColumns="1fr 1fr" gap={4}>
-          <DetailItem
-            label="Produtividade esperada"
-            value={`${crop.produtividade_esperada} kg/ha`}
-          />
-          <DetailItem
-            label="Produtividade obtida"
-            value={`${crop.produtividade_obtida} kg/ha`}
-          />
-        </Grid>
-        <Grid templateColumns="1fr 1fr" gap={4}>
-          <DetailItem
-            label="Área usada no talhão"
-            value={`${crop.area_usada_no_talhao} ha`}
-          />
-          <DetailItem label="ID" value={crop.id} />
-        </Grid>
-
-        <Separator my={1} />
-
-        <Grid templateColumns="1fr 1fr" gap={4}>
-          <DetailItem
-            label="Data de Plantio"
-            value={formatDate(crop.data_plantio)}
-          />
+          <DetailItem label="Data de Plantio" value={formatDate(crop.data_plantio)} />
           <DetailItem
             label="Data de Emergência"
             value={formatDate(crop.data_emergencia)}
           />
         </Grid>
+
         <Grid templateColumns="1fr 1fr" gap={4}>
           <DetailItem
             label="Data de Botonamento"
@@ -125,6 +284,7 @@ export const CropReadOnlyDialog = ({
             value={formatDate(crop.data_florescimento)}
           />
         </Grid>
+
         <Grid templateColumns="1fr 1fr" gap={4}>
           <DetailItem
             label="Data de Colheita"
@@ -132,6 +292,192 @@ export const CropReadOnlyDialog = ({
           />
           <Box />
         </Grid>
+
+        <Separator my={1} />
+
+        <VStack align="stretch" gap={4}>
+          <Heading as="h4" size="sm" color="gray.600">
+            Análises Foliares
+          </Heading>
+
+          {isLoadingFoliar ? (
+            renderLoading()
+          ) : sortedFoliarAnalyses.length === 0 ? (
+            <Text color="gray.500">Nenhuma análise foliar registrada.</Text>
+          ) : (
+            <VStack align="stretch" gap={4}>
+              {sortedFoliarAnalyses.map((analysis: FoliarAnalysisResponseDto) => (
+                <Box key={analysis.id} borderWidth="1px" borderRadius="md" p={4}>
+                  <Grid templateColumns="1fr 1fr" gap={4}>
+                    <DetailItem
+                      label="Data de coleta"
+                      value={formatDate(analysis.data_coleta)}
+                    />
+                    <DetailItem
+                      label="Laboratório"
+                      value={String(formatValue(analysis.laboratorio))}
+                    />
+                  </Grid>
+
+                  <Separator my={3} />
+
+                  <VStack align="stretch" gap={3}>
+                    <Box>
+                      <Text fontSize="sm" fontWeight="bold" color="gray.600">
+                        Macronutrientes
+                      </Text>
+                      {renderNutrientGrid(
+                        analysis.macronutrientes,
+                        NUTRIENT_LABELS.macronutrients,
+                      )}
+                    </Box>
+
+                    <Box>
+                      <Text fontSize="sm" fontWeight="bold" color="gray.600">
+                        Micronutrientes
+                      </Text>
+                      {renderNutrientGrid(
+                        analysis.micronutrientes,
+                        NUTRIENT_LABELS.micronutrients,
+                      )}
+                    </Box>
+
+                    <Box>
+                      <Text fontSize="sm" fontWeight="bold" color="gray.600">
+                        Elementos benéficos
+                      </Text>
+                      {renderNutrientGrid(
+                        analysis.elementos_beneficos,
+                        NUTRIENT_LABELS.beneficial,
+                      )}
+                    </Box>
+                  </VStack>
+                </Box>
+              ))}
+            </VStack>
+          )}
+        </VStack>
+
+        <Separator my={1} />
+
+        <VStack align="stretch" gap={4}>
+          <Heading as="h4" size="sm" color="gray.600">
+            Adubação de Cobertura
+          </Heading>
+
+          {isLoadingTopDressing ? (
+            renderLoading()
+          ) : sortedTopDressing.length === 0 ? (
+            <Text color="gray.500">Nenhuma adubação de cobertura registrada.</Text>
+          ) : (
+            <Box borderWidth="1px" borderRadius="md" overflowX="auto">
+              <Table.Root size="sm" striped>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.ColumnHeader width="80px">Ordem</Table.ColumnHeader>
+                    <Table.ColumnHeader width="140px">Data</Table.ColumnHeader>
+                    <Table.ColumnHeader>Fertilizantes (kg/ha)</Table.ColumnHeader>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {sortedTopDressing.map(
+                    (item: TopDressingFertilizationResponseDto) => (
+                      <Table.Row key={item.id}>
+                        <Table.Cell>{item.ordem}ª</Table.Cell>
+                        <Table.Cell>{formatDate(item.data)}</Table.Cell>
+                        <Table.Cell>{renderTopDressingDetails(item)}</Table.Cell>
+                      </Table.Row>
+                    ),
+                  )}
+                </Table.Body>
+              </Table.Root>
+            </Box>
+          )}
+        </VStack>
+
+        <Separator my={1} />
+
+        <VStack align="stretch" gap={4}>
+          <Heading as="h4" size="sm" color="gray.600">
+            Adubação Foliar - Fontes Líquidas
+          </Heading>
+
+          {isLoadingLiquid ? (
+            renderLoading()
+          ) : liquidSources.length === 0 ? (
+            <Text color="gray.500">Nenhuma fonte líquida registrada.</Text>
+          ) : (
+            <Box borderWidth="1px" borderRadius="md" overflowX="auto">
+              <Table.Root size="sm" striped>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.ColumnHeader width="140px">Data</Table.ColumnHeader>
+                    <Table.ColumnHeader>Micronutriente</Table.ColumnHeader>
+                    <Table.ColumnHeader>Fonte</Table.ColumnHeader>
+                    <Table.ColumnHeader>Concentração</Table.ColumnHeader>
+                    <Table.ColumnHeader>Densidade</Table.ColumnHeader>
+                    <Table.ColumnHeader>Volume aplicado (L/ha)</Table.ColumnHeader>
+                    <Table.ColumnHeader>Volume calda (L/ha)</Table.ColumnHeader>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {liquidSources.map((item: LiquidSourceResponseDto) => (
+                    <Table.Row key={item.id}>
+                      <Table.Cell>{formatDate(item.data)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.micronutriente_aplicado)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.fonte)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.concentracao)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.densidade)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.volume_aplicado)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.volume_calda)}</Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
+          )}
+        </VStack>
+
+        <Separator my={1} />
+
+        <VStack align="stretch" gap={4}>
+          <Heading as="h4" size="sm" color="gray.600">
+            Adubação Foliar - Fontes Sólidas
+          </Heading>
+
+          {isLoadingSolid ? (
+            renderLoading()
+          ) : solidSources.length === 0 ? (
+            <Text color="gray.500">Nenhuma fonte sólida registrada.</Text>
+          ) : (
+            <Box borderWidth="1px" borderRadius="md" overflowX="auto">
+              <Table.Root size="sm" striped>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.ColumnHeader width="140px">Data</Table.ColumnHeader>
+                    <Table.ColumnHeader>Micronutriente</Table.ColumnHeader>
+                    <Table.ColumnHeader>Fonte</Table.ColumnHeader>
+                    <Table.ColumnHeader>Concentração</Table.ColumnHeader>
+                    <Table.ColumnHeader>
+                      Quantidade aplicada (kg/ha)
+                    </Table.ColumnHeader>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {solidSources.map((item: SolidSourceResponseDto) => (
+                    <Table.Row key={item.id}>
+                      <Table.Cell>{formatDate(item.data)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.micronutriente_aplicado)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.fonte)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.concentracao)}</Table.Cell>
+                      <Table.Cell>{formatValue(item.quantidade_aplicada)}</Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
+          )}
+        </VStack>
       </VStack>
 
       <Flex justify="flex-end" mt={6}>
