@@ -29,7 +29,11 @@ export default function PasswordVerification({ subtitle, cardHeading, onConfirm,
     });
     const [error, setError] = useState<string | null>(null);
 
+    const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const profile = JSON.parse(sessionStorage.getItem(UPDATE_PROFILE_DATA_KEY)||"")
+        console.log(profile)
         const { name, value } = e.target;
         setPasswordForm({ ...passwordForm, [name]: value });
         setError(null);

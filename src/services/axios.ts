@@ -37,4 +37,22 @@ api.interceptors.response.use(
   }
 );
 
+const image_manager_url = "http://localhost:8081"
+
+export const axiosImageManager = axios.create({
+  baseURL: image_manager_url,
+  headers: {
+    "Content-Type": "application/json"
+  }
+})
+
+axiosImageManager.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error);
+  }
+);
+
 export default api;

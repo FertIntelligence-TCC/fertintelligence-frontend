@@ -76,6 +76,7 @@ export type UpdateUserPayload = {
   nova_profissao?: string;
   novo_cargo?: Cargo;
   nova_senha?: string;
+  novo_idfoto?: string;
 };
 
 export interface LocalizacaoPayload { 

@@ -25,6 +25,7 @@ import {
   Formacao,
   Cargo,
 } from "@/interfaces/ServicePayload";
+import { uploadImageMongoDB } from "@/services/imageService";
 
 const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
 
@@ -193,11 +194,13 @@ export default function UpdateProfile() {
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
 
     const parsedDataNasc = parseDataNasc(profileForm.datanasc)!;
     const parsedTelefone = parseTelefone(profileForm.telefone)!;
+
+    const novaImagem = await uploadImageMongoDB(profileForm.foto)    
 
     // Payload UNIFICADO (mesma estrutura do Signup)
     const unifiedPayload = {
@@ -211,7 +214,7 @@ export default function UpdateProfile() {
       formacao: profileForm.formacao as keyof typeof Formacao,
       profissao: profileForm.profissao,
       cargo: profileForm.cargo as keyof typeof Cargo,
-      foto: profileForm.foto, // *** string ***
+      foto: novaImagem._id, // *** string ***
     };
 
     // 1) Compat: mantém as chaves antigas (se UpdateVerification ainda ler 'novo_*')
@@ -226,7 +229,7 @@ export default function UpdateProfile() {
       nova_formacao: unifiedPayload.formacao,
       nova_profissao: unifiedPayload.profissao,
       novo_cargo: unifiedPayload.cargo,
-      id_nova_foto: unifiedPayload.foto, // agora também string
+      novo_idfoto: unifiedPayload.foto, // agora também string
     };
 
     // 2) Novo: grava também o payload unificado (igual ao cadastro)
