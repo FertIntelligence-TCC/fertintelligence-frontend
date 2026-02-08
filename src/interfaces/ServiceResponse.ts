@@ -25,6 +25,7 @@ export type DataNascDto = {
     profissao?: string;
     cargo?: string;
     name?: string;
+    idfoto?: string;
   };
 
   export interface PropertyResponse { 

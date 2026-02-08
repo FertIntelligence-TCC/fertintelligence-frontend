@@ -49,7 +49,7 @@ function normalizeFromSession(parsed: any) {
     formacao: parsed.nova_formacao as keyof typeof Formacao,
     profissao: String(parsed.nova_profissao ?? ""),
     cargo: parsed.novo_cargo as keyof typeof Cargo,
-    foto: String(parsed.id_nova_foto ?? parsed.nova_foto ?? ""),
+    foto: String(parsed.novo_idfoto ?? parsed.nova_foto ?? ""),
   };
 }
 
@@ -87,7 +87,7 @@ export default function UpdateVerification() {
       nova_profissao: unified.profissao,
       novo_cargo: unified.cargo,         // keyof typeof Cargo
       id_nova_foto: unified.foto,        // string (URL/base64/ID). Mantemos nome legado por compat.
-      nova_password: password,           // senha atual para validação no backend
+      novo_idfoto: unified.foto           // senha atual para validação no backend
     } as UpdateUserPayload;
 
     try {
@@ -113,7 +113,7 @@ export default function UpdateVerification() {
           profissao: unified.profissao ?? (currentUser as any).profissao,
           cargo: (unified.cargo as any) ?? (currentUser as any).cargo,
           // Mantemos compat com id_foto legado
-          id_foto: unified.foto ?? (currentUser as any).id_foto,
+          idfoto: unified.foto ?? (currentUser as any).id_foto,
           // Caso seu `User` possua um campo `foto`, também setamos:
           ...(typeof (currentUser as any).foto !== "undefined"
             ? { foto: unified.foto }

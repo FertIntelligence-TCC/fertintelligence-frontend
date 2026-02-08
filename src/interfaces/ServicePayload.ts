@@ -58,6 +58,7 @@ export type SignUpPayload = {
   cargo: Cargo;
   senha: string;
   name: string;
+  idfoto: string;
 };
 
 export type SignInPayload = {

@@ -25,6 +25,7 @@ import {
   SimpleGrid,
   chakra,
 } from "@chakra-ui/react";
+import { uploadImageMongoDB } from "@/services/imageService";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -190,12 +191,14 @@ export default function SignUpPage() {
     },
   });
 
-  const submitSignUp = () => {
+  const submitSignUp = async () => {
     if (!validateSignUp()) return;
-
+ 
     const parsedDataNasc = parseDataNasc(signUpForm.datanasc)!;
     const parsedTelefone = parseTelefone(signUpForm.telefone)!;
 
+    const novaImagem = await uploadImageMongoDB("") 
+    
     const payload: SignUpPayload = {
       name: signUpForm.name,
       username: signUpForm.username,
@@ -208,6 +211,7 @@ export default function SignUpPage() {
       profissao: signUpForm.profissao,
       cargo: signUpForm.cargo as Cargo,
       senha: signUpForm.password,
+      idfoto: novaImagem._id,
     };
 
     // Debug para confirmar que password está indo preenchido

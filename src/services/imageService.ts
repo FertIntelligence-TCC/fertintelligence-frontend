@@ -32,6 +32,26 @@ export const uploadImageMongoDB = async (img: string) => {
   }
 }
 
+export const updateImageMongoDB = async (img: string, id: string) => {
+  try {
+    console.log(img)
+    console.log("BASEURL:", axiosImageManager.defaults.baseURL);
+    console.log("CALL URL:", `/${ENDPOINT.UPDATE_IMAGE_MONGO}/${id}`);
+    const { data } = await axiosImageManager.patch(`/${ENDPOINT.UPDATE_IMAGE_MONGO}/${id}`,
+        {image: img},
+        {
+            headers: {
+            "Content-Type": "application/json",
+            },
+        }
+    );
+    console.log(data.data)
+    return data.data;
+  } catch (error) {
+    console.error("Erro ao buscar imagem:", error);
+  }
+}
+
 export const deleteImageMongoDB = async (id: string) => {
     try {
         const { data } = await axiosImageManager.get(`/${ENDPOINT.DELETE_IMAGE_MONGO}/${id}`, {

@@ -45,8 +45,10 @@ export const ENDPOINT = {
     UPDATE_COVERAGE: "coverage/update",
     DELETE_COVERAGE: "coverage/delete",
 
+    // --- Image manager endpoints ---
     GET_IMAGE_MONGO: "get",
     UPLOAD_IMAGE_MONGO: "upload",
-    DELETE_IMAGE_MONGO: "delete"
+    DELETE_IMAGE_MONGO: "delete",
+    UPDATE_IMAGE_MONGO: "update"
 
 } as const;
