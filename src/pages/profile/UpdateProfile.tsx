@@ -25,17 +25,20 @@ import {
   Formacao,
   Cargo,
 } from "@/interfaces/ServicePayload";
-import { getImageFromMongoDB, updateImageMongoDB, uploadImageMongoDB } from "@/services/imageService";
+import {
+  getImageFromMongoDB,
+  updateImageMongoDB,
+  uploadImageMongoDB,
+} from "@/services/imageService";
 
 const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
 
 // -- Helpers de formatação
 const formatDate = (d?: DataNasc): string => {
   if (!d) return "";
-  return `${String(d.dia).padStart(2, "0")}/${String(d.mes).padStart(
-    2,
-    "0"
-  )}/${d.ano}`;
+  return `${String(d.dia).padStart(2, "0")}/${String(d.mes).padStart(2, "0")}/${
+    d.ano
+  }`;
 };
 const formatTel = (t?: Telefone): string => {
   if (!t) return "";
@@ -90,13 +93,13 @@ export default function UpdateProfile() {
     username: "",
     email: "",
     cpf: "",
-    datanasc: "",     // dd/mm/aaaa
-    telefone: "",     // +XX XX XXXXX-XXXX
+    datanasc: "", // dd/mm/aaaa
+    telefone: "", // +XX XX XXXXX-XXXX
     genero: "",
     formacao: "",
     profissao: "",
     cargo: "",
-    foto: "",         // *** string (URL/base64/id) ***
+    foto: "", // *** string (URL/base64/id) ***
   });
   const [error, setError] = useState<string | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -140,7 +143,10 @@ export default function UpdateProfile() {
     const reader = new FileReader();
     reader.onload = () => {
       // reader.result é dataURL base64 (string)
-      setProfileForm((prev) => ({ ...prev, foto: String(reader.result || "") }));
+      setProfileForm((prev) => ({
+        ...prev,
+        foto: String(reader.result || ""),
+      }));
     };
     reader.readAsDataURL(f);
     setError(null);
@@ -194,54 +200,68 @@ export default function UpdateProfile() {
     return true;
   };
 
+  // src/pages/profile/UpdateProfile.tsx
+
   const handleSubmit = async () => {
     if (!validate()) return;
 
     const parsedDataNasc = parseDataNasc(profileForm.datanasc)!;
     const parsedTelefone = parseTelefone(profileForm.telefone)!;
 
-    console.log("USER RAW:", user);
-    console.log("USER KEYS:", user ? Object.keys(user as any) : null);
+    const idFotoOriginal = (user as any)?.idfoto || (user as any)?.id_foto;
+    let idFotoFinal = idFotoOriginal;
 
-    await updateImageMongoDB(profileForm.foto, (user as any)?.idfoto);
-    // Payload UNIFICADO (mesma estrutura do Signup)
-    const unifiedPayload = {
-      name: profileForm.name,
-      username: profileForm.username,
-      email: profileForm.email,
-      cpf: profileForm.cpf,
-      datanasc: parsedDataNasc,
-      telefone: parsedTelefone,
-      genero: profileForm.genero as keyof typeof Genero,
-      formacao: profileForm.formacao as keyof typeof Formacao,
-      profissao: profileForm.profissao,
-      cargo: profileForm.cargo as keyof typeof Cargo,
-    };
+    try {
+      if (profileForm.foto && profileForm.foto.startsWith("data:image")) {
+        if (idFotoOriginal) {
+          const response = await updateImageMongoDB(
+            profileForm.foto,
+            idFotoOriginal
+          );
+          idFotoFinal = response?._id || idFotoOriginal;
+        } else {
+          const response = await uploadImageMongoDB(profileForm.foto);
+          idFotoFinal = response?._id;
+        }
+      }
 
-    // 1) Compat: mantém as chaves antigas (se UpdateVerification ainda ler 'novo_*')
-    const legacy = {
-      novo_name: unifiedPayload.name,
-      novo_username: unifiedPayload.username,
-      novo_email: unifiedPayload.email,
-      novo_cpf: unifiedPayload.cpf,
-      nova_datanasc: unifiedPayload.datanasc,
-      novo_telefone: unifiedPayload.telefone,
-      novo_genero: unifiedPayload.genero,
-      nova_formacao: unifiedPayload.formacao,
-      nova_profissao: unifiedPayload.profissao,
-      novo_cargo: unifiedPayload.cargo,
-    };
+      const unifiedPayload = {
+        name: profileForm.name,
+        username: profileForm.username,
+        email: profileForm.email,
+        cpf: profileForm.cpf,
+        datanasc: parsedDataNasc,
+        telefone: parsedTelefone,
+        genero: profileForm.genero as Genero,
+        formacao: profileForm.formacao as Formacao,
+        profissao: profileForm.profissao,
+        cargo: profileForm.cargo as Cargo,
+        idfoto: idFotoFinal,
+      };
 
-    // 2) Novo: grava também o payload unificado (igual ao cadastro)
-    sessionStorage.setItem(
-      UPDATE_PROFILE_DATA_KEY,
-      JSON.stringify({
-        ...legacy,
-        payload: unifiedPayload,
-      })
-    );
+      const legacy = {
+        novo_nome: unifiedPayload.name,
+        novo_username: unifiedPayload.username,
+        novo_email: unifiedPayload.email,
+        novo_cpf: unifiedPayload.cpf,
+        nova_datanasc: unifiedPayload.datanasc,
+        novo_telefone: unifiedPayload.telefone,
+        novo_genero: unifiedPayload.genero,
+        nova_formacao: unifiedPayload.formacao,
+        nova_profissao: unifiedPayload.profissao,
+        novo_cargo: unifiedPayload.cargo,
+        novo_idfoto: idFotoFinal,
+      };
 
-    navigate("/fertintelligence/password-verification");
+      sessionStorage.setItem(
+        UPDATE_PROFILE_DATA_KEY,
+        JSON.stringify({ ...legacy, payload: unifiedPayload })
+      );
+
+      navigate("/fertintelligence/password-verification");
+    } catch (err) {
+      console.error("Erro ao processar imagem:", err);
+    }
   };
 
   if (loadingUser) {
@@ -433,7 +453,12 @@ export default function UpdateProfile() {
                     display="none"
                     onChange={handleFileToString}
                   />
-                  <Button as="label" htmlFor="foto-upload" variant="outline" w="full">
+                  <Button
+                    as="label"
+                    htmlFor="foto-upload"
+                    variant="outline"
+                    w="full"
+                  >
                     <Icon as={FiUploadCloud} mr={2} />
                     Ou selecione um arquivo para converter em base64
                   </Button>
@@ -441,7 +466,12 @@ export default function UpdateProfile() {
               </Box>
             </SimpleGrid>
 
-            <Button colorScheme="blue" width="full" onClick={handleSubmit} mt={4}>
+            <Button
+              colorScheme="blue"
+              width="full"
+              onClick={handleSubmit}
+              mt={4}
+            >
               Concluir
             </Button>
           </VStack>

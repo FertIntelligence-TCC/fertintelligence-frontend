@@ -32,7 +32,7 @@ function normalizeFromSession(parsed: any) {
       formacao: p.formacao as keyof typeof Formacao,
       profissao: String(p.profissao ?? ""),
       cargo: p.cargo as keyof typeof Cargo,
-      foto: String(p.foto ?? ""),
+      foto: String(p.idfoto ?? p.foto ?? ""),
     };
   }
 
@@ -49,7 +49,7 @@ function normalizeFromSession(parsed: any) {
     formacao: parsed.nova_formacao as keyof typeof Formacao,
     profissao: String(parsed.nova_profissao ?? ""),
     cargo: parsed.novo_cargo as keyof typeof Cargo,
-    foto: String(parsed.novo_idfoto ?? parsed.nova_foto ?? ""),
+    foto: String(parsed.novo_idfoto ?? parsed.id_nova_foto ?? parsed.nova_foto ?? ""),
   };
 }
 
@@ -86,8 +86,8 @@ export default function UpdateVerification() {
       nova_formacao: unified.formacao,   // keyof typeof Formacao
       nova_profissao: unified.profissao,
       novo_cargo: unified.cargo,         // keyof typeof Cargo
-      id_nova_foto: unified.foto,        // string (URL/base64/ID). Mantemos nome legado por compat.
-      novo_idfoto: unified.foto           // senha atual para validação no backend
+      novo_idfoto: unified.foto,           
+      nova_senha: password,              // senha atual para validação no backend
     } as UpdateUserPayload;
 
     try {
