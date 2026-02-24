@@ -174,8 +174,7 @@ export const AnnualCropFolders = () => {
           onEdit={handleEdit}
           onManage={handleManage}
           onRefresh={fetchFolders}
-          // Se quiser habilitar o delete direto no card, passe onDelete={handleDelete}
-          // Caso contrário, o componente List provavelmente oculta ou mostra msg informativa
+          onDelete={handleDelete}
         />
       </Box>
 

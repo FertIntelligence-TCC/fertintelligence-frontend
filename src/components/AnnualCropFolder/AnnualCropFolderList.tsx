@@ -11,7 +11,6 @@ import {
   IconButton,
   Separator,
 } from "@chakra-ui/react";
-import { toaster } from "@/components/ui/toaster";
 import { LuFolderOpen, LuPencil, LuTrash2 } from "react-icons/lu";
 import { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
 
@@ -21,6 +20,7 @@ interface AnnualCropFolderListProps {
   onEdit: (folder: AnnualCropFolderResponseDto) => void;
   onManage: (folder: AnnualCropFolderResponseDto) => void;
   onRefresh: () => void;
+  onDelete: (folderId: number) => void;
 }
 
 export const AnnualCropFolderList = ({
@@ -28,6 +28,7 @@ export const AnnualCropFolderList = ({
   isLoading,
   onEdit,
   onManage,
+  onDelete,
 }: AnnualCropFolderListProps) => {
   
   if (isLoading) {
@@ -142,10 +143,7 @@ export const AnnualCropFolderList = ({
                      e.stopPropagation();
                      // Aqui usamos um toaster informativo caso a prop onDelete não venha do pai,
                      // mas idealmente você passaria onDelete={handleDelete} para este componente.
-                     toaster.create({ 
-                        title: "Use o botão da página anterior para deletar", 
-                        type: "info" 
-                     });
+                     onDelete(folder.id);
                   }}
                 >
                   <LuTrash2 />
