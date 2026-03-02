@@ -22,8 +22,8 @@ import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 
 import { useUserStore } from "@/stores/user/user.store";
-import { Cargo } from "@/interfaces/ServicePayload";
-import { PropertyResponse } from "@/interfaces/ServiceResponse";
+import { Cargo } from "@/interfaces/User";
+import { PropertyResponse } from "@/interfaces/Property";
 // ALTERADO: Importando a função correta para buscar propriedades aprovadas
 import { fetchApprovedProperties } from "@/services/propertyService"; 
 

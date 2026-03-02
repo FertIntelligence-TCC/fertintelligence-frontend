@@ -1,5 +1,3 @@
-import { CropFertilizationTableCreateRequestDto, ContentRangeCreateRequestDto, CoverageCreateRequestDto } from "./CropFertilizationTable";
-
 export enum Genero {
   MASCULINO = "MASCULINO",
   FEMININO = "FEMININO",
@@ -22,16 +20,6 @@ export enum Cargo {
   AGRONOMO_CONSULTOR = "AGRONOMO_CONSULTOR",
   SUPERVISOR_DE_AREA = "SUPERVISOR_DE_AREA",
   SECRETARIO = "SECRETARIO",
-}
-
-export enum LatitudeDirection {
-  NORTE = 'NORTE',
-  SUL = 'SUL',
-}
-
-export enum LongitudeDirection {
-  LESTE = 'LESTE',
-  OESTE = 'OESTE',
 }
 
 export type DataNasc = {
@@ -80,27 +68,29 @@ export type UpdateUserPayload = {
   novo_idfoto?: string;
 };
 
-export interface LocalizacaoPayload { 
-  latitude: number;
-  latitudeDirection: LatitudeDirection;
-  longitude: number;
-  longitudeDirection: LongitudeDirection;
-  altitude: number;
-}
+export type DataNascDto = {
+  dia: number;
+  mes: number;
+  ano: number;
+};
 
-export interface PropertyCreatePayload {
-    nome: string;
-    endereco: string;
-    cnpj: string;
-    localizacao: LocalizacaoPayload;
-}
+export type TelefoneDto = {
+  pais: string;
+  ddd: string;
+  numero: string;
+};
 
-export interface PropertyUpdatePayload {
-    novo_nome?: string;
-    novo_endereco?: string;
-    novo_cnpj?: string;
-    nova_localizacao?: LocalizacaoPayload;
-}
-
-// Exports dos DTOs de Adubação para uso centralizado (Opcional, mas útil)
-export type { CropFertilizationTableCreateRequestDto, ContentRangeCreateRequestDto, CoverageCreateRequestDto };
+export type UserResponse = {
+  id?: number;
+  login?: string;
+  cpf?: string;
+  email?: string;
+  datanasc?: DataNascDto;
+  genero?: string;
+  telefone?: TelefoneDto;
+  formacao?: string;
+  profissao?: string;
+  cargo?: string;
+  name?: string;
+  idfoto?: string;
+};

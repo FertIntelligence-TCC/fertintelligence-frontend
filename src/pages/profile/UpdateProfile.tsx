@@ -24,7 +24,7 @@ import {
   Genero,
   Formacao,
   Cargo,
-} from "@/interfaces/ServicePayload";
+} from "@/interfaces/User";
 import {
   getImageFromMongoDB,
   updateImageMongoDB,

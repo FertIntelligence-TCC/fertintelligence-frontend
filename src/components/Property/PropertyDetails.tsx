@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Heading, Text, VStack, Separator, Box, useDisclosure } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
-import { LatitudeDirection, LongitudeDirection } from "@/interfaces/ServicePayload";
-import { PropertyResponse } from "@/interfaces/ServiceResponse";
+import { LatitudeDirection, LongitudeDirection } from "@/interfaces/Property";
+import { PropertyResponse } from "@/interfaces/Property";
 import { getPlotsByProperty } from "@/services/plotService";
 import PlotList from "@/components/Plot/PlotList";
 import PlotDetailsDialog from "@/components/Plot/PlotDetailsDialog";

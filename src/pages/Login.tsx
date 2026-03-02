@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useUserStore } from "../stores/user/user.store";
 import { authenticateUser, getUser } from "@/services/userService";
-import { SignInPayload } from "@/interfaces/ServicePayload";
+import { SignInPayload } from "@/interfaces/User";
 import { User } from "../interfaces/Models";
 import axiosInstace from "../services/axios";
 import { ENDPOINT } from "../constants/Endpoint";

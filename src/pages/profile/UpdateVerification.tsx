@@ -12,7 +12,7 @@ import type {
   Genero,
   Formacao,
   Cargo,
-} from "../../interfaces/ServicePayload";
+} from "../../interfaces/User";
 
 const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
 

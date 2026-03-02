@@ -9,7 +9,7 @@ import {
   Genero,
   Formacao,
   Cargo,
-} from "@/interfaces/ServicePayload";
+} from "@/interfaces/User";
 import { PasswordInput } from "@/components/ui/password-input";
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";

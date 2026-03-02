@@ -8,8 +8,9 @@ import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 
 import { useUserStore } from "@/stores/user/user.store";
-import { Cargo, PropertyCreatePayload, PropertyUpdatePayload } from "@/interfaces/ServicePayload";
-import { PropertyResponse } from "@/interfaces/ServiceResponse";
+import { PropertyCreatePayload, PropertyUpdatePayload } from "@/interfaces/Property";
+import { PropertyResponse } from "@/interfaces/Property";
+import { Cargo } from "@/interfaces/User";
 import {
     createProperty,
     deleteProperty,

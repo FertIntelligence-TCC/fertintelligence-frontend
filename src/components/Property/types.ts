@@ -1,5 +1,5 @@
-import { LatitudeDirection, LongitudeDirection } from "@/interfaces/ServicePayload";
-import { PropertyResponse } from "@/interfaces/ServiceResponse";
+import { LatitudeDirection, LongitudeDirection } from "@/interfaces/Property";
+import { PropertyResponse } from "@/interfaces/Property";
 
 export type PropertyFormState = {
     nome: string;

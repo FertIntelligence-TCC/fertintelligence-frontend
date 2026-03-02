@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import UserLayout from "@/components/Layouts/UserLayout";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertName from "@/components/FertName/FertName";
-import { Cargo } from "@/interfaces/ServicePayload";
+import { Cargo } from "@/interfaces/User";
 import { useUserStore } from "@/stores/user/user.store";
 
 export default function Home() {

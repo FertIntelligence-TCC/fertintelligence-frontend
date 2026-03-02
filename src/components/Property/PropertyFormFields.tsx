@@ -1,6 +1,6 @@
 import { ChangeEvent, ReactNode } from "react";
 import { Box, HStack, Input, Text, VStack, chakra, Heading } from "@chakra-ui/react";
-import { LatitudeDirection, LongitudeDirection } from "@/interfaces/ServicePayload";
+import { LatitudeDirection, LongitudeDirection } from "@/interfaces/Property";
 import { PropertyFormState } from "./types";
 
 const Field = ({ label, isRequired, children }: FieldProps) => (

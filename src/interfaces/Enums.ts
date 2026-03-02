@@ -1,0 +1,16 @@
+// src/interfaces/Enums.ts
+
+export enum Cargo {
+    PROPRIETARIO = 'PROPRIETARIO',
+    GERENTE = 'GERENTE',
+    AGRONOMO_RESIDENTE = 'AGRONOMO_RESIDENTE',
+    AGRONOMO_CONSULTOR = 'AGRONOMO_CONSULTOR',
+    SUPERVISOR = 'SUPERVISOR',
+    SECRETARIO = 'SECRETARIO'
+  }
+  
+  export enum AccessRequestStatus {
+    PENDING = 'PENDING',
+    APPROVED = 'APPROVED',
+    REJECTED = 'REJECTED'
+  }

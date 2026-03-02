@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import PasswordVerification from "./PasswordVerification";
 import { updateUser } from "@/services/userService";
 import { useUserStore } from "@/stores/user/user.store";
-import { UpdateUserPayload } from "@/interfaces/ServicePayload";
+import { UpdateUserPayload } from "@/interfaces/User";
 
 export default function UpdatePassword() {
   const navigate = useNavigate();
