@@ -28,7 +28,7 @@ export const propertyToFormState = (
 ): PropertyFormState => ({
     nome: property.nome ?? "",
     endereco: property.endereco ?? "",
-    cnpj: property.cnpj ?? "",
+    cnpj: (property.cnpj ?? "").replace(/\D/g, ""),
     latitude:
         property.localizacao?.latitude !== undefined
             ? String(property.localizacao.latitude)

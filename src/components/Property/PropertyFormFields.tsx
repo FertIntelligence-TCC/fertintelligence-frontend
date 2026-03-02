@@ -1,7 +1,55 @@
 import { ChangeEvent, ReactNode } from "react";
-import { Box, HStack, Input, Text, VStack, chakra, Heading } from "@chakra-ui/react";
+import {
+    Box,
+    HStack,
+    Input,
+    Text,
+    VStack,
+    chakra,
+    Heading,
+} from "@chakra-ui/react";
 import { LatitudeDirection, LongitudeDirection } from "@/interfaces/Property";
 import { PropertyFormState } from "./types";
+
+/* ======================================================
+   Helpers
+====================================================== */
+
+const onlyDigits = (value: string) => value.replace(/\D/g, "");
+
+const formatCnpj = (value: string) => {
+    const digits = onlyDigits(value).slice(0, 14);
+
+    return digits
+        .replace(/^(\d{2})(\d)/, "$1.$2")
+        .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+        .replace(/\.(\d{3})(\d)/, ".$1/$2")
+        .replace(/(\d{4})(\d)/, "$1-$2");
+};
+
+const sanitizeNumber = (value: string, max?: number) => {
+    const cleaned = value.replace(/[^\d.]/g, "");
+    if (!cleaned) return "";
+
+    const numeric = Number(cleaned);
+    if (Number.isNaN(numeric)) return "";
+
+    if (typeof max === "number" && numeric > max) {
+        return String(max);
+    }
+
+    return cleaned;
+};
+
+/* ======================================================
+   Field Wrapper
+====================================================== */
+
+type FieldProps = {
+    label: string;
+    isRequired?: boolean;
+    children: ReactNode;
+};
 
 const Field = ({ label, isRequired, children }: FieldProps) => (
     <Box>
@@ -17,11 +65,9 @@ const Field = ({ label, isRequired, children }: FieldProps) => (
     </Box>
 );
 
-type FieldProps = {
-    label: string;
-    isRequired?: boolean;
-    children: ReactNode;
-};
+/* ======================================================
+   Styles
+====================================================== */
 
 const SelectElement = chakra("select");
 
@@ -53,6 +99,10 @@ const selectFieldStyles = {
     cursor: "pointer",
 } as const;
 
+/* ======================================================
+   Props
+====================================================== */
+
 type PropertyFormFieldsProps = {
     form: PropertyFormState;
     onFormChange: <Field extends keyof PropertyFormState>(
@@ -61,103 +111,155 @@ type PropertyFormFieldsProps = {
     ) => void;
 };
 
-const PropertyFormFields = ({ form, onFormChange }: PropertyFormFieldsProps) => (
-    <VStack gap={4} align="stretch">
-        <Field label="Nome da Propriedade:" isRequired>
-            <Input
-                variant="outline"
-                {...commonFieldStyles}
-                value={form.nome}
-                onChange={(event) => onFormChange("nome", event.target.value)}
-            />
-        </Field>
-        <Field label="Endereço:" isRequired>
-            <Input
-                variant="outline"
-                {...commonFieldStyles}
-                placeholder="ex: Rodovia PB 031, KM 25, Município Sapé, CEP: XXXXX-XXX"
-                value={form.endereco}
-                onChange={(event) => onFormChange("endereco", event.target.value)}
-            />
-        </Field>
-        <Field label="CNPJ:" isRequired>
-            <Input
-                variant="outline"
-                {...commonFieldStyles}
-                placeholder="XX.XXX.XXX/0001-XX"
-                value={form.cnpj}
-                onChange={(event) => onFormChange("cnpj", event.target.value)}
-            />
-        </Field>
-        <Heading as="h3" size="sm">
-            Localização geográfica da sede:
-        </Heading>
-        <HStack align="start" gap={4}>
-            <Field label="Latitude:" isRequired>
+/* ======================================================
+   Component
+====================================================== */
+
+const PropertyFormFields = ({
+    form,
+    onFormChange,
+}: PropertyFormFieldsProps) => {
+    return (
+        <VStack gap={4} align="stretch">
+            {/* Nome */}
+            <Field label="Nome da Propriedade:" isRequired>
                 <Input
-                    type="number"
-                    min={0}
-                    max={90}
                     variant="outline"
                     {...commonFieldStyles}
-                    value={form.latitude}
-                    onChange={(event) => onFormChange("latitude", event.target.value)}
+                    value={form.nome}
+                    onChange={(e) =>
+                        onFormChange("nome", e.target.value)
+                    }
                 />
             </Field>
-            <Field label="Direção:" isRequired>
-                <SelectElement
-                    value={form.latitudeDirection}
-                    onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                        onFormChange(
-                            "latitudeDirection",
-                            event.target.value as LatitudeDirection,
-                        )
-                    }
-                    {...selectFieldStyles}
-                >
-                    <option value={LatitudeDirection.NORTE}>Norte</option>
-                    <option value={LatitudeDirection.SUL}>Sul</option>
-                </SelectElement>
-            </Field>
-        </HStack>
-        <HStack align="start" gap={4}>
-            <Field label="Longitude:" isRequired>
+
+            {/* Endereço */}
+            <Field label="Endereço:" isRequired>
                 <Input
-                    type="number"
-                    min={0}
-                    max={180}
                     variant="outline"
                     {...commonFieldStyles}
-                    value={form.longitude}
-                    onChange={(event) => onFormChange("longitude", event.target.value)}
+                    placeholder="ex: Rodovia PB 031, KM 25, Município Sapé, CEP: XXXXX-XXX"
+                    value={form.endereco}
+                    onChange={(e) =>
+                        onFormChange("endereco", e.target.value)
+                    }
                 />
             </Field>
-            <Field label="Direção:" isRequired>
-                <SelectElement
-                    value={form.longitudeDirection}
-                    onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+
+            {/* CNPJ */}
+            <Field label="CNPJ:" isRequired>
+                <Input
+                    variant="outline"
+                    {...commonFieldStyles}
+                    placeholder="00.000.000/0000-00"
+                    value={formatCnpj(form.cnpj)}
+                    onChange={(e) =>
+                        onFormChange("cnpj", onlyDigits(e.target.value))
+                    }
+                />
+            </Field>
+
+            <Heading as="h3" size="sm">
+                Localização geográfica da sede:
+            </Heading>
+
+            {/* Latitude */}
+            <HStack align="start" gap={4}>
+                <Field label="Latitude:" isRequired>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={90}
+                        variant="outline"
+                        {...commonFieldStyles}
+                        value={form.latitude}
+                        onChange={(e) =>
+                            onFormChange(
+                                "latitude",
+                                sanitizeNumber(e.target.value, 90),
+                            )
+                        }
+                    />
+                </Field>
+
+                <Field label="Direção:" isRequired>
+                    <SelectElement
+                        value={form.latitudeDirection}
+                        onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                            onFormChange(
+                                "latitudeDirection",
+                                e.target.value as LatitudeDirection,
+                            )
+                        }
+                        {...selectFieldStyles}
+                    >
+                        <option value={LatitudeDirection.NORTE}>
+                            Norte
+                        </option>
+                        <option value={LatitudeDirection.SUL}>
+                            Sul
+                        </option>
+                    </SelectElement>
+                </Field>
+            </HStack>
+
+            {/* Longitude */}
+            <HStack align="start" gap={4}>
+                <Field label="Longitude:" isRequired>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={180}
+                        variant="outline"
+                        {...commonFieldStyles}
+                        value={form.longitude}
+                        onChange={(e) =>
+                            onFormChange(
+                                "longitude",
+                                sanitizeNumber(e.target.value, 180),
+                            )
+                        }
+                    />
+                </Field>
+
+                <Field label="Direção:" isRequired>
+                    <SelectElement
+                        value={form.longitudeDirection}
+                        onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                            onFormChange(
+                                "longitudeDirection",
+                                e.target.value as LongitudeDirection,
+                            )
+                        }
+                        {...selectFieldStyles}
+                    >
+                        <option value={LongitudeDirection.LESTE}>
+                            Leste
+                        </option>
+                        <option value={LongitudeDirection.OESTE}>
+                            Oeste
+                        </option>
+                    </SelectElement>
+                </Field>
+            </HStack>
+
+            {/* Altitude */}
+            <Field label="Altitude, em metros:">
+                <Input
+                    type="number"
+                    variant="outline"
+                    {...commonFieldStyles}
+                    value={form.altitude}
+                    onChange={(e) =>
                         onFormChange(
-                            "longitudeDirection",
-                            event.target.value as LongitudeDirection,
+                            "altitude",
+                            sanitizeNumber(e.target.value),
                         )
                     }
-                    {...selectFieldStyles}
-                >
-                    <option value={LongitudeDirection.LESTE}>Leste</option>
-                    <option value={LongitudeDirection.OESTE}>Oeste</option>
-                </SelectElement>
+                />
             </Field>
-        </HStack>
-        <Field label="Altitude, em metros:">
-            <Input
-                type="number"
-                variant="outline"
-                {...commonFieldStyles}
-                value={form.altitude}
-                onChange={(event) => onFormChange("altitude", event.target.value)}
-            />
-        </Field>
-    </VStack>
-);
+        </VStack>
+    );
+};
 
 export default PropertyFormFields;
