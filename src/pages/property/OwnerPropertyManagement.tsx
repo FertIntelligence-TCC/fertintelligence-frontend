@@ -210,16 +210,20 @@ export default function OwnerPropertyManagement() {
     };
 
     // Converters
-    const formStateToCreatePayload = (form: PropertyFormState): PropertyCreatePayload => ({
-        nome: form.nome,
-        endereco: form.endereco,
-        cnpj: form.cnpj,
-        latitude: parseFloat(form.latitude),
-        latitudeDirection: form.latitudeDirection,
-        longitude: parseFloat(form.longitude),
-        longitudeDirection: form.longitudeDirection,
-        altitude: form.altitude ? parseFloat(form.altitude) : undefined,
-    });
+    const formStateToCreatePayload = (form: PropertyFormState): PropertyCreatePayload => {
+        return {
+            nome: form.nome,
+            endereco: form.endereco,
+            cnpj: form.cnpj, 
+            localizacao: {
+                latitude: parseFloat(form.latitude),
+                latitudeDirection: form.latitudeDirection,
+                longitude: parseFloat(form.longitude),
+                longitudeDirection: form.longitudeDirection,
+                altitude: parseFloat(form.altitude),
+            },
+        };
+    };
 
     const formStateToUpdatePayload = (form: PropertyFormState): PropertyUpdatePayload => ({
         novo_nome: form.nome,
@@ -250,7 +254,17 @@ export default function OwnerPropertyManagement() {
         };
     };
 
-    const createFormValidations = useMemo(() => validateForm(createForm), [createForm]);
+    // const createFormValidations = useMemo(() => validateForm(createForm), [createForm]);
+
+    const createFormValidations = useMemo(() => ({
+        canSubmit:
+            createForm.nome.trim() !== "" &&
+            createForm.endereco.trim() !== "" &&
+            createForm.cnpj.replace(/\D/g, "").length === 14 && 
+            createForm.latitude !== "" &&
+            createForm.longitude !== "",
+    }), [createForm]);
+
     const editFormValidations = useMemo(() => validateForm(editForm), [editForm]);
 
     if (!user || user.cargo !== Cargo.PROPRIETARIO) {
@@ -322,8 +336,6 @@ export default function OwnerPropertyManagement() {
                 form={createForm}
                 onFormChange={handleCreateFormChange}
                 submitLabel="Criar"
-                // Na criação, não passamos propertyId, pois a propriedade ainda não existe.
-                // Isso ocultará a seção de Talhões.
             />
 
             {/* Modal de Edição */}
