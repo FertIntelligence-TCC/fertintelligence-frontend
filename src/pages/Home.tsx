@@ -5,6 +5,7 @@ import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertName from "@/components/FertName/FertName";
 import { Cargo } from "@/interfaces/User";
 import { useUserStore } from "@/stores/user/user.store";
+import { toaster } from "@/components/ui/toaster";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -27,15 +28,23 @@ export default function Home() {
     }
   };
 
+  const handleMakeRequestClick = () => {
+    if (isOwner) {
+      toaster.create({
+        title: "Aviso",
+        description: "Proprietário, você já possui todas as permissões de suas propriedades!",
+        type: "warning",
+      });
+      return;
+    }
+    navigate("/fazer-solicitacao");
+  };
+
   return (
     <UserLayout>
-      {/* Componente da legenda, agora separado */}
       <FertName subtitle="Painel principal" />
-
-      {/* Componente do Menu de configurações */}
       <ConfigMenu />
 
-      {/* Conteúdo principal - dois cardboxes lado a lado */}
       <Flex
         justifyContent="center"
         alignItems="flex-start"
@@ -44,21 +53,20 @@ export default function Home() {
         px={4}
         flexWrap={{ base: "wrap", md: "nowrap" }}
       >
-        {/* Cardbox esquerdo */}
         <Box
           borderWidth="1px"
           borderRadius="md"
           boxShadow="md"
-          p={8} // Aumentado para 8 para mais altura
-          w={{ base: "100%", md: "35%" }} // Reduzido de 40% para 35%
+          p={8}
+          w={{ base: "100%", md: "35%" }}
           bg={{ base: "white", _dark: "gray.700" }}
         >
           <Heading as="h2" size="md" mb={6}>
-            O que você quer fazer?
+            Minhas propriedades e cultivos
           </Heading>
-          <Flex direction="column" gap={6}> {/* Aumentado o gap para separar mais os botões */}
+          <Flex direction="column" gap={4}>
             <Button
-              colorScheme="teal"
+              colorScheme="green"
               onClick={handleManageProperties}
               h="50px"
               fontSize="md"
@@ -71,7 +79,7 @@ export default function Home() {
               h="50px"
               fontSize="md"
             >
-              Gerenciar tabelas de adubação de culturas
+              Tabelas de adubação
             </Button>
             <Button
               colorScheme="blue"
@@ -92,35 +100,36 @@ export default function Home() {
           </Flex>
         </Box>
 
-        {/* Cardbox direito */}
         <Box
           borderWidth="1px"
           borderRadius="md"
           boxShadow="md"
-          p={8} // Aumentado para 8 para mais altura
-          w={{ base: "100%", md: "35%" }} // Reduzido de 40% para 35%
+          p={8}
+          w={{ base: "100%", md: "35%" }}
           bg={{ base: "white", _dark: "gray.700" }}
         >
           <Heading as="h2" size="md" mb={6}>
             Autorizações
           </Heading>
-          <Flex direction="column" gap={6}> {/* Aumentado o gap para separar mais os botões */}
+          <Flex direction="column" gap={6}>
             <Button
               colorScheme="green"
-              onClick={() => navigate("/fazer-solicitacao")}
+              onClick={handleMakeRequestClick}
               h="50px"
               fontSize="md"
             >
               Fazer solicitação
             </Button>
-            <Button
-              colorScheme="green"
-              onClick={() => navigate("/visualizar-solicitacoes")}
-              h="50px"
-              fontSize="md"
-            >
-              Visualizar solicitações
-            </Button>
+            {isOwner && (
+              <Button
+                colorScheme="green"
+                onClick={() => navigate("/fertintelligence/view-solicitations")}
+                h="50px"
+                fontSize="md"
+              >
+                Visualizar solicitações
+              </Button>
+            )}
           </Flex>
         </Box>
       </Flex>

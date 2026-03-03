@@ -25,6 +25,7 @@ import { PhysicalAnalysis } from "@/pages/plot-entities/PhysicalAnalysis";
 import { FertilityAnalysis } from "@/pages/plot-entities/FertilityAnalysis";
 import { SaturationExtractAnalysis } from "@/pages/plot-entities/SaturationExtractAnalysis";
 import { AnnualCropFolders } from "@/pages/plot-entities/AnnualCropFolders";
+import ViewSolicitations from "@/pages/property-access/ViewSolicitations";
 
 
 export const PublicRoutes: RouteObject[] = [
@@ -131,6 +132,10 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/plots/:plotId/annual-crop-folders",
     element: <AnnualCropFolders />,
+  },
+  {
+    path: "/fertintelligence/view-solicitations",
+    element: <ViewSolicitations />,
   },
   {
     element: <PrivateRoute />,

@@ -4,6 +4,7 @@ import {
   Button,
   Flex,
   Heading,
+  HStack,
   Spinner,
   Text,
   useDisclosure,
@@ -43,6 +44,8 @@ import {
   propertyToFormState,
 } from "@/components/Property/types";
 
+import PropertyAuthorizationsDialog from "@/components/Property/PropertyAuthorizationsDialog";
+
 /* ======================================================
    Helpers
 ====================================================== */
@@ -63,6 +66,8 @@ const getErrorMessage = (error: unknown): string => {
 
     return data.message || data.error || "Erro desconhecido.";
   }
+
+  if (error instanceof Error) return error.message;
 
   return "Erro ao conectar com o servidor.";
 };
@@ -87,21 +92,21 @@ export default function OwnerPropertyManagement() {
   const deleteDisclosure = useDisclosure();
   const viewDisclosure = useDisclosure();
 
+  // Autorizações (agora só abre/fecha o dialog)
+  const authDisclosure = useDisclosure();
+
   const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(
     null
   );
-
   const [editingPropertyId, setEditingPropertyId] = useState<number | null>(
     null
   );
-
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
     null
   );
 
   const [createForm, setCreateForm] =
     useState<PropertyFormState>(DEFAULT_FORM_STATE);
-
   const [editForm, setEditForm] =
     useState<PropertyFormState>(DEFAULT_FORM_STATE);
 
@@ -124,7 +129,7 @@ export default function OwnerPropertyManagement() {
        Mutations
     ====================================================== */
 
-  const invalidate = () =>
+  const invalidateProps = () =>
     queryClient.invalidateQueries({
       queryKey: ["my-properties"],
     });
@@ -132,7 +137,7 @@ export default function OwnerPropertyManagement() {
   const createMutation = useMutation({
     mutationFn: createProperty,
     onSuccess: () => {
-      invalidate();
+      invalidateProps();
       toaster.create({
         title: "Propriedade criada com sucesso!",
         type: "success",
@@ -157,7 +162,7 @@ export default function OwnerPropertyManagement() {
       payload: PropertyUpdatePayload;
     }) => updateProperty({ id, payload }),
     onSuccess: () => {
-      invalidate();
+      invalidateProps();
       toaster.create({
         title: "Propriedade atualizada!",
         type: "success",
@@ -177,7 +182,7 @@ export default function OwnerPropertyManagement() {
   const deleteMutation = useMutation({
     mutationFn: deleteProperty,
     onSuccess: () => {
-      invalidate();
+      invalidateProps();
       toaster.create({
         title: "Propriedade removida!",
         type: "success",
@@ -208,7 +213,6 @@ export default function OwnerPropertyManagement() {
   };
 
   const createValid = useMemo(() => validateForm(createForm), [createForm]);
-
   const editValid = useMemo(() => validateForm(editForm), [editForm]);
 
   /* ======================================================
@@ -226,8 +230,8 @@ export default function OwnerPropertyManagement() {
   }
 
   /* ======================================================
-   Converters
-====================================================== */
+       Converters
+    ====================================================== */
 
   const toCreatePayload = (form: PropertyFormState): PropertyCreatePayload => ({
     nome: form.nome.trim(),
@@ -265,19 +269,52 @@ export default function OwnerPropertyManagement() {
       <ConfigMenu />
 
       <Box pt={32} px={8} maxW="1600px" mx="auto">
-        <Flex justify="space-between" mb={8}>
+        <Flex justify="space-between" mb={8} gap={4} flexWrap="wrap">
           <Heading size="lg">Minhas Propriedades</Heading>
 
-          <Button
-            colorScheme="green"
-            leftIcon={<FiPlus />}
-            onClick={() => {
-              setCreateForm(DEFAULT_FORM_STATE);
-              createDisclosure.onOpen();
-            }}
-          >
-            Nova Propriedade
-          </Button>
+          <HStack gap={3} flexWrap="wrap">
+            <Button
+              variant="outline"
+              onClick={() => {
+                toaster.create({
+                  title:
+                    "Proprietário, você já possui todas as permissões de suas propriedades!",
+                  type: "info",
+                });
+              }}
+            >
+              Fazer solicitação
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!selectedPropertyId) {
+                  toaster.create({
+                    title: "Selecione uma propriedade",
+                    description:
+                      "Clique em uma propriedade na lista para visualizar as autorizações.",
+                    type: "warning",
+                  });
+                  return;
+                }
+                authDisclosure.onOpen();
+              }}
+            >
+              Visualizar solicitações
+            </Button>
+
+            <Button
+              colorScheme="green"
+              leftIcon={<FiPlus />}
+              onClick={() => {
+                setCreateForm(DEFAULT_FORM_STATE);
+                createDisclosure.onOpen();
+              }}
+            >
+              Nova Propriedade
+            </Button>
+          </HStack>
         </Flex>
 
         {isLoading ? (
@@ -314,11 +351,7 @@ export default function OwnerPropertyManagement() {
         title="Criar Propriedade"
         isOpen={createDisclosure.open}
         onClose={createDisclosure.onClose}
-        onSubmit={() =>
-          createMutation.mutate({
-            ...toCreatePayload(createForm),
-          })
-        }
+        onSubmit={() => createMutation.mutate({ ...toCreatePayload(createForm) })}
         isSubmitting={createMutation.isPending}
         canSubmit={createValid}
         form={createForm}
@@ -362,6 +395,14 @@ export default function OwnerPropertyManagement() {
       >
         <PropertyDetails property={activeProperty} />
       </DialogContainer>
+
+      {/* AUTORIZAÇÕES (refatorado para componente separado) */}
+      <PropertyAuthorizationsDialog
+        isOpen={authDisclosure.open}
+        onClose={authDisclosure.onClose}
+        propertyId={selectedPropertyId}
+        initialTab="PENDING"
+      />
 
       {/* DELETE */}
       <DeletePropertyDialog
