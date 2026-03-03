@@ -46,5 +46,16 @@ export const propertyAccessRequestService = {
   getMyApprovedProperties: async (): Promise<PropertyResponse[]> => {
     const response = await api.get<PropertyResponse[]>(`${BASE_URL}/my-approved-properties`);
     return response.data;
+  },
+
+  /**
+   * Desvincula o usuário logado de uma propriedade.
+   * Corresponde a: DELETE /property-access/leave?propertyId={propertyId}
+   */
+  leaveProperty: async (propertyId: number): Promise<void> => {
+    await api.delete(`${BASE_URL}/leave`, {
+      params: { propertyId },
+    });
   }
+
 };

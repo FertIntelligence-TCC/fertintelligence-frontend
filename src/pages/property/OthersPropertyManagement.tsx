@@ -132,16 +132,7 @@ export default function OthersPropertyManagement() {
   // “Se retirar”: procura a solicitação do usuário na propriedade e decide false.
   const leavePropertyMutation = useMutation({
     mutationFn: async (propertyId: number) => {
-      const reqs = await propertyAccessRequestService.getRequestsByProperty(propertyId);
-
-      const userId = (user as any)?.id;
-      const myReq = reqs.find((r) => r.id_solicitante === userId);
-
-      if (!myReq) {
-        throw new Error("Não foi possível localizar sua solicitação nesta propriedade.");
-      }
-
-      await propertyAccessRequestService.decideRequest(myReq.id, { solicitacao_aprovada: false });
+      await propertyAccessRequestService.leaveProperty(propertyId);
       return true;
     },
     onSuccess: async () => {
