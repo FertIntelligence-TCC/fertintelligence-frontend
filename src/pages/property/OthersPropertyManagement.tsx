@@ -5,6 +5,7 @@ import {
   Button,
   Flex,
   Heading,
+  HStack,
   IconButton,
   Input,
   Spinner,
@@ -13,89 +14,62 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { FiPlus, FiSearch } from "react-icons/fi";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
+import PropertyList from "@/components/Property/PropertyList";
+import DialogContainer from "@/components/Property/DialogContainer";
+import PropertyDetails from "@/components/Property/PropertyDetails";
+import PropertyFormDialog from "@/components/Property/PropertyFormDialog";
+import PlotAuthorizationRequestDialog from "@/components/Authorizations/PlotAuthorizationRequestDialog";
 
 import { useUserStore } from "@/stores/user/user.store";
 import { Cargo } from "@/interfaces/User";
 import { PropertyResponse } from "@/interfaces/Property";
-
 import { toaster } from "@/components/ui/toaster";
-import DialogContainer from "@/components/Property/DialogContainer";
-import PropertyDetails from "@/components/Property/PropertyDetails";
-import PropertyFormDialog from "@/components/Property/PropertyFormDialog";
-import PropertyList from "@/components/Property/PropertyList";
-
-import api from "@/services/axios";
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
+import api from "@/services/axios";
+import { getAuthorizationRoleMode, getPermissionDeniedMessage } from "@/interfaces/Authorization";
+
+type Variant = "MANAGER" | "RESIDENT" | "CONSULTANT" | "SECRETARY" | "SUPERVISOR";
 
 const getErrorMessage = (error: unknown) => {
-  if (typeof error === "string") return error;
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "response" in error &&
-    (error as any).response?.data
-  ) {
-    const data = (error as any).response.data as { message?: string } | string;
-    if (typeof data === "string") return data;
-    if (data.message) return data.message;
-  }
   if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
   return "Erro desconhecido";
 };
 
-const normalizeCargo = (c?: string) =>
-  c
-    ?.normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "")
-    .toUpperCase();
-
-export default function OthersPropertyManagement() {
+export function RolePropertyManagement({ variant }: { variant: Variant }) {
   const { user } = useUserStore();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(
-    null
-  );
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
-    null
-  );
-  const [editingProperty, setEditingProperty] =
-    useState<PropertyResponse | null>(null);
-
-  const addDisclosure = useDisclosure();
+  const requestDisclosure = useDisclosure();
+  const propertyAccessDisclosure = useDisclosure();
   const viewDisclosure = useDisclosure();
   const editDisclosure = useDisclosure();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(null);
+  const [editingProperty, setEditingProperty] = useState<PropertyResponse | null>(null);
   const [searchName, setSearchName] = useState("");
-  const [foundProperties, setFoundProperties] = useState<PropertyResponse[]>(
-    []
-  );
+  const [foundProperties, setFoundProperties] = useState<PropertyResponse[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const {
-    data: approvedProperties,
-    isLoading: isLoadingProps,
-    error: errorProps,
-  } = useQuery({
-    queryKey: ["approvedProperties"],
+  const { data: approvedProperties = [], isLoading, error } = useQuery({
+    queryKey: ["approvedProperties", variant],
     queryFn: propertyAccessRequestService.getMyApprovedProperties,
     enabled: !!user,
   });
 
-  const filteredProperties = useMemo(() => {
-    if (!approvedProperties) return [];
-    return approvedProperties.filter((p) =>
-      p.nome.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, approvedProperties]);
+  const filteredProperties = useMemo(
+    () => approvedProperties.filter((p) => p.nome.toLowerCase().includes(searchTerm.toLowerCase())),
+    [approvedProperties, searchTerm]
+  );
 
   const searchMutation = useMutation({
     mutationFn: async (nome: string) => {
@@ -107,60 +81,71 @@ export default function OthersPropertyManagement() {
     onMutate: () => setIsSearching(true),
     onSettled: () => setIsSearching(false),
     onSuccess: (data) => setFoundProperties(data),
-    onError: (error) => {
+    onError: (err) => {
       toaster.create({
         title: "Erro na busca",
-        description: getErrorMessage(error),
+        description: getErrorMessage(err),
         type: "error",
       });
     },
   });
 
-  const requestAccessMutation = useMutation({
-    mutationFn: async (propertyId: number) => {
-      return propertyAccessRequestService.createRequest({
+  const requestPropertyAccessMutation = useMutation({
+    mutationFn: async (propertyId: number) =>
+      propertyAccessRequestService.createRequest({
         id_propriedade: propertyId,
-      });
-    },
-    onSuccess: () => {
+      }),
+    onSuccess: async () => {
       toaster.create({
         title: "Sucesso",
         description: "Solicitação enviada com sucesso!",
         type: "success",
       });
-      handleCloseAdd();
+      await queryClient.invalidateQueries({ queryKey: ["approvedProperties", variant] });
+      setSearchName("");
+      setFoundProperties([]);
     },
-    onError: (error) => {
+    onError: (err) => {
       toaster.create({
         title: "Erro ao solicitar",
-        description: getErrorMessage(error),
+        description: getErrorMessage(err),
         type: "error",
       });
     },
   });
 
-  const leavePropertyMutation = useMutation({
-    mutationFn: async (propertyId: number) => {
-      await propertyAccessRequestService.leaveProperty(propertyId);
-      return true;
-    },
+  const leaveMutation = useMutation({
+    mutationFn: propertyAccessRequestService.leaveProperty,
     onSuccess: async () => {
-      toaster.create({
-        title: "Você saiu da propriedade",
-        description: "A propriedade foi removida da sua lista.",
-        type: "success",
-      });
-      await queryClient.invalidateQueries({ queryKey: ["approvedProperties"] });
-      handleCloseView();
-    },
-    onError: (error) => {
-      toaster.create({
-        title: "Erro ao sair da propriedade",
-        description: getErrorMessage(error),
-        type: "error",
-      });
+      toaster.create({ title: "Você saiu da propriedade.", type: "success" });
+      await queryClient.invalidateQueries({ queryKey: ["approvedProperties", variant] });
+      viewDisclosure.onClose();
     },
   });
+
+  const onRequestClick = () => {
+    if (variant === "SUPERVISOR") {
+      toaster.create({
+        title: "Seu cargo não possui essa funcionalidade no sistema!",
+        type: "warning",
+      });
+      return;
+    }
+
+    requestDisclosure.onOpen();
+  };
+
+  const onViewRequestsClick = () => {
+    if (variant !== "MANAGER") {
+      toaster.create({
+        title: "Seu cargo não possui essa funcionalidade no sistema!",
+        type: "warning",
+      });
+      return;
+    }
+
+    navigate("/fertintelligence/view-plot-solicitations");
+  };
 
   const handleSearchProperty = () => {
     if (searchName.trim().length < 3) {
@@ -171,147 +156,105 @@ export default function OthersPropertyManagement() {
       });
       return;
     }
+
     searchMutation.mutate(searchName);
   };
 
-  const handleOpenAdd = () => {
-    setSearchName("");
-    setFoundProperties([]);
-    addDisclosure.onOpen();
-  };
+  const onEditProperty = (property: PropertyResponse) => {
+    if (variant === "SUPERVISOR") {
+      toaster.create({ title: getPermissionDeniedMessage(), type: "warning" });
+      return;
+    }
 
-  const handleCloseAdd = () => {
-    addDisclosure.onClose();
-    setSearchName("");
-    setFoundProperties([]);
-  };
+    if (variant === "RESIDENT" || variant === "CONSULTANT" || variant === "SECRETARY") {
+      toaster.create({
+        title: getPermissionDeniedMessage(),
+        description: "Solicite ou aguarde a autorização do gerente para edição.",
+        type: "warning",
+      });
+      return;
+    }
 
-  const handleViewDetails = (property: PropertyResponse) => {
-    setActiveProperty(property);
-    viewDisclosure.onOpen();
-  };
-
-  const handleEditProperty = (property: PropertyResponse) => {
     setEditingProperty(property);
     editDisclosure.onOpen();
   };
 
-  const handleCloseView = () => {
-    setActiveProperty(null);
-    viewDisclosure.onClose();
-  };
-
-  const handleCloseEdit = () => {
-    setEditingProperty(null);
-    editDisclosure.onClose();
-  };
-
-  const handleLeaveProperty = (property: PropertyResponse) => {
-    leavePropertyMutation.mutate(property.id);
-  };
-
-  if (user && normalizeCargo(user.cargo) === Cargo.PROPRIETARIO) {
-    return (
-      <Navigate to="/fertintelligence/owner-property-management" replace />
-    );
-  }
-
   return (
     <UserLayout>
-      <FertName subtitle="Gerenciamento de Propriedades (Acesso)" />
+      <FertName subtitle="Gerenciamento de Propriedades" />
       <ConfigMenu />
 
-      <Box p={8} w="100%" mt={8}>
-        <Heading mb={6}>Gestão de Propriedades</Heading>
+      <Box p={8} mt={8}>
+        <Flex justify="space-between" mb={6} gap={4} flexWrap="wrap">
+          <Heading size="lg">Propriedades vinculadas</Heading>
+          <HStack>
+            <Button variant="outline" onClick={onRequestClick}>
+              <FiPlus style={{ marginRight: 8 }} /> Fazer solicitação
+            </Button>
+            <Button variant="outline" onClick={onViewRequestsClick}>
+              Visualizar solicitações
+            </Button>
+          </HStack>
+        </Flex>
 
-        <Box
-          mb={8}
-          bg="white"
-          _dark={{ bg: "gray.800" }}
-          p={4}
-          borderRadius="md"
-          boxShadow="sm"
-        >
-          <Text mb={2} fontWeight="bold">
-            Filtrar ou Solicitar Acesso:
-          </Text>
-
-          <Flex
-            gap={4}
-            direction={{ base: "column", md: "row" }}
-            align="center"
-          >
+        <Box mb={6} bg="white" _dark={{ bg: "gray.800" }} p={4} borderRadius="md" boxShadow="sm">
+          <Text mb={2} fontWeight="bold">Filtrar ou Solicitar Acesso:</Text>
+          <Flex gap={4} direction={{ base: "column", md: "row" }} align="center">
             <Box position="relative" flex="1" w="full">
               <Input
                 placeholder="Filtrar propriedades vinculadas..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 pl={10}
-                borderWidth="1px"
-                borderColor="gray.200"
-                _dark={{ borderColor: "gray.600", bg: "gray.700" }}
               />
-              <Box
-                position="absolute"
-                left={3}
-                top="50%"
-                transform="translateY(-50%)"
-              >
-                <FiSearch color="gray" />
+              <Box position="absolute" left={3} top="50%" transform="translateY(-50%)">
+                <FiSearch />
               </Box>
             </Box>
-
             <Button
               colorPalette="green"
-              onClick={handleOpenAdd}
+              onClick={() => {
+                setSearchName("");
+                setFoundProperties([]);
+                propertyAccessDisclosure.onOpen();
+              }}
               px={6}
               w={{ base: "full", md: "auto" }}
             >
-              <FiPlus style={{ marginRight: 8 }} /> Solicitar Acesso
+              <FiPlus style={{ marginRight: 8 }} /> Solicitar entrada ao proprietário
             </Button>
           </Flex>
         </Box>
 
-        <Box
-          bg="white"
-          _dark={{ bg: "gray.800" }}
-          p={6}
-          borderRadius="lg"
-          boxShadow="md"
-        >
-          {isLoadingProps ? (
-            <Flex justify="center" align="center" py={10}>
+        <Box bg="white" _dark={{ bg: "gray.800" }} p={6} borderRadius="lg" boxShadow="md">
+          {isLoading ? (
+            <Flex justify="center" py={10}>
               <Spinner size="xl" />
             </Flex>
-          ) : errorProps ? (
-            <Text textAlign="center" color="red.500" mt={4}>
-              Erro ao carregar propriedades: {getErrorMessage(errorProps)}
-            </Text>
-          ) : filteredProperties.length === 0 ? (
-            <Text textAlign="center" color="gray.500" mt={4}>
-              Nenhuma propriedade vinculada encontrada.
-            </Text>
+          ) : error ? (
+            <Text color="red.500">Erro ao carregar propriedades: {getErrorMessage(error)}</Text>
           ) : (
             <PropertyList
               properties={filteredProperties}
               selectedPropertyId={selectedPropertyId}
               onSelect={(p) => setSelectedPropertyId(p.id)}
-              onView={handleViewDetails}
-              onEdit={handleEditProperty}
-              onLeave={handleLeaveProperty}
+              onView={(p) => {
+                setActiveProperty(p);
+                viewDisclosure.onOpen();
+              }}
+              onEdit={onEditProperty}
+              onLeave={(p) => leaveMutation.mutate(p.id)}
               leaveLabel="Se retirar"
             />
           )}
         </Box>
       </Box>
 
-      {/* Modal: Solicitar Acesso */}
-      <DialogContainer isOpen={addDisclosure.open} onClose={handleCloseAdd}>
-        <VStack align="stretch" spacing={4}>
-          <Heading size="md">Solicitar Acesso a Propriedade</Heading>
+      <DialogContainer isOpen={propertyAccessDisclosure.open} onClose={propertyAccessDisclosure.onClose}>
+        <VStack align="stretch" gap={4}>
+          <Heading size="md">Solicitar Acesso à Propriedade</Heading>
           <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.400" }}>
-            Busque pelo nome da propriedade para enviar uma solicitação ao
-            proprietário.
+            Busque pelo nome da propriedade para enviar uma solicitação ao proprietário.
           </Text>
 
           <Flex gap={2} align="center">
@@ -319,11 +262,7 @@ export default function OthersPropertyManagement() {
               placeholder="Nome da propriedade..."
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
-              borderWidth="1px"
-              borderColor="gray.200"
-              _dark={{ borderColor: "gray.600", bg: "gray.700" }}
             />
-
             <IconButton
               aria-label="Buscar"
               variant="solid"
@@ -339,16 +278,14 @@ export default function OthersPropertyManagement() {
           </Flex>
 
           <Box maxH="300px" overflowY="auto" mt={2}>
-            {foundProperties.length === 0 &&
-              !isSearching &&
-              searchName.length > 2 && (
-                <Text fontSize="sm" color="gray.500" textAlign="center">
-                  Nenhuma propriedade encontrada.
-                </Text>
-              )}
+            {foundProperties.length === 0 && !isSearching && searchName.length > 2 && (
+              <Text fontSize="sm" color="gray.500" textAlign="center">
+                Nenhuma propriedade encontrada.
+              </Text>
+            )}
 
             {foundProperties.length > 0 && (
-              <VStack align="stretch" spacing={3}>
+              <VStack align="stretch" gap={3}>
                 {foundProperties.map((p) => (
                   <Box
                     key={p.id}
@@ -358,41 +295,23 @@ export default function OthersPropertyManagement() {
                     borderColor="gray.200"
                     boxShadow="sm"
                     _hover={{ borderColor: "green.400" }}
-                    _dark={{ borderColor: "gray.600" }}
                   >
-                    <Heading size="sm" mb={1}>
-                      {p.nome}
-                    </Heading>
-
-                    <Badge colorPalette="green" mt={1}>
-                      Encontrada
-                    </Badge>
-
-                    <Text
-                      fontSize="sm"
-                      color="gray.600"
-                      _dark={{ color: "gray.200" }}
-                      mt={2}
-                    >
+                    <Heading size="sm" mb={1}>{p.nome}</Heading>
+                    <Badge colorPalette="green" mt={1}>Encontrada</Badge>
+                    <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.200" }} mt={2}>
                       {p.endereco}
                     </Text>
-                    <Text
-                      fontSize="sm"
-                      color="gray.600"
-                      _dark={{ color: "gray.200" }}
-                    >
+                    <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.200" }}>
                       CNPJ: {p.cnpj}
                     </Text>
 
                     <Flex justify="flex-end" mt={4}>
                       <Button
                         colorPalette="blue"
-                        onClick={() => requestAccessMutation.mutate(p.id)}
-                        isLoading={
-                          requestAccessMutation.isPending &&
-                          (requestAccessMutation.variables as
-                            | number
-                            | undefined) === p.id
+                        onClick={() => requestPropertyAccessMutation.mutate(p.id)}
+                        loading={
+                          requestPropertyAccessMutation.isPending &&
+                          (requestPropertyAccessMutation.variables as number | undefined) === p.id
                         }
                       >
                         Solicitar entrada ao proprietário
@@ -404,47 +323,63 @@ export default function OthersPropertyManagement() {
             )}
           </Box>
 
-          <Flex justify="flex-end" mt={2}>
-            <Button onClick={handleCloseAdd} variant="outline">
-              Fechar
-            </Button>
+          <Flex justify="flex-end">
+            <Button variant="outline" onClick={propertyAccessDisclosure.onClose}>Fechar</Button>
           </Flex>
         </VStack>
       </DialogContainer>
 
-      {/* Modal de detalhes + botão Se retirar */}
-      <DialogContainer isOpen={viewDisclosure.open} onClose={handleCloseView}>
+      <PlotAuthorizationRequestDialog
+        isOpen={requestDisclosure.open}
+        onClose={requestDisclosure.onClose}
+      />
+
+      <DialogContainer isOpen={viewDisclosure.open} onClose={viewDisclosure.onClose}>
         <PropertyDetails property={activeProperty} />
-
-        <Flex justify="space-between" mt={6} gap={3} flexWrap="wrap">
-          <Button
-            colorPalette="red"
-            variant="outline"
-            onClick={() =>
-              activeProperty && handleLeaveProperty(activeProperty)
-            }
-            isLoading={leavePropertyMutation.isPending}
-            isDisabled={!activeProperty}
-          >
-            Se retirar
-          </Button>
-
-          <Button onClick={handleCloseView} colorPalette="gray">
-            Fechar
-          </Button>
-        </Flex>
       </DialogContainer>
 
-      {/* Modal de edição (mesmo do dono, mas sem delete de propriedade) */}
       <PropertyFormDialog
         title="Editar Propriedade"
         isOpen={editDisclosure.open}
-        onClose={handleCloseEdit}
+        onClose={editDisclosure.onClose}
         propertyId={editingProperty?.id ?? null}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ["approvedProperties"] });
-        }}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["approvedProperties", variant] })}
       />
     </UserLayout>
   );
+}
+
+export default function OthersPropertyManagement() {
+  const { user } = useUserStore();
+  const mode = getAuthorizationRoleMode(user?.cargo);
+
+  if (mode === "OWNER") {
+    return <Navigate to="/fertintelligence/owner-property-management" replace />;
+  }
+
+  if (mode === "MANAGER") {
+    return <Navigate to="/fertintelligence/manager-property-management" replace />;
+  }
+
+  if (mode === "RESIDENT") {
+    return <Navigate to="/fertintelligence/resident-agronomist-property-management" replace />;
+  }
+
+  if (mode === "CONSULTANT") {
+    return <Navigate to="/fertintelligence/consultant-agronomist-property-management" replace />;
+  }
+
+  if (mode === "SECRETARY") {
+    return <Navigate to="/fertintelligence/secretary-property-management" replace />;
+  }
+
+  if (mode === "SUPERVISOR") {
+    return <Navigate to="/fertintelligence/area-supervisor-property-management" replace />;
+  }
+
+  if (user?.cargo && user.cargo === Cargo.PROPRIETARIO) {
+    return <Navigate to="/fertintelligence/owner-property-management" replace />;
+  }
+
+  return <Navigate to="/fertintelligence/home" replace />;
 }

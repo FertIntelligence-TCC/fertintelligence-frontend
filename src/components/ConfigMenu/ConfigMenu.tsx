@@ -13,7 +13,7 @@ export default function ConfigMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const user = useUserStore((s) => s.user) as User | null;
-  const [userImage, setUserImage] = useState(sessionStorage.getItem("userImage")||"")
+  const [userImage, setUserImage] = useState(sessionStorage.getItem("userImage") || "");
   const [loadingUser, setLoadingUser] = useState(true);
 
   // Função para lidar com o clique fora do menu
@@ -38,6 +38,7 @@ export default function ConfigMenu() {
   const handleLogout = () => {
     setIsMenuOpen(false);
     sessionStorage.removeItem("fertintelligenceToken");
+    sessionStorage.removeItem("userImage"); // Limpa a imagem ao sair
     setUser(undefined);
     navigate("/fertintelligence/", { replace: true });
   };
@@ -46,17 +47,25 @@ export default function ConfigMenu() {
     let isMounted = true;
   
     async function loadUserImage() {
-      if (!user) {
-        setLoadingUser(false);
+      // Cláusula de guarda: bloqueia a requisição se não houver usuário ou id da foto
+      if (!user || !user.idfoto) {
+        if (isMounted) setLoadingUser(false);
         return;
       }
   
-      const image = await getImageFromMongoDB(user.idfoto || "");
-  
-      if (isMounted) {
-        console.log(image);
-        setUserImage(image);
-        sessionStorage.setItem("userImage",image)
+      try {
+        const image = await getImageFromMongoDB(user.idfoto);
+    
+        if (isMounted && image) {
+          setUserImage(image);
+          sessionStorage.setItem("userImage", image);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar imagem no MongoDB:", error);
+      } finally {
+        if (isMounted) {
+          setLoadingUser(false);
+        }
       }
     }
   
@@ -68,21 +77,21 @@ export default function ConfigMenu() {
   }, [user]);
 
   return (
-    <Box position="fixed" top={4} right={4} ref={menuRef}>
+    <Box position="fixed" top={4} right={4} ref={menuRef} zIndex={1000}>
       <HStack>
         <Avatar
           size={"xs"}
-          name={"User"}
+          name={user?.nome || "User"}
           src={userImage}
           cursor="pointer"
-          onClick={()=>{}}
+          onClick={() => {}}
         />
         <Icon
-        as={FiSettings}
-        w={6}
-        h={6}
-        cursor="pointer"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
+          as={FiSettings}
+          w={6}
+          h={6}
+          cursor="pointer"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
         />
       </HStack>
       {isMenuOpen && (
@@ -122,8 +131,8 @@ export default function ConfigMenu() {
             width="100%"
             justifyContent="flex-start"
             onClick={() => handleMenuItemClick("/fertintelligence/delete-profile")}
-            color="pink.500" // Cor do texto rosa
-            _hover={{ bg: "red.500", color: "white" }} // Cor vermelha no hover
+            color="pink.500"
+            _hover={{ bg: "red.500", color: "white" }}
           >
             Deletar Perfil
           </Button>

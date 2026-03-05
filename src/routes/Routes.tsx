@@ -9,6 +9,11 @@ import UpdatePassword from "../pages/profile/UpdatePassword";
 import Home from "@/pages/Home";
 import OthersPropertyManagement from "@/pages/property/OthersPropertyManagement";
 import OwnerPropertyManagement from "@/pages/property/OwnerPropertyManagement";
+import ManagerPropertyManagement from "@/pages/property/ManagerPropertyManagement";
+import ResidentAgronomistPropertyManagement from "@/pages/property/ResidentAgronomistPropertyManagement";
+import ConsultantAgronomistPropertyManagement from "@/pages/property/ConsultantAgronomistPropertyManagement";
+import SecretaryPropertyManagement from "@/pages/property/SecretaryPropertyManagement";
+import AreaSupervisorPropertyManagement from "@/pages/property/AreaSupervisorPropertyManagement";
 import FertilizerManagement from "@/pages/fertilizer/FertilizerManagement";
 import FertilizationTableManagement from "@/pages/fertilization-table/FertilizationTableManagement";
 import CropFertilizationTable from "@/pages/fertilization-table/CropFertilizationTable";
@@ -27,6 +32,9 @@ import { SaturationExtractAnalysis } from "@/pages/plot-entities/SaturationExtra
 import { AnnualCropFolders } from "@/pages/plot-entities/AnnualCropFolders";
 import ViewSolicitations from "@/pages/property-access/ViewSolicitations";
 import ViewPlotSolicitations from "@/pages/property-access/ViewPlotSolicitations";
+import ResidentAgronomistMakePlotSolicitations from "@/pages/make-plot-access-solicitation/ResidentAgronomistMakePlotSolicitations";
+import ConsultantAgronomistMakePlotSolicitations from "@/pages/make-plot-access-solicitation/ConsultantAgronomistMakePlotSolicitations";
+import SecretaryMakePlotSolicitations from "@/pages/make-plot-access-solicitation/SecretaryMakePlotSolicitations";
 
 
 export const PublicRoutes: RouteObject[] = [
@@ -69,6 +77,26 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/others-property-management",
     element: <OthersPropertyManagement />,
+  },
+  {
+    path: "/fertintelligence/manager-property-management",
+    element: <ManagerPropertyManagement />,
+  },
+  {
+    path: "/fertintelligence/resident-agronomist-property-management",
+    element: <ResidentAgronomistPropertyManagement />,
+  },
+  {
+    path: "/fertintelligence/consultant-agronomist-property-management",
+    element: <ConsultantAgronomistPropertyManagement />,
+  },
+  {
+    path: "/fertintelligence/secretary-property-management",
+    element: <SecretaryPropertyManagement />,
+  },
+  {
+    path: "/fertintelligence/area-supervisor-property-management",
+    element: <AreaSupervisorPropertyManagement />,
   },
   {
     path: "/fertintelligence/fertilization-table-management",
@@ -134,14 +162,6 @@ export const PublicRoutes: RouteObject[] = [
     path: "/fertintelligence/plots/:plotId/annual-crop-folders",
     element: <AnnualCropFolders />,
   },
-  {
-    path: "/fertintelligence/view-solicitations",
-    element: <ViewSolicitations />,
-  },
-  {
-    path: "/fertintelligence/view-plot-solicitations",
-    element: <ViewPlotSolicitations />,
-  },
   // Solicitações
   {
     path: "/fertintelligence/view-solicitations",
@@ -150,6 +170,19 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/view-plot-solicitations",
     element: <ViewPlotSolicitations /> 
+  },
+    // Solicitações
+  {
+    path: "/fertintelligence/resident-agronomist-make-plot-solicitations",
+    element: <ResidentAgronomistMakePlotSolicitations />,
+  },
+  {
+    path: "/fertintelligence/consultant-agronomist-make-plot-solicitations",
+    element: <ConsultantAgronomistMakePlotSolicitations />,
+  },
+  {
+    path: "/fertintelligence/secretarymake-plot-solicitations",
+    element: <SecretaryMakePlotSolicitations />,
   },
   {
     element: <PrivateRoute />,
