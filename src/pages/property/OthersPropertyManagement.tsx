@@ -27,6 +27,7 @@ import { PropertyResponse } from "@/interfaces/Property";
 import { toaster } from "@/components/ui/toaster";
 import DialogContainer from "@/components/Property/DialogContainer";
 import PropertyDetails from "@/components/Property/PropertyDetails";
+import PropertyFormDialog from "@/components/Property/PropertyFormDialog";
 import PropertyList from "@/components/Property/PropertyList";
 
 import api from "@/services/axios";
@@ -59,17 +60,24 @@ export default function OthersPropertyManagement() {
   const { user } = useUserStore();
   const queryClient = useQueryClient();
 
-  // Tela principal
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(null);
+  const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(
+    null
+  );
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
+    null
+  );
+  const [editingProperty, setEditingProperty] =
+    useState<PropertyResponse | null>(null);
 
-  // Modais
   const addDisclosure = useDisclosure();
   const viewDisclosure = useDisclosure();
+  const editDisclosure = useDisclosure();
 
-  // Modal "Solicitar Acesso"
   const [searchName, setSearchName] = useState("");
-  const [foundProperties, setFoundProperties] = useState<PropertyResponse[]>([]);
+  const [foundProperties, setFoundProperties] = useState<PropertyResponse[]>(
+    []
+  );
   const [isSearching, setIsSearching] = useState(false);
 
   const {
@@ -110,7 +118,9 @@ export default function OthersPropertyManagement() {
 
   const requestAccessMutation = useMutation({
     mutationFn: async (propertyId: number) => {
-      return propertyAccessRequestService.createRequest({ id_propriedade: propertyId });
+      return propertyAccessRequestService.createRequest({
+        id_propriedade: propertyId,
+      });
     },
     onSuccess: () => {
       toaster.create({
@@ -129,7 +139,6 @@ export default function OthersPropertyManagement() {
     },
   });
 
-  // “Se retirar”: procura a solicitação do usuário na propriedade e decide false.
   const leavePropertyMutation = useMutation({
     mutationFn: async (propertyId: number) => {
       await propertyAccessRequestService.leaveProperty(propertyId);
@@ -182,9 +191,19 @@ export default function OthersPropertyManagement() {
     viewDisclosure.onOpen();
   };
 
+  const handleEditProperty = (property: PropertyResponse) => {
+    setEditingProperty(property);
+    editDisclosure.onOpen();
+  };
+
   const handleCloseView = () => {
     setActiveProperty(null);
     viewDisclosure.onClose();
+  };
+
+  const handleCloseEdit = () => {
+    setEditingProperty(null);
+    editDisclosure.onClose();
   };
 
   const handleLeaveProperty = (property: PropertyResponse) => {
@@ -192,7 +211,9 @@ export default function OthersPropertyManagement() {
   };
 
   if (user && normalizeCargo(user.cargo) === Cargo.PROPRIETARIO) {
-    return <Navigate to="/fertintelligence/owner-property-management" replace />;
+    return (
+      <Navigate to="/fertintelligence/owner-property-management" replace />
+    );
   }
 
   return (
@@ -215,7 +236,11 @@ export default function OthersPropertyManagement() {
             Filtrar ou Solicitar Acesso:
           </Text>
 
-          <Flex gap={4} direction={{ base: "column", md: "row" }} align="center">
+          <Flex
+            gap={4}
+            direction={{ base: "column", md: "row" }}
+            align="center"
+          >
             <Box position="relative" flex="1" w="full">
               <Input
                 placeholder="Filtrar propriedades vinculadas..."
@@ -226,7 +251,12 @@ export default function OthersPropertyManagement() {
                 borderColor="gray.200"
                 _dark={{ borderColor: "gray.600", bg: "gray.700" }}
               />
-              <Box position="absolute" left={3} top="50%" transform="translateY(-50%)">
+              <Box
+                position="absolute"
+                left={3}
+                top="50%"
+                transform="translateY(-50%)"
+              >
                 <FiSearch color="gray" />
               </Box>
             </Box>
@@ -242,7 +272,13 @@ export default function OthersPropertyManagement() {
           </Flex>
         </Box>
 
-        <Box bg="white" _dark={{ bg: "gray.800" }} p={6} borderRadius="lg" boxShadow="md">
+        <Box
+          bg="white"
+          _dark={{ bg: "gray.800" }}
+          p={6}
+          borderRadius="lg"
+          boxShadow="md"
+        >
           {isLoadingProps ? (
             <Flex justify="center" align="center" py={10}>
               <Spinner size="xl" />
@@ -258,8 +294,12 @@ export default function OthersPropertyManagement() {
           ) : (
             <PropertyList
               properties={filteredProperties}
-              onViewDetails={handleViewDetails}
+              selectedPropertyId={selectedPropertyId}
+              onSelect={(p) => setSelectedPropertyId(p.id)}
+              onView={handleViewDetails}
+              onEdit={handleEditProperty}
               onLeave={handleLeaveProperty}
+              leaveLabel="Se retirar"
             />
           )}
         </Box>
@@ -270,7 +310,8 @@ export default function OthersPropertyManagement() {
         <VStack align="stretch" spacing={4}>
           <Heading size="md">Solicitar Acesso a Propriedade</Heading>
           <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.400" }}>
-            Busque pelo nome da propriedade para enviar uma solicitação ao proprietário.
+            Busque pelo nome da propriedade para enviar uma solicitação ao
+            proprietário.
           </Text>
 
           <Flex gap={2} align="center">
@@ -298,11 +339,13 @@ export default function OthersPropertyManagement() {
           </Flex>
 
           <Box maxH="300px" overflowY="auto" mt={2}>
-            {foundProperties.length === 0 && !isSearching && searchName.length > 2 && (
-              <Text fontSize="sm" color="gray.500" textAlign="center">
-                Nenhuma propriedade encontrada.
-              </Text>
-            )}
+            {foundProperties.length === 0 &&
+              !isSearching &&
+              searchName.length > 2 && (
+                <Text fontSize="sm" color="gray.500" textAlign="center">
+                  Nenhuma propriedade encontrada.
+                </Text>
+              )}
 
             {foundProperties.length > 0 && (
               <VStack align="stretch" spacing={3}>
@@ -325,10 +368,19 @@ export default function OthersPropertyManagement() {
                       Encontrada
                     </Badge>
 
-                    <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.200" }} mt={2}>
+                    <Text
+                      fontSize="sm"
+                      color="gray.600"
+                      _dark={{ color: "gray.200" }}
+                      mt={2}
+                    >
                       {p.endereco}
                     </Text>
-                    <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.200" }}>
+                    <Text
+                      fontSize="sm"
+                      color="gray.600"
+                      _dark={{ color: "gray.200" }}
+                    >
                       CNPJ: {p.cnpj}
                     </Text>
 
@@ -338,7 +390,9 @@ export default function OthersPropertyManagement() {
                         onClick={() => requestAccessMutation.mutate(p.id)}
                         isLoading={
                           requestAccessMutation.isPending &&
-                          (requestAccessMutation.variables as number | undefined) === p.id
+                          (requestAccessMutation.variables as
+                            | number
+                            | undefined) === p.id
                         }
                       >
                         Solicitar entrada ao proprietário
@@ -366,7 +420,9 @@ export default function OthersPropertyManagement() {
           <Button
             colorPalette="red"
             variant="outline"
-            onClick={() => activeProperty && handleLeaveProperty(activeProperty)}
+            onClick={() =>
+              activeProperty && handleLeaveProperty(activeProperty)
+            }
             isLoading={leavePropertyMutation.isPending}
             isDisabled={!activeProperty}
           >
@@ -378,6 +434,17 @@ export default function OthersPropertyManagement() {
           </Button>
         </Flex>
       </DialogContainer>
+
+      {/* Modal de edição (mesmo do dono, mas sem delete de propriedade) */}
+      <PropertyFormDialog
+        title="Editar Propriedade"
+        isOpen={editDisclosure.open}
+        onClose={handleCloseEdit}
+        propertyId={editingProperty?.id ?? null}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["approvedProperties"] });
+        }}
+      />
     </UserLayout>
   );
 }

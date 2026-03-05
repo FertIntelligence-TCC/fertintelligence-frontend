@@ -26,6 +26,7 @@ import { FertilityAnalysis } from "@/pages/plot-entities/FertilityAnalysis";
 import { SaturationExtractAnalysis } from "@/pages/plot-entities/SaturationExtractAnalysis";
 import { AnnualCropFolders } from "@/pages/plot-entities/AnnualCropFolders";
 import ViewSolicitations from "@/pages/property-access/ViewSolicitations";
+import ViewPlotSolicitations from "@/pages/property-access/ViewPlotSolicitations";
 
 
 export const PublicRoutes: RouteObject[] = [
@@ -136,6 +137,19 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/view-solicitations",
     element: <ViewSolicitations />,
+  },
+  {
+    path: "/fertintelligence/view-plot-solicitations",
+    element: <ViewPlotSolicitations />,
+  },
+  // Solicitações
+  {
+    path: "/fertintelligence/view-solicitations",
+    element: <ViewSolicitations />
+  },
+  {
+    path: "/fertintelligence/view-plot-solicitations",
+    element: <ViewPlotSolicitations /> 
   },
   {
     element: <PrivateRoute />,

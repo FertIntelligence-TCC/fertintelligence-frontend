@@ -15,6 +15,8 @@ export const ENDPOINT = {
     GET_MY_PROPERTIES: "property/get-my-properties",
     UPDATE_PROPERTY: "property/update",
     DELETE_PROPERTY: "property/delete",
+    SEARCH_PROPERTIES: "property/search",
+    GET_MANAGEABLE_PROPERTIES: "property/get-manageable-properties",
 
     // Property Access Request Endpoints:
     PROPERTY_ACCESS_REQUEST_BASE: "property-access",

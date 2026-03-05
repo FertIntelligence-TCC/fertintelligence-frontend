@@ -4,7 +4,7 @@ import { Box, Button, Flex, Heading, Text, Spinner, Badge } from "@chakra-ui/rea
 
 import UserLayout from "@/components/Layouts/UserLayout";
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
-import { fetchMyProperties } from "@/services/propertyService";
+import { fetchManageableProperties } from "@/services/propertyService";
 import { toaster } from "@/components/ui/toaster";
 import { PropertyAccessRequestResponse } from "@/interfaces/PropertyAccessRequest";
 import { PropertyResponse } from "@/interfaces/Property";
@@ -23,7 +23,7 @@ export default function ViewSolicitations() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const data = await fetchMyProperties(); 
+        const data = await fetchManageableProperties(); 
         setProperties(data);
         if (data.length > 0) {
           setSelectedPropertyId(data[0].id);
