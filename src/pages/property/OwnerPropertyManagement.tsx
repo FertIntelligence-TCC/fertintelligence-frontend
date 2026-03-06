@@ -44,8 +44,6 @@ import {
   propertyToFormState,
 } from "@/components/Property/types";
 
-import PropertyAuthorizationsDialog from "@/components/Property/PropertyAuthorizationsDialog";
-
 /* ======================================================
    Helpers
 ====================================================== */
@@ -91,9 +89,6 @@ export default function OwnerPropertyManagement() {
   const editDisclosure = useDisclosure();
   const deleteDisclosure = useDisclosure();
   const viewDisclosure = useDisclosure();
-
-  // Autorizações (agora só abre/fecha o dialog)
-  const authDisclosure = useDisclosure();
 
   const [activeProperty, setActiveProperty] = useState<PropertyResponse | null>(
     null
@@ -274,37 +269,6 @@ export default function OwnerPropertyManagement() {
 
           <HStack gap={3} flexWrap="wrap">
             <Button
-              variant="outline"
-              onClick={() => {
-                toaster.create({
-                  title:
-                    "Proprietário, você já possui todas as permissões de suas propriedades!",
-                  type: "info",
-                });
-              }}
-            >
-              Fazer solicitação
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (!selectedPropertyId) {
-                  toaster.create({
-                    title: "Selecione uma propriedade",
-                    description:
-                      "Clique em uma propriedade na lista para visualizar as autorizações.",
-                    type: "warning",
-                  });
-                  return;
-                }
-                authDisclosure.onOpen();
-              }}
-            >
-              Visualizar solicitações
-            </Button>
-
-            <Button
               colorScheme="green"
               leftIcon={<FiPlus />}
               onClick={() => {
@@ -395,14 +359,6 @@ export default function OwnerPropertyManagement() {
       >
         <PropertyDetails property={activeProperty} />
       </DialogContainer>
-
-      {/* AUTORIZAÇÕES (refatorado para componente separado) */}
-      <PropertyAuthorizationsDialog
-        isOpen={authDisclosure.open}
-        onClose={authDisclosure.onClose}
-        propertyId={selectedPropertyId}
-        initialTab="PENDING"
-      />
 
       {/* DELETE */}
       <DeletePropertyDialog

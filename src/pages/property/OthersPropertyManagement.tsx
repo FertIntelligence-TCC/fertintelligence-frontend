@@ -5,7 +5,6 @@ import {
   Button,
   Flex,
   Heading,
-  HStack,
   IconButton,
   Input,
   Spinner,
@@ -14,7 +13,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { FiPlus, FiSearch } from "react-icons/fi";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import UserLayout from "@/components/Layouts/UserLayout";
@@ -24,7 +23,6 @@ import PropertyList from "@/components/Property/PropertyList";
 import DialogContainer from "@/components/Property/DialogContainer";
 import PropertyDetails from "@/components/Property/PropertyDetails";
 import PropertyFormDialog from "@/components/Property/PropertyFormDialog";
-import PlotAuthorizationRequestDialog from "@/components/Authorizations/PlotAuthorizationRequestDialog";
 
 import { useUserStore } from "@/stores/user/user.store";
 import { Cargo } from "@/interfaces/User";
@@ -44,10 +42,8 @@ const getErrorMessage = (error: unknown) => {
 
 export function RolePropertyManagement({ variant }: { variant: Variant }) {
   const { user } = useUserStore();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const requestDisclosure = useDisclosure();
   const propertyAccessDisclosure = useDisclosure();
   const viewDisclosure = useDisclosure();
   const editDisclosure = useDisclosure();
@@ -123,30 +119,6 @@ export function RolePropertyManagement({ variant }: { variant: Variant }) {
     },
   });
 
-  const onRequestClick = () => {
-    if (variant === "SUPERVISOR") {
-      toaster.create({
-        title: "Seu cargo não possui essa funcionalidade no sistema!",
-        type: "warning",
-      });
-      return;
-    }
-
-    requestDisclosure.onOpen();
-  };
-
-  const onViewRequestsClick = () => {
-    if (variant !== "MANAGER") {
-      toaster.create({
-        title: "Seu cargo não possui essa funcionalidade no sistema!",
-        type: "warning",
-      });
-      return;
-    }
-
-    navigate("/fertintelligence/view-plot-solicitations");
-  };
-
   const handleSearchProperty = () => {
     if (searchName.trim().length < 3) {
       toaster.create({
@@ -187,14 +159,6 @@ export function RolePropertyManagement({ variant }: { variant: Variant }) {
       <Box p={8} mt={8}>
         <Flex justify="space-between" mb={6} gap={4} flexWrap="wrap">
           <Heading size="lg">Propriedades vinculadas</Heading>
-          <HStack>
-            <Button variant="outline" onClick={onRequestClick}>
-              <FiPlus style={{ marginRight: 8 }} /> Fazer solicitação
-            </Button>
-            <Button variant="outline" onClick={onViewRequestsClick}>
-              Visualizar solicitações
-            </Button>
-          </HStack>
         </Flex>
 
         <Box mb={6} bg="white" _dark={{ bg: "gray.800" }} p={4} borderRadius="md" boxShadow="sm">
@@ -328,11 +292,6 @@ export function RolePropertyManagement({ variant }: { variant: Variant }) {
           </Flex>
         </VStack>
       </DialogContainer>
-
-      <PlotAuthorizationRequestDialog
-        isOpen={requestDisclosure.open}
-        onClose={requestDisclosure.onClose}
-      />
 
       <DialogContainer isOpen={viewDisclosure.open} onClose={viewDisclosure.onClose}>
         <PropertyDetails property={activeProperty} />

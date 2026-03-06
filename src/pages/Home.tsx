@@ -24,6 +24,7 @@ const ROUTES = {
   CONSULTANT_MAKE_REQUEST: "/fertintelligence/consultant-agronomist-make-plot-solicitations",
   SECRETARY_MAKE_REQUEST: "/fertintelligence/secretarymake-plot-solicitations",
   VIEW_SOLICITATIONS: "/fertintelligence/view-solicitations",
+  VIEW_PLOT_SOLICITATIONS: "/fertintelligence/view-plot-solicitations",
 } as const;
 
 export default function Home() {
@@ -84,10 +85,16 @@ export default function Home() {
   }, [go, isOwner, isManager, roleMode]);
 
   const handleViewSolicitations = useCallback(() => {
-    if (isOwner || isManager) {
+    if (isOwner) {
       go(ROUTES.VIEW_SOLICITATIONS);
       return;
     }
+
+    if (isManager) {
+      go(ROUTES.VIEW_PLOT_SOLICITATIONS);
+      return;
+    }
+
     alert("Seu cargo não possui essa funcionalidade no sistema!");
   }, [go, isOwner, isManager]);
 
