@@ -31,7 +31,7 @@ const normalizeCargo = (value?: string) =>
   (value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "")
+    .replace(/[\s_-]+/g, "")
     .toUpperCase();
 
 export const getAuthorizationRoleMode = (
@@ -39,12 +39,12 @@ export const getAuthorizationRoleMode = (
 ): AuthorizationRoleMode => {
   const normalized = normalizeCargo(cargo);
 
-  if (normalized === Cargo.PROPRIETARIO) return "OWNER";
-  if (normalized === Cargo.GERENTE) return "MANAGER";
-  if (normalized === Cargo.AGRONOMO_RESIDENTE) return "RESIDENT";
-  if (normalized === Cargo.AGRONOMO_CONSULTOR) return "CONSULTANT";
-  if (normalized === Cargo.SECRETARIO) return "SECRETARY";
-  if (normalized === Cargo.SUPERVISOR_DE_AREA) return "SUPERVISOR";
+  if (normalized === normalizeCargo(Cargo.PROPRIETARIO)) return "OWNER";
+  if (normalized === normalizeCargo(Cargo.GERENTE)) return "MANAGER";
+  if (normalized === normalizeCargo(Cargo.AGRONOMO_RESIDENTE)) return "RESIDENT";
+  if (normalized === normalizeCargo(Cargo.AGRONOMO_CONSULTOR)) return "CONSULTANT";
+  if (normalized === normalizeCargo(Cargo.SECRETARIO)) return "SECRETARY";
+  if (normalized === normalizeCargo(Cargo.SUPERVISOR_DE_AREA)) return "SUPERVISOR";
 
   return "OTHER";
 };

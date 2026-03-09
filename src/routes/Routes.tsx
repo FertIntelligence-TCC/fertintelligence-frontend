@@ -181,7 +181,7 @@ export const PublicRoutes: RouteObject[] = [
     element: <ConsultantAgronomistMakePlotSolicitations />,
   },
   {
-    path: "/fertintelligence/secretarymake-plot-solicitations",
+    path: "/fertintelligence/secretary-make-plot-solicitations",
     element: <SecretaryMakePlotSolicitations />,
   },
   {

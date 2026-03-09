@@ -22,7 +22,7 @@ const ROUTES = {
   MAKE_RECOMMENDATION: "/fazer-recomendacao",
   RESIDENT_MAKE_REQUEST: "/fertintelligence/resident-agronomist-make-plot-solicitations",
   CONSULTANT_MAKE_REQUEST: "/fertintelligence/consultant-agronomist-make-plot-solicitations",
-  SECRETARY_MAKE_REQUEST: "/fertintelligence/secretarymake-plot-solicitations",
+  SECRETARY_MAKE_REQUEST: "/fertintelligence/secretary-make-plot-solicitations",
   VIEW_SOLICITATIONS: "/fertintelligence/view-solicitations",
   VIEW_PLOT_SOLICITATIONS: "/fertintelligence/view-plot-solicitations",
 } as const;
@@ -34,6 +34,7 @@ export default function Home() {
 
   const isOwner = roleMode === "OWNER";
   const isManager = roleMode === "MANAGER";
+  const isSupervisor = roleMode === "SUPERVISOR";
 
   const go = useCallback((path: string) => navigate(path), [navigate]);
 
@@ -144,7 +145,7 @@ export default function Home() {
         </Box>
 
         {/* BLOCO 2 */}
-        <Box
+        {(!isSupervisor) && (<Box
           borderWidth="1px"
           borderRadius="md"
           boxShadow="md"
@@ -161,11 +162,13 @@ export default function Home() {
               Fazer solicitação
             </Button>
 
-            <Button colorScheme="green" onClick={handleViewSolicitations} h="50px" fontSize="md">
-              Visualizar solicitações
-            </Button>
+            {(isOwner || isManager) && (
+              <Button colorScheme="green" onClick={handleViewSolicitations} h="50px" fontSize="md">
+                Visualizar solicitações
+              </Button>
+            )}
           </Flex>
-        </Box>
+        </Box>)}
       </Flex>
     </UserLayout>
   );
