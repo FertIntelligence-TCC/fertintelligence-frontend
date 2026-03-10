@@ -137,16 +137,6 @@ export function RolePropertyManagement({ variant }: { variant: Variant }) {
       toaster.create({ title: getPermissionDeniedMessage(), type: "warning" });
       return;
     }
-
-    if (variant === "RESIDENT" || variant === "CONSULTANT" || variant === "SECRETARY") {
-      toaster.create({
-        title: getPermissionDeniedMessage(),
-        description: "Solicite ou aguarde a autorização do gerente para edição.",
-        type: "warning",
-      });
-      return;
-    }
-
     setEditingProperty(property);
     editDisclosure.onOpen();
   };

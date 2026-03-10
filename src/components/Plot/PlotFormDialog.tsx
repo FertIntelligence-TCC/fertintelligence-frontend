@@ -29,6 +29,10 @@ import {
     PlotResponse 
 } from "@/interfaces/Plot";
 
+// Importações para verificar permissões
+import { useUserStore } from "@/stores/user/user.store";
+import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
+
 type Props = {
     isOpen: boolean;
     onClose: () => void;
@@ -68,6 +72,17 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
     const [form, setForm] = useState<PlotCreatePayload>(INITIAL_STATE);
     const navigate = useNavigate();
 
+    // Verificação de permissões
+    const { user } = useUserStore();
+    const roleMode = getAuthorizationRoleMode(user?.cargo);
+    const isOwner = roleMode === "OWNER";
+    const isManager = roleMode === "MANAGER";
+    const isSecretary = roleMode === "SECRETARY";
+
+    // Somente donos e gerentes editam os dados cadastrais do talhão
+    const canEditMasterData = isOwner || isManager;
+    const isReadOnly = !canEditMasterData;
+
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
@@ -92,15 +107,13 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
         setForm(prev => ({ ...prev, [field]: value }));
     };
 
-    // CORREÇÃO: Recebe o evento para prevenir comportamento padrão (submit/refresh)
     const handleNavigate = (e: React.MouseEvent, routeTemplate: string) => {
-        e.preventDefault();  // Impede o envio do formulário
-        e.stopPropagation(); // Impede a propagação do clique para elementos pai
+        e.preventDefault(); 
+        e.stopPropagation(); 
         
         if (initialData?.id) {
-            onClose(); // Fecha o modal atual
-            // Navega para a rota absoluta correta
-            navigate(generatePath(routeTemplate, { plotId: initialData.id }));
+            onClose(); 
+            navigate(generatePath(routeTemplate, { plotId: String(initialData.id) }));
         }
     };
 
@@ -112,16 +125,16 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
     };
 
     return (
-        // zIndex alto para garantir que o modal fique sobreposto corretamente
         <DialogContainer isOpen={isOpen} onClose={onClose} zIndex={1400}>
             <Heading as="h2" size="md" mb={4}>
-                {initialData ? "Editar Talhão" : "Novo Talhão"}
+                {initialData ? (canEditMasterData ? "Editar Talhão" : "Gerenciar Recursos do Talhão") : "Novo Talhão"}
             </Heading>
             
             <VStack gap={4} align="stretch">
                 <Box>
                     <Text fontSize="sm" fontWeight="bold" mb={1}>Identificação</Text>
                     <Input 
+                        disabled={isReadOnly}
                         value={form.identificacao} 
                         onChange={e => handleChange("identificacao", e.target.value)} 
                         placeholder="Ex: Talhão Norte"
@@ -133,6 +146,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         <Text fontSize="sm" fontWeight="bold" mb={1}>Área (ha)</Text>
                         <Input 
                             type="number" 
+                            disabled={isReadOnly}
                             value={form.area} 
                             onChange={e => handleChange("area", parseFloat(e.target.value))} 
                         />
@@ -141,6 +155,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         <Text fontSize="sm" fontWeight="bold" mb={1}>Ano Safra</Text>
                         <Input 
                             type="number" 
+                            disabled={isReadOnly}
                             value={form.ano_incorporacao_safra} 
                             onChange={e => handleChange("ano_incorporacao_safra", parseInt(e.target.value))} 
                         />
@@ -151,6 +166,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                     <Box>
                         <Text fontSize="sm" fontWeight="bold" mb={1}>Classe de Solo</Text>
                         <SelectRoot
+                            disabled={isReadOnly}
                             collection={classesSoloCollection}
                             value={[form.classe_solo]}
                             onValueChange={(e) => handleChange("classe_solo", e.value[0])}
@@ -170,6 +186,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                     <Box>
                         <Text fontSize="sm" fontWeight="bold" mb={1}>Textura</Text>
                         <SelectRoot
+                            disabled={isReadOnly}
                             collection={texturasSoloCollection}
                             value={[form.textura_solo]}
                             onValueChange={(e) => handleChange("textura_solo", e.value[0])}
@@ -191,6 +208,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                 <Box>
                     <Text fontSize="sm" fontWeight="bold" mb={1}>Área Irrigada?</Text>
                     <SelectRoot
+                        disabled={isReadOnly}
                         collection={areaIrrigadaCollection}
                         value={[form.area_irrigada]}
                         onValueChange={(e) => handleChange("area_irrigada", e.value[0])}
@@ -211,19 +229,18 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                 <Grid templateColumns="1fr 1fr 1fr" gap={4}>
                     <Box>
                         <Text fontSize="sm" fontWeight="bold" mb={1}>Decliv. (%)</Text>
-                        <Input type="number" value={form.declividade} onChange={e => handleChange("declividade", parseFloat(e.target.value))} />
+                        <Input disabled={isReadOnly} type="number" value={form.declividade} onChange={e => handleChange("declividade", parseFloat(e.target.value))} />
                     </Box>
                     <Box>
                         <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Mês (mm)</Text>
-                        <Input type="number" value={form.pluviosidade_mensal} onChange={e => handleChange("pluviosidade_mensal", parseFloat(e.target.value))} />
+                        <Input disabled={isReadOnly} type="number" value={form.pluviosidade_mensal} onChange={e => handleChange("pluviosidade_mensal", parseFloat(e.target.value))} />
                     </Box>
                     <Box>
                         <Text fontSize="sm" fontWeight="bold" mb={1}>Pluv. Ano (mm)</Text>
-                        <Input type="number" value={form.pluviosidade_anual} onChange={e => handleChange("pluviosidade_anual", parseFloat(e.target.value))} />
+                        <Input disabled={isReadOnly} type="number" value={form.pluviosidade_anual} onChange={e => handleChange("pluviosidade_anual", parseFloat(e.target.value))} />
                     </Box>
                 </Grid>
 
-                {/* --- SEÇÃO DE GERENCIAMENTO DE ENTIDADES --- */}
                 {initialData && (
                     <>
                         <Separator my={2} borderColor="gray.300" />
@@ -255,14 +272,18 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                             >
                                 Gerenciar Análises de Extrato de Saturação
                             </Button>
-                            <Button 
-                                type="button" 
-                                variant="outline" 
-                                width="100%" 
-                                onClick={(e) => handleNavigate(e, plotEntityRoutes.annualCropFolder)}
-                            >
-                                Gerenciar Pastas de Culturas Anuais
-                            </Button>
+
+                            {/* Oculta EDIÇÃO/CRIAÇÃO de Pastas de Culturas se for secretário */}
+                            {!isSecretary && (
+                                <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    width="100%" 
+                                    onClick={(e) => handleNavigate(e, plotEntityRoutes.annualCropFolder)}
+                                >
+                                    Gerenciar Pastas de Culturas Anuais
+                                </Button>
+                            )}
                         </VStack>
                     </>
                 )}
@@ -270,9 +291,14 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
             </VStack>
 
             <Flex justify="flex-end" gap={3} mt={6}>
-                <Button onClick={onClose} variant="outline" colorPalette="red">Cancelar</Button>
-                {/* O botão Salvar mantém o comportamento padrão de submit */}
-                <Button onClick={() => onSubmit(form)} colorPalette="green" loading={isSubmitting}>Salvar</Button>
+                <Button onClick={onClose} variant="outline" colorPalette="red">
+                    {canEditMasterData ? "Cancelar" : "Fechar"}
+                </Button>
+                
+                {/* O botão de Salvar os DADOS DO TALHÃO só aparece para Proprietário e Gerente */}
+                {canEditMasterData && (
+                    <Button onClick={() => onSubmit(form)} colorPalette="green" loading={isSubmitting}>Salvar</Button>
+                )}
             </Flex>
         </DialogContainer>
     );

@@ -158,9 +158,11 @@ export default function Home() {
           </Heading>
 
           <Flex direction="column" gap={6}>
+            {!(isOwner || isManager) && (
             <Button colorScheme="green" onClick={handleMakeRequest} h="50px" fontSize="md">
               Fazer solicitação
             </Button>
+            )}
 
             {(isOwner || isManager) && (
               <Button colorScheme="green" onClick={handleViewSolicitations} h="50px" fontSize="md">

@@ -44,7 +44,7 @@ export async function decidePlotAccessRequest(params: {
 
   const { data } = await api.post<PlotAccessRequestResponseDto>(
     `${BASE_URL}/${requestId}/decision`,
-    { approve }
+    { solicitacao_aprovada: approve }
   );
   return data;
 }
@@ -52,7 +52,7 @@ export async function decidePlotAccessRequest(params: {
 export async function revokePlotAccessRequest(
   requestId: number
 ): Promise<PlotAccessRequestResponseDto> {
-  const { data } = await api.post<PlotAccessRequestResponseDto>(
+  const { data } = await api.delete<PlotAccessRequestResponseDto>(
     `${BASE_URL}/${requestId}/revoke`
   );
   return data;

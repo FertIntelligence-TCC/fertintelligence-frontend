@@ -12,11 +12,9 @@ type Props = {
 };
 
 export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Props) {
-    // Controla qual talhão está "ativo" (ícones visíveis)
     const [activePlotId, setActivePlotId] = useState<number | null>(null);
 
     const handlePlotClick = (id: number) => {
-        // Se clicar no mesmo, fecha. Se clicar em outro, abre aquele.
         setActivePlotId(prev => prev === id ? null : id);
     };
 
@@ -54,7 +52,6 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                         {plot.area} ha
                     </Text>
 
-                    {/* Overlay de Ações - Só aparece quando clicado */}
                     {activePlotId === plot.id && (
                         <Flex 
                             position="absolute" 
@@ -64,10 +61,9 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                             align="center" 
                             justify="center"
                             animation="fade-in 0.2s"
-                            onClick={(e) => e.stopPropagation()} // Evita fechar ao clicar no fundo preto
+                            onClick={(e) => e.stopPropagation()} 
                         >
                             <HStack gap={2}>
-                                {/* Modo Visualização: Apenas o Olho */}
                                 {mode === "view" && onView && (
                                     <IconButton
                                         aria-label="Visualizar"
@@ -80,27 +76,30 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                                     </IconButton>
                                 )}
 
-                                {/* Modo Edição: Editar e Excluir */}
-                                {mode === "edit" && onEdit && onDelete && (
+                                {mode === "edit" && (
                                     <>
-                                        <IconButton
-                                            aria-label="Editar"
-                                            size="sm"
-                                            colorPalette="yellow"
-                                            rounded="full"
-                                            onClick={(e) => { e.stopPropagation(); onEdit(plot); }}
-                                        >
-                                            <FiEdit />
-                                        </IconButton>
-                                        <IconButton
-                                            aria-label="Excluir"
-                                            size="sm"
-                                            colorPalette="red"
-                                            rounded="full"
-                                            onClick={(e) => { e.stopPropagation(); onDelete(plot); }}
-                                        >
-                                            <FiTrash />
-                                        </IconButton>
+                                        {onEdit && (
+                                            <IconButton
+                                                aria-label="Editar"
+                                                size="sm"
+                                                colorPalette="yellow"
+                                                rounded="full"
+                                                onClick={(e) => { e.stopPropagation(); onEdit(plot); }}
+                                            >
+                                                <FiEdit />
+                                            </IconButton>
+                                        )}
+                                        {onDelete && (
+                                            <IconButton
+                                                aria-label="Excluir"
+                                                size="sm"
+                                                colorPalette="red"
+                                                rounded="full"
+                                                onClick={(e) => { e.stopPropagation(); onDelete(plot); }}
+                                            >
+                                                <FiTrash />
+                                            </IconButton>
+                                        )}
                                     </>
                                 )}
                             </HStack>

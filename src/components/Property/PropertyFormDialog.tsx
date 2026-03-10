@@ -35,7 +35,11 @@ import {
   getPropertyById,
 } from "@/services/propertyService";
 
-// >>> ajuste aqui para bater com teu PropertyFormState real
+// Importações para permissões
+import { useUserStore } from "@/stores/user/user.store";
+import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
+import { getPlotAccessRequests } from "@/services/plotAccessRequestService";
+
 const emptyForm: PropertyFormState = {
   nome: "",
   endereco: "",
@@ -53,14 +57,8 @@ type Props = {
   title: string;
   isOpen: boolean;
   onClose: () => void;
-
-  // se vier, é edição; se não vier, é criação
   propertyId?: number | null;
-
-  // callbacks opcionais
   onSuccess?: () => void;
-
-  // labels opcionais
   submitLabel?: string;
   cancelLabel?: string;
 };
@@ -78,27 +76,72 @@ export default function PropertyFormDialog({
   const plotFormDisclosure = useDisclosure();
   const [editingPlot, setEditingPlot] = useState<PlotResponse | null>(null);
 
+  // === Verificação de Permissões de Cargos ===
+  const { user } = useUserStore();
+  const roleMode = getAuthorizationRoleMode(user?.cargo);
+  const isOwner = roleMode === "OWNER";
+  const isManager = roleMode === "MANAGER";
+  const isResident = roleMode === "RESIDENT";
+  const isConsultant = roleMode === "CONSULTANT";
+  const isSecretary = roleMode === "SECRETARY";
+
   const isEdit = !!propertyId;
 
-  // carrega propriedade quando for edição
+  // === Queries de Dados ===
+
   const { data: propertyData, isLoading: isLoadingProperty } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: () => (propertyId ? getPropertyById(propertyId) : Promise.resolve(null)),
     enabled: isOpen && !!propertyId,
   });
 
+  const { data: allPlots = [] } = useQuery({
+    queryKey: ["plots", propertyId],
+    queryFn: () => (propertyId ? getPlotsByProperty(propertyId) : Promise.resolve([])),
+    enabled: !!propertyId && isOpen,
+  });
+
+  // Busca os pedidos de acesso APROVADOS deste utilizador (se ele for de um cargo restrito)
+  const { data: approvedRequests = [], isLoading: isLoadingRequests } = useQuery({
+    queryKey: ["approvedPlotRequests", propertyId],
+    queryFn: () =>
+      propertyId
+        ? getPlotAccessRequests({ propertyId, status: "APPROVED" as any })
+        : Promise.resolve([]),
+    enabled: !!propertyId && isOpen && (isResident || isConsultant || isSecretary),
+  });
+
+  // === Lógica de Filtragem de Talhões ===
+  const permittedPlots = useMemo(() => {
+    // Dono e Gerente enxergam tudo
+    if (isOwner || isManager) return allPlots;
+
+    // Residente edita todos os talhões, DESDE QUE tenha um pedido aprovado
+    if (isResident) {
+      return approvedRequests.length > 0 ? allPlots : [];
+    }
+
+    // Consultor e Secretário só enxergam os talhões para os quais pediram e receberam permissão
+    if (isConsultant || isSecretary) {
+      const allowedPlotIds = approvedRequests.map((r: any) => r.plotId ?? r.id_talhao);
+      return allPlots.filter((p) => allowedPlotIds.includes(p.id));
+    }
+
+    return [];
+  }, [allPlots, approvedRequests, isOwner, isManager, isResident, isConsultant, isSecretary]);
+
+  // Se for uma edição, garante o acesso caso o utilizador seja dono, gerente ou possua um pedido aprovado (mesmo sem talhões existentes).
+  const hasApprovedAccess = isOwner || isManager || approvedRequests.length > 0;
+
+  // === Controle de Formulário ===
   const [form, setForm] = useState<PropertyFormState>(emptyForm);
 
   useEffect(() => {
     if (!isOpen) return;
-
-    // criação: limpa
     if (!propertyId) {
       setForm(emptyForm);
       return;
     }
-
-    // edição: popula quando chegar
     if (propertyData) {
       setForm({
         nome: propertyData.nome ?? "",
@@ -116,10 +159,7 @@ export default function PropertyFormDialog({
   }, [isOpen, propertyId, propertyData]);
 
   const canSubmit = useMemo(() => {
-    // deixa simples: valida mínimo
-    if (!form.nome?.trim()) return false;
-    if (!form.endereco?.trim()) return false;
-    if (!form.cnpj?.trim()) return false;
+    if (!form.nome?.trim() || !form.endereco?.trim() || !form.cnpj?.trim()) return false;
     return true;
   }, [form]);
 
@@ -130,8 +170,7 @@ export default function PropertyFormDialog({
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // ======= salvar propriedade =======
-
+  // === Mutações ===
   const createPropertyMutation = useMutation({
     mutationFn: () => createProperty(form as any),
     onSuccess: async () => {
@@ -139,7 +178,6 @@ export default function PropertyFormDialog({
       onSuccess?.();
       onClose();
     },
-    onError: () => toaster.create({ title: "Erro ao criar propriedade.", type: "error" }),
   });
 
   const updatePropertyMutation = useMutation({
@@ -150,29 +188,16 @@ export default function PropertyFormDialog({
       onSuccess?.();
       onClose();
     },
-    onError: () => toaster.create({ title: "Erro ao atualizar propriedade.", type: "error" }),
   });
 
   const handleSubmit = () => {
     if (!canSubmit) {
-      toaster.create({
-        title: "Preencha todos os campos obrigatórios.",
-        type: "warning",
-      });
+      toaster.create({ title: "Preencha todos os campos obrigatórios.", type: "warning" });
       return;
     }
-
     if (isEdit) updatePropertyMutation.mutate();
     else createPropertyMutation.mutate();
   };
-
-  // ======= plots =======
-
-  const { data: plots = [] } = useQuery({
-    queryKey: ["plots", propertyId],
-    queryFn: () => (propertyId ? getPlotsByProperty(propertyId) : Promise.resolve([])),
-    enabled: !!propertyId && isOpen,
-  });
 
   const createPlotMutation = useMutation({
     mutationFn: (payload: PlotCreatePayload) => createPlot(propertyId!, payload),
@@ -181,7 +206,6 @@ export default function PropertyFormDialog({
       plotFormDisclosure.onClose();
       toaster.create({ title: "Talhão criado com sucesso!", type: "success" });
     },
-    onError: () => toaster.create({ title: "Erro ao criar talhão.", type: "error" }),
   });
 
   const updatePlotMutation = useMutation({
@@ -191,7 +215,6 @@ export default function PropertyFormDialog({
       plotFormDisclosure.onClose();
       toaster.create({ title: "Talhão atualizado com sucesso!", type: "success" });
     },
-    onError: () => toaster.create({ title: "Erro ao atualizar talhão.", type: "error" }),
   });
 
   const deletePlotMutation = useMutation({
@@ -200,7 +223,6 @@ export default function PropertyFormDialog({
       queryClient.invalidateQueries({ queryKey: ["plots", propertyId] });
       toaster.create({ title: "Talhão removido com sucesso!", type: "success" });
     },
-    onError: () => toaster.create({ title: "Erro ao remover talhão.", type: "error" }),
   });
 
   const handleAddPlot = () => {
@@ -224,21 +246,36 @@ export default function PropertyFormDialog({
     <>
       <DialogContainer isOpen={isOpen} onClose={onClose}>
         <Heading as="h2" size="md" mb={4}>
-          {title}
+          {isOwner ? title : "Recursos da Propriedade"}
         </Heading>
 
-        {isEdit && isLoadingProperty ? (
+        {/* Verifica se está a carregar dados da API */}
+        {(isEdit && isLoadingProperty) || isLoadingRequests ? (
           <Flex justify="center" py={10}>
             <Spinner size="lg" />
           </Flex>
+        ) : !hasApprovedAccess && isEdit ? (
+          // Se não for dono/gerente e não tiver nenhuma permissão, mostra aviso
+          <VStack py={8} gap={4}>
+             <Text textAlign="center" color="red.500" fontWeight="bold">
+               Acesso aos recursos negado.
+             </Text>
+             <Text textAlign="center" color="gray.600">
+               Ainda não possui permissões aprovadas para editar os talhões desta propriedade. Aceda à secção de "Fazer solicitação" no painel principal ou aguarde a aprovação do gerente.
+             </Text>
+          </VStack>
         ) : (
           <VStack align="stretch" gap={6}>
-            <PropertyFormFields form={form} onFormChange={onFormChange} />
+            <PropertyFormFields 
+              form={form} 
+              onFormChange={onFormChange} 
+              isReadOnly={!isOwner} 
+            />
 
-            {!propertyId && (
+            {!propertyId && isOwner && (
               <Box bg="blue.50" _dark={{ bg: "blue.900" }} p={3} borderRadius="md">
                 <Text fontSize="sm" color="blue.600" _dark={{ color: "blue.200" }} textAlign="center">
-                  Você poderá adicionar talhões após criar a propriedade.
+                  Poderá adicionar talhões após criar a propriedade.
                 </Text>
               </Box>
             )}
@@ -249,22 +286,26 @@ export default function PropertyFormDialog({
               <Box>
                 <Flex justify="space-between" align="center" mb={2}>
                   <Heading as="h4" size="sm" color="gray.600">
-                    Talhões
+                    Talhões Permitidos
                   </Heading>
 
-                  <Button size="xs" colorScheme="blue" onClick={handleAddPlot}>
-                    <HStack gap={1}>
-                      <FiPlus />
-                      <Text>Adicionar Talhão</Text>
-                    </HStack>
-                  </Button>
+                  {/* Somente proprietários e gerentes criam talhões novos */}
+                  {(isOwner || isManager) && (
+                    <Button size="xs" colorScheme="blue" onClick={handleAddPlot}>
+                      <HStack gap={1}>
+                        <FiPlus />
+                        <Text>Adicionar Talhão</Text>
+                      </HStack>
+                    </Button>
+                  )}
                 </Flex>
 
                 <PlotList
-                  plots={plots}
+                  plots={permittedPlots}
                   mode="edit"
                   onEdit={handleEditPlot}
-                  onDelete={(p) => deletePlotMutation.mutate(p.id)}
+                  // Apenas donos e gerentes apagam talhões
+                  onDelete={isOwner || isManager ? ((p) => deletePlotMutation.mutate(p.id)) : undefined}
                 />
               </Box>
             )}
@@ -272,13 +313,15 @@ export default function PropertyFormDialog({
         )}
 
         <Flex justify="flex-end" gap={3} mt={6}>
-          <Button onClick={onClose} colorScheme="red" variant="outline">
-            {cancelLabel}
+          <Button onClick={onClose} colorScheme={isOwner ? "red" : "gray"} variant="outline">
+            {isOwner ? cancelLabel : "Fechar"}
           </Button>
 
-          <Button colorScheme="green" onClick={handleSubmit} loading={isSubmitting}>
-            {submitLabel}
-          </Button>
+          {isOwner && (
+            <Button colorScheme="green" onClick={handleSubmit} loading={isSubmitting}>
+              {submitLabel}
+            </Button>
+          )}
         </Flex>
       </DialogContainer>
 
