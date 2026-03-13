@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 
-const api_url = import.meta.env.VITE_API_URL ?? "http://localhost:8080/";
+const api_url = import.meta.env.VITE_API_URL ?? "https://fertintelligence-backend.onrender.com/";
 
 const PUBLIC_ROUTES = ["/user/register", "/authentication/authenticate"];
 
@@ -37,7 +37,7 @@ api.interceptors.response.use(
   }
 );
 
-const image_manager_url = "http://localhost:8081"
+const image_manager_url = "https://fertintelligence-image-manager.onrender.com"
 
 export const axiosImageManager = axios.create({
   baseURL: image_manager_url,
