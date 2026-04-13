@@ -47,3 +47,8 @@ export const createFoliarTableLine = async (tableId: number, payload: any): Prom
 export const deleteFoliarTableLine = async (lineId: number): Promise<void> => {
     await api.delete(`${LINE_ENDPOINT}/delete`, { params: { lineId } });
 };
+
+export const fetchPublicFoliarTables = async (): Promise<FoliarTableResponseDto[]> => {
+    const { data } = await api.get(`${TABLE_ENDPOINT}/get-all-public`);
+    return data;
+};

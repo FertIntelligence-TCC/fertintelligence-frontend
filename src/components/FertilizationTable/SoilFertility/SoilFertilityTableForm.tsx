@@ -8,7 +8,9 @@ import {
     Grid,
     Textarea,
     SimpleGrid,
-    Center
+    Center,
+    HStack,
+    Button,
 } from "@chakra-ui/react";
 import { 
     SelectContent, 
@@ -96,6 +98,30 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                         </SelectRoot>
                     </Box>
                 </Grid>
+
+                <Box mt={4}>
+                    <Text fontSize="xs" fontWeight="bold" mb={2} color="gray.600">Tornar essa tabela pública?</Text>
+                    <HStack>
+                        <Button
+                            size="sm"
+                            colorPalette={form.tabelaPublica ? "green" : "gray"}
+                            variant={form.tabelaPublica ? "solid" : "outline"}
+                            onClick={() => setForm(p => ({ ...p, tabelaPublica: true }))}
+                            disabled={readOnly}
+                        >
+                            Sim
+                        </Button>
+                        <Button
+                            size="sm"
+                            colorPalette={!form.tabelaPublica ? "red" : "gray"}
+                            variant={!form.tabelaPublica ? "solid" : "outline"}
+                            onClick={() => setForm(p => ({ ...p, tabelaPublica: false }))}
+                            disabled={readOnly}
+                        >
+                            Não
+                        </Button>
+                    </HStack>
+                </Box>
 
                 {mode !== 'create' && (
                     <Box>

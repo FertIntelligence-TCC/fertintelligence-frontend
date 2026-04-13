@@ -1,4 +1,4 @@
-import { VStack, Box, Input, Text } from "@chakra-ui/react";
+import { VStack, Box, Input, Text, HStack, Button } from "@chakra-ui/react";
 import { FertilizationTableFormState } from "./types";
 import { commonFieldStyles } from "./styles";
 
@@ -30,7 +30,34 @@ export default function FertilizationTableFormFields({ form, onFormChange, readO
             {/* 4. Tabela de Faixas de Teores (com lógica encapsulada) */}
             <NutrientTableSection form={form} onFormChange={onFormChange} readOnly={readOnly} />
 
-            {/* 5. Observações Finais */}
+            {/* 5. Compartilhamento */}
+            <Box>
+                <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }} mb={2}>
+                    Tornar essa tabela pública?
+                </Text>
+                <HStack>
+                    <Button
+                        size="sm"
+                        colorPalette={form.tabelaPublica ? "green" : "gray"}
+                        variant={form.tabelaPublica ? "solid" : "outline"}
+                        onClick={() => onFormChange("tabelaPublica", true)}
+                        disabled={readOnly}
+                    >
+                        Sim
+                    </Button>
+                    <Button
+                        size="sm"
+                        colorPalette={!form.tabelaPublica ? "red" : "gray"}
+                        variant={!form.tabelaPublica ? "solid" : "outline"}
+                        onClick={() => onFormChange("tabelaPublica", false)}
+                        disabled={readOnly}
+                    >
+                        Não
+                    </Button>
+                </HStack>
+            </Box>
+
+            {/* 6. Observações Finais */}
             <Box>
                 <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Observações:</Text>
                 <Input 

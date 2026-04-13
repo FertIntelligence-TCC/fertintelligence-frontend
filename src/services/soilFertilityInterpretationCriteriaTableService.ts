@@ -32,3 +32,8 @@ export const deleteSoilFertilityTable = async (id: number): Promise<void> => {
         params: { tableId: id } 
     });
 };
+
+export const fetchPublicSoilFertilityTables = async (): Promise<SoilFertilityTableResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    return data;
+};

@@ -147,6 +147,7 @@ export type FertilizationTableFormState = {
     faixasK: NutrientRangeRow[];
 
     observacoes: string;
+    tabelaPublica: boolean;
 };
 
 export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
@@ -173,5 +174,6 @@ export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
     coberturasN: ["", ""],
     faixasP: [],
     faixasK: [],
-    observacoes: ""
+    observacoes: "",
+    tabelaPublica: false
 };

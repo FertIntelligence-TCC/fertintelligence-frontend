@@ -17,7 +17,7 @@ export enum ManureType {
     BOVINO = "BOVINO",
     CAPRINO = "CAPRINO",
     OVINO = "OVINO",
-    FRANGO = "FRANGO", // Ou AVES, verifique seu DataSeeder
+    FRANGO = "FRANGO",
     TORTA_MAMONA = "TORTAS"
 }
 
@@ -100,6 +100,7 @@ export interface CropFertilizationTableResponseDto {
     sugestao_npk: number;
     
     observacoes: string;
+    tabela_publica?: boolean;
 
     // Auxiliar para frontend (usado após hidratação)
     rangesWithCoverages?: ContentRangeResponseDto[];
@@ -146,4 +147,5 @@ export interface CropFertilizationTableCreateRequestDto {
     sugestao_npk: number;
     
     observacoes: string;
+    tabela_publica?: boolean;
 }

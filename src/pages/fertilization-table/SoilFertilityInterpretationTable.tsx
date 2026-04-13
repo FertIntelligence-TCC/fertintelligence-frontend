@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -42,11 +43,13 @@ type Mode = "create" | "edit" | "view";
 const mapResponseToForm = (dto: SoilFertilityTableResponseDto): SoilFertilityFormState => ({
     nome: dto.nome_criterios || "",
     descricao: dto.descricao_criterios || "",
-    regiao: dto.regiao || ""
+    regiao: dto.regiao || "",
+    tabelaPublica: Boolean(dto.tabela_publica)
 });
 
 export default function SoilFertilityInterpretationCriteriaTable() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   // Estados
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -112,7 +115,8 @@ export default function SoilFertilityInterpretationCriteriaTable() {
         if (mode === "create") {
             const payload: SoilFertilityTableCreateRequestDto = {
                 nome_criterios: form.nome,
-                regiao: form.regiao as RegionEnum
+                regiao: form.regiao as RegionEnum,
+                tabela_publica: form.tabelaPublica
             };
             await createSoilFertilityTable(payload);
             toaster.create({ title: "Tabela criada com sucesso!", type: "success" });
@@ -120,7 +124,8 @@ export default function SoilFertilityInterpretationCriteriaTable() {
             const payload: SoilFertilityTablePostRequestDto = {
                 novo_nome_criterios: form.nome,
                 nova_regiao: form.regiao as RegionEnum,
-                nova_descricao_criterios: form.descricao
+                nova_descricao_criterios: form.descricao,
+                tabela_publica: form.tabelaPublica
             };
             await updateSoilFertilityTable(activeItem.id, payload);
             toaster.create({ title: "Tabela atualizada com sucesso!", type: "success" });
@@ -160,13 +165,18 @@ export default function SoilFertilityInterpretationCriteriaTable() {
                 <Text color="gray.500" fontSize="sm" mt={1}>Gerencie as tabelas de referência para interpretação de solo</Text>
             </Box>
             
-            <Button 
-                colorPalette="green" 
-                onClick={() => handleOpen("create")}
-                size="md"
-            >
-                <FiPlus /> Nova Tabela
-            </Button>
+            <Flex gap={2}>
+              <Button 
+                  colorPalette="green" 
+                  onClick={() => handleOpen("create")}
+                  size="md"
+              >
+                  <FiPlus /> Nova Tabela
+              </Button>
+              <Button variant="outline" colorPalette="green" onClick={() => navigate("/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table/public") }>
+                  Consultar tabelas públicas
+              </Button>
+            </Flex>
         </Flex>
 
         <Box>

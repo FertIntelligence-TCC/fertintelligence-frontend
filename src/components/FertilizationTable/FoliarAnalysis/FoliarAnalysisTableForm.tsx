@@ -7,7 +7,8 @@ import {
     IconButton, 
     createListCollection,
     Button,
-    Grid
+    Grid,
+    HStack,
 } from "@chakra-ui/react";
 import { 
     SelectContent, 
@@ -101,6 +102,31 @@ export default function FoliarAnalysisTableForm({ form, setForm, readOnly }: Pro
                         </SelectRoot>
                     </Box>
                 </Grid>
+
+                <Box mt={4}>
+                    <Text fontSize="sm" fontWeight="bold" mb={2} color="gray.600">Tornar essa tabela pública?</Text>
+                    <HStack>
+                        <Button
+                            size="sm"
+                            colorPalette={form.tabelaPublica ? "green" : "gray"}
+                            variant={form.tabelaPublica ? "solid" : "outline"}
+                            onClick={() => setForm(p => ({ ...p, tabelaPublica: true }))}
+                            disabled={readOnly}
+                        >
+                            Sim
+                        </Button>
+                        <Button
+                            size="sm"
+                            colorPalette={!form.tabelaPublica ? "red" : "gray"}
+                            variant={!form.tabelaPublica ? "solid" : "outline"}
+                            onClick={() => setForm(p => ({ ...p, tabelaPublica: false }))}
+                            disabled={readOnly}
+                        >
+                            Não
+                        </Button>
+                    </HStack>
+                </Box>
+
             </Box>
 
             <Box overflowX="auto" borderWidth="1px" borderRadius="md">

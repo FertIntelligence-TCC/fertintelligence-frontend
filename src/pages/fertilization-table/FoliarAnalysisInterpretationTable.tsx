@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -53,6 +54,7 @@ const mapStateToDto = (s: NutrientRangeState) => ({ min: num(s.min), max: num(s.
 const mapResponseToForm = (dto: FoliarTableResponseDto, lines: any[] = []): FoliarTableFormState => ({
     nome: dto.nome_tabela || "",
     region: dto.region || "",
+    tabelaPublica: Boolean(dto.tabela_publica),
     rows: lines.map(line => ({
         id: line.id,
         cultura: line.nome_cultura || line.cultura,
@@ -75,6 +77,7 @@ type Mode = "create" | "edit" | "view";
 
 export default function FoliarAnalysisInterpretationTable() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -171,14 +174,16 @@ export default function FoliarAnalysisInterpretationTable() {
         if (mode === "create") {
             const tableRes = await createFoliarTable({ 
                 nome_tabela: form.nome, 
-                region: form.region as RegionEnum 
+                region: form.region as RegionEnum,
+                tabela_publica: form.tabelaPublica 
             });
             tableId = tableRes.id;
         } else if (tableId) {
             await updateFoliarTable(tableId, { 
                 novo_nome_tabela: form.nome, 
-                novo_regiao_analise_foliar_culturas: form.region as RegionEnum 
-            });
+                novo_regiao_analise_foliar_culturas: form.region as RegionEnum,
+                tabela_publica: form.tabelaPublica 
+            } as any);
             
             // Limpa linhas antigas para evitar duplicidade no backend
             if (originalLines.length > 0) {
@@ -257,13 +262,18 @@ export default function FoliarAnalysisInterpretationTable() {
                 <Text color="gray.500" fontSize="sm" mt={1}>Interpretação de análise foliar por cultura e região</Text>
             </Box>
             
-            <Button 
-                colorPalette="orange" 
-                onClick={() => handleOpen("create")}
-                size="md"
-            >
-                <FiPlus /> Nova Tabela
-            </Button>
+            <Flex gap={2}>
+              <Button 
+                  colorPalette="orange" 
+                  onClick={() => handleOpen("create")}
+                  size="md"
+              >
+                  <FiPlus /> Nova Tabela
+              </Button>
+              <Button variant="outline" colorPalette="orange" onClick={() => navigate("/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table/public") }>
+                  Consultar tabelas públicas
+              </Button>
+            </Flex>
         </Flex>
 
         <Box>

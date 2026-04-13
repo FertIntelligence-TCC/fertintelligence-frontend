@@ -1,4 +1,5 @@
 import { useMemo, useState, Dispatch, SetStateAction } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -63,6 +64,7 @@ interface CropFertilizationTableResponseDto {
   sugestao_micronutrientes: number;
   sugestao_npk: number;
   observacoes: string;
+  tabela_publica?: boolean;
 }
 
 // Estrutura interna combinada (Pai + Filhos)
@@ -161,6 +163,7 @@ const mapHydratedDataToForm = (
     faixasP,
     faixasK,
     observacoes: data.observacoes || "",
+    tabelaPublica: Boolean(data.tabela_publica),
   };
 };
 
@@ -199,6 +202,7 @@ const mapFormToRequest = (
     sugestao_npk: num(form.sugestaoNPK),
 
     observacoes: form.observacoes,
+    tabela_publica: form.tabelaPublica,
   } as any;
 };
 
@@ -302,6 +306,7 @@ function TableCard(props: {
 
 export default function CropFertilizationTable() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -523,16 +528,21 @@ export default function CropFertilizationTable() {
       <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
         <Flex direction="column" gap={6}>
           <Heading as="h1" size="lg" color="white">Gerenciar Tabelas de Cultura</Heading>
-          <Button
-            alignSelf="flex-start"
-            colorPalette="green"
-            onClick={openCreate}
-            display="inline-flex"
-            alignItems="center"
-            gap={2}
-          >
-            <FiPlus /> Nova Tabela
-          </Button>
+          <HStack>
+            <Button
+              alignSelf="flex-start"
+              colorPalette="green"
+              onClick={openCreate}
+              display="inline-flex"
+              alignItems="center"
+              gap={2}
+            >
+              <FiPlus /> Nova Tabela
+            </Button>
+            <Button variant="outline" colorPalette="green" onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table/public") }>
+              Consultar tabelas públicas
+            </Button>
+          </HStack>
 
           {/* Loading de Hidratação Global (Overlay simples) */}
           {isLoadingDetails && (

@@ -46,6 +46,10 @@ export interface FoliarTableResponseDto {
     nome_tabela?: string; 
     region?: RegionEnum; // Região vinda do backend
     itens: FoliarTableItemDto[];
+    nome_criador?: string;
+    nome_comum_cultura?: string;
+    cultivares?: string;
+    tabela_publica?: boolean;
 }
 
 // POST /register
@@ -53,6 +57,7 @@ export interface FoliarTableCreateRequestDto {
     nome_tabela: string;
     region: RegionEnum; // Campo Obrigatório
     itens: FoliarTableItemDto[];
+    tabela_publica?: boolean;
 }
 
 // PUT /update
@@ -60,6 +65,7 @@ export interface FoliarTablePostRequestDto {
     novo_nome_tabela: string;
     nova_region?: RegionEnum;
     novos_itens: FoliarTableItemDto[];
+    tabela_publica?: boolean;
 }
 
 // --- STATE DO FORMULÁRIO (Strings para controle de input) ---
@@ -91,6 +97,7 @@ export interface FoliarTableFormState {
     nome: string;
     region: string; // Estado da região
     rows: FoliarTableRowState[];
+    tabelaPublica: boolean;
 }
 
 export const DEFAULT_NUTRIENT_RANGE: NutrientRangeState = { min: "", max: "" };
@@ -114,5 +121,6 @@ export const DEFAULT_ROW_STATE: FoliarTableRowState = {
 export const DEFAULT_FOLIAR_TABLE_STATE: FoliarTableFormState = {
     nome: "",
     region: "",
-    rows: []
+    rows: [],
+    tabelaPublica: false
 };

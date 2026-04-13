@@ -22,3 +22,8 @@ export const updateCropFertilizationTable = async (payload: CropFertilizationTab
 export const deleteCropFertilizationTable = async (id: number): Promise<void> => {
     await api.delete(`${ENDPOINT}/delete`, { params: { tableId: id } });
 };
+
+export const fetchPublicCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    return data;
+};

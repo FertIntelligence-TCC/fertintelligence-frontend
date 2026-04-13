@@ -19,6 +19,9 @@ import FertilizationTableManagement from "@/pages/fertilization-table/Fertilizat
 import CropFertilizationTable from "@/pages/fertilization-table/CropFertilizationTable";
 import FoliarAnalysisInterpretationTable from "@/pages/fertilization-table/FoliarAnalysisInterpretationTable";
 import SoilFertilityInterpretationTable from "@/pages/fertilization-table/SoilFertilityInterpretationTable";
+import PublicCropFertilizationTable from "@/pages/fertilization-table/PublicCropFertilizationTable";
+import PublicSoilFertilityInterpretationTable from "@/pages/fertilization-table/PublicSoilFertilityInterpretationTable";
+import PublicFoliarAnalysisInterpretationTable from "@/pages/fertilization-table/PublicFoliarAnalysisInterpretationTable";
 import BioFertilizer from "@/pages/fertilizer/BioFertilizer";
 import ChelatedFertilizer from "@/pages/fertilizer/ChelatedFertilizer";
 import FoliarMineralFertilizer from "@/pages/fertilizer/FoliarMineralFertilizer";
@@ -117,6 +120,18 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table",
     element: <SoilFertilityInterpretationTable />,
+  },
+  {
+    path: "/fertintelligence/fertilization-table-management/crop-fertilization-table/public",
+    element: <PublicCropFertilizationTable />,
+  },
+  {
+    path: "/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table/public",
+    element: <PublicSoilFertilityInterpretationTable />,
+  },
+  {
+    path: "/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table/public",
+    element: <PublicFoliarAnalysisInterpretationTable />,
   },
   {
     path: "/fertintelligence/fertilizer-management/bio-fertilizer",
