@@ -1,5 +1,5 @@
 import GreenFertilizerFormFields from "@/components/Fertilizers/FormFields/GreenFertilizerFormFields";
-import PublicFertilizerListBase from "./PublicFertilizerListBase";
+import PublicFertilizerListBase from "../public-fertilizer/PublicFertilizerListBase";
 import { DEFAULT_GREEN_FERTILIZER_FORM_STATE, GreenFertilizerResponseDto } from "@/interfaces/Fertilizer";
 import { fetchPublicGreenFertilizers } from "@/services/greenFertilizerService";
 

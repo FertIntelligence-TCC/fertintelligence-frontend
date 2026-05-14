@@ -1,5 +1,5 @@
 import FoliarMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FoliarMineralFertilizerFormFields";
-import PublicFertilizerListBase from "./PublicFertilizerListBase";
+import PublicFertilizerListBase from "../public-fertilizer/PublicFertilizerListBase";
 import { DEFAULT_MINERAL_FERTILIZER_FORM_STATE, MineralFertilizerResponseDto } from "@/interfaces/Fertilizer";
 import { fetchPublicMineralFertilizers } from "@/services/foliarMineralFertilizerService";
 

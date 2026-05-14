@@ -1,5 +1,5 @@
 import FormulatedMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FormulatedMineralFertilizerFormFields";
-import PublicFertilizerListBase from "./PublicFertilizerListBase";
+import PublicFertilizerListBase from "../public-fertilizer/PublicFertilizerListBase";
 import { DEFAULT_FORMULATED_FORM_STATE, FormulatedMineralFertilizerResponseDto } from "@/interfaces/Fertilizer";
 import { fetchPublicFormulatedFertilizers } from "@/services/formulatedMineralFertilizerService";
 

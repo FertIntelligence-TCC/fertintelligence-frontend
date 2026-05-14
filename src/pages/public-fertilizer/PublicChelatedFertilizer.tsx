@@ -1,5 +1,5 @@
 import ChelatedFertilizerFormFields from "@/components/Fertilizers/FormFields/ChelatedFertilizerFormFields";
-import PublicFertilizerListBase from "./PublicFertilizerListBase";
+import PublicFertilizerListBase from "../public-fertilizer/PublicFertilizerListBase";
 import { DEFAULT_CHELATED_FERTILIZER_FORM_STATE, ChelatedFertilizerResponseDto } from "@/interfaces/Fertilizer";
 import { fetchPublicChelatedFertilizers } from "@/services/chelatedFertilizerService";
 
