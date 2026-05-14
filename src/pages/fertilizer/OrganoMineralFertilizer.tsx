@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -10,7 +11,7 @@ import {
   IconButton,
   SimpleGrid,
 } from "@chakra-ui/react";
-import { FiPlus, FiX } from "react-icons/fi";
+import { FiGlobe, FiPlus, FiX } from "react-icons/fi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import UserLayout from "@/components/Layouts/UserLayout";
@@ -30,7 +31,8 @@ import {
     fetchOrganoMineralFertilizers, 
     createOrganoMineralFertilizer, 
     updateOrganoMineralFertilizer, 
-    deleteOrganoMineralFertilizer 
+    deleteOrganoMineralFertilizer, 
+    fetchPublicOrganoMineralFertilizers 
 } from "@/services/organoMineralFertilizerService";
 
 import OrganoMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/OrganoMineralFertilizerFormFields";
@@ -57,6 +59,7 @@ const mapResponseToForm = (dto: OrganoMineralFertilizerResponseDto): OrganoMiner
   zn: String(dto.zn ?? 0),
   indiceSalino: String(dto.indice_salino ?? 0),
   indiceAcidez: String(dto.indice_acidez ?? 0),
+  publico: dto.publico ? "sim" : "nao",
 });
 
 const mapFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerCreateRequestDto => ({
@@ -75,7 +78,8 @@ const mapFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoM
     mo: num(form.mo),
     zn: num(form.zn),
     indice_salino: num(form.indiceSalino),
-    indice_acidez: num(form.indiceAcidez)
+    indice_acidez: num(form.indiceAcidez),
+    publico: form.publico === "sim"
 });
 
 const mapFormToUpdatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerPostRequestDto => ({
@@ -94,13 +98,15 @@ const mapFormToUpdatePayload = (form: OrganoMineralFertilizerFormState): OrganoM
     novo_mo: num(form.mo),
     novo_zn: num(form.zn),
     novo_indice_salino: num(form.indiceSalino),
-    novo_indice_acidez: num(form.indiceAcidez)
+    novo_indice_acidez: num(form.indiceAcidez),
+    novo_publico: form.publico === "sim"
 });
 
 type Mode = "create" | "edit" | "view";
 
 export default function OrganoMineralFertilizer() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -180,6 +186,15 @@ export default function OrganoMineralFertilizer() {
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
+  const handleOpenPublicFertilizers = async () => {
+    await queryClient.prefetchQuery({
+      queryKey: ["organo-public-fertilizers"],
+      queryFn: fetchPublicOrganoMineralFertilizers,
+    });
+    navigate("/fertintelligence/fertilizer-management/organo-mineral-fertilizer/publicos");
+  };
+
+
   return (
     <UserLayout>
       <FertName subtitle="Adubos Organominerais" />
@@ -188,16 +203,29 @@ export default function OrganoMineralFertilizer() {
       <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
         <Flex direction="column" gap={6}>
           <Heading as="h1" size="lg" color="white">Gerenciar Adubos Organominerais</Heading>
-          <Button
-            alignSelf="flex-start"
-            colorPalette="green"
-            onClick={() => handleOpen("create")}
-            display="inline-flex"
-            alignItems="center"
-            gap={2}
-          >
-            <FiPlus /> Novo Organomineral
-          </Button>
+          <Flex gap={3} wrap="wrap">
+            <Button
+              alignSelf="flex-start"
+              colorPalette="green"
+              onClick={() => handleOpen("create")}
+              display="inline-flex"
+              alignItems="center"
+              gap={2}
+            >
+              <FiPlus /> Novo Organomineral
+            </Button>
+            <Button
+              alignSelf="flex-start"
+              variant="outline"
+              colorPalette="blue"
+              onClick={handleOpenPublicFertilizers}
+              display="inline-flex"
+              alignItems="center"
+              gap={2}
+            >
+              <FiGlobe /> Consultar adubos públicos
+            </Button>
+          </Flex>
 
           <Box mt={2}>
             {isLoading ? (

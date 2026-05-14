@@ -13,6 +13,11 @@ export const fetchChelatedFertilizers = async (): Promise<ChelatedFertilizerResp
     return data;
 };
 
+export const fetchPublicChelatedFertilizers = async (): Promise<ChelatedFertilizerResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    return data;
+};
+
 export const createChelatedFertilizer = async (payload: ChelatedFertilizerCreateRequestDto): Promise<ChelatedFertilizerResponseDto> => {
     const { data } = await api.post(`${ENDPOINT}/register`, payload);
     return data;

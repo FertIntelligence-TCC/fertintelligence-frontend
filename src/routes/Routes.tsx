@@ -26,6 +26,13 @@ import BioFertilizer from "@/pages/fertilizer/BioFertilizer";
 import ChelatedFertilizer from "@/pages/fertilizer/ChelatedFertilizer";
 import FoliarMineralFertilizer from "@/pages/fertilizer/FoliarMineralFertilizer";
 import FormulatedMineralFertilizer from "@/pages/fertilizer/FormulatedMineralFertilizer";
+import PublicSimpleMineralFertilizer from "@/pages/fertilizer/PublicSimpleMineralFertilizer";
+import PublicFormulatedMineralFertilizer from "@/pages/fertilizer/PublicFormulatedMineralFertilizer";
+import PublicOrganoMineralFertilizer from "@/pages/fertilizer/PublicOrganoMineralFertilizer";
+import PublicGreenFertilizer from "@/pages/fertilizer/PublicGreenFertilizer";
+import PublicFoliarMineralFertilizer from "@/pages/fertilizer/PublicFoliarMineralFertilizer";
+import PublicChelatedFertilizer from "@/pages/fertilizer/PublicChelatedFertilizer";
+import PublicBioFertilizer from "@/pages/fertilizer/PublicBioFertilizer";
 import GreenFertilizer from "@/pages/fertilizer/GreenFertilizer";
 import SimpleMineralFertilizer from "@/pages/fertilizer/SimpleMineralFertilizer";
 import OrganoMineralFertilizer from "@/pages/fertilizer/OrganoMineralFertilizer";
@@ -160,6 +167,34 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/fertilizer-management/simple-mineral-fertilizer",
     element: <SimpleMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/simple-mineral-fertilizer/publicos",
+    element: <PublicSimpleMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/formulated-mineral-fertilizer/publicos",
+    element: <PublicFormulatedMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/organo-mineral-fertilizer/publicos",
+    element: <PublicOrganoMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/green-fertilizer/publicos",
+    element: <PublicGreenFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/foliar-mineral-fertilizer/publicos",
+    element: <PublicFoliarMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/chelated-fertilizer/publicos",
+    element: <PublicChelatedFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/bio-fertilizer/publicos",
+    element: <PublicBioFertilizer />,
   },
   {
     path: "/fertintelligence/plots/:plotId/physical-analysis",

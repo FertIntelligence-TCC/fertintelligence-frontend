@@ -12,6 +12,11 @@ export const fetchMineralFertilizers = async (): Promise<MineralFertilizerRespon
     return data;
 };
 
+export const fetchPublicMineralFertilizers = async (): Promise<MineralFertilizerResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    return data;
+};
+
 export const createMineralFertilizer = async (payload: MineralFertilizerCreateRequestDto): Promise<MineralFertilizerResponseDto> => {
     const { data } = await api.post(`${ENDPOINT}/register`, payload);
     return data;

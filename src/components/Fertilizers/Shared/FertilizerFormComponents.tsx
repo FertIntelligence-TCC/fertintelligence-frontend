@@ -1,5 +1,5 @@
 // src/components/Fertilizers/Shared/FertilizerFormComponents.tsx
-import { Box, Input, Text, BoxProps } from "@chakra-ui/react";
+import { Box, Input, Text, BoxProps, Button, HStack } from "@chakra-ui/react";
 
 interface FertilizerInputFieldProps {
     label: string;
@@ -96,5 +96,45 @@ export const ReadOnlyDisplay = ({ value, ...props }: ReadOnlyDisplayProps) => (
         {...props}
     >
         {value}
+    </Box>
+);
+
+interface PublicVisibilitySelectorProps {
+    value: "sim" | "nao";
+    onChange?: (value: "sim" | "nao") => void;
+    readOnly?: boolean;
+    colorScheme?: string;
+}
+
+export const PublicVisibilitySelector = ({
+    value,
+    onChange,
+    readOnly,
+    colorScheme = "green",
+}: PublicVisibilitySelectorProps) => (
+    <Box>
+        <Text fontSize="sm" fontWeight="semibold" mb={2} color="gray.700" _dark={{ color: "gray.300" }}>
+            Tornar esse adubo público?
+        </Text>
+        <HStack gap={3}>
+            <Button
+                type="button"
+                variant={value === "sim" ? "solid" : "outline"}
+                colorPalette={colorScheme}
+                onClick={() => onChange?.("sim")}
+                disabled={readOnly}
+            >
+                Sim
+            </Button>
+            <Button
+                type="button"
+                variant={value === "nao" ? "solid" : "outline"}
+                colorPalette={value === "nao" ? "gray" : colorScheme}
+                onClick={() => onChange?.("nao")}
+                disabled={readOnly}
+            >
+                Não
+            </Button>
+        </HStack>
     </Box>
 );

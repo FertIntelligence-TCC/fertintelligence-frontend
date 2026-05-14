@@ -12,6 +12,11 @@ export const fetchOrganoMineralFertilizers = async (): Promise<OrganoMineralFert
     return data;
 };
 
+export const fetchPublicOrganoMineralFertilizers = async (): Promise<OrganoMineralFertilizerResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    return data;
+};
+
 export const createOrganoMineralFertilizer = async (payload: OrganoMineralFertilizerCreateRequestDto): Promise<OrganoMineralFertilizerResponseDto> => {
     const { data } = await api.post(`${ENDPOINT}/register`, payload);
     return data;

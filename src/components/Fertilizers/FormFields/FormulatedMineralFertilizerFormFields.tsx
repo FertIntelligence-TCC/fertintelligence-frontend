@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Box, Grid, VStack, Flex, Text } from "@chakra-ui/react";
 import { FormulatedFertilizerFormState } from "@/interfaces/Fertilizer";
-import { FertilizerInputField, FormSectionHeader } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerInputField, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 
 type Props = {
     form: FormulatedFertilizerFormState;
@@ -87,6 +87,17 @@ export default function FormulatedMineralFertilizerFormFields({ form, onChange, 
                 <Grid templateColumns="repeat(2, 1fr)" gap={3}>
                      <FertilizerInputField label="Nº Fórmula Indicada" value={form.numeroFormulaIndicada} onChange={(v) => onChange("numeroFormulaIndicada", v)} readOnly={readOnly} colorScheme={color} />
                 </Grid>
+            </Box>
+
+
+            <Box>
+                <FormSectionHeader title="Compartilhamento" colorScheme={color} />
+                <PublicVisibilitySelector
+                    value={form.publico ?? "nao"}
+                    onChange={(v) => onChange("publico", v)}
+                    readOnly={readOnly}
+                    colorScheme={color}
+                />
             </Box>
         </VStack>
     );

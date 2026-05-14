@@ -13,6 +13,11 @@ export const fetchGreenFertilizers = async (): Promise<GreenFertilizerResponseDt
     return data;
 };
 
+export const fetchPublicGreenFertilizers = async (): Promise<GreenFertilizerResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    return data;
+};
+
 export const createGreenFertilizer = async (payload: GreenFertilizerCreateRequestDto): Promise<GreenFertilizerResponseDto> => {
     const { data } = await api.post(`${ENDPOINT}/register`, payload);
     return data;
