@@ -45,6 +45,7 @@ import ViewPlotSolicitations from "@/pages/property-access/ViewPlotSolicitations
 import ResidentAgronomistMakePlotSolicitations from "@/pages/make-plot-access-solicitation/ResidentAgronomistMakePlotSolicitations";
 import ConsultantAgronomistMakePlotSolicitations from "@/pages/make-plot-access-solicitation/ConsultantAgronomistMakePlotSolicitations";
 import SecretaryMakePlotSolicitations from "@/pages/make-plot-access-solicitation/SecretaryMakePlotSolicitations";
+import Recommendation from "@/pages/recommendation/Recommendation";
 
 
 export const PublicRoutes: RouteObject[] = [
@@ -240,6 +241,10 @@ export const PublicRoutes: RouteObject[] = [
       {
         path: "/fertintelligence/home",
         element: <Home />,
+      },
+      {
+        path: "/fertintelligence/recommendation",
+        element: <Recommendation />,
       },
     ],
   },

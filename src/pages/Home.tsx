@@ -19,7 +19,7 @@ const ROUTES = {
   SUPERVISOR_MANAGEMENT: "/fertintelligence/area-supervisor-property-management",
   FERTILIZATION_TABLES: "/fertintelligence/fertilization-table-management",
   FERTILIZERS: "/fertintelligence/fertilizer-management",
-  MAKE_RECOMMENDATION: "/fazer-recomendacao",
+  MAKE_RECOMMENDATION: "/fertintelligence/recommendation",
   RESIDENT_MAKE_REQUEST: "/fertintelligence/resident-agronomist-make-plot-solicitations",
   CONSULTANT_MAKE_REQUEST: "/fertintelligence/consultant-agronomist-make-plot-solicitations",
   SECRETARY_MAKE_REQUEST: "/fertintelligence/secretary-make-plot-solicitations",
@@ -171,6 +171,26 @@ export default function Home() {
             )}
           </Flex>
         </Box>)}
+
+        <Box
+          borderWidth="1px"
+          borderRadius="md"
+          boxShadow="md"
+          p={8}
+          w={{ base: "100%", md: "30%" }}
+          bg={{ base: "white", _dark: "gray.700" }}
+        >
+          <Heading as="h2" size="md" mb={4}>
+            Gerar Recomendação
+          </Heading>
+          <Box mb={6}>
+            Crie recomendações preliminares de correção e adubação para propriedades e talhões.
+          </Box>
+          <Button colorScheme="blue" onClick={() => go(ROUTES.MAKE_RECOMMENDATION)} h="50px" fontSize="md" w="100%">
+            Gerar Recomendação
+          </Button>
+        </Box>
+
       </Flex>
     </UserLayout>
   );
