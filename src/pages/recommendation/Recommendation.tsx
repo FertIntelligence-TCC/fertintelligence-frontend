@@ -1,9 +1,11 @@
+import { AxiosError } from "axios";
 import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Box,
   Button,
   Flex,
+  HStack,
   Heading,
   Input,
   Separator,
@@ -44,6 +46,7 @@ import {
   deleteRecommendation,
   generateRecommendation,
   getMyRecommendations,
+  preparePrintRecommendation,
 } from "@/services/recommendationService";
 import { useUserStore } from "@/stores/user/user.store";
 
@@ -93,6 +96,15 @@ const limingCriteriaOptions: RecommendationLimingCriteria[] = [
   "PORCENTAGEM_DE_SATURACAO_DAS_BASES",
 ];
 
+const canPrintRecommendation = (cargo?: string) =>
+  cargo === "AGRONOMO_RESIDENTE" || cargo === "AGRONOMO_CONSULTOR";
+
+const escapeHtml = (text: string) =>
+  text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
 const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]): TableOption | null => {
   if (!table?.id) return null;
   const source = table.tabela_publica === true || table.public === true ? "PUBLIC" : fallbackSource;
@@ -105,6 +117,8 @@ const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]):
 
 export default function Recommendation() {
   const user = useUserStore((s) => s.user);
+  const userCanPrint = canPrintRecommendation(user?.cargo);
+
 
   const [recommendationType, setRecommendationType] = useState("");
   const [selectedPropertyId, setSelectedPropertyId] = useState("");
@@ -130,6 +144,7 @@ export default function Recommendation() {
   const [generating, setGenerating] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [printing, setPrinting] = useState(false);
 
   const selectedProperty = useMemo(() => properties.find((p) => String(p.id) === selectedPropertyId), [properties, selectedPropertyId]);
   const selectedPlot = useMemo(() => plots.find((p) => String(p.id) === selectedPlotId), [plots, selectedPlotId]);
@@ -225,6 +240,84 @@ export default function Recommendation() {
     } finally { setGenerating(false); }
   };
 
+  const handlePrintRecommendation = async () => {
+    if (!selectedRecommendation?.id) {
+      toaster.create({
+        title: "Laudo indisponível",
+        description: "Nenhum laudo foi encontrado para impressão.",
+        type: "warning",
+      });
+      return;
+    }
+
+    try {
+      setPrinting(true);
+      const printableRecommendation = await preparePrintRecommendation(selectedRecommendation.id);
+      const printableReportText = getRecommendationReportText(printableRecommendation);
+
+      if (!printableReportText?.trim()) {
+        toaster.create({
+          title: "Laudo indisponível",
+          description: "Nenhum laudo foi encontrado para impressão.",
+          type: "warning",
+        });
+        return;
+      }
+
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        toaster.create({
+          title: "Erro ao imprimir",
+          description: "Não foi possível abrir a janela de impressão.",
+          type: "error",
+        });
+        return;
+      }
+
+      const escapedReportText = escapeHtml(printableReportText);
+      printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <title>Laudo Técnico</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 32px; line-height: 1.5; color: #000; }
+    h1, h2 { margin-top: 24px; }
+    pre { white-space: pre-wrap; font-family: Arial, sans-serif; }
+    .footer { margin-top: 48px; }
+  </style>
+</head>
+<body>
+  <h1>Laudo Técnico de Recomendação Agrícola</h1>
+  <pre>${escapedReportText}</pre>
+  <div class="footer">Documento emitido pelo sistema FertIntelligence.</div>
+</body>
+</html>`);
+      printWindow.document.close();
+
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+      }, 300);
+    } catch (error) {
+      console.error(error);
+      if (error instanceof AxiosError && error.response?.status === 403) {
+        toaster.create({
+          title: "Acesso negado",
+          description: "Seu usuário não possui permissão para emitir laudos formais.",
+          type: "error",
+        });
+        return;
+      }
+      toaster.create({
+        title: "Erro ao imprimir",
+        description: "Não foi possível preparar o laudo para impressão.",
+        type: "error",
+      });
+    } finally {
+      setPrinting(false);
+    }
+  };
+
   const reportText = getRecommendationReportText(selectedRecommendation);
 
   return (
@@ -247,7 +340,7 @@ export default function Recommendation() {
             </VStack>
           </Box>
           <Box borderWidth="1px" borderRadius="lg" p={6}><Heading size="md" mb={3}>Resultado da Recomendação</Heading><Separator mb={4} />
-            {selectedRecommendation ? (<VStack align="stretch" gap={3}><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box whiteSpace="pre-wrap" fontFamily="mono" fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">{reportText || "Nenhum laudo retornado."}</Box><Button alignSelf="start" variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button></VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
+            {selectedRecommendation ? (<VStack align="stretch" gap={4}><Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap"><Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge><HStack gap={2}><Button variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button>{userCanPrint && selectedRecommendation.printable !== false ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}</HStack></Flex><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box whiteSpace="pre-wrap" fontFamily="mono" fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">{reportText || "Nenhum laudo retornado."}</Box>{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}</VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
           </Box>
         </SimpleGrid>
 
