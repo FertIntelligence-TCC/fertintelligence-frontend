@@ -39,21 +39,33 @@ export interface RecommendationResponse {
 
   id_usuario_criador?: number;
   nome_usuario_criador?: string;
+  idUsuarioCriador?: number;
+  nomeUsuarioCriador?: string;
 
   id_propriedade?: number;
   nome_propriedade?: string;
+  idPropriedade?: number;
+  nomePropriedade?: string;
 
   id_talhao?: number;
   identificacao_talhao?: string;
+  idTalhao?: number;
+  identificacaoTalhao?: string;
 
   tipo_recomendacao?: RecommendationType;
   cultura?: RecommendationCropName;
   ano_safra?: number;
   criterio_calagem?: RecommendationLimingCriteria;
+  tipoRecomendacao?: RecommendationType;
+  anoSafra?: number;
+  criterioCalagem?: RecommendationLimingCriteria;
 
   id_tabela_adubacao_cultura?: number;
   id_tabela_interpretacao_fertilidade_solo?: number;
   id_tabela_interpretacao_analise_foliar?: number;
+  idTabelaAdubacaoCultura?: number;
+  idTabelaInterpretacaoFertilidadeSolo?: number;
+  idTabelaInterpretacaoAnaliseFoliar?: number;
 
   laudo_tecnico?: string;
   technicalReport?: string;
