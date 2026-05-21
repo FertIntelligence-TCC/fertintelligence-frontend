@@ -47,6 +47,7 @@ import {
   generateRecommendation,
   getMyRecommendations,
   preparePrintRecommendation,
+  improveRecommendationNarrative,
 } from "@/services/recommendationService";
 import { useUserStore } from "@/stores/user/user.store";
 
@@ -145,6 +146,7 @@ export default function Recommendation() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [printing, setPrinting] = useState(false);
+  const [improvingNarrative, setImprovingNarrative] = useState(false);
 
   const selectedProperty = useMemo(() => properties.find((p) => String(p.id) === selectedPropertyId), [properties, selectedPropertyId]);
   const selectedPlot = useMemo(() => plots.find((p) => String(p.id) === selectedPlotId), [plots, selectedPlotId]);
@@ -238,6 +240,30 @@ export default function Recommendation() {
       console.error(error);
       toaster.create({ title: "Falha ao gerar recomendação.", type: "error" });
     } finally { setGenerating(false); }
+  };
+
+  const handleImproveNarrative = async () => {
+    if (!selectedRecommendation?.id) {
+      toaster.create({
+        title: "Laudo indisponível",
+        description: "Nenhum laudo foi encontrado para melhorar.",
+        type: "warning",
+      });
+      return;
+    }
+
+    try {
+      setImprovingNarrative(true);
+      const improvedRecommendation = await improveRecommendationNarrative(selectedRecommendation.id);
+      setSelectedRecommendation(improvedRecommendation);
+      toaster.create({ title: "Texto do laudo melhorado com sucesso.", type: "success" });
+      await loadHistory();
+    } catch (error) {
+      console.error(error);
+      toaster.create({ title: "Falha ao melhorar texto do laudo.", type: "error" });
+    } finally {
+      setImprovingNarrative(false);
+    }
   };
 
   const handlePrintRecommendation = async () => {
@@ -340,7 +366,7 @@ export default function Recommendation() {
             </VStack>
           </Box>
           <Box borderWidth="1px" borderRadius="lg" p={6}><Heading size="md" mb={3}>Resultado da Recomendação</Heading><Separator mb={4} />
-            {selectedRecommendation ? (<VStack align="stretch" gap={4}><Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap"><Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge><HStack gap={2}><Button variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button>{userCanPrint && selectedRecommendation.printable !== false ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}</HStack></Flex><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box whiteSpace="pre-wrap" fontFamily="mono" fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">{reportText || "Nenhum laudo retornado."}</Box>{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}</VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
+            {selectedRecommendation ? (<VStack align="stretch" gap={4}><Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap"><Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge><HStack gap={2}><Button variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button><Button variant="subtle" loading={improvingNarrative} onClick={handleImproveNarrative}>{improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}</Button>{userCanPrint && selectedRecommendation.printable !== false ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}</HStack></Flex><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box whiteSpace="pre-wrap" fontFamily="mono" fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">{reportText || "Nenhum laudo retornado."}</Box><Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}</VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
           </Box>
         </SimpleGrid>
 

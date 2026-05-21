@@ -51,3 +51,10 @@ export async function deleteRecommendation(id: number): Promise<void> {
     params: { id },
   });
 }
+
+export async function improveRecommendationNarrative(id: number): Promise<RecommendationResponse> {
+  const { data } = await api.post<RecommendationResponse>(`${ENDPOINT}/improve-narrative`, undefined, {
+    params: { id },
+  });
+  return data;
+}
