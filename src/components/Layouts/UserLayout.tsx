@@ -1,7 +1,7 @@
 import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import { ReactNode } from "react";
 import { ToggleTheme } from "@/components/ToggleTheme/ToggleTheme";
-import agricultoresImg from '@/assets/agricultores.jpeg';
+import agricultoresImg from "@/assets/agricultores.jpeg";
 
 type UserLayoutProps = {
   children: ReactNode;
@@ -14,8 +14,8 @@ export default function UserLayout({ children }: UserLayoutProps) {
       minH="100vh"
       position="relative"
       bg="gray.800"
-      _dark={{ bg: "gray.800" }}>
-
+      _dark={{ bg: "gray.800" }}
+    >
       {/* Imagem de fundo */}
       <Image
         src={agricultoresImg}
@@ -31,11 +31,7 @@ export default function UserLayout({ children }: UserLayoutProps) {
       />
 
       {/* Conteúdo principal da página */}
-      <Box
-        p={6}
-        flex="1"
-        zIndex = {1}
-      >
+      <Box p={6} flex="1" zIndex={1}>
         {children}
       </Box>
 
@@ -43,21 +39,14 @@ export default function UserLayout({ children }: UserLayoutProps) {
       <Flex
         mt={8}
         mb={4}
-        zIndex={1}
-        alignSelf="flex-start"
-        pl={6}
-        pr={6}
+        px={6}
+        w="100%"
         align="center"
-        gap={3}
-        wrap="wrap"
+        justify="space-between"
       >
         <ToggleTheme />
-        <Text
-          fontSize="xs"
-          color="gray.300"
-          _dark={{ color: "gray.400" }}
-          whiteSpace="nowrap"
-        >
+
+        <Text fontSize="sm" color="gray.300" _dark={{ color: "gray.400" }}>
           Desenvolvido por Miguel Macedo Ferreira e Gilvan Barbosa Ferreira
         </Text>
       </Flex>
