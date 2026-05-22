@@ -108,12 +108,6 @@ const limingCriteriaOptions: RecommendationLimingCriteria[] = [
 const canPrintRecommendation = (cargo?: string) =>
   cargo === "AGRONOMO_RESIDENTE" || cargo === "AGRONOMO_CONSULTOR";
 
-const escapeHtml = (text: string) =>
-  text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
 const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]): TableOption | null => {
   if (!table?.id) return null;
   const source = table.tabela_publica === true || table.public === true ? "PUBLIC" : fallbackSource;
@@ -146,13 +140,11 @@ const parseMarkdownTableLine = (line: string) =>
     .split("|")
     .map((cell) => cell.trim());
 
-const renderReportText = (text: string) => {
-  if (!text?.trim()) {
-    return "Nenhum laudo retornado.";
-  }
+type ReportBlock = { type: "text"; content: string } | { type: "table"; rows: string[][] };
 
+const parseReportBlocks = (text: string): ReportBlock[] => {
   const lines = text.split("\n");
-  const blocks: Array<{ type: "text"; content: string } | { type: "table"; rows: string[][] }> = [];
+  const blocks: ReportBlock[] = [];
   let currentTextLines: string[] = [];
   let currentTableRows: string[][] = [];
 
@@ -185,7 +177,14 @@ const renderReportText = (text: string) => {
 
   flushTableBlock();
   flushTextBlock();
+  return blocks;
+};
 
+const RecommendationReportViewer = ({ text }: { text: string }) => {
+  if (!text?.trim()) {
+    return "Nenhum laudo retornado.";
+  }
+  const blocks = parseReportBlocks(text);
   return (
     <VStack align="stretch" gap={3}>
       {blocks.map((block, blockIndex) => {
@@ -210,13 +209,66 @@ const renderReportText = (text: string) => {
         }
 
         return (
-          <Text key={`text-${blockIndex}`} whiteSpace="pre-wrap" fontFamily="mono">
+          <Text key={`text-${blockIndex}`} whiteSpace="pre-wrap" lineHeight="1.65">
             {block.content}
           </Text>
         );
       })}
     </VStack>
   );
+};
+
+const writePrintableReport = (printWindow: Window, text: string) => {
+  const doc = printWindow.document;
+  doc.open();
+  doc.write("<!DOCTYPE html><html><head><title>Laudo Técnico</title></head><body></body></html>");
+  doc.close();
+  doc.title = "Laudo Técnico";
+
+  const style = doc.createElement("style");
+  style.textContent = `
+    body { font-family: Arial, sans-serif; padding: 32px; line-height: 1.6; color: #000; font-size: 14px; }
+    h1 { margin: 0 0 24px; font-size: 26px; }
+    .report-text { margin: 0 0 12px; white-space: pre-wrap; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; }
+    th, td { border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #f1f1f1; font-weight: 700; }
+    .footer { margin-top: 36px; }
+  `;
+  doc.head.appendChild(style);
+
+  const title = doc.createElement("h1");
+  title.textContent = "Laudo Técnico de Recomendação Agrícola";
+  doc.body.appendChild(title);
+
+  parseReportBlocks(text).forEach((block) => {
+    if (block.type === "text") {
+      const paragraph = doc.createElement("p");
+      paragraph.className = "report-text";
+      paragraph.textContent = block.content;
+      doc.body.appendChild(paragraph);
+      return;
+    }
+
+    const table = doc.createElement("table");
+    const tbody = doc.createElement("tbody");
+    block.rows.forEach((row, rowIndex) => {
+      const tr = doc.createElement("tr");
+      row.forEach((cell) => {
+        const cellElement = doc.createElement(rowIndex === 0 ? "th" : "td");
+        cellElement.textContent = cell;
+        tr.appendChild(cellElement);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    doc.body.appendChild(table);
+  });
+
+  const footer = doc.createElement("div");
+  footer.className = "footer";
+  footer.textContent = "Documento emitido pelo sistema FertIntelligence.";
+  doc.body.appendChild(footer);
 };
 
 export default function Recommendation() {
@@ -404,25 +456,7 @@ export default function Recommendation() {
         return;
       }
 
-      const escapedReportText = escapeHtml(printableReportText);
-      printWindow.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>Laudo Técnico</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 32px; line-height: 1.5; color: #000; }
-    h1, h2 { margin-top: 24px; }
-    pre { white-space: pre-wrap; font-family: Arial, sans-serif; }
-    .footer { margin-top: 48px; }
-  </style>
-</head>
-<body>
-  <h1>Laudo Técnico de Recomendação Agrícola</h1>
-  <pre>${escapedReportText}</pre>
-  <div class="footer">Documento emitido pelo sistema FertIntelligence.</div>
-</body>
-</html>`);
-      printWindow.document.close();
+      writePrintableReport(printWindow, printableReportText);
 
       setTimeout(() => {
         printWindow.focus();
@@ -470,7 +504,7 @@ export default function Recommendation() {
             </VStack>
           </Box>
           <Box borderWidth="1px" borderRadius="lg" p={6}><Flex justify="space-between" align="center" mb={3} gap={2}><Heading size="md">Resultado da Recomendação</Heading>{selectedRecommendation ? <Button size="xs" variant="ghost" onClick={() => setIsFullscreenOpen(true)}>Tela cheia</Button> : null}</Flex><Separator mb={4} />
-            {selectedRecommendation ? (<VStack align="stretch" gap={4}><Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap"><Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge><HStack gap={2}><Button variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button><Button variant="subtle" loading={improvingNarrative} onClick={handleImproveNarrative}>{improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}</Button>{userCanPrint && selectedRecommendation.printable !== false ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}</HStack></Flex><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">{renderReportText(reportText)}</Box><Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}</VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
+            {selectedRecommendation ? (<VStack align="stretch" gap={4}><Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap"><Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge><HStack gap={2}><Button variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button><Button variant="subtle" loading={improvingNarrative} onClick={handleImproveNarrative}>{improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}</Button>{userCanPrint && selectedRecommendation.printable !== false ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}</HStack></Flex><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto"><RecommendationReportViewer text={reportText} /></Box><Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}</VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
           </Box>
         </SimpleGrid>
 
@@ -499,7 +533,7 @@ export default function Recommendation() {
               overflowY="auto"
               overflowX="auto"
             >
-              {renderReportText(reportText)}
+              <RecommendationReportViewer text={reportText} />
             </Box>
           </DialogBody>
           <DialogCloseTrigger />
