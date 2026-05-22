@@ -1,5 +1,6 @@
 import { AxiosError } from "axios";
 import { useEffect, useMemo, useState } from "react";
+import { createRoot } from "react-dom/client";
 import {
   Badge,
   Box,
@@ -58,6 +59,7 @@ import {
   improveRecommendationNarrative,
 } from "@/services/recommendationService";
 import { useUserStore } from "@/stores/user/user.store";
+import RecommendationReportViewer from "@/components/Recommendation/RecommendationReportViewer";
 
 const NativeSelect = chakra("select", {
   base: {
@@ -118,106 +120,6 @@ const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]):
   return { id: table.id, label: `${baseName}${cropName}${regionText}`, source };
 };
 
-const isMarkdownTableLine = (line: string) => {
-  const trimmedLine = line.trim();
-  return trimmedLine.startsWith("|") && trimmedLine.endsWith("|");
-};
-
-const isMarkdownTableSeparatorLine = (line: string) => {
-  const cells = line
-    .trim()
-    .slice(1, -1)
-    .split("|")
-    .map((cell) => cell.trim());
-
-  return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
-};
-
-const parseMarkdownTableLine = (line: string) =>
-  line
-    .trim()
-    .slice(1, -1)
-    .split("|")
-    .map((cell) => cell.trim());
-
-type ReportBlock = { type: "text"; content: string } | { type: "table"; rows: string[][] };
-
-const parseReportBlocks = (text: string): ReportBlock[] => {
-  const lines = text.split("\n");
-  const blocks: ReportBlock[] = [];
-  let currentTextLines: string[] = [];
-  let currentTableRows: string[][] = [];
-
-  const flushTextBlock = () => {
-    if (currentTextLines.length > 0) {
-      blocks.push({ type: "text", content: currentTextLines.join("\n") });
-      currentTextLines = [];
-    }
-  };
-
-  const flushTableBlock = () => {
-    if (currentTableRows.length > 0) {
-      blocks.push({ type: "table", rows: currentTableRows });
-      currentTableRows = [];
-    }
-  };
-
-  lines.forEach((line) => {
-    if (isMarkdownTableLine(line)) {
-      flushTextBlock();
-      if (!isMarkdownTableSeparatorLine(line)) {
-        currentTableRows.push(parseMarkdownTableLine(line));
-      }
-      return;
-    }
-
-    flushTableBlock();
-    currentTextLines.push(line);
-  });
-
-  flushTableBlock();
-  flushTextBlock();
-  return blocks;
-};
-
-const RecommendationReportViewer = ({ text }: { text: string }) => {
-  if (!text?.trim()) {
-    return "Nenhum laudo retornado.";
-  }
-  const blocks = parseReportBlocks(text);
-  return (
-    <VStack align="stretch" gap={3}>
-      {blocks.map((block, blockIndex) => {
-        if (block.type === "table") {
-          return (
-            <Box key={`table-${blockIndex}`} overflowX="auto">
-              <Box as="table" width="100%" borderCollapse="collapse" fontFamily="body" fontSize="sm">
-                <Box as="tbody">
-                  {block.rows.map((row, rowIndex) => (
-                    <Box as="tr" key={`row-${blockIndex}-${rowIndex}`} bg={rowIndex === 0 ? "bg.subtle" : "transparent"}>
-                      {row.map((cell, cellIndex) => (
-                        <Box as={rowIndex === 0 ? "th" : "td"} key={`cell-${blockIndex}-${rowIndex}-${cellIndex}`} borderWidth="1px" borderColor="gray.300" px={3} py={2} textAlign="left">
-                          {cell}
-                        </Box>
-                      ))}
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            </Box>
-          );
-        }
-
-        return (
-          <Text key={`text-${blockIndex}`} whiteSpace="pre-wrap" lineHeight="1.65">
-            {block.content}
-          </Text>
-        );
-      })}
-    </VStack>
-  );
-};
-
 const writePrintableReport = (printWindow: Window, text: string) => {
   const doc = printWindow.document;
   doc.open();
@@ -229,10 +131,6 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   style.textContent = `
     body { font-family: Arial, sans-serif; padding: 32px; line-height: 1.6; color: #000; font-size: 14px; }
     h1 { margin: 0 0 24px; font-size: 26px; }
-    .report-text { margin: 0 0 12px; white-space: pre-wrap; }
-    table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; }
-    th, td { border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; }
-    th { background: #f1f1f1; font-weight: 700; }
     .footer { margin-top: 36px; }
   `;
   doc.head.appendChild(style);
@@ -241,29 +139,11 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   title.textContent = "Laudo Técnico de Recomendação Agrícola";
   doc.body.appendChild(title);
 
-  parseReportBlocks(text).forEach((block) => {
-    if (block.type === "text") {
-      const paragraph = doc.createElement("p");
-      paragraph.className = "report-text";
-      paragraph.textContent = block.content;
-      doc.body.appendChild(paragraph);
-      return;
-    }
+  const container = doc.createElement("div");
+  doc.body.appendChild(container);
 
-    const table = doc.createElement("table");
-    const tbody = doc.createElement("tbody");
-    block.rows.forEach((row, rowIndex) => {
-      const tr = doc.createElement("tr");
-      row.forEach((cell) => {
-        const cellElement = doc.createElement(rowIndex === 0 ? "th" : "td");
-        cellElement.textContent = cell;
-        tr.appendChild(cellElement);
-      });
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    doc.body.appendChild(table);
-  });
+  const root = createRoot(container);
+  root.render(<RecommendationReportViewer reportText={text} variant="print" />);
 
   const footer = doc.createElement("div");
   footer.className = "footer";
@@ -504,7 +384,7 @@ export default function Recommendation() {
             </VStack>
           </Box>
           <Box borderWidth="1px" borderRadius="lg" p={6}><Flex justify="space-between" align="center" mb={3} gap={2}><Heading size="md">Resultado da Recomendação</Heading>{selectedRecommendation ? <Button size="xs" variant="ghost" onClick={() => setIsFullscreenOpen(true)}>Tela cheia</Button> : null}</Flex><Separator mb={4} />
-            {selectedRecommendation ? (<VStack align="stretch" gap={4}><Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap"><Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge><HStack gap={2}><Button variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button><Button variant="subtle" loading={improvingNarrative} onClick={handleImproveNarrative}>{improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}</Button>{userCanPrint && selectedRecommendation.printable !== false ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}</HStack></Flex><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto"><RecommendationReportViewer text={reportText} /></Box><Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}</VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
+            {selectedRecommendation ? (<VStack align="stretch" gap={4}><Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap"><Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge><HStack gap={2}><Button variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button><Button variant="subtle" loading={improvingNarrative} onClick={handleImproveNarrative}>{improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}</Button>{userCanPrint && selectedRecommendation.printable !== false ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}</HStack></Flex><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto"><RecommendationReportViewer reportText={reportText} variant="compact" /></Box><Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}</VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
           </Box>
         </SimpleGrid>
 
@@ -533,7 +413,7 @@ export default function Recommendation() {
               overflowY="auto"
               overflowX="auto"
             >
-              <RecommendationReportViewer text={reportText} />
+              <RecommendationReportViewer reportText={reportText} variant="modal" />
             </Box>
           </DialogBody>
           <DialogCloseTrigger />
