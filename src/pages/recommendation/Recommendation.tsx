@@ -1,6 +1,5 @@
 import { AxiosError } from "axios";
 import { useEffect, useMemo, useState } from "react";
-import { createRoot } from "react-dom/client";
 import {
   Badge,
   Box,
@@ -59,7 +58,9 @@ import {
   improveRecommendationNarrative,
 } from "@/services/recommendationService";
 import { useUserStore } from "@/stores/user/user.store";
-import RecommendationReportViewer from "@/components/Recommendation/RecommendationReportViewer";
+import RecommendationReportViewer, {
+  parseRecommendationReportBlocks,
+} from "@/components/Recommendation/RecommendationReportViewer";
 
 const NativeSelect = chakra("select", {
   base: {
@@ -121,34 +122,66 @@ const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]):
 };
 
 const writePrintableReport = (printWindow: Window, text: string) => {
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  const blocks = parseRecommendationReportBlocks(text);
+  const contentHtml = blocks
+    .map((block) => {
+      if (block.type === "spacing") {
+        return "<div class=\"spacing\"></div>";
+      }
+
+      if (block.type === "heading") {
+        return `<h2>${escapeHtml(block.content)}</h2>`;
+      }
+
+      if (block.type === "table") {
+        const [headerRow, ...bodyRows] = block.rows;
+        const headerHtml = headerRow
+          ? `<thead><tr>${headerRow.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr></thead>`
+          : "";
+        const bodyHtml = `<tbody>${bodyRows
+          .map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`)
+          .join("")}</tbody>`;
+        return `<table>${headerHtml}${bodyHtml}</table>`;
+      }
+
+      return `<p>${escapeHtml(block.content)}</p>`;
+    })
+    .join("");
+
   const doc = printWindow.document;
   doc.open();
-  doc.write("<!DOCTYPE html><html><head><title>Laudo Técnico</title></head><body></body></html>");
+  doc.write(`<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Laudo Técnico</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 32px; line-height: 1.6; color: #000; font-size: 14px; }
+      h1 { margin: 0 0 24px; font-size: 26px; }
+      h2 { margin: 20px 0 8px; font-size: 18px; }
+      p { margin: 0; white-space: pre-wrap; }
+      .spacing { height: 12px; }
+      table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+      th, td { border: 1px solid #000; padding: 8px 10px; text-align: left; vertical-align: top; }
+      th { font-weight: 700; background: #f2f2f2; }
+      .footer { margin-top: 36px; }
+    </style>
+  </head>
+  <body>
+    <h1>Laudo Técnico de Recomendação Agrícola</h1>
+    <div>${contentHtml}</div>
+    <div class="footer">Documento emitido pelo sistema FertIntelligence.</div>
+  </body>
+</html>`);
   doc.close();
-  doc.title = "Laudo Técnico";
-
-  const style = doc.createElement("style");
-  style.textContent = `
-    body { font-family: Arial, sans-serif; padding: 32px; line-height: 1.6; color: #000; font-size: 14px; }
-    h1 { margin: 0 0 24px; font-size: 26px; }
-    .footer { margin-top: 36px; }
-  `;
-  doc.head.appendChild(style);
-
-  const title = doc.createElement("h1");
-  title.textContent = "Laudo Técnico de Recomendação Agrícola";
-  doc.body.appendChild(title);
-
-  const container = doc.createElement("div");
-  doc.body.appendChild(container);
-
-  const root = createRoot(container);
-  root.render(<RecommendationReportViewer reportText={text} variant="print" />);
-
-  const footer = doc.createElement("div");
-  footer.className = "footer";
-  footer.textContent = "Documento emitido pelo sistema FertIntelligence.";
-  doc.body.appendChild(footer);
 };
 
 export default function Recommendation() {
@@ -337,11 +370,10 @@ export default function Recommendation() {
       }
 
       writePrintableReport(printWindow, printableReportText);
-
-      setTimeout(() => {
+      printWindow.onload = () => {
         printWindow.focus();
         printWindow.print();
-      }, 300);
+      };
     } catch (error) {
       console.error(error);
       if (error instanceof AxiosError && error.response?.status === 403) {
