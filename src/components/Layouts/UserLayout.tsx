@@ -1,4 +1,4 @@
-import { Box, Flex, Image } from "@chakra-ui/react";
+import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import { ReactNode } from "react";
 import { ToggleTheme } from "@/components/ToggleTheme/ToggleTheme";
 import agricultoresImg from '@/assets/agricultores.jpeg';
@@ -39,10 +39,28 @@ export default function UserLayout({ children }: UserLayoutProps) {
         {children}
       </Box>
 
-      {/* Canto inferior esquerdo: alternador de tema */}
-      <Box mt={8} textAlign="left" zIndex = {1} alignSelf="flex-start" pl={6}>
+      {/* Rodapé global com alternador de tema e legenda */}
+      <Flex
+        mt={8}
+        mb={4}
+        zIndex={1}
+        alignSelf="flex-start"
+        pl={6}
+        pr={6}
+        align="center"
+        gap={3}
+        wrap="wrap"
+      >
         <ToggleTheme />
-      </Box>
+        <Text
+          fontSize="xs"
+          color="gray.300"
+          _dark={{ color: "gray.400" }}
+          whiteSpace="nowrap"
+        >
+          Desenvolvido por Miguel Macedo Ferreira e Gilvan Barbosa Ferreira
+        </Text>
+      </Flex>
     </Flex>
   );
 }
