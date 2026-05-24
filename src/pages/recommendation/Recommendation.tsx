@@ -1,5 +1,6 @@
 import { AxiosError } from "axios";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Box,
@@ -58,6 +59,7 @@ import {
   improveRecommendationNarrative,
 } from "@/services/recommendationService";
 import { useUserStore } from "@/stores/user/user.store";
+import { LuArrowLeft } from "react-icons/lu";
 import RecommendationReportViewer, {
   parseRecommendationReportBlocks,
 } from "@/components/Recommendation/RecommendationReportViewer";
@@ -186,6 +188,7 @@ const writePrintableReport = (printWindow: Window, text: string) => {
 
 export default function Recommendation() {
   const user = useUserStore((s) => s.user);
+  const navigate = useNavigate();
   const userCanPrint = canPrintRecommendation(user?.cargo);
 
 
@@ -399,6 +402,9 @@ export default function Recommendation() {
   return (
     <UserLayout><FertName subtitle="Módulo de recomendações" /><ConfigMenu />
       <Box px={4} py={8} maxW="1200px" mx="auto">
+        <Button variant="outline" mb={4} onClick={() => navigate("/fertintelligence/home")}>
+          <LuArrowLeft /> Voltar para o painel
+        </Button>
         <VStack align="start" gap={3} mb={6}><Heading size="xl">Gerar Recomendação</Heading><Text color="fg.muted">Gere recomendações técnicas preliminares para correção e adubação.</Text></VStack>
         <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
           <Box borderWidth="1px" borderRadius="lg" p={6}><Heading size="md" mb={3}>Formulário técnico</Heading><Separator mb={4} />

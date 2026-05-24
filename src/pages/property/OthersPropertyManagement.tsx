@@ -13,7 +13,8 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { FiPlus, FiSearch } from "react-icons/fi";
-import { Navigate } from "react-router-dom";
+import { LuArrowLeft } from "react-icons/lu";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import UserLayout from "@/components/Layouts/UserLayout";
@@ -42,6 +43,7 @@ const getErrorMessage = (error: unknown) => {
 
 export function RolePropertyManagement({ variant }: { variant: Variant }) {
   const { user } = useUserStore();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const propertyAccessDisclosure = useDisclosure();
@@ -148,7 +150,12 @@ export function RolePropertyManagement({ variant }: { variant: Variant }) {
 
       <Box p={8} mt={8}>
         <Flex justify="space-between" mb={6} gap={4} flexWrap="wrap">
-          <Heading size="lg">Propriedades vinculadas</Heading>
+          <Flex gap={3} align="center" wrap="wrap">
+            <Button variant="outline" onClick={() => navigate("/fertintelligence/home")}>
+              <LuArrowLeft /> Voltar para o painel
+            </Button>
+            <Heading size="lg">Propriedades vinculadas</Heading>
+          </Flex>
         </Flex>
 
         <Box mb={6} bg="white" _dark={{ bg: "gray.800" }} p={4} borderRadius="md" boxShadow="sm">
