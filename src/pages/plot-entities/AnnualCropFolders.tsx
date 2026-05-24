@@ -9,7 +9,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
-import { LuPlus } from "react-icons/lu";
+import { LuArrowLeft, LuPlus } from "react-icons/lu";
 
 // Layout Imports
 import UserLayout from "@/components/Layouts/UserLayout";
@@ -145,6 +145,15 @@ export const AnnualCropFolders = () => {
             ]}
           />
           <ConfigMenu />
+        </Flex>
+
+        <Flex justify="space-between" align="center" mb={4}>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/fertintelligence/owner-property-management")}
+          >
+            <LuArrowLeft /> Voltar para o painel
+          </Button>
         </Flex>
 
         <Flex justify="space-between" align="center" mb={8}>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -10,6 +11,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { FiPlus } from "react-icons/fi";
+import { LuArrowLeft } from "react-icons/lu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import UserLayout from "@/components/Layouts/UserLayout";
@@ -83,6 +85,7 @@ const isCnpjValid = (cnpj: string) => cnpj.replace(/\D/g, "").length === 14;
 
 export default function OwnerPropertyManagement() {
   const user = useUserStore((state) => state.user);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const createDisclosure = useDisclosure();
@@ -265,7 +268,12 @@ export default function OwnerPropertyManagement() {
 
       <Box pt={32} px={8} maxW="1600px" mx="auto">
         <Flex justify="space-between" mb={8} gap={4} flexWrap="wrap">
-          <Heading size="lg">Minhas Propriedades</Heading>
+          <Flex gap={3} align="center" wrap="wrap">
+            <Button variant="outline" onClick={() => navigate("/fertintelligence/home")}>
+              <LuArrowLeft /> Voltar para o painel
+            </Button>
+            <Heading size="lg">Minhas Propriedades</Heading>
+          </Flex>
 
           <HStack gap={3} flexWrap="wrap">
             <Button
