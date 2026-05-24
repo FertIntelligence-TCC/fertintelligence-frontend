@@ -27,7 +27,7 @@ import {
   updatePlot,
   deletePlot,
 } from "@/services/plotService";
-import { PlotResponse, PlotCreatePayload } from "@/interfaces/Plot";
+import { PlotResponse, PlotCreatePayload, PlotUpdatePayload } from "@/interfaces/Plot";
 
 import {
   createProperty,
@@ -213,7 +213,7 @@ export default function PropertyFormDialog({
   });
 
   const updatePlotMutation = useMutation({
-    mutationFn: (payload: { id: number; data: PlotCreatePayload }) => updatePlot(payload.id, payload.data),
+    mutationFn: (payload: { id: number; data: PlotUpdatePayload }) => updatePlot(payload.id, payload.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["plots", propertyId] });
       plotFormDisclosure.onClose();
@@ -240,7 +240,28 @@ export default function PropertyFormDialog({
   };
 
   const handleSavePlot = (payload: PlotCreatePayload) => {
-    if (editingPlot) updatePlotMutation.mutate({ id: editingPlot.id, data: payload });
+    if (editingPlot) {
+      updatePlotMutation.mutate({
+        id: editingPlot.id,
+        data: {
+          nova_identificacao: payload.identificacao,
+          nova_area: payload.area,
+          nova_classe_solo: payload.classe_solo,
+          nova_textura_solo: payload.textura_solo,
+          novo_ano_incorporacao_safra: payload.ano_incorporacao_safra,
+          nova_area_irrigada: payload.area_irrigada,
+          nova_declividade: payload.declividade,
+          nova_pluviosidade_mensal: payload.pluviosidade_mensal,
+          nova_pluviosidade_anual: payload.pluviosidade_anual,
+          nova_latitude: payload.latitude,
+          nova_latitude_direction: payload.latitude_direction,
+          nova_longitude: payload.longitude,
+          nova_longitude_direction: payload.longitude_direction,
+          nova_altitude: payload.altitude,
+          novo_idfoto: payload.idfoto,
+        },
+      });
+    }
     else createPlotMutation.mutate(payload);
   };
 

@@ -56,6 +56,8 @@ export interface PlotResponse {
     longitudeDirection?: string;
     altitude?: number;
     idfoto?: string;
+    idFoto?: string;
+    id_foto?: string;
 }
 
 export interface PlotCreatePayload {

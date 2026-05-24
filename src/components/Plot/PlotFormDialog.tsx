@@ -108,7 +108,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                     longitude: initialData.longitude,
                     longitude_direction: initialData.longitude_direction ?? initialData.longitudeDirection ?? "",
                     altitude: initialData.altitude,
-                    idfoto: initialData.idfoto ?? "",
+                    idfoto: initialData.idfoto ?? initialData.idFoto ?? initialData.id_foto ?? "",
                 });
             } else {
                 setForm(INITIAL_STATE);
