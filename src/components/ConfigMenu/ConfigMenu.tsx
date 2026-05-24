@@ -11,6 +11,7 @@ export default function ConfigMenu() {
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileImageOpen, setIsProfileImageOpen] = useState(false);
   const menuRef = useRef(null);
   const user = useUserStore((s) => s.user) as User | null;
   const [userImage, setUserImage] = useState(sessionStorage.getItem("userImage") || "");
@@ -84,7 +85,7 @@ export default function ConfigMenu() {
           name={user?.nome || "User"}
           src={userImage}
           cursor="pointer"
-          onClick={() => {}}
+          onClick={() => setIsProfileImageOpen(true)}
         />
         <Icon
           as={FiSettings}
@@ -94,6 +95,43 @@ export default function ConfigMenu() {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         />
       </HStack>
+      {isProfileImageOpen && (
+        <Box
+          position="fixed"
+          inset={0}
+          bg="blackAlpha.700"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={4}
+          zIndex={3000}
+          onClick={() => setIsProfileImageOpen(false)}
+        >
+          <Box onClick={(event) => event.stopPropagation()}>
+            {userImage ? (
+              <img
+                src={userImage}
+                alt={`Foto de perfil de ${user?.nome || "User"}`}
+                style={{
+                  maxWidth: "90vw",
+                  maxHeight: "80vh",
+                  width: "auto",
+                  height: "auto",
+                  objectFit: "contain",
+                  borderRadius: "0.75rem",
+                  boxShadow: "var(--chakra-shadows-2xl)",
+                }}
+              />
+            ) : (
+              <Avatar
+                size="2xl"
+                name={user?.nome || "User"}
+                src={userImage}
+              />
+            )}
+          </Box>
+        </Box>
+      )}
       {isMenuOpen && (
         <VStack
           position="absolute"
