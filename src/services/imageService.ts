@@ -54,7 +54,7 @@ export const updateImageMongoDB = async (img: string, id: string) => {
 
 export const deleteImageMongoDB = async (id: string) => {
     try {
-        const { data } = await axiosImageManager.get(`/${ENDPOINT.DELETE_IMAGE_MONGO}/${id}`, {
+        const { data } = await axiosImageManager.delete(`/${ENDPOINT.DELETE_IMAGE_MONGO}/${id}`, {
             headers: {
                 "Content-Type": "application/json",
             },

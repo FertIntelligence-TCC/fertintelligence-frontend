@@ -1,3 +1,4 @@
+import ImageThumb from "@/components/ImageThumb";
 import { Box, HStack, IconButton, SimpleGrid, Text, Button } from "@chakra-ui/react";
 import { FiEdit, FiEye, FiTrash, FiLogOut } from "react-icons/fi";
 import { PropertyResponse } from "@/interfaces/Property";
@@ -46,6 +47,7 @@ export default function PropertyList({
             bg={{ base: "white", _dark: "gray.700" }}
             p={4}
           >
+            <ImageThumb imageId={property.idfoto} alt={property.nome} />
             {onSelect ? (
               <Button width="100%" justifyContent="flex-start" onClick={() => onSelect(property)}>
                 {property.nome}

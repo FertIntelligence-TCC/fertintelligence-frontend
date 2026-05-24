@@ -44,13 +44,12 @@ const emptyForm: PropertyFormState = {
   nome: "",
   endereco: "",
   cnpj: "",
-  localizacao: {
-    latitude: null,
-    latitudeDirection: undefined,
-    longitude: null,
-    longitudeDirection: undefined,
-    altitude: null,
-  },
+  latitude: "",
+  latitudeDirection: undefined as any,
+  longitude: "",
+  longitudeDirection: undefined as any,
+  altitude: "",
+  idfoto: "",
 };
 
 type Props = {
@@ -147,13 +146,12 @@ export default function PropertyFormDialog({
         nome: propertyData.nome ?? "",
         endereco: propertyData.endereco ?? "",
         cnpj: propertyData.cnpj ?? "",
-        localizacao: {
-          latitude: propertyData.localizacao?.latitude ?? null,
-          latitudeDirection: propertyData.localizacao?.latitudeDirection,
-          longitude: propertyData.localizacao?.longitude ?? null,
-          longitudeDirection: propertyData.localizacao?.longitudeDirection,
-          altitude: propertyData.localizacao?.altitude ?? null,
-        },
+        latitude: String(propertyData.localizacao?.latitude ?? ""),
+        latitudeDirection: (propertyData.localizacao?.latitudeDirection as any) ?? "",
+        longitude: String(propertyData.localizacao?.longitude ?? ""),
+        longitudeDirection: (propertyData.localizacao?.longitudeDirection as any) ?? "",
+        altitude: String(propertyData.localizacao?.altitude ?? ""),
+        idfoto: propertyData.idfoto ?? "",
       });
     }
   }, [isOpen, propertyId, propertyData]);
@@ -172,7 +170,10 @@ export default function PropertyFormDialog({
 
   // === Mutações ===
   const createPropertyMutation = useMutation({
-    mutationFn: () => createProperty(form as any),
+    mutationFn: () => createProperty({
+      nome: form.nome, endereco: form.endereco, cnpj: form.cnpj, idfoto: form.idfoto,
+      localizacao: { latitude: Number(form.latitude), latitudeDirection: form.latitudeDirection as any, longitude: Number(form.longitude), longitudeDirection: form.longitudeDirection as any, altitude: Number(form.altitude || 0) }
+    }),
     onSuccess: async () => {
       toaster.create({ title: "Propriedade criada!", type: "success" });
       onSuccess?.();
@@ -181,7 +182,10 @@ export default function PropertyFormDialog({
   });
 
   const updatePropertyMutation = useMutation({
-    mutationFn: () => updateProperty({ id: propertyId!, payload: form as any }),
+    mutationFn: () => updateProperty(propertyId!, {
+      novo_nome: form.nome, novo_endereco: form.endereco, novo_cnpj: form.cnpj, novo_idfoto: form.idfoto,
+      nova_localizacao: { latitude: Number(form.latitude), latitudeDirection: form.latitudeDirection as any, longitude: Number(form.longitude), longitudeDirection: form.longitudeDirection as any, altitude: Number(form.altitude || 0) }
+    }),
     onSuccess: async () => {
       toaster.create({ title: "Propriedade atualizada!", type: "success" });
       await queryClient.invalidateQueries({ queryKey: ["property", propertyId] });

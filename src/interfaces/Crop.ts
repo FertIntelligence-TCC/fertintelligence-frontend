@@ -49,6 +49,7 @@ export interface CropDate {
     data_botonamento: CropDate;
     data_florescimento: CropDate;
     data_colheita: CropDate;
+    idfoto?: string;
   }
   
   export interface CropCreateRequestDto {
@@ -69,6 +70,7 @@ export interface CropDate {
     data_botonamento: CropDate;
     data_florescimento: CropDate;
     data_colheita: CropDate;
+    idfoto?: string;
   }
   
   export interface CropPostRequestDto {
@@ -90,4 +92,5 @@ export interface CropDate {
     novo_data_botonamento?: CropDate;
     novo_data_florescimento?: CropDate;
     novo_data_colheita?: CropDate;
+    novo_idfoto?: string;
   }

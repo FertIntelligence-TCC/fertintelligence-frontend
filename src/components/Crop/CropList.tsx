@@ -1,3 +1,4 @@
+import ImageThumb from "@/components/ImageThumb";
 import { useState } from "react";
 import {
   Box,
@@ -118,6 +119,7 @@ export const CropList = ({
             transition="all 0.2s"
           >
             <Box p={4}>
+              <ImageThumb imageId={crop.idfoto} alt={crop.nome} />
               {/* Cabeçalho do Card */}
               <HStack justify="space-between" mb={2}>
                 <VStack align="start" gap={0}>

@@ -10,6 +10,7 @@ export type PropertyFormState = {
     longitude: string;
     longitudeDirection: LongitudeDirection;
     altitude: string;
+    idfoto: string;
 };
 
 export const DEFAULT_FORM_STATE: PropertyFormState = {
@@ -21,6 +22,7 @@ export const DEFAULT_FORM_STATE: PropertyFormState = {
     longitude: "",
     longitudeDirection: LongitudeDirection.LESTE,
     altitude: "",
+    idfoto: "",
 };
 
 export const propertyToFormState = (
@@ -46,4 +48,5 @@ export const propertyToFormState = (
         property.localizacao?.altitude !== null
             ? String(property.localizacao.altitude)
             : "",
+    idfoto: property.idfoto ?? "",
 });
