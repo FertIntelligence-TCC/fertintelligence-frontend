@@ -1,6 +1,7 @@
 // src/pages/plot-access/ViewPlotSolicitations.tsx
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Button, Flex, Heading, Text, Spinner, Badge } from "@chakra-ui/react";
 
 import UserLayout from "@/components/Layouts/UserLayout";
@@ -108,6 +109,7 @@ function RequestCard(props: {
 }
 
 export default function ViewPlotSolicitations() {
+  const navigate = useNavigate();
   const { user } = useUserStore();
 
   const canManage = useMemo(() => {
@@ -278,6 +280,9 @@ export default function ViewPlotSolicitations() {
   return (
     <UserLayout>
       <Box p={8} maxW="5xl" mx="auto" mt={8}>
+        <Button variant="outline" mb={4} onClick={() => navigate("/fertintelligence/home")}>
+          Voltar para o painel
+        </Button>
         <Heading mb={6}>Solicitações de Acesso aos Talhões</Heading>
 
         {/* Seleção de Propriedade */}
