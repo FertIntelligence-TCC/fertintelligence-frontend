@@ -37,6 +37,40 @@ const DetailItem = ({ label, value }: { label: string, value: string | number })
     </Box>
 );
 
+
+const FALLBACK_VALUE = "-";
+
+const formatBasicValue = (value?: string | number | null, suffix = "") => {
+    if (value === undefined || value === null || value === "") return FALLBACK_VALUE;
+    return `${value}${suffix}`;
+};
+
+const formatCoordinate = (value?: number | null, direction?: string) => {
+    if (value === undefined || value === null) return FALLBACK_VALUE;
+
+    const normalizedDirection = direction
+        ? direction.toLowerCase()
+            .replace(/_/g, " ")
+            .trim()
+        : "";
+
+    const directionMap: Record<string, string> = {
+        n: "Norte",
+        norte: "Norte",
+        s: "Sul",
+        sul: "Sul",
+        e: "Leste",
+        l: "Leste",
+        leste: "Leste",
+        w: "Oeste",
+        o: "Oeste",
+        oeste: "Oeste",
+    };
+
+    const localizedDirection = directionMap[normalizedDirection];
+    return localizedDirection ? `${value}° ${localizedDirection}` : `${value}°`;
+};
+
 type AnalysisType = "PHYSICAL" | "CHEMICAL" | "SATURATION" | null;
 
 export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
@@ -154,10 +188,12 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
             <DialogContainer isOpen={isOpen} onClose={onClose}>
                 <Heading as="h2" size="md" mb={6} color="green.600">Detalhes do Talhão: {plot.identificacao}</Heading>
                 <VStack align="stretch" gap={4}>
-                    <Grid templateColumns="1fr 1fr" gap={4}><DetailItem label="Área" value={`${plot.area} ha`} /><DetailItem label="Ano Safra" value={plot.ano_incorporacao_safra} /></Grid>
-                    <Grid templateColumns="1fr 1fr" gap={4}><DetailItem label="Classe Solo" value={plot.classe_solo} /><DetailItem label="Textura Solo" value={plot.textura_solo} /></Grid>
-                    <Grid templateColumns="1fr 1fr" gap={4}><DetailItem label="Irrigada" value={plot.area_irrigada} /><DetailItem label="Declividade" value={`${plot.declividade}%`} /></Grid>
-                    <Grid templateColumns="1fr 1fr" gap={4}><DetailItem label="Pluv. Mensal" value={`${plot.pluviosidade_mensal} mm`} /><DetailItem label="Pluv. Anual" value={`${plot.pluviosidade_anual} mm`} /></Grid>
+                    <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}><DetailItem label="Área" value={formatBasicValue(plot.area, " ha")} /><DetailItem label="Ano Safra" value={formatBasicValue(plot.ano_incorporacao_safra)} /></Grid>
+                    <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}><DetailItem label="Classe Solo" value={formatBasicValue(plot.classe_solo)} /><DetailItem label="Textura Solo" value={formatBasicValue(plot.textura_solo)} /></Grid>
+                    <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}><DetailItem label="Irrigada" value={formatBasicValue(plot.area_irrigada)} /><DetailItem label="Declividade" value={formatBasicValue(plot.declividade, "%")} /></Grid>
+                    <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}><DetailItem label="Pluv. Mensal" value={formatBasicValue(plot.pluviosidade_mensal, " mm")} /><DetailItem label="Pluv. Anual" value={formatBasicValue(plot.pluviosidade_anual, " mm")} /></Grid>
+                    <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}><DetailItem label="Latitude" value={formatCoordinate(plot.latitude, plot.latitude_direction ?? plot.latitudeDirection)} /><DetailItem label="Longitude" value={formatCoordinate(plot.longitude, plot.longitude_direction ?? plot.longitudeDirection)} /></Grid>
+                    <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}><DetailItem label="Altitude" value={formatBasicValue(plot.altitude, " m")} /><Box /></Grid>
                     <Separator my={2} borderColor="gray.300" />
                     <Text fontSize="sm" fontWeight="bold" color="gray.700">Visualizar Dados</Text>
                     <VStack gap={3} width="100%">
