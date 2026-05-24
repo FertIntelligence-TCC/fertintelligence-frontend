@@ -250,6 +250,13 @@ export default function FoliarAnalysisInterpretationTable() {
         maxW="1600px" 
         mx="auto"
       >
+        <Button
+          variant="outline"
+          onClick={() => navigate("/fertintelligence/fertilization-table-management")}
+          mb={4}
+        >
+          Voltar para o painel
+        </Button>
         <Flex 
             justify="space-between" 
             align="center" 

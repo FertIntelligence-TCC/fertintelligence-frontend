@@ -527,6 +527,13 @@ export default function CropFertilizationTable() {
 
       <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
         <Flex direction="column" gap={6}>
+          <Button
+            variant="outline"
+            alignSelf="flex-start"
+            onClick={() => navigate("/fertintelligence/fertilization-table-management")}
+          >
+            Voltar para o painel
+          </Button>
           <Heading as="h1" size="lg" color="white">Gerenciar Tabelas de Cultura</Heading>
           <HStack>
             <Button
