@@ -25,7 +25,9 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
 
     return (
         <SimpleGrid columns={{ base: 2, md: 3 }} gap={4} mt={2}>
-            {plots.map(plot => (
+            {plots.map(plot => {
+                const plotImageId = plot.idfoto ?? plot.idFoto ?? plot.id_foto;
+                return (
                 <Box
                     key={plot.id}
                     p={4}
@@ -46,7 +48,7 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                     justifyContent="center"
                     alignItems="center"
                 >
-                    <ImageThumb imageId={plot.idfoto} alt={plot.identificacao} />
+                    <ImageThumb imageId={plotImageId || undefined} alt={plot.identificacao} />
                     <Text fontWeight="bold" textAlign="center" noOfLines={2}>
                         {plot.identificacao}
                     </Text>
@@ -108,7 +110,8 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                         </Flex>
                     )}
                 </Box>
-            ))}
+                );
+            })}
         </SimpleGrid>
     );
 }
