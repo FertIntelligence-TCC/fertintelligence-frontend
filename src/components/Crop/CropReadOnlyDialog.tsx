@@ -41,6 +41,7 @@ import { getTopDressingFertilizationsByCrop } from "@/services/topDressingFertil
 import { FertigramResponse } from "@/interfaces/Fertigram";
 import { FoliarTableResponseDto } from "@/interfaces/FoliarAnalysisInterpretationTable";
 import { toaster } from "@/components/ui/toaster";
+import FertigramView from "@/components/Fertigram/FertigramView";
 
 interface CropReadOnlyDialogProps {
   isOpen: boolean;
@@ -500,38 +501,12 @@ export const CropReadOnlyDialog = ({
                 </HStack>
 
                 {fertigram && (
-                  <Box borderWidth="1px" borderRadius="md" p={3}>
-                    <Text fontWeight="bold" mb={2}>
-                      Fertigrama
-                    </Text>
-                    <Text fontSize="sm" color="gray.600" mb={2}>
-                      Cultura: {fertigram.cropName ?? crop.nome.replace(/_/g, " ")}
-                    </Text>
-
-                    <Text fontSize="sm" fontWeight="bold" mt={2}>
-                      Macronutrientes
-                    </Text>
-                    <VStack align="stretch" gap={1} mt={1}>
-                      {fertigram.macronutrients.map((item) => (
-                        <Text key={`macro-${item.nutrient}`} fontSize="sm">
-                          {item.nutrient}: {formatValue(item.measuredValue)} {item.unit ?? ""}{" "}
-                          ({formatValue(item.interpretation)})
-                        </Text>
-                      ))}
-                    </VStack>
-
-                    <Text fontSize="sm" fontWeight="bold" mt={3}>
-                      Micronutrientes
-                    </Text>
-                    <VStack align="stretch" gap={1} mt={1}>
-                      {fertigram.micronutrients.map((item) => (
-                        <Text key={`micro-${item.nutrient}`} fontSize="sm">
-                          {item.nutrient}: {formatValue(item.measuredValue)} {item.unit ?? ""}{" "}
-                          ({formatValue(item.interpretation)})
-                        </Text>
-                      ))}
-                    </VStack>
-                  </Box>
+                  <FertigramView
+                    data={{
+                      ...fertigram,
+                      cropName: fertigram.cropName ?? crop.nome.replace(/_/g, " "),
+                    }}
+                  />
                 )}
               </VStack>
             </Box>
