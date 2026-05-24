@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge, Box, Button, Flex, Heading, Spinner, Text, VStack } from "@chakra-ui/react";
 
 import { toaster } from "@/components/ui/toaster";
@@ -45,6 +46,7 @@ const requestStatus = (requests: NormalizedPlotPermission[]): AccessCardStatus =
 };
 
 export default function MakePlotSolicitation({ roleOverride }: Props) {
+  const navigate = useNavigate();
   const { user } = useUserStore();
   const roleMode = roleOverride ?? getAuthorizationRoleMode(user?.cargo);
 
@@ -160,6 +162,9 @@ export default function MakePlotSolicitation({ roleOverride }: Props) {
 
   return (
     <VStack align="stretch" gap={4}>
+      <Button alignSelf="flex-start" variant="outline" onClick={() => navigate("/fertintelligence/home")}>
+        Voltar para o painel
+      </Button>
       <Heading size="md">Fazer solicitação</Heading>
       {loading ? (
         <Flex justify="center" py={8}>
