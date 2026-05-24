@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, Input, NativeSelect, Textarea, VStack } from "@chakra-ui/react";
+import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import {
   DialogBody,
@@ -56,10 +57,10 @@ export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, s
   useEffect(() => {
     if (!open) return;
     if (selectedItem) {
-      setNutriente(selectedItem.nutriente || "");
-      setIdfotoPlantaSaudavel(selectedItem.idfoto_planta_saudavel || "");
-      setIdfotoPlantaSintoma(selectedItem.idfoto_planta_sintoma || "");
-      setObservacoes(selectedItem.observacoes || "");
+      setNutriente(selectedItem.nutrient || selectedItem.nutriente || "");
+      setIdfotoPlantaSaudavel(selectedItem.healthyPlantImageId || selectedItem.idfoto_planta_saudavel || "");
+      setIdfotoPlantaSintoma(selectedItem.symptomaticPlantImageId || selectedItem.idfoto_planta_sintoma || "");
+      setObservacoes(selectedItem.observations || selectedItem.observacoes || "");
       return;
     }
     setNutriente("");
@@ -75,20 +76,20 @@ export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, s
     }
 
     const payload = {
-      nutriente,
-      idfoto_planta_saudavel: idfotoPlantaSaudavel || undefined,
-      idfoto_planta_sintoma: idfotoPlantaSintoma || undefined,
-      observacoes: observacoes || undefined,
+      nutrient: nutriente,
+      healthyPlantImageId: idfotoPlantaSaudavel.trim() || undefined,
+      symptomaticPlantImageId: idfotoPlantaSintoma.trim() || undefined,
+      observations: observacoes.trim() || undefined,
     };
 
     setIsLoading(true);
     try {
       if (selectedItem) {
         await updateCropDeficiencyToxicity(selectedItem.id, {
-          novo_nutriente: payload.nutriente,
-          novo_idfoto_planta_saudavel: payload.idfoto_planta_saudavel,
-          novo_idfoto_planta_sintoma: payload.idfoto_planta_sintoma,
-          novo_observacoes: payload.observacoes,
+          nutrient: payload.nutrient,
+          healthyPlantImageId: payload.healthyPlantImageId,
+          symptomaticPlantImageId: payload.symptomaticPlantImageId,
+          observations: payload.observations,
         });
         toaster.create({ title: "Deficiência/Toxidez atualizada", type: "success" });
       } else {
@@ -98,8 +99,12 @@ export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, s
       onSuccess();
       onOpenChange({ open: false });
     } catch (error) {
-      console.error(error);
-      toaster.create({ title: "Erro ao salvar deficiência/toxidez", type: "error" });
+      const axiosError = error as AxiosError<{ message?: string }>;
+      console.error("Erro ao salvar deficiência/toxidez:", axiosError.response?.data || axiosError);
+      toaster.create({
+        title: axiosError.response?.data?.message || "Erro ao salvar deficiência/toxidez",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
