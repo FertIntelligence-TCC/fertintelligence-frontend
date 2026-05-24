@@ -36,6 +36,7 @@ import { TopDressingManager } from "./TopDressingManager";
 import { FoliarAnalysisManager } from "./FoliarAnalysisManager";
 // NOVO IMPORT:
 import { FoliarFertilizationManager } from "./FoliarFertilizationManager";
+import { CropDeficiencyToxicityManager } from "./CropDeficiencyToxicityManager";
 import EntityImageUploader from "@/components/EntityImageUploader";
 
 interface CropFormDialogProps {
@@ -272,6 +273,9 @@ export const CropFormDialog = ({
               <Tabs.Trigger value="foliar-fert" disabled={!currentCrop}>
                 Adubação Foliar
               </Tabs.Trigger>
+              <Tabs.Trigger value="deficiency-toxicity" disabled={!currentCrop}>
+                Deficiências/Toxidez
+              </Tabs.Trigger>
             </Tabs.List>
 
             <Tabs.Content value="dados-gerais">
@@ -426,6 +430,16 @@ export const CropFormDialog = ({
               )}
             </Tabs.Content>
 
+
+            <Tabs.Content value="deficiency-toxicity">
+              {currentCrop ? (
+                <CropDeficiencyToxicityManager cropId={currentCrop.id} />
+              ) : (
+                <Box p={4} textAlign="center" color="gray.500">
+                  Salve a cultura primeiro para adicionar deficiências/toxidez.
+                </Box>
+              )}
+            </Tabs.Content>
           </Tabs.Root>
         </DialogBody>
         <DialogCloseTrigger />
