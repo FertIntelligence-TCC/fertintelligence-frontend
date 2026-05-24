@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -6,6 +6,8 @@ import {
   Flex,
   Grid,
   Heading,
+  HStack,
+  NativeSelect,
   Separator,
   SimpleGrid,
   Spinner,
@@ -28,9 +30,17 @@ import {
 } from "@/interfaces/FoliarFertilization";
 import { TopDressingFertilizationResponseDto } from "@/interfaces/TopDressingFertilization";
 import { getFoliarAnalysesByCrop } from "@/services/foliarAnalysisService";
+import {
+  fetchFoliarTables,
+  fetchPublicFoliarTables,
+} from "@/services/foliarAnalysisInterpretationTableService";
+import { generateFertigram } from "@/services/fertigramService";
 import { getLiquidSourcesByCrop } from "@/services/liquidSourceService";
 import { getSolidSourcesByCrop } from "@/services/solidSourceService";
 import { getTopDressingFertilizationsByCrop } from "@/services/topDressingFertilizationService";
+import { FertigramResponse } from "@/interfaces/Fertigram";
+import { FoliarTableResponseDto } from "@/interfaces/FoliarAnalysisInterpretationTable";
+import { toaster } from "@/components/ui/toaster";
 
 interface CropReadOnlyDialogProps {
   isOpen: boolean;
@@ -145,7 +155,7 @@ const renderNutrientGrid = (
         <DetailItem
           key={entry.key}
           label={entry.label}
-          value={entry.value as number}
+          value={Number(entry.value)}
         />
       ))}
     </SimpleGrid>
@@ -183,6 +193,11 @@ export const CropReadOnlyDialog = ({
 }: CropReadOnlyDialogProps) => {
   const cropId = crop?.id;
   const queriesEnabled = isOpen && !!cropId;
+  const [isFertigramOpen, setIsFertigramOpen] = useState(false);
+  const [selectedFoliarAnalysisId, setSelectedFoliarAnalysisId] = useState("");
+  const [selectedFoliarTableId, setSelectedFoliarTableId] = useState("");
+  const [fertigram, setFertigram] = useState<FertigramResponse | null>(null);
+  const [loadingFertigram, setLoadingFertigram] = useState(false);
 
   const { data: foliarAnalyses = [], isLoading: isLoadingFoliar } = useQuery({
     queryKey: ["crop", cropId, "foliar-analyses"],
@@ -210,6 +225,27 @@ export const CropReadOnlyDialog = ({
     enabled: queriesEnabled,
   });
 
+  const { data: privateFoliarTables = [], isLoading: isLoadingPrivateTables } =
+    useQuery({
+      queryKey: ["foliar-tables"],
+      queryFn: fetchFoliarTables,
+      enabled: queriesEnabled,
+    });
+
+  const { data: publicFoliarTables = [], isLoading: isLoadingPublicTables } =
+    useQuery({
+      queryKey: ["foliar-tables-public"],
+      queryFn: fetchPublicFoliarTables,
+      enabled: queriesEnabled,
+    });
+
+  const foliarTables = useMemo(() => {
+    const all = [...privateFoliarTables, ...publicFoliarTables];
+    const dedup = new Map<number, FoliarTableResponseDto>();
+    all.forEach((table) => dedup.set(table.id, table));
+    return Array.from(dedup.values());
+  }, [privateFoliarTables, publicFoliarTables]);
+
   const sortedTopDressing = useMemo(() => {
     return [...topDressing].sort((a, b) => a.ordem - b.ordem);
   }, [topDressing]);
@@ -236,6 +272,32 @@ export const CropReadOnlyDialog = ({
       <Spinner size="sm" />
     </Center>
   );
+
+  const handleGenerateFertigram = async () => {
+    if (!selectedFoliarAnalysisId || !selectedFoliarTableId) {
+      toaster.create({
+        title: "Selecione uma análise foliar e uma tabela.",
+        type: "error",
+      });
+      return;
+    }
+
+    setLoadingFertigram(true);
+    try {
+      const response = await generateFertigram(
+        Number(selectedFoliarAnalysisId),
+        Number(selectedFoliarTableId),
+      );
+      setFertigram(response);
+    } catch {
+      toaster.create({
+        title: "Erro ao gerar Fertigrama",
+        type: "error",
+      });
+    } finally {
+      setLoadingFertigram(false);
+    }
+  };
 
   if (!isOpen || !crop) return null;
 
@@ -296,9 +358,21 @@ export const CropReadOnlyDialog = ({
         <Separator my={1} />
 
         <VStack align="stretch" gap={4}>
-          <Heading as="h4" size="sm" color="gray.600">
-            Análises Foliares
-          </Heading>
+          <Flex justify="space-between" align="center" gap={3}>
+            <Heading as="h4" size="sm" color="gray.600">
+              Análises Foliares
+            </Heading>
+            {!!cropId && (
+              <Button
+                size="sm"
+                variant="outline"
+                colorPalette="green"
+                onClick={() => setIsFertigramOpen((prev) => !prev)}
+              >
+                Exibir Fertigrama
+              </Button>
+            )}
+          </Flex>
 
           {isLoadingFoliar ? (
             renderLoading()
@@ -355,6 +429,112 @@ export const CropReadOnlyDialog = ({
                 </Box>
               ))}
             </VStack>
+          )}
+
+          {isFertigramOpen && (
+            <Box borderWidth="1px" borderRadius="md" p={4}>
+              <VStack align="stretch" gap={3}>
+                <Heading as="h5" size="xs" color="gray.600">
+                  Geração do Fertigrama
+                </Heading>
+
+                {isLoadingFoliar ? (
+                  renderLoading()
+                ) : sortedFoliarAnalyses.length === 0 ? (
+                  <Text color="gray.500">
+                    Nenhuma análise foliar disponível para esta cultura.
+                  </Text>
+                ) : (
+                  <NativeSelect.Root size="sm" width="100%">
+                    <NativeSelect.Field
+                      value={selectedFoliarAnalysisId}
+                      onChange={(e) => setSelectedFoliarAnalysisId(e.target.value)}
+                    >
+                      <option value="">Selecione a análise foliar</option>
+                      {sortedFoliarAnalyses.map((analysis) => (
+                        <option key={analysis.id} value={analysis.id}>
+                          {`Coleta ${formatDate(analysis.data_coleta)} - ${formatValue(analysis.laboratorio)}`}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                  </NativeSelect.Root>
+                )}
+
+                {isLoadingPrivateTables || isLoadingPublicTables ? (
+                  renderLoading()
+                ) : foliarTables.length === 0 ? (
+                  <Text color="gray.500">
+                    Nenhuma tabela de interpretação foliar disponível.
+                  </Text>
+                ) : (
+                  <NativeSelect.Root size="sm" width="100%">
+                    <NativeSelect.Field
+                      value={selectedFoliarTableId}
+                      onChange={(e) => setSelectedFoliarTableId(e.target.value)}
+                    >
+                      <option value="">Selecione a tabela de interpretação</option>
+                      {foliarTables.map((table) => (
+                        <option key={table.id} value={table.id}>
+                          {table.nome_tabela ?? `Tabela #${table.id}`}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                  </NativeSelect.Root>
+                )}
+
+                <HStack justify="flex-end">
+                  <Button
+                    size="sm"
+                    colorPalette="green"
+                    onClick={handleGenerateFertigram}
+                    loading={loadingFertigram}
+                    disabled={
+                      !selectedFoliarAnalysisId ||
+                      !selectedFoliarTableId ||
+                      sortedFoliarAnalyses.length === 0 ||
+                      foliarTables.length === 0
+                    }
+                  >
+                    Gerar Fertigrama
+                  </Button>
+                </HStack>
+
+                {fertigram && (
+                  <Box borderWidth="1px" borderRadius="md" p={3}>
+                    <Text fontWeight="bold" mb={2}>
+                      Fertigrama
+                    </Text>
+                    <Text fontSize="sm" color="gray.600" mb={2}>
+                      Cultura: {fertigram.cropName ?? crop.nome.replace(/_/g, " ")}
+                    </Text>
+
+                    <Text fontSize="sm" fontWeight="bold" mt={2}>
+                      Macronutrientes
+                    </Text>
+                    <VStack align="stretch" gap={1} mt={1}>
+                      {fertigram.macronutrients.map((item) => (
+                        <Text key={`macro-${item.nutrient}`} fontSize="sm">
+                          {item.nutrient}: {formatValue(item.measuredValue)} {item.unit ?? ""}{" "}
+                          ({formatValue(item.interpretation)})
+                        </Text>
+                      ))}
+                    </VStack>
+
+                    <Text fontSize="sm" fontWeight="bold" mt={3}>
+                      Micronutrientes
+                    </Text>
+                    <VStack align="stretch" gap={1} mt={1}>
+                      {fertigram.micronutrients.map((item) => (
+                        <Text key={`micro-${item.nutrient}`} fontSize="sm">
+                          {item.nutrient}: {formatValue(item.measuredValue)} {item.unit ?? ""}{" "}
+                          ({formatValue(item.interpretation)})
+                        </Text>
+                      ))}
+                    </VStack>
+                  </Box>
+                )}
+              </VStack>
+            </Box>
           )}
         </VStack>
 
