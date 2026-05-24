@@ -90,9 +90,14 @@ const NutrientSection = ({
 };
 
 export default function FertigramView({ data }: FertigramViewProps) {
-  const macronutrients = Array.isArray(data?.macronutrients) ? data.macronutrients : [];
-  const micronutrients = Array.isArray(data?.micronutrients) ? data.micronutrients : [];
-  const hasNoNutrients = macronutrients.length === 0 && micronutrients.length === 0;
+  const safeMacronutrients = Array.isArray(data?.macronutrients)
+    ? data.macronutrients
+    : [];
+  const safeMicronutrients = Array.isArray(data?.micronutrients)
+    ? data.micronutrients
+    : [];
+  const hasNoNutrients =
+    safeMacronutrients.length === 0 && safeMicronutrients.length === 0;
 
   return (
     <Box borderWidth="1px" borderRadius="md" p={3}>
@@ -114,12 +119,12 @@ export default function FertigramView({ data }: FertigramViewProps) {
         <VStack align="stretch" gap={4}>
           <NutrientSection
             title="Macronutrientes"
-            nutrients={macronutrients}
+            nutrients={safeMacronutrients}
             emptyMessage="Nenhum macronutriente disponível nesta análise."
           />
           <NutrientSection
             title="Micronutrientes"
-            nutrients={micronutrients}
+            nutrients={safeMicronutrients}
             emptyMessage="Nenhum micronutriente disponível nesta análise."
           />
         </VStack>

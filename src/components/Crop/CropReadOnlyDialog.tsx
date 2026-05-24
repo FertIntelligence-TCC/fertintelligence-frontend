@@ -275,6 +275,10 @@ export const CropReadOnlyDialog = ({
   );
 
   const handleGenerateFertigram = async () => {
+    if (loadingFertigram) {
+      return;
+    }
+
     if (!selectedFoliarAnalysisId || !selectedFoliarTableId) {
       toaster.create({
         title: "Selecione uma análise foliar e uma tabela.",
@@ -284,6 +288,7 @@ export const CropReadOnlyDialog = ({
     }
 
     setLoadingFertigram(true);
+    setFertigram(null);
     try {
       const response = await generateFertigram(
         Number(selectedFoliarAnalysisId),
@@ -292,13 +297,21 @@ export const CropReadOnlyDialog = ({
       setFertigram(response);
     } catch {
       toaster.create({
-        title: "Erro ao gerar Fertigrama",
+        title: "Erro ao gerar fertigrama",
+        description:
+          "Não foi possível gerar o fertigrama com os dados selecionados.",
         type: "error",
       });
+      setFertigram(null);
     } finally {
       setLoadingFertigram(false);
     }
   };
+
+  const hasValidFertigramData = Boolean(fertigram) && (
+    Array.isArray(fertigram?.macronutrients) ||
+    Array.isArray(fertigram?.micronutrients)
+  );
 
   if (!isOpen || !crop) return null;
 
@@ -490,6 +503,7 @@ export const CropReadOnlyDialog = ({
                     onClick={handleGenerateFertigram}
                     loading={loadingFertigram}
                     disabled={
+                      loadingFertigram ||
                       !selectedFoliarAnalysisId ||
                       !selectedFoliarTableId ||
                       sortedFoliarAnalyses.length === 0 ||
@@ -500,7 +514,7 @@ export const CropReadOnlyDialog = ({
                   </Button>
                 </HStack>
 
-                {fertigram && (
+                {hasValidFertigramData && fertigram && (
                   <FertigramView
                     data={{
                       ...fertigram,
