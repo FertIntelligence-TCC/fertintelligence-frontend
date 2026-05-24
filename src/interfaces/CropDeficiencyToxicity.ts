@@ -1,4 +1,4 @@
-export type NutrientKind = "MACRO" | "MICRO" | string;
+export type NutrientKind = "MACRONUTRIENT" | "MICRONUTRIENT" | "MACRO" | "MICRO" | string;
 
 export type DeficiencyToxicityNutrient =
   | "NITROGENIO"
@@ -35,6 +35,7 @@ export interface CropDeficiencyToxicityResponseDto {
 }
 
 export interface CropDeficiencyToxicityCreateRequestDto {
+  nutrientType: NutrientKind;
   nutrient: DeficiencyToxicityNutrient;
   healthyPlantImageId?: string;
   symptomaticPlantImageId?: string;
@@ -42,7 +43,8 @@ export interface CropDeficiencyToxicityCreateRequestDto {
 }
 
 export interface CropDeficiencyToxicityPostRequestDto {
-  nutrient?: DeficiencyToxicityNutrient;
+  nutrientType: NutrientKind;
+  nutrient: DeficiencyToxicityNutrient;
   healthyPlantImageId?: string;
   symptomaticPlantImageId?: string;
   observations?: string;

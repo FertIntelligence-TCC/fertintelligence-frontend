@@ -16,6 +16,7 @@ import EntityImageUploader from "@/components/EntityImageUploader";
 import {
   CropDeficiencyToxicityResponseDto,
   DeficiencyToxicityNutrient,
+  NutrientKind,
 } from "@/interfaces/CropDeficiencyToxicity";
 import {
   createCropDeficiencyToxicity,
@@ -39,6 +40,32 @@ const NUTRIENT_OPTIONS: { label: string; value: DeficiencyToxicityNutrient }[] =
   { label: "Cloro (Micro)", value: "CLORO" },
 ];
 
+const MACRONUTRIENTS: DeficiencyToxicityNutrient[] = [
+  "NITROGENIO",
+  "FOSFORO",
+  "POTASSIO",
+  "CALCIO",
+  "MAGNESIO",
+  "ENXOFRE",
+];
+
+const MICRONUTRIENTS: DeficiencyToxicityNutrient[] = [
+  "BORO",
+  "COBRE",
+  "FERRO",
+  "MANGANES",
+  "MOLIBDENIO",
+  "ZINCO",
+  "NIQUEL",
+  "CLORO",
+];
+
+const resolveNutrientType = (nutrient: string): NutrientKind | "" => {
+  if (MACRONUTRIENTS.includes(nutrient as DeficiencyToxicityNutrient)) return "MACRONUTRIENT";
+  if (MICRONUTRIENTS.includes(nutrient as DeficiencyToxicityNutrient)) return "MICRONUTRIENT";
+  return "";
+};
+
 interface Props {
   open: boolean;
   onOpenChange: (details: { open: boolean }) => void;
@@ -50,6 +77,7 @@ interface Props {
 export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, selectedItem, onSuccess }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [nutriente, setNutriente] = useState<string>("");
+  const [nutrientType, setNutrientType] = useState<NutrientKind | "">("");
   const [idfotoPlantaSaudavel, setIdfotoPlantaSaudavel] = useState("");
   const [idfotoPlantaSintoma, setIdfotoPlantaSintoma] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -58,12 +86,16 @@ export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, s
     if (!open) return;
     if (selectedItem) {
       setNutriente(selectedItem.nutrient || selectedItem.nutriente || "");
+      setNutrientType(
+        selectedItem.nutrientType || selectedItem.tipo_nutriente || resolveNutrientType(selectedItem.nutrient || selectedItem.nutriente || ""),
+      );
       setIdfotoPlantaSaudavel(selectedItem.healthyPlantImageId || selectedItem.idfoto_planta_saudavel || "");
       setIdfotoPlantaSintoma(selectedItem.symptomaticPlantImageId || selectedItem.idfoto_planta_sintoma || "");
       setObservacoes(selectedItem.observations || selectedItem.observacoes || "");
       return;
     }
     setNutriente("");
+    setNutrientType("");
     setIdfotoPlantaSaudavel("");
     setIdfotoPlantaSintoma("");
     setObservacoes("");
@@ -74,8 +106,13 @@ export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, s
       toaster.create({ title: "Selecione o nutriente", type: "error" });
       return;
     }
+    if (!nutrientType) {
+      toaster.create({ title: "Não foi possível identificar o tipo do nutriente", type: "error" });
+      return;
+    }
 
     const payload = {
+      nutrientType,
       nutrient: nutriente,
       healthyPlantImageId: idfotoPlantaSaudavel.trim() || undefined,
       symptomaticPlantImageId: idfotoPlantaSintoma.trim() || undefined,
@@ -86,6 +123,7 @@ export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, s
     try {
       if (selectedItem) {
         await updateCropDeficiencyToxicity(selectedItem.id, {
+          nutrientType: payload.nutrientType,
           nutrient: payload.nutrient,
           healthyPlantImageId: payload.healthyPlantImageId,
           symptomaticPlantImageId: payload.symptomaticPlantImageId,
@@ -120,7 +158,14 @@ export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, s
           <VStack align="stretch" gap={4}>
             <Field label="Deficiência de" required>
               <NativeSelect.Root size="sm" width="100%">
-                <NativeSelect.Field value={nutriente} onChange={(e) => setNutriente(e.target.value)}>
+                <NativeSelect.Field
+                  value={nutriente}
+                  onChange={(e) => {
+                    const selectedNutrient = e.target.value;
+                    setNutriente(selectedNutrient);
+                    setNutrientType(resolveNutrientType(selectedNutrient));
+                  }}
+                >
                   <option value="">Selecione...</option>
                   {NUTRIENT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
