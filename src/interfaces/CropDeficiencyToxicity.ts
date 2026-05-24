@@ -22,6 +22,9 @@ export interface CropDeficiencyToxicityResponseDto {
   cropId?: number;
   id_cultura?: number;
   nutrient: DeficiencyToxicityNutrient;
+  nutrient_type?: NutrientKind;
+  healthy_plant_image_id?: string;
+  symptomatic_plant_image_id?: string;
   nutrientType?: NutrientKind;
   healthyPlantImageId?: string;
   symptomaticPlantImageId?: string;
