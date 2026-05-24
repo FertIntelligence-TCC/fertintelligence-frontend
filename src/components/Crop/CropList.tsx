@@ -30,7 +30,6 @@ interface CropListProps {
   crops: CropResponseDto[];
   isLoading: boolean;
   onEdit: (crop: CropResponseDto) => void;
-  onManage: (crop: CropResponseDto) => void;
   onRefresh: () => void;
 }
 
@@ -38,7 +37,6 @@ export const CropList = ({
   crops,
   isLoading,
   onEdit,
-  onManage,
   onRefresh,
 }: CropListProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -179,31 +177,21 @@ export const CropList = ({
               borderColor="border.subtle"
               // bg="gray.50" REMOVIDO para corrigir o modo escuro
             >
-              <HStack justify="space-between">
-                <HStack>
-                  <Button
-                    size="xs"
-                    variant="ghost" // Mudado para ghost para limpar visualmente
-                    onClick={() => onEdit(crop)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    size="xs"
-                    variant="ghost"
-                    colorPalette="red"
-                    onClick={() => handleDeleteClick(crop)}
-                  >
-                    Excluir
-                  </Button>
-                </HStack>
+              <HStack>
                 <Button
                   size="xs"
-                  variant="solid"
-                  colorPalette="blue"
-                  onClick={() => onManage(crop)}
+                  variant="ghost" // Mudado para ghost para limpar visualmente
+                  onClick={() => onEdit(crop)}
                 >
-                  Manejos
+                  Editar
+                </Button>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  colorPalette="red"
+                  onClick={() => handleDeleteClick(crop)}
+                >
+                  Excluir
                 </Button>
               </HStack>
             </Box>
