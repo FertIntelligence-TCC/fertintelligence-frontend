@@ -14,6 +14,7 @@ import {
 import { FiEye } from "react-icons/fi";
 import { toaster } from "@/components/ui/toaster";
 import DialogContainer from "@/components/Property/DialogContainer";
+import ImageThumb from "@/components/ImageThumb";
 import { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
 import { CropResponseDto, CropDate } from "@/interfaces/Crop";
 import { getCropsByFolder } from "@/services/cropService";
@@ -115,6 +116,8 @@ export const AnnualCropFolderCropsDialog = ({
                 flexDirection="column"
                 gap={2}
               >
+                <ImageThumb imageId={crop.idfoto} alt={crop.nome} />
+
                 <Flex justify="space-between" align="center">
                   <VStack align="start" gap={0}>
                     <Text fontWeight="bold" fontSize="md" color="gray.700" _dark={{ color: "white" }}>

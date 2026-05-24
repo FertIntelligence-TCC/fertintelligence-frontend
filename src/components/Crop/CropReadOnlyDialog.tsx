@@ -17,6 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import DialogContainer from "@/components/Property/DialogContainer";
+import ImageThumb from "@/components/ImageThumb";
 import { CropDate, CropResponseDto } from "@/interfaces/Crop";
 import {
   BeneficialElementsContent,
@@ -322,6 +323,8 @@ export const CropReadOnlyDialog = ({
       </Heading>
 
       <VStack align="stretch" gap={4}>
+        <ImageThumb imageId={crop.idfoto} alt={crop.nome} />
+
         <Grid templateColumns="1fr 1fr" gap={4}>
           <DetailItem label="Tipo de Cultivo" value={crop.tipo_cultivo} />
           <DetailItem label="Variedade" value={crop.variedade} />
