@@ -11,5 +11,9 @@ export const generateFertigram = async (
     params: { foliarAnalysisId, tableId },
   });
 
-  return data;
+  return {
+    ...data,
+    macronutrients: data.macronutrients ?? [],
+    micronutrients: data.micronutrients ?? [],
+  };
 };

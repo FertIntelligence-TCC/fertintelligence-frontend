@@ -45,7 +45,8 @@ const NutrientSection = ({
   nutrients: FertigramNutrient[];
   emptyMessage: string;
 }) => {
-  const availableNutrients = nutrients.filter(hasNutrientData);
+  const safeNutrients = Array.isArray(nutrients) ? nutrients : [];
+  const availableNutrients = safeNutrients.filter(hasNutrientData);
 
   return (
     <VStack align="stretch" gap={3}>
@@ -89,6 +90,10 @@ const NutrientSection = ({
 };
 
 export default function FertigramView({ data }: FertigramViewProps) {
+  const macronutrients = Array.isArray(data?.macronutrients) ? data.macronutrients : [];
+  const micronutrients = Array.isArray(data?.micronutrients) ? data.micronutrients : [];
+  const hasNoNutrients = macronutrients.length === 0 && micronutrients.length === 0;
+
   return (
     <Box borderWidth="1px" borderRadius="md" p={3}>
       <Text fontWeight="bold" mb={2}>
@@ -101,18 +106,24 @@ export default function FertigramView({ data }: FertigramViewProps) {
         </Text>
       ) : null}
 
-      <VStack align="stretch" gap={4}>
-        <NutrientSection
-          title="Macronutrientes"
-          nutrients={data.macronutrients}
-          emptyMessage="Nenhum macronutriente disponível nesta análise."
-        />
-        <NutrientSection
-          title="Micronutrientes"
-          nutrients={data.micronutrients}
-          emptyMessage="Nenhum micronutriente disponível nesta análise."
-        />
-      </VStack>
+      {hasNoNutrients ? (
+        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }}>
+          Nenhum nutriente disponível para gerar o fertigrama.
+        </Text>
+      ) : (
+        <VStack align="stretch" gap={4}>
+          <NutrientSection
+            title="Macronutrientes"
+            nutrients={macronutrients}
+            emptyMessage="Nenhum macronutriente disponível nesta análise."
+          />
+          <NutrientSection
+            title="Micronutrientes"
+            nutrients={micronutrients}
+            emptyMessage="Nenhum micronutriente disponível nesta análise."
+          />
+        </VStack>
+      )}
     </Box>
   );
 }
