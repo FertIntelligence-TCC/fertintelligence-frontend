@@ -50,7 +50,12 @@ const INITIAL_STATE: PlotCreatePayload = {
     area_irrigada: AreaIrrigada.NAO,
     declividade: 0,
     pluviosidade_mensal: 0,
-    pluviosidade_anual: 0
+    pluviosidade_anual: 0,
+    latitude: undefined,
+    latitude_direction: "",
+    longitude: undefined,
+    longitude_direction: "",
+    altitude: undefined,
 };
 
 const classesSoloCollection = createListCollection({
@@ -95,7 +100,12 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                     area_irrigada: initialData.area_irrigada,
                     declividade: initialData.declividade,
                     pluviosidade_mensal: initialData.pluviosidade_mensal,
-                    pluviosidade_anual: initialData.pluviosidade_anual
+                    pluviosidade_anual: initialData.pluviosidade_anual,
+                    latitude: initialData.latitude,
+                    latitude_direction: initialData.latitude_direction ?? initialData.latitudeDirection ?? "",
+                    longitude: initialData.longitude,
+                    longitude_direction: initialData.longitude_direction ?? initialData.longitudeDirection ?? "",
+                    altitude: initialData.altitude
                 });
             } else {
                 setForm(INITIAL_STATE);
@@ -240,6 +250,61 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                         <Input disabled={isReadOnly} type="number" value={form.pluviosidade_anual} onChange={e => handleChange("pluviosidade_anual", parseFloat(e.target.value))} />
                     </Box>
                 </Grid>
+
+                <Grid templateColumns="1fr 1fr" gap={4}>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Latitude</Text>
+                        <Input
+                            disabled={isReadOnly}
+                            type="number"
+                            value={form.latitude ?? ""}
+                            onChange={e => handleChange("latitude", e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                            placeholder="Ex: 15.1234"
+                        />
+                    </Box>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Direção da Latitude</Text>
+                        <Input
+                            disabled={isReadOnly}
+                            value={form.latitude_direction ?? ""}
+                            onChange={e => handleChange("latitude_direction", e.target.value)}
+                            placeholder="Ex: N ou S"
+                        />
+                    </Box>
+                </Grid>
+
+                <Grid templateColumns="1fr 1fr" gap={4}>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Longitude</Text>
+                        <Input
+                            disabled={isReadOnly}
+                            type="number"
+                            value={form.longitude ?? ""}
+                            onChange={e => handleChange("longitude", e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                            placeholder="Ex: 47.5678"
+                        />
+                    </Box>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Direção da Longitude</Text>
+                        <Input
+                            disabled={isReadOnly}
+                            value={form.longitude_direction ?? ""}
+                            onChange={e => handleChange("longitude_direction", e.target.value)}
+                            placeholder="Ex: E ou W"
+                        />
+                    </Box>
+                </Grid>
+
+                <Box>
+                    <Text fontSize="sm" fontWeight="bold" mb={1}>Altitude</Text>
+                    <Input
+                        disabled={isReadOnly}
+                        type="number"
+                        value={form.altitude ?? ""}
+                        onChange={e => handleChange("altitude", e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                        placeholder="Ex: 450"
+                    />
+                </Box>
 
                 {initialData && (
                     <>

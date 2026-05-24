@@ -48,6 +48,13 @@ export interface PlotResponse {
     declividade: number;
     pluviosidade_mensal: number;
     pluviosidade_anual: number;
+    latitude?: number;
+    latitude_direction?: string;
+    latitudeDirection?: string;
+    longitude?: number;
+    longitude_direction?: string;
+    longitudeDirection?: string;
+    altitude?: number;
 }
 
 export interface PlotCreatePayload {
@@ -60,6 +67,11 @@ export interface PlotCreatePayload {
     declividade: number;
     pluviosidade_mensal: number;
     pluviosidade_anual: number;
+    latitude?: number;
+    latitude_direction?: string;
+    longitude?: number;
+    longitude_direction?: string;
+    altitude?: number;
 }
 
 export interface PlotUpdatePayload {
@@ -72,4 +84,9 @@ export interface PlotUpdatePayload {
     nova_declividade?: number;
     nova_pluviosidade_mensal?: number;
     nova_pluviosidade_anual?: number;
+    nova_latitude?: number;
+    nova_latitude_direction?: string;
+    nova_longitude?: number;
+    nova_longitude_direction?: string;
+    nova_altitude?: number;
 }
