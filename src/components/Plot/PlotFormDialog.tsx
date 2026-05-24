@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 
 import DialogContainer from "@/components/Property/DialogContainer";
+import EntityImageUploader from "@/components/EntityImageUploader";
 import { 
     ClasseSolo, 
     TexturaSolo, 
@@ -56,6 +57,7 @@ const INITIAL_STATE: PlotCreatePayload = {
     longitude: undefined,
     longitude_direction: "",
     altitude: undefined,
+    idfoto: "",
 };
 
 const classesSoloCollection = createListCollection({
@@ -105,7 +107,8 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                     latitude_direction: initialData.latitude_direction ?? initialData.latitudeDirection ?? "",
                     longitude: initialData.longitude,
                     longitude_direction: initialData.longitude_direction ?? initialData.longitudeDirection ?? "",
-                    altitude: initialData.altitude
+                    altitude: initialData.altitude,
+                    idfoto: initialData.idfoto ?? "",
                 });
             } else {
                 setForm(INITIAL_STATE);
@@ -141,6 +144,12 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
             </Heading>
             
             <VStack gap={4} align="stretch">
+                <EntityImageUploader
+                    label="Imagem do Talhão"
+                    currentImageId={form.idfoto}
+                    onImageIdChange={(id) => handleChange("idfoto", id)}
+                    readOnly={isReadOnly}
+                />
                 <Box>
                     <Text fontSize="sm" fontWeight="bold" mb={1}>Identificação</Text>
                     <Input 

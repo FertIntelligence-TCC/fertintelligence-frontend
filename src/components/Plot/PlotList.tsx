@@ -1,3 +1,4 @@
+import ImageThumb from "@/components/ImageThumb";
 import { useState } from "react";
 import { Box, SimpleGrid, Text, IconButton, HStack, Flex } from "@chakra-ui/react";
 import { FiEdit, FiTrash, FiEye } from "react-icons/fi";
@@ -39,12 +40,13 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                     _hover={{ borderColor: "green.400", boxShadow: "md" }}
                     onClick={() => handlePlotClick(plot.id)}
                     position="relative"
-                    h="100px"
+                    h="180px"
                     display="flex"
                     flexDirection="column"
                     justifyContent="center"
                     alignItems="center"
                 >
+                    <ImageThumb imageId={plot.idfoto} alt={plot.identificacao} />
                     <Text fontWeight="bold" textAlign="center" noOfLines={2}>
                         {plot.identificacao}
                     </Text>

@@ -36,6 +36,7 @@ import { TopDressingManager } from "./TopDressingManager";
 import { FoliarAnalysisManager } from "./FoliarAnalysisManager";
 // NOVO IMPORT:
 import { FoliarFertilizationManager } from "./FoliarFertilizationManager";
+import EntityImageUploader from "@/components/EntityImageUploader";
 
 interface CropFormDialogProps {
   open: boolean;
@@ -91,6 +92,7 @@ export const CropFormDialog = ({
   const [areaUsada, setAreaUsada] = useState("");
   const [produtividadeEsperada, setProdutividadeEsperada] = useState("");
   const [produtividadeObtida, setProdutividadeObtida] = useState("");
+  const [idfoto, setIdfoto] = useState("");
   
   // Datas
   const [dataPlantio, setDataPlantio] = useState("");
@@ -149,6 +151,7 @@ export const CropFormDialog = ({
     setDataBotonamento(dateToIso(crop.data_botonamento));
     setDataFlorescimento(dateToIso(crop.data_florescimento));
     setDataColheita(dateToIso(crop.data_colheita));
+    setIdfoto(crop.idfoto ?? "");
   };
 
   const resetFields = () => {
@@ -166,6 +169,7 @@ export const CropFormDialog = ({
     setDataBotonamento("");
     setDataFlorescimento("");
     setDataColheita("");
+    setIdfoto("");
   };
 
   const handleSaveBasicInfo = async () => {
@@ -196,6 +200,7 @@ export const CropFormDialog = ({
         data_botonamento: isoToCropDate(dataBotonamento),
         data_florescimento: isoToCropDate(dataFlorescimento),
         data_colheita: isoToCropDate(dataColheita),
+        idfoto,
       };
 
       if (currentCrop) {
@@ -216,6 +221,7 @@ export const CropFormDialog = ({
           novo_data_botonamento: commonData.data_botonamento,
           novo_data_florescimento: commonData.data_florescimento,
           novo_data_colheita: commonData.data_colheita,
+          novo_idfoto: commonData.idfoto,
         });
         setCurrentCrop(response);
         toaster.create({ title: "Dados atualizados com sucesso!", type: "success" });
@@ -270,6 +276,11 @@ export const CropFormDialog = ({
 
             <Tabs.Content value="dados-gerais">
               <VStack gap={6} align="stretch" pt={4}>
+                <EntityImageUploader
+                  label="Imagem da Cultura"
+                  currentImageId={idfoto}
+                  onImageIdChange={setIdfoto}
+                />
                 {/* Seção 1: Identificação */}
                 <VStack align="stretch" gap={3}>
                   <Heading size="sm" color="gray.600">Identificação</Heading>

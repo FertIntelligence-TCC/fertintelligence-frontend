@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { LatitudeDirection, LongitudeDirection } from "@/interfaces/Property";
 import { PropertyFormState } from "./types";
+import EntityImageUploader from "@/components/EntityImageUploader";
 
 /* ======================================================
    Helpers
@@ -121,6 +122,12 @@ const PropertyFormFields = ({
 }: PropertyFormFieldsProps) => {
     return (
         <VStack gap={4} align="stretch">
+            <EntityImageUploader
+                label="Imagem da Propriedade"
+                currentImageId={form.idfoto}
+                onImageIdChange={(id) => onFormChange("idfoto", id)}
+            />
+
             {/* Nome */}
             <Field label="Nome da Propriedade:" isRequired>
                 <Input

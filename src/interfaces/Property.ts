@@ -23,6 +23,7 @@ export enum LatitudeDirection {
       endereco: string;
       cnpj: string;
       localizacao: LocalizacaoPayload;
+      idfoto?: string;
   }
   
   export interface PropertyUpdatePayload {
@@ -30,6 +31,7 @@ export enum LatitudeDirection {
       novo_endereco?: string;
       novo_cnpj?: string;
       nova_localizacao?: LocalizacaoPayload;
+      novo_idfoto?: string;
   }
 
   export interface PropertyResponse { 
@@ -40,6 +42,7 @@ export enum LatitudeDirection {
     localizacao: LocalizacaoPayload;
     ownerId: number;
     ownerNome: string;
+    idfoto?: string;
 }
   
   // Exports dos DTOs de Adubação para uso centralizado (Opcional, mas útil)

@@ -55,6 +55,7 @@ export interface PlotResponse {
     longitude_direction?: string;
     longitudeDirection?: string;
     altitude?: number;
+    idfoto?: string;
 }
 
 export interface PlotCreatePayload {
@@ -72,6 +73,7 @@ export interface PlotCreatePayload {
     longitude?: number;
     longitude_direction?: string;
     altitude?: number;
+    idfoto?: string;
 }
 
 export interface PlotUpdatePayload {
@@ -89,4 +91,5 @@ export interface PlotUpdatePayload {
     nova_longitude?: number;
     nova_longitude_direction?: string;
     nova_altitude?: number;
+    novo_idfoto?: string;
 }
