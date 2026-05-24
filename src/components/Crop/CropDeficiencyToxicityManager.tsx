@@ -28,12 +28,14 @@ export const CropDeficiencyToxicityManager = ({ cropId }: Props) => {
   const [selectedItem, setSelectedItem] = useState<CropDeficiencyToxicityResponseDto | null>(null);
   const [itemToDelete, setItemToDelete] = useState<CropDeficiencyToxicityResponseDto | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [imagesReloadToken, setImagesReloadToken] = useState(0);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const result = await getCropDeficiencyToxicitiesByCrop(cropId);
       setData(result);
+      setImagesReloadToken((prev) => prev + 1);
     } catch (error) {
       console.error(error);
       toaster.create({ title: "Erro ao carregar deficiências/toxidez", type: "error" });
@@ -89,8 +91,22 @@ export const CropDeficiencyToxicityManager = ({ cropId }: Props) => {
                 <Table.Row key={item.id}>
                   <Table.Cell>{item.nutrient || item.nutriente || "-"}</Table.Cell>
                   <Table.Cell>{item.nutrientType || item.tipo_nutriente || "-"}</Table.Cell>
-                  <Table.Cell>{item.healthyPlantImageId || item.idfoto_planta_saudavel ? <ImageThumb imageId={item.healthyPlantImageId || item.idfoto_planta_saudavel || ""} alt="Planta saudável" /> : "-"}</Table.Cell>
-                  <Table.Cell>{item.symptomaticPlantImageId || item.idfoto_planta_sintoma ? <ImageThumb imageId={item.symptomaticPlantImageId || item.idfoto_planta_sintoma || ""} alt="Planta com sintoma" /> : "-"}</Table.Cell>
+                  <Table.Cell>
+                    <ImageThumb
+                      imageId={item.healthyPlantImageId || item.idfoto_planta_saudavel || ""}
+                      fallbackImageId="healthy-image-1"
+                      alt="Planta saudável"
+                      reloadToken={imagesReloadToken}
+                    />
+                  </Table.Cell>
+                  <Table.Cell>
+                    <ImageThumb
+                      imageId={item.symptomaticPlantImageId || item.idfoto_planta_sintoma || ""}
+                      fallbackImageId="symptom-image-1"
+                      alt="Planta com sintoma"
+                      reloadToken={imagesReloadToken}
+                    />
+                  </Table.Cell>
                   <Table.Cell><Text fontSize="sm" maxW="300px" truncate>{item.observations || item.observacoes || "-"}</Text></Table.Cell>
                   <Table.Cell textAlign="end">
                     <HStack justify="end" gap={2}>
