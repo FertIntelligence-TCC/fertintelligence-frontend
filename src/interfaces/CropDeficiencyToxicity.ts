@@ -19,8 +19,15 @@ export type DeficiencyToxicityNutrient =
 
 export interface CropDeficiencyToxicityResponseDto {
   id: number;
-  id_cultura: number;
-  nutriente: DeficiencyToxicityNutrient;
+  cropId?: number;
+  id_cultura?: number;
+  nutrient: DeficiencyToxicityNutrient;
+  nutrientType?: NutrientKind;
+  healthyPlantImageId?: string;
+  symptomaticPlantImageId?: string;
+  observations?: string;
+  // backward compatibility with legacy API keys
+  nutriente?: DeficiencyToxicityNutrient;
   tipo_nutriente?: NutrientKind;
   idfoto_planta_saudavel?: string;
   idfoto_planta_sintoma?: string;
@@ -28,15 +35,15 @@ export interface CropDeficiencyToxicityResponseDto {
 }
 
 export interface CropDeficiencyToxicityCreateRequestDto {
-  nutriente: DeficiencyToxicityNutrient;
-  idfoto_planta_saudavel?: string;
-  idfoto_planta_sintoma?: string;
-  observacoes?: string;
+  nutrient: DeficiencyToxicityNutrient;
+  healthyPlantImageId?: string;
+  symptomaticPlantImageId?: string;
+  observations?: string;
 }
 
 export interface CropDeficiencyToxicityPostRequestDto {
-  novo_nutriente?: DeficiencyToxicityNutrient;
-  novo_idfoto_planta_saudavel?: string;
-  novo_idfoto_planta_sintoma?: string;
-  novo_observacoes?: string;
+  nutrient?: DeficiencyToxicityNutrient;
+  healthyPlantImageId?: string;
+  symptomaticPlantImageId?: string;
+  observations?: string;
 }

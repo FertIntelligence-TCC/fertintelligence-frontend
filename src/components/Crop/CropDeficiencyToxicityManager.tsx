@@ -87,11 +87,11 @@ export const CropDeficiencyToxicityManager = ({ cropId }: Props) => {
             <Table.Body>
               {data.map((item) => (
                 <Table.Row key={item.id}>
-                  <Table.Cell>{item.nutriente || "-"}</Table.Cell>
-                  <Table.Cell>{item.tipo_nutriente || "-"}</Table.Cell>
-                  <Table.Cell>{item.idfoto_planta_saudavel ? <ImageThumb imageId={item.idfoto_planta_saudavel} alt="Planta saudável" /> : "-"}</Table.Cell>
-                  <Table.Cell>{item.idfoto_planta_sintoma ? <ImageThumb imageId={item.idfoto_planta_sintoma} alt="Planta com sintoma" /> : "-"}</Table.Cell>
-                  <Table.Cell><Text fontSize="sm" maxW="300px" truncate>{item.observacoes || "-"}</Text></Table.Cell>
+                  <Table.Cell>{item.nutrient || item.nutriente || "-"}</Table.Cell>
+                  <Table.Cell>{item.nutrientType || item.tipo_nutriente || "-"}</Table.Cell>
+                  <Table.Cell>{item.healthyPlantImageId || item.idfoto_planta_saudavel ? <ImageThumb imageId={item.healthyPlantImageId || item.idfoto_planta_saudavel || ""} alt="Planta saudável" /> : "-"}</Table.Cell>
+                  <Table.Cell>{item.symptomaticPlantImageId || item.idfoto_planta_sintoma ? <ImageThumb imageId={item.symptomaticPlantImageId || item.idfoto_planta_sintoma || ""} alt="Planta com sintoma" /> : "-"}</Table.Cell>
+                  <Table.Cell><Text fontSize="sm" maxW="300px" truncate>{item.observations || item.observacoes || "-"}</Text></Table.Cell>
                   <Table.Cell textAlign="end">
                     <HStack justify="end" gap={2}>
                       <Button size="xs" variant="ghost" onClick={() => { setSelectedItem(item); setIsFormOpen(true); }}>Editar</Button>
@@ -119,7 +119,7 @@ export const CropDeficiencyToxicityManager = ({ cropId }: Props) => {
             <DialogTitle>Excluir Deficiência/Toxidez</DialogTitle>
           </DialogHeader>
           <DialogBody>
-            Tem certeza que deseja excluir o registro de <strong>{itemToDelete?.nutriente}</strong>?
+            Tem certeza que deseja excluir o registro de <strong>{itemToDelete?.nutrient || itemToDelete?.nutriente}</strong>?
           </DialogBody>
           <DialogFooter>
             <DialogActionTrigger asChild>
