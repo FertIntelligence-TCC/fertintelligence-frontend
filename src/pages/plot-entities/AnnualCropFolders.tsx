@@ -55,7 +55,7 @@ export const AnnualCropFolders = () => {
     if (!plotIdNum) return;
     try {
       const plot = await getPlotById(plotIdNum);
-      setPlotIdentification(plot.identification);
+      setPlotIdentification(plot.identificacao);
     } catch (error) {
       console.error("Erro ao buscar detalhes do talhão", error);
     }

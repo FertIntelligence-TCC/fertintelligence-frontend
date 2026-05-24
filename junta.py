@@ -44,8 +44,8 @@ def main() -> int:
     parser.add_argument(
         "-o",
         "--output",
-        default="ts_tsx_dump.txt",
-        help="Nome do arquivo de saída (default: ts_tsx_dump.txt)",
+        default="consolidado_cliente.txt",
+        help="Nome do arquivo de saída (default: consolidado_cliente.txt)",
     )
     parser.add_argument(
         "--include-node-modules",
