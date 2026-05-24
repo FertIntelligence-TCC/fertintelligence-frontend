@@ -150,7 +150,7 @@ export const AnnualCropFolders = () => {
         <Flex justify="space-between" align="center" mb={4}>
           <Button
             variant="outline"
-            onClick={() => navigate("/fertintelligence/owner-property-management")}
+            onClick={() => navigate("/home")}
           >
             <LuArrowLeft /> Voltar para o painel
           </Button>
