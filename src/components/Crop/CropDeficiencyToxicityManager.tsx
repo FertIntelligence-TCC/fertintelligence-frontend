@@ -90,19 +90,17 @@ export const CropDeficiencyToxicityManager = ({ cropId }: Props) => {
               {data.map((item) => (
                 <Table.Row key={item.id}>
                   <Table.Cell>{item.nutrient || item.nutriente || "-"}</Table.Cell>
-                  <Table.Cell>{item.nutrientType || item.tipo_nutriente || "-"}</Table.Cell>
+                  <Table.Cell>{item.nutrient_type || "-"}</Table.Cell>
                   <Table.Cell>
                     <ImageThumb
-                      imageId={item.healthyPlantImageId || item.idfoto_planta_saudavel || ""}
-                      fallbackImageId="healthy-image-1"
+                      imageId={item.healthy_plant_image_id || ""}
                       alt="Planta saudável"
                       reloadToken={imagesReloadToken}
                     />
                   </Table.Cell>
                   <Table.Cell>
                     <ImageThumb
-                      imageId={item.symptomaticPlantImageId || item.idfoto_planta_sintoma || ""}
-                      fallbackImageId="symptom-image-1"
+                      imageId={item.symptomatic_plant_image_id || ""}
                       alt="Planta com sintoma"
                       reloadToken={imagesReloadToken}
                     />

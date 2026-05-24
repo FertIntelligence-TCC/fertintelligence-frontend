@@ -87,10 +87,10 @@ export const CropDeficiencyToxicityFormDialog = ({ open, onOpenChange, cropId, s
     if (selectedItem) {
       setNutriente(selectedItem.nutrient || selectedItem.nutriente || "");
       setNutrientType(
-        selectedItem.nutrientType || selectedItem.tipo_nutriente || resolveNutrientType(selectedItem.nutrient || selectedItem.nutriente || ""),
+        selectedItem.nutrient_type || resolveNutrientType(selectedItem.nutrient || selectedItem.nutriente || ""),
       );
-      setIdfotoPlantaSaudavel(selectedItem.healthyPlantImageId || selectedItem.idfoto_planta_saudavel || "");
-      setIdfotoPlantaSintoma(selectedItem.symptomaticPlantImageId || selectedItem.idfoto_planta_sintoma || "");
+      setIdfotoPlantaSaudavel(selectedItem.healthy_plant_image_id || "");
+      setIdfotoPlantaSintoma(selectedItem.symptomatic_plant_image_id || "");
       setObservacoes(selectedItem.observations || selectedItem.observacoes || "");
       return;
     }
