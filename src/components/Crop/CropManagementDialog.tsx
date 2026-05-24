@@ -133,7 +133,6 @@ export const CropManagementDialog = ({
                     crops={crops}
                     isLoading={isLoading}
                     onEdit={handleEditOrManage}
-                    onManage={handleEditOrManage}
                     onRefresh={fetchCrops}
                   />
                 )}
