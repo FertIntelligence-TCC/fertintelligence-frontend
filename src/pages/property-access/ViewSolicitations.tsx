@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 // 1. Removemos Select, Tabs, etc, daqui:
 import { Box, Button, Flex, Heading, Text, Spinner, Badge } from "@chakra-ui/react";
 
@@ -14,6 +15,7 @@ import { Cargo } from "@/interfaces/User";
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@/components/ui/custom-tabs";
 
 export default function ViewSolicitations() {
+  const navigate = useNavigate();
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | "">("");
   const [requests, setRequests] = useState<PropertyAccessRequestResponse[]>([]);
@@ -105,6 +107,9 @@ export default function ViewSolicitations() {
   return (
     <UserLayout>
       <Box p={8} maxW="4xl" mx="auto" mt={8}>
+        <Button variant="outline" mb={4} onClick={() => navigate("/fertintelligence/home")}>
+          Voltar para o painel
+        </Button>
         <Heading mb={6}>Gestão de Solicitações</Heading>
 
         {/* Seleção de Propriedade (Adaptado com Box as="select" para evitar bugs do Chakra V3) */}
