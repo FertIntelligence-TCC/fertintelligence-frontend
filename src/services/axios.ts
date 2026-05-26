@@ -37,7 +37,7 @@ api.interceptors.response.use(
   }
 );
 
-const image_manager_url = "http://localhost:8081"
+const image_manager_url = import.meta.env.VITE_IMAGE_MANAGER_URL ?? "http://localhost:8081";
 
 export const axiosImageManager = axios.create({
   baseURL: image_manager_url,
