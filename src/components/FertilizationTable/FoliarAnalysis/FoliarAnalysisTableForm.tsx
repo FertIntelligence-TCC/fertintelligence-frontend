@@ -18,7 +18,7 @@ import {
     SelectValueText 
 } from "@/components/ui/select";
 import { FiPlus, FiMinus } from "react-icons/fi";
-import { FoliarTableFormState, FoliarTableRowState, CulturaEnum, RegionEnum, DEFAULT_ROW_STATE } from "@/interfaces/FoliarAnalysisInterpretationTable";
+import { FoliarTableFormState, FoliarTableRowState, CulturaEnum, RegionEnum, DEFAULT_ROW_STATE, formatUnidadeTeor } from "@/interfaces/FoliarAnalysisInterpretationTable";
 
 type Props = {
     form: FoliarTableFormState;
@@ -141,8 +141,8 @@ export default function FoliarAnalysisTableForm({ form, setForm, readOnly }: Pro
                                 )}
                             </Table.ColumnHeader>
                             <Table.ColumnHeader rowSpan={2} minW="180px">Cultura</Table.ColumnHeader>
-                            <Table.ColumnHeader colSpan={6} textAlign="center" borderBottomWidth="1px">Macronutrientes (dag/kg)</Table.ColumnHeader>
-                            <Table.ColumnHeader colSpan={6} textAlign="center" borderBottomWidth="1px">Micronutrientes (mg/kg)</Table.ColumnHeader>
+                            <Table.ColumnHeader colSpan={6} textAlign="center" borderBottomWidth="1px">Macronutrientes ({formatUnidadeTeor("dag_per_kg")})</Table.ColumnHeader>
+                            <Table.ColumnHeader colSpan={6} textAlign="center" borderBottomWidth="1px">Micronutrientes ({formatUnidadeTeor("mg_per_kg")})</Table.ColumnHeader>
                         </Table.Row>
                         <Table.Row>
                             {['N', 'P', 'K', 'Ca', 'Mg', 'S'].map(n => <Table.ColumnHeader key={n} textAlign="center">{n}</Table.ColumnHeader>)}

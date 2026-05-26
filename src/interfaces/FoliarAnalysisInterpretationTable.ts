@@ -22,6 +22,32 @@ export interface NutrientRange {
     max: number;
 }
 
+export type UnidadeTeor =
+    | "dag_per_kg"
+    | "mg_per_kg"
+    | "g_per_kg"
+    | "g_per_dm3"
+    | "mg_per_dm3"
+    | "cmolc_per_dm3"
+    | "mmolc_per_dm3"
+    | "percentage";
+
+export const UnidadeTeorLabels: Record<UnidadeTeor, string> = {
+    dag_per_kg: "dag/kg",
+    mg_per_kg: "mg/kg",
+    g_per_kg: "g/kg",
+    g_per_dm3: "g/dm³",
+    mg_per_dm3: "mg/dm³",
+    cmolc_per_dm3: "cmolc/dm³",
+    mmolc_per_dm3: "mmolc/dm³",
+    percentage: "%",
+};
+
+export const formatUnidadeTeor = (unity?: string | null): string => {
+    if (!unity) return "-";
+    return UnidadeTeorLabels[unity as UnidadeTeor] ?? unity;
+};
+
 export interface FoliarTableItemDto {
     cultura: CulturaEnum;
     // Macros (dag/kg)
