@@ -53,6 +53,7 @@ export default function SignUpPage() {
     repeatPassword: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<1 | 2>(1);
 
   const handleSignUpChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -220,6 +221,16 @@ export default function SignUpPage() {
     signUpMutation.mutate(payload);
   };
 
+  const goToNextStep = () => {
+    setStep(2);
+    setError(null);
+  };
+
+  const goToPreviousStep = () => {
+    setStep(1);
+    setError(null);
+  };
+
   // Select nativo estilizado com Chakra
   const NativeSelect = chakra("select", {
     baseStyle: {
@@ -274,159 +285,113 @@ export default function SignUpPage() {
               </Box>
             )}
 
+            <Text textAlign="center" fontSize="sm" color="gray.600">
+              Etapa {step} de 2
+            </Text>
+
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-              <Box>
-                <Text mb={1}>Nome Completo</Text>
-                <Input
-                  name="name"
-                  value={signUpForm.name}
-                  onChange={handleSignUpChange}
-                  placeholder="Digite seu nome completo"
-                />
-              </Box>
+              {step === 1 ? (
+                <>
+                  <Box>
+                    <Text mb={1}>Nome Completo</Text>
+                    <Input name="name" value={signUpForm.name} onChange={handleSignUpChange} placeholder="Digite seu nome completo" />
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Nome de Usuário (Login)</Text>
-                <Input
-                  name="username"
-                  value={signUpForm.username}
-                  onChange={handleSignUpChange}
-                  placeholder="Digite seu nome de usuário"
-                />
-              </Box>
+                  <Box>
+                    <Text mb={1}>Nome de Usuário (Login)</Text>
+                    <Input name="username" value={signUpForm.username} onChange={handleSignUpChange} placeholder="Digite seu nome de usuário" />
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Email</Text>
-                <Input
-                  type="email"
-                  name="email"
-                  value={signUpForm.email}
-                  onChange={handleSignUpChange}
-                  placeholder="Digite seu email"
-                />
-              </Box>
+                  <Box>
+                    <Text mb={1}>Email</Text>
+                    <Input type="email" name="email" value={signUpForm.email} onChange={handleSignUpChange} placeholder="Digite seu email" />
+                  </Box>
 
-              <Box>
-                <Text mb={1}>CPF (somente números)</Text>
-                <Input
-                  name="cpf"
-                  value={signUpForm.cpf}
-                  onChange={handleSignUpChange}
-                  placeholder="12345678901"
-                  maxLength={11}
-                />
-              </Box>
+                  <Box>
+                    <Text mb={1}>CPF (somente números)</Text>
+                    <Input name="cpf" value={signUpForm.cpf} onChange={handleSignUpChange} placeholder="12345678901" maxLength={11} />
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Data de Nascimento</Text>
-                <Input
-                  name="datanasc"
-                  value={signUpForm.datanasc}
-                  onChange={handleSignUpChange}
-                  placeholder="dd/mm/aaaa"
-                />
-              </Box>
+                  <Box>
+                    <Text mb={1}>Data de Nascimento</Text>
+                    <Input name="datanasc" value={signUpForm.datanasc} onChange={handleSignUpChange} placeholder="dd/mm/aaaa" />
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Telefone</Text>
-                <Input
-                  name="telefone"
-                  value={signUpForm.telefone}
-                  onChange={handleSignUpChange}
-                  placeholder="+55 83 99121-4231"
-                />
-              </Box>
+                  <Box>
+                    <Text mb={1}>Gênero</Text>
+                    <NativeSelect name="genero" value={signUpForm.genero} onChange={handleSignUpChange}>
+                      <option value="">Selecione seu gênero</option>
+                      {generoOptions.map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Box>
+                    <Text mb={1}>Telefone</Text>
+                    <Input name="telefone" value={signUpForm.telefone} onChange={handleSignUpChange} placeholder="+55 83 99121-4231" />
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Gênero</Text>
-                <NativeSelect
-                  name="genero"
-                  value={signUpForm.genero}
-                  onChange={handleSignUpChange}
-                >
-                  <option value="">Selecione seu gênero</option>
-                  {generoOptions.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </Box>
+                  <Box>
+                    <Text mb={1}>Formação</Text>
+                    <NativeSelect name="formacao" value={signUpForm.formacao} onChange={handleSignUpChange}>
+                      <option value="">Selecione sua formação</option>
+                      {formacaoOptions.map((f) => (
+                        <option key={f} value={f}>
+                          {String(f).replace(/_/g, " ")}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Formação</Text>
-                <NativeSelect
-                  name="formacao"
-                  value={signUpForm.formacao}
-                  onChange={handleSignUpChange}
-                >
-                  <option value="">Selecione sua formação</option>
-                  {formacaoOptions.map((f) => (
-                    <option key={f} value={f}>
-                      {String(f).replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </Box>
+                  <Box>
+                    <Text mb={1}>Profissão</Text>
+                    <Input name="profissao" value={signUpForm.profissao} onChange={handleSignUpChange} placeholder="Ex: Engenheiro Agrônomo" />
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Profissão</Text>
-                <Input
-                  name="profissao"
-                  value={signUpForm.profissao}
-                  onChange={handleSignUpChange}
-                  placeholder="Ex: Engenheiro Agrônomo"
-                />
-              </Box>
+                  <Box>
+                    <Text mb={1}>Cargo</Text>
+                    <NativeSelect name="cargo" value={signUpForm.cargo} onChange={handleSignUpChange}>
+                      <option value="">Selecione seu cargo</option>
+                      {cargoOptions.map((c) => (
+                        <option key={c} value={c}>
+                          {String(c).replace(/_/g, " ")}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Cargo</Text>
-                <NativeSelect
-                  name="cargo"
-                  value={signUpForm.cargo}
-                  onChange={handleSignUpChange}
-                >
-                  <option value="">Selecione seu cargo</option>
-                  {cargoOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {String(c).replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </Box>
+                  <Box>
+                    <Text mb={1}>Senha</Text>
+                    <PasswordInput name="password" value={signUpForm.password} onChange={handlePasswordChange} placeholder="Digite sua senha" width="100%" />
+                  </Box>
 
-              <Box>
-                <Text mb={1}>Senha</Text>
-                <PasswordInput
-                  name="password"
-                  value={signUpForm.password}
-                  onChange={handlePasswordChange}
-                  placeholder="Digite sua senha"
-                  width="100%"
-                />
-              </Box>
-
-              <Box>
-                <Text mb={1}>Repita a senha</Text>
-                <PasswordInput
-                  name="repeatPassword"
-                  value={signUpForm.repeatPassword}
-                  onChange={handleRepeatPasswordChange}
-                  placeholder="Repita a senha"
-                  width="100%"
-                />
-              </Box>
+                  <Box>
+                    <Text mb={1}>Repita a senha</Text>
+                    <PasswordInput name="repeatPassword" value={signUpForm.repeatPassword} onChange={handleRepeatPasswordChange} placeholder="Repita a senha" width="100%" />
+                  </Box>
+                </>
+              )}
             </SimpleGrid>
 
-            <Button
-              colorScheme="blue"
-              width="full"
-              onClick={submitSignUp}
-              isLoading={signUpMutation.isLoading}
-              mt={4}
-            >
-              Cadastrar
-            </Button>
+            {step === 1 ? (
+              <Button colorScheme="blue" width="full" onClick={goToNextStep} mt={4}>
+                Próximo
+              </Button>
+            ) : (
+              <Flex gap={4} mt={4}>
+                <Button variant="outline" width="full" onClick={goToPreviousStep}>
+                  Voltar
+                </Button>
+                <Button colorScheme="blue" width="full" onClick={submitSignUp} isLoading={signUpMutation.isLoading}>
+                  Cadastrar
+                </Button>
+              </Flex>
+            )}
 
             <Text
               fontSize="sm"
