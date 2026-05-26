@@ -383,11 +383,25 @@ export default function SignUpPage() {
                 Próximo
               </Button>
             ) : (
-              <Flex gap={4} mt={4}>
-                <Button variant="outline" width="full" onClick={goToPreviousStep}>
+              <Flex
+                gap={4}
+                mt={4}
+                width="100%"
+                maxWidth="100%"
+                flexWrap="wrap"
+                direction={{ base: "column", md: "row" }}
+              >
+                <Button variant="outline" width="100%" maxWidth="100%" flex={1} onClick={goToPreviousStep}>
                   Voltar
                 </Button>
-                <Button colorScheme="blue" width="full" onClick={submitSignUp} isLoading={signUpMutation.isLoading}>
+                <Button
+                  colorScheme="blue"
+                  width="100%"
+                  maxWidth="100%"
+                  flex={1}
+                  onClick={submitSignUp}
+                  isLoading={signUpMutation.isLoading}
+                >
                   Cadastrar
                 </Button>
               </Flex>
