@@ -8,12 +8,11 @@ import {
   Box,
   Text,
   Flex,
-  Icon,
   SimpleGrid,
   chakra,
+  HStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { FiUploadCloud } from "react-icons/fi";
 import FertName from "@/components/FertName/FertName";
 import UserLayout from "@/components/Layouts/UserLayout";
 import { useUserStore } from "../../stores/user/user.store";
@@ -26,7 +25,6 @@ import {
   Cargo,
 } from "@/interfaces/User";
 import {
-  getImageFromMongoDB,
   updateImageMongoDB,
   uploadImageMongoDB,
 } from "@/services/imageService";
@@ -87,7 +85,8 @@ export default function UpdateProfile() {
   const formacaoOptions = enumOptions(Formacao);
   const cargoOptions = enumOptions(Cargo);
 
-  // Estado com os MESMOS CAMPOS do cadastro (inclui `foto` como string)
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+
   const [profileForm, setProfileForm] = useState({
     name: "",
     username: "",
@@ -133,22 +132,6 @@ export default function UpdateProfile() {
   ) => {
     const { name, value } = e.target;
     setProfileForm((prev) => ({ ...prev, [name]: value }));
-    setError(null);
-  };
-
-  // Opcional: permitir upload e converter para base64 para preencher `foto` (string)
-  const handleFileToString = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      // reader.result é dataURL base64 (string)
-      setProfileForm((prev) => ({
-        ...prev,
-        foto: String(reader.result || ""),
-      }));
-    };
-    reader.readAsDataURL(f);
     setError(null);
   };
 
@@ -316,164 +299,89 @@ export default function UpdateProfile() {
             )}
 
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-              <Box>
-                <Text mb={1}>Nome Completo</Text>
-                <Input
-                  name="name"
-                  value={profileForm.name}
-                  onChange={handleInputChange}
-                  placeholder="Digite seu nome completo"
-                />
-              </Box>
-
-              <Box>
-                <Text mb={1}>Nome de Usuário (Login)</Text>
-                <Input
-                  name="username"
-                  value={profileForm.username}
-                  onChange={handleInputChange}
-                  placeholder="Digite seu nome de usuário"
-                />
-              </Box>
-
-              <Box>
-                <Text mb={1}>Email</Text>
-                <Input
-                  type="email"
-                  name="email"
-                  value={profileForm.email}
-                  onChange={handleInputChange}
-                  placeholder="Digite seu email"
-                />
-              </Box>
-
-              <Box>
-                <Text mb={1}>CPF (somente números)</Text>
-                <Input
-                  name="cpf"
-                  value={profileForm.cpf}
-                  onChange={handleInputChange}
-                  placeholder="12345678901"
-                  maxLength={11}
-                />
-              </Box>
-
-              <Box>
-                <Text mb={1}>Data de Nascimento</Text>
-                <Input
-                  name="datanasc"
-                  value={profileForm.datanasc}
-                  onChange={handleInputChange}
-                  placeholder="dd/mm/aaaa"
-                />
-              </Box>
-
-              <Box>
-                <Text mb={1}>Telefone</Text>
-                <Input
-                  name="telefone"
-                  value={profileForm.telefone}
-                  onChange={handleInputChange}
-                  placeholder="+55 83 99121-4231"
-                />
-              </Box>
-
-              <Box>
-                <Text mb={1}>Gênero</Text>
-                <NativeSelect
-                  name="genero"
-                  value={profileForm.genero}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Selecione seu gênero</option>
-                  {generoOptions.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </Box>
-
-              <Box>
-                <Text mb={1}>Formação</Text>
-                <NativeSelect
-                  name="formacao"
-                  value={profileForm.formacao}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Selecione sua formação</option>
-                  {formacaoOptions.map((f) => (
-                    <option key={f} value={f}>
-                      {String(f).replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </Box>
-
-              <Box>
-                <Text mb={1}>Profissão</Text>
-                <Input
-                  name="profissao"
-                  value={profileForm.profissao}
-                  onChange={handleInputChange}
-                  placeholder="Ex: Engenheiro Agrônomo"
-                />
-              </Box>
-
-              <Box>
-                <Text mb={1}>Cargo</Text>
-                <NativeSelect
-                  name="cargo"
-                  value={profileForm.cargo}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Selecione seu cargo</option>
-                  {cargoOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {String(c).replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </Box>
-
-              {/* FOTO como STRING */}
-              <Box gridColumn={{ md: "span 2" }}>
-                <Text mb={1}>Foto (string: URL / Base64 / ID)</Text>
-                <Input
-                  name="foto"
-                  value={profileForm.foto}
-                  onChange={handleInputChange}
-                  placeholder="Cole aqui a URL/base64/ID da foto"
-                />
-                <Box mt={2}>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    id="foto-upload"
-                    display="none"
-                    onChange={handleFileToString}
-                  />
-                  <Button
-                    as="label"
-                    htmlFor="foto-upload"
-                    variant="outline"
-                    w="full"
-                  >
-                    <Icon as={FiUploadCloud} mr={2} />
-                    Ou selecione um arquivo para converter em base64
-                  </Button>
-                </Box>
-              </Box>
+              {currentStep === 1 ? (
+                <>
+                  <Box>
+                    <Text mb={1}>Nome Completo</Text>
+                    <Input name="name" value={profileForm.name} onChange={handleInputChange} placeholder="Digite seu nome completo" />
+                  </Box>
+                  <Box>
+                    <Text mb={1}>Nome de Usuário (Login)</Text>
+                    <Input name="username" value={profileForm.username} onChange={handleInputChange} placeholder="Digite seu nome de usuário" />
+                  </Box>
+                  <Box>
+                    <Text mb={1}>Email</Text>
+                    <Input type="email" name="email" value={profileForm.email} onChange={handleInputChange} placeholder="Digite seu email" />
+                  </Box>
+                  <Box>
+                    <Text mb={1}>CPF (somente números)</Text>
+                    <Input name="cpf" value={profileForm.cpf} onChange={handleInputChange} placeholder="12345678901" maxLength={11} />
+                  </Box>
+                  <Box>
+                    <Text mb={1}>Data de Nascimento</Text>
+                    <Input name="datanasc" value={profileForm.datanasc} onChange={handleInputChange} placeholder="dd/mm/aaaa" />
+                  </Box>
+                  <Box>
+                    <Text mb={1}>Gênero</Text>
+                    <NativeSelect name="genero" value={profileForm.genero} onChange={handleInputChange}>
+                      <option value="">Selecione seu gênero</option>
+                      {generoOptions.map((g) => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </NativeSelect>
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Box>
+                    <Text mb={1}>Telefone</Text>
+                    <Input name="telefone" value={profileForm.telefone} onChange={handleInputChange} placeholder="+55 83 99121-4231" />
+                  </Box>
+                  <Box>
+                    <Text mb={1}>Formação</Text>
+                    <NativeSelect name="formacao" value={profileForm.formacao} onChange={handleInputChange}>
+                      <option value="">Selecione sua formação</option>
+                      {formacaoOptions.map((f) => (
+                        <option key={f} value={f}>{String(f).replace(/_/g, " ")}</option>
+                      ))}
+                    </NativeSelect>
+                  </Box>
+                  <Box>
+                    <Text mb={1}>Profissão</Text>
+                    <Input name="profissao" value={profileForm.profissao} onChange={handleInputChange} placeholder="Ex: Engenheiro Agrônomo" />
+                  </Box>
+                  <Box>
+                    <Text mb={1}>Cargo</Text>
+                    <NativeSelect name="cargo" value={profileForm.cargo} onChange={handleInputChange}>
+                      <option value="">Selecione seu cargo</option>
+                      {cargoOptions.map((c) => (
+                        <option key={c} value={c}>{String(c).replace(/_/g, " ")}</option>
+                      ))}
+                    </NativeSelect>
+                  </Box>
+                </>
+              )}
             </SimpleGrid>
 
-            <Button
-              colorScheme="blue"
-              width="full"
-              onClick={handleSubmit}
-              mt={4}
-            >
-              Concluir
-            </Button>
+            <HStack mt={4} spacing={3}>
+              <Button variant="outline" onClick={() => navigate("/fertintelligence/home")} flex={1}>
+                Voltar para o painel
+              </Button>
+              {currentStep === 1 ? (
+                <Button colorScheme="blue" onClick={() => setCurrentStep(2)} flex={1}>
+                  Próximo
+                </Button>
+              ) : (
+                <>
+                  <Button variant="ghost" onClick={() => setCurrentStep(1)} flex={1}>
+                    Voltar
+                  </Button>
+                  <Button colorScheme="blue" onClick={handleSubmit} flex={1}>
+                    Concluir
+                  </Button>
+                </>
+              )}
+            </HStack>
           </VStack>
         </Box>
       </Flex>
