@@ -6,6 +6,7 @@ import UpdateProfile from "../pages/profile/UpdateProfile";
 import DeleteProfile from "../pages/profile/DeleteProfile";
 import PasswordVerification from "../pages/profile/UpdateVerification";
 import UpdatePassword from "../pages/profile/UpdatePassword";
+import UpdateProfilePhoto from "../pages/profile/UpdateProfilePhoto";
 import Home from "@/pages/Home";
 import OthersPropertyManagement from "@/pages/property/OthersPropertyManagement";
 import OwnerPropertyManagement from "@/pages/property/OwnerPropertyManagement";
@@ -72,6 +73,10 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/update-password",
     element: <UpdatePassword />,
+  },
+  {
+    path: "/fertintelligence/update-profile-photo",
+    element: <UpdateProfilePhoto />,
   },
   {
     path: "/fertintelligence/password-verification",
