@@ -168,6 +168,14 @@ export default function ConfigMenu() {
             variant="ghost"
             width="100%"
             justifyContent="flex-start"
+            onClick={() => handleMenuItemClick("/fertintelligence/update-profile-photo")}
+          >
+            Mudar Foto
+          </Button>
+          <Button
+            variant="ghost"
+            width="100%"
+            justifyContent="flex-start"
             onClick={() => handleMenuItemClick("/fertintelligence/delete-profile")}
             color="pink.500"
             _hover={{ bg: "red.500", color: "white" }}
