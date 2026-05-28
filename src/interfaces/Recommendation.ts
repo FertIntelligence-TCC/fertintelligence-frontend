@@ -15,6 +15,11 @@ export type RecommendationCropName =
   | "SISAL"
   | "SOJA";
 
+export type RecommendationFertilizerOrigin =
+  | "PRIVATE"
+  | "PUBLIC"
+  | "BOTH";
+
 export type RecommendationLimingCriteria =
   | "SATURACAO_POR_BASES_TROCAVEIS"
   | "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL"
@@ -31,6 +36,7 @@ export interface RecommendationCreatePayload {
   id_tabela_interpretacao_fertilidade_solo: number;
   id_tabela_interpretacao_analise_foliar: number;
   criterio_calagem: RecommendationLimingCriteria;
+  origem_adubos: RecommendationFertilizerOrigin;
 }
 
 export interface RecommendationResponse {
