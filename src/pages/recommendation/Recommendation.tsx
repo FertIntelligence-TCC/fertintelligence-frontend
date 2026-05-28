@@ -428,10 +428,6 @@ export default function Recommendation() {
           <Box borderWidth="1px" borderRadius="lg" p={6}><Heading size="md" mb={3}>Formulário técnico</Heading><Separator mb={4} />
             <VStack align="stretch" gap={3}>
               <NativeSelect value={recommendationType} onChange={(e) => setRecommendationType(e.target.value)}><option value="">Tipo de recomendação</option>{recommendationTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
-              <Box>
-                <Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
-                <NativeSelect value={fertilizerSourceOption} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
-              </Box>
               <NativeSelect value={selectedPropertyId} onChange={(e) => setSelectedPropertyId(e.target.value)} disabled={loadingProperties}>{loadingProperties ? <option>Carregando...</option> : <><option value="">Propriedade</option>{properties.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</>}</NativeSelect>
               <NativeSelect value={selectedPlotId} onChange={(e) => setSelectedPlotId(e.target.value)} disabled={!selectedPropertyId || loadingPlots}>{loadingPlots ? <option>Carregando...</option> : <><option value="">Talhão</option>{plots.map((p) => <option key={p.id} value={p.id}>{p.identificacao ?? `Talhão ${p.id}`}</option>)}</>}</NativeSelect>
               <Input placeholder="Ano da safra" value={cropYear} onChange={(e) => setCropYear(e.target.value)} />
@@ -440,6 +436,10 @@ export default function Recommendation() {
               <NativeSelect value={soilFertilityInterpretationTableId} onChange={(e) => setSoilFertilityInterpretationTableId(e.target.value)} disabled={loadingTables || soilFertilityTables.length === 0}><option value="">{soilFertilityTables.length ? "Tabela de interpretação da fertilidade do solo" : "Nenhuma tabela encontrada"}</option>{soilFertilityTables.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</NativeSelect>
               <NativeSelect value={cropFoliarAnalysisInterpretationTableId} onChange={(e) => setCropFoliarAnalysisInterpretationTableId(e.target.value)} disabled={loadingTables || foliarInterpretationTables.length === 0}><option value="">{foliarInterpretationTables.length ? "Tabela de interpretação de análise foliar" : "Nenhuma tabela encontrada"}</option>{foliarInterpretationTables.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</NativeSelect>
               <NativeSelect value={limingCriteria} onChange={(e) => setLimingCriteria(e.target.value)}><option value="">Critério de calagem</option>{limingCriteriaOptions.map((c) => <option key={c} value={c}>{c}</option>)}</NativeSelect>
+              <Box>
+                <Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
+                <NativeSelect value={fertilizerSourceOption} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
+              </Box>
               <Button colorPalette="blue" onClick={handleGenerate} loading={generating}>Gerar Recomendação</Button>
             </VStack>
           </Box>
