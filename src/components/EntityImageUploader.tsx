@@ -42,12 +42,18 @@ export default function EntityImageUploader({ currentImageId, onImageIdChange, l
       if (!base64.startsWith("data:image")) return;
       setPreview(base64);
       setLoading(true);
-      const resp = currentImageId
-        ? await updateImageMongoDB(base64, currentImageId)
-        : await uploadImageMongoDB(base64);
-      const newId = resp?._id || currentImageId || "";
-      if (newId) onImageIdChange(newId);
-      setLoading(false);
+
+      try {
+        const resp = currentImageId
+          ? await updateImageMongoDB(base64, currentImageId)
+          : await uploadImageMongoDB(base64);
+        const newId = resp?._id || currentImageId || "";
+        if (newId) onImageIdChange(newId);
+      } catch (error) {
+        console.error("Erro ao enviar imagem da entidade:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     reader.readAsDataURL(file);
   };
