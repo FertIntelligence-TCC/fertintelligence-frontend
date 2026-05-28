@@ -35,6 +35,7 @@ import type { PropertyResponse } from "@/interfaces/Property";
 import {
   type RecommendationCropName,
   type RecommendationLimingCriteria,
+  type RecommendationFertilizerOrigin,
   type RecommendationResponse,
   type RecommendationType,
   getRecommendationReportText,
@@ -101,6 +102,12 @@ const recommendationTypeOptions: { value: RecommendationType; label: string }[] 
 ];
 
 const cropOptions: RecommendationCropName[] = ["ALGODAO", "AMENDOIM", "CANA_DE_ACUCAR", "FEIJAO_CAUPI", "FEIJAO_COMUM", "GERGELIM", "MAMONA", "MILHO", "SISAL", "SOJA"];
+
+const fertilizerOriginOptions: { value: RecommendationFertilizerOrigin; label: string }[] = [
+  { value: "PRIVATE", label: "Adubos privados" },
+  { value: "PUBLIC", label: "Adubos públicos" },
+  { value: "BOTH", label: "Ambos" },
+];
 
 const limingCriteriaOptions: RecommendationLimingCriteria[] = [
   "SATURACAO_POR_BASES_TROCAVEIS",
@@ -206,6 +213,7 @@ export default function Recommendation() {
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
   const [limingCriteria, setLimingCriteria] = useState("");
+  const [fertilizerOrigin, setFertilizerOrigin] = useState<RecommendationFertilizerOrigin>("BOTH");
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
@@ -292,7 +300,7 @@ export default function Recommendation() {
 
   const handleGenerate = async () => {
     const year = Number(cropYear);
-    if (!recommendationType || !selectedPropertyId || !selectedPlotId || !cropYear || Number.isNaN(year) || year <= 1900 || !cropName || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !limingCriteria) {
+    if (!recommendationType || !selectedPropertyId || !selectedPlotId || !cropYear || Number.isNaN(year) || year <= 1900 || !cropName || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !limingCriteria || !fertilizerOrigin) {
       toaster.create({ title: "Campos obrigatórios", description: "Preencha todos os campos necessários antes de gerar a recomendação.", type: "warning" });
       return;
     }
@@ -309,6 +317,7 @@ export default function Recommendation() {
         id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
         id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
         criterio_calagem: limingCriteria as RecommendationLimingCriteria,
+        origem_adubos: fertilizerOrigin,
       });
       setSelectedRecommendation(result);
       toaster.create({ title: "Recomendação gerada com sucesso.", type: "success" });
@@ -415,6 +424,7 @@ export default function Recommendation() {
           <Box borderWidth="1px" borderRadius="lg" p={6}><Heading size="md" mb={3}>Formulário técnico</Heading><Separator mb={4} />
             <VStack align="stretch" gap={3}>
               <NativeSelect value={recommendationType} onChange={(e) => setRecommendationType(e.target.value)}><option value="">Tipo de recomendação</option>{recommendationTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
+              <NativeSelect value={fertilizerOrigin} onChange={(e) => setFertilizerOrigin(e.target.value as RecommendationFertilizerOrigin)}><option value="">Que adubos usar?</option>{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
               <NativeSelect value={selectedPropertyId} onChange={(e) => setSelectedPropertyId(e.target.value)} disabled={loadingProperties}>{loadingProperties ? <option>Carregando...</option> : <><option value="">Propriedade</option>{properties.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</>}</NativeSelect>
               <NativeSelect value={selectedPlotId} onChange={(e) => setSelectedPlotId(e.target.value)} disabled={!selectedPropertyId || loadingPlots}>{loadingPlots ? <option>Carregando...</option> : <><option value="">Talhão</option>{plots.map((p) => <option key={p.id} value={p.id}>{p.identificacao ?? `Talhão ${p.id}`}</option>)}</>}</NativeSelect>
               <Input placeholder="Ano da safra" value={cropYear} onChange={(e) => setCropYear(e.target.value)} />
