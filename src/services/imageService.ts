@@ -15,22 +15,28 @@ export const getImageFromMongoDB = async (id: string) => {
   }
 };
 
-export const uploadImageMongoDB = async (img: string) => {
-    try {
-    const { data } = await axiosImageManager.post(`/${ENDPOINT.UPLOAD_IMAGE_MONGO}`,
-        {img: img},
-        {
-            headers: {
-            "Content-Type": "application/json",
-            },
-        }
+type MongoImageResponse = {
+  _id?: string;
+};
+
+export const uploadImageMongoDB = async (img: string): Promise<MongoImageResponse> => {
+  try {
+    const { data } = await axiosImageManager.post(
+      `/${ENDPOINT.UPLOAD_IMAGE_MONGO}`,
+      { img },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
-    console.log(data.data)
+
     return data.data;
   } catch (error) {
-    console.error("Erro ao buscar imagem:", error);
+    console.error("Erro ao enviar imagem:", error);
+    throw error;
   }
-}
+};
 
 export const updateImageMongoDB = async (img: string, id: string) => {
   try {
