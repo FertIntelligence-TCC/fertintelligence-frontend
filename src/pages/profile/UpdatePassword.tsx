@@ -1,15 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import PasswordVerification from "./PasswordVerification";
 import { updateUser } from "@/services/userService";
-import { useUserStore } from "@/stores/user/user.store";
 import { UpdateUserPayload } from "@/interfaces/User";
 
 export default function UpdatePassword() {
   const navigate = useNavigate();
-  const user = useUserStore((state) => state.user);
-
-  const handleConfirm = async (password: string, repeatPassword: string) => {
-    if (password !== repeatPassword) {
+  const handleConfirm = async (password: string, repeatPassword?: string) => {
+    if (!repeatPassword || password !== repeatPassword) {
       throw new Error("As senhas não coincidem.");
     }
 
