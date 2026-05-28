@@ -35,7 +35,7 @@ import type { PropertyResponse } from "@/interfaces/Property";
 import {
   type RecommendationCropName,
   type RecommendationLimingCriteria,
-  type RecommendationFertilizerOrigin,
+  type FertilizerSourceOption,
   type RecommendationResponse,
   type RecommendationType,
   getRecommendationReportText,
@@ -103,7 +103,7 @@ const recommendationTypeOptions: { value: RecommendationType; label: string }[] 
 
 const cropOptions: RecommendationCropName[] = ["ALGODAO", "AMENDOIM", "CANA_DE_ACUCAR", "FEIJAO_CAUPI", "FEIJAO_COMUM", "GERGELIM", "MAMONA", "MILHO", "SISAL", "SOJA"];
 
-const fertilizerOriginOptions: { value: RecommendationFertilizerOrigin; label: string }[] = [
+const fertilizerOriginOptions: { value: FertilizerSourceOption; label: string }[] = [
   { value: "PRIVATE", label: "Adubos privados" },
   { value: "PUBLIC", label: "Adubos públicos" },
   { value: "BOTH", label: "Ambos" },
@@ -213,7 +213,7 @@ export default function Recommendation() {
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
   const [limingCriteria, setLimingCriteria] = useState("");
-  const [fertilizerOrigin, setFertilizerOrigin] = useState<RecommendationFertilizerOrigin>("BOTH");
+  const [fertilizerSourceOption, setFertilizerSourceOption] = useState<FertilizerSourceOption>("BOTH");
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
@@ -228,6 +228,7 @@ export default function Recommendation() {
   const [loadingTables, setLoadingTables] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyErrorMessage, setHistoryErrorMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [printing, setPrinting] = useState(false);
   const [improvingNarrative, setImprovingNarrative] = useState(false);
@@ -239,9 +240,12 @@ export default function Recommendation() {
   const loadHistory = async () => {
     setLoadingHistory(true);
     try {
+      setHistoryErrorMessage(null);
       setRecommendationsHistory(await getMyRecommendations());
     } catch (error) {
       console.error(error);
+      setRecommendationsHistory([]);
+      setHistoryErrorMessage("Não foi possível carregar seu histórico de recomendações agora. Tente novamente em instantes.");
       toaster.create({ title: "Falha ao carregar histórico.", type: "error" });
     } finally { setLoadingHistory(false); }
   };
@@ -300,7 +304,7 @@ export default function Recommendation() {
 
   const handleGenerate = async () => {
     const year = Number(cropYear);
-    if (!recommendationType || !selectedPropertyId || !selectedPlotId || !cropYear || Number.isNaN(year) || year <= 1900 || !cropName || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !limingCriteria || !fertilizerOrigin) {
+    if (!recommendationType || !selectedPropertyId || !selectedPlotId || !cropYear || Number.isNaN(year) || year <= 1900 || !cropName || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !limingCriteria || !fertilizerSourceOption) {
       toaster.create({ title: "Campos obrigatórios", description: "Preencha todos os campos necessários antes de gerar a recomendação.", type: "warning" });
       return;
     }
@@ -317,7 +321,7 @@ export default function Recommendation() {
         id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
         id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
         criterio_calagem: limingCriteria as RecommendationLimingCriteria,
-        origem_adubos: fertilizerOrigin,
+        origem_adubos: fertilizerSourceOption,
       });
       setSelectedRecommendation(result);
       toaster.create({ title: "Recomendação gerada com sucesso.", type: "success" });
@@ -424,7 +428,10 @@ export default function Recommendation() {
           <Box borderWidth="1px" borderRadius="lg" p={6}><Heading size="md" mb={3}>Formulário técnico</Heading><Separator mb={4} />
             <VStack align="stretch" gap={3}>
               <NativeSelect value={recommendationType} onChange={(e) => setRecommendationType(e.target.value)}><option value="">Tipo de recomendação</option>{recommendationTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
-              <NativeSelect value={fertilizerOrigin} onChange={(e) => setFertilizerOrigin(e.target.value as RecommendationFertilizerOrigin)}><option value="">Que adubos usar?</option>{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
+              <Box>
+                <Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
+                <NativeSelect value={fertilizerSourceOption} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
+              </Box>
               <NativeSelect value={selectedPropertyId} onChange={(e) => setSelectedPropertyId(e.target.value)} disabled={loadingProperties}>{loadingProperties ? <option>Carregando...</option> : <><option value="">Propriedade</option>{properties.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</>}</NativeSelect>
               <NativeSelect value={selectedPlotId} onChange={(e) => setSelectedPlotId(e.target.value)} disabled={!selectedPropertyId || loadingPlots}>{loadingPlots ? <option>Carregando...</option> : <><option value="">Talhão</option>{plots.map((p) => <option key={p.id} value={p.id}>{p.identificacao ?? `Talhão ${p.id}`}</option>)}</>}</NativeSelect>
               <Input placeholder="Ano da safra" value={cropYear} onChange={(e) => setCropYear(e.target.value)} />
@@ -442,7 +449,7 @@ export default function Recommendation() {
         </SimpleGrid>
 
         <Box borderWidth="1px" borderRadius="lg" p={6} mt={4}><Heading size="md" mb={3}>Minhas Recomendações</Heading><Separator mb={4} />
-          {loadingHistory ? <Spinner /> : recommendationsHistory.length === 0 ? <Text color="fg.muted">Nenhuma recomendação encontrada.</Text> : <VStack align="stretch" gap={3}>{recommendationsHistory.map((item) => (<Flex key={item.id} borderWidth="1px" borderRadius="md" p={3} justify="space-between" wrap="wrap" gap={3}><VStack align="start" gap={1}><Text fontWeight="bold">Recomendação #{item.id}</Text><Text fontSize="sm">Propriedade: {item.nome_propriedade ?? item.id_propriedade ?? "-"} • Talhão: {item.identificacao_talhao ?? item.id_talhao ?? "-"}</Text><Text fontSize="sm">Cultura: {item.cultura ?? "-"} • Ano: {item.ano_safra ?? "-"} • Tipo: {item.tipo_recomendacao ?? "-"} • Calagem: {normalizeLimingCriteria(item.criterio_calagem ?? item.criterioCalagem) ?? "-"}</Text></VStack><Flex gap={2}><Button size="sm" onClick={() => setSelectedRecommendation(item)}>Abrir</Button><Button size="sm" colorPalette="red" loading={deletingId === item.id} onClick={async () => { if (!window.confirm("Deseja excluir esta recomendação?")) return; setDeletingId(item.id); try { await deleteRecommendation(item.id); if (selectedRecommendation?.id === item.id) setSelectedRecommendation(null); toaster.create({ title: "Recomendação excluída com sucesso.", type: "success" }); await loadHistory(); } catch (error) { console.error(error); toaster.create({ title: "Falha ao excluir recomendação.", type: "error" }); } finally { setDeletingId(null); } }}>Excluir</Button></Flex></Flex>))}</VStack>}
+          {loadingHistory ? <Spinner /> : historyErrorMessage ? <Text color="orange.600">{historyErrorMessage}</Text> : recommendationsHistory.length === 0 ? <Text color="fg.muted">Nenhuma recomendação encontrada.</Text> : <VStack align="stretch" gap={3}>{recommendationsHistory.map((item) => (<Flex key={item.id} borderWidth="1px" borderRadius="md" p={3} justify="space-between" wrap="wrap" gap={3}><VStack align="start" gap={1}><Text fontWeight="bold">Recomendação #{item.id}</Text><Text fontSize="sm">Propriedade: {item.nome_propriedade ?? item.id_propriedade ?? "-"} • Talhão: {item.identificacao_talhao ?? item.id_talhao ?? "-"}</Text><Text fontSize="sm">Cultura: {item.cultura ?? "-"} • Ano: {item.ano_safra ?? "-"} • Tipo: {item.tipo_recomendacao ?? "-"} • Calagem: {normalizeLimingCriteria(item.criterio_calagem ?? item.criterioCalagem) ?? "-"}</Text></VStack><Flex gap={2}><Button size="sm" onClick={() => setSelectedRecommendation(item)}>Abrir</Button><Button size="sm" colorPalette="red" loading={deletingId === item.id} onClick={async () => { if (!window.confirm("Deseja excluir esta recomendação?")) return; setDeletingId(item.id); try { await deleteRecommendation(item.id); if (selectedRecommendation?.id === item.id) setSelectedRecommendation(null); toaster.create({ title: "Recomendação excluída com sucesso.", type: "success" }); await loadHistory(); } catch (error) { console.error(error); toaster.create({ title: "Falha ao excluir recomendação.", type: "error" }); } finally { setDeletingId(null); } }}>Excluir</Button></Flex></Flex>))}</VStack>}
         </Box>
       </Box>
 
