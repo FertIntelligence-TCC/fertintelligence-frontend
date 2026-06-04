@@ -22,8 +22,9 @@ export async function generateRecommendation(
       throw error;
     }
 
-    const legacyPayload = { ...payload };
-    delete legacyPayload.origem_adubos;
+    const legacyPayload = Object.fromEntries(
+      Object.entries(payload).filter(([key]) => key !== "origem_adubos"),
+    ) as Omit<RecommendationCreatePayload, "origem_adubos">;
     const { data } = await api.post<RecommendationResponse>(`${ENDPOINT}/generate`, legacyPayload);
     return data;
   }
