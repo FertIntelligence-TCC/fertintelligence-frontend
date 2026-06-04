@@ -501,11 +501,11 @@ export default function Recommendation() {
         tipo_recomendacao: recommendationType as RecommendationType,
         id_propriedade: Number(selectedPropertyId),
         id_talhao: Number(selectedPlotId),
-        physicalAnalysisExtractId: Number(physicalAnalysisExtractId),
-        soilFertilityAnalysisId: Number(soilFertilityAnalysisId),
-        saturationExtractAnalysisExtractId: Number(saturationExtractAnalysisExtractId),
-        annualCropFolderId: Number(annualCropFolderId),
-        cropId: Number(cropId),
+        id_extrato_analise_fisica: Number(physicalAnalysisExtractId),
+        id_analise_fertilidade_solo: Number(soilFertilityAnalysisId),
+        id_extrato_analise_extrato_saturacao: Number(saturationExtractAnalysisExtractId),
+        id_pasta_cultura_anual: Number(annualCropFolderId),
+        id_cultura: Number(cropId),
         id_tabela_adubacao_cultura: Number(cropFertilizationTableId),
         id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
         id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
@@ -516,7 +516,8 @@ export default function Recommendation() {
       toaster.create({ title: "Recomendação gerada com sucesso.", type: "success" });
       await loadHistory();
     } catch (error) {
-      console.error(error);
+      const axiosError = error as AxiosError;
+      console.error("Erro ao gerar recomendação:", axiosError.response?.data || error);
       toaster.create({ title: "Falha ao gerar recomendação.", type: "error" });
     } finally { setGenerating(false); }
   };

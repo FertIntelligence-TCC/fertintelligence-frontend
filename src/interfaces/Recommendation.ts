@@ -15,11 +15,11 @@ export interface RecommendationCreatePayload {
   tipo_recomendacao: RecommendationType;
   id_propriedade: number;
   id_talhao: number;
-  physicalAnalysisExtractId: number;
-  soilFertilityAnalysisId: number;
-  saturationExtractAnalysisExtractId: number;
-  annualCropFolderId: number;
-  cropId: number;
+  id_extrato_analise_fisica: number;
+  id_analise_fertilidade_solo: number;
+  id_extrato_analise_extrato_saturacao: number;
+  id_pasta_cultura_anual: number;
+  id_cultura: number;
   id_tabela_adubacao_cultura: number;
   id_tabela_interpretacao_fertilidade_solo: number;
   id_tabela_interpretacao_analise_foliar: number;
