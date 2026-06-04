@@ -88,7 +88,7 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                             <SelectTrigger bg="white" _dark={{ bg: "gray.700" }}>
                                 <SelectValueText placeholder="Selecione..." />
                             </SelectTrigger>
-                            <SelectContent portal={false}>
+                            <SelectContent>
                                 {regioesCollection.items.map((item) => (
                                     <SelectItem item={item} key={item.value}>
                                         {item.label}
@@ -122,6 +122,31 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                         </Button>
                     </HStack>
                 </Box>
+
+                <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4} mt={4}>
+                    <Box>
+                        <Text fontSize="xs" fontWeight="bold" mb={1} color="gray.600">Observações</Text>
+                        <Textarea
+                            value={form.observacoes}
+                            onChange={(e) => setForm(p => ({ ...p, observacoes: e.target.value }))}
+                            readOnly={readOnly}
+                            placeholder="Informe observações sobre a tabela"
+                            bg="white" _dark={{ bg: "gray.700" }}
+                            rows={3}
+                        />
+                    </Box>
+                    <Box>
+                        <Text fontSize="xs" fontWeight="bold" mb={1} color="gray.600">Fontes</Text>
+                        <Textarea
+                            value={form.fontes}
+                            onChange={(e) => setForm(p => ({ ...p, fontes: e.target.value }))}
+                            readOnly={readOnly}
+                            placeholder="Informe as fontes utilizadas"
+                            bg="white" _dark={{ bg: "gray.700" }}
+                            rows={3}
+                        />
+                    </Box>
+                </Grid>
 
                 {mode !== 'create' && (
                     <Box>

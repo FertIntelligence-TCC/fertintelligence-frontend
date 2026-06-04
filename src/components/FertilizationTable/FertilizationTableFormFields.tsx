@@ -1,4 +1,4 @@
-import { VStack, Box, Input, Text, HStack, Button } from "@chakra-ui/react";
+import { VStack, Box, Text, HStack, Button, Textarea } from "@chakra-ui/react";
 import { FertilizationTableFormState } from "./types";
 import { commonFieldStyles } from "./styles";
 
@@ -57,15 +57,28 @@ export default function FertilizationTableFormFields({ form, onFormChange, readO
                 </HStack>
             </Box>
 
-            {/* 6. Observações Finais */}
+            {/* 6. Observações e Fontes */}
             <Box>
-                <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Observações:</Text>
-                <Input 
-                    maxLength={100} 
-                    {...commonFieldStyles} 
-                    value={form.observacoes} 
-                    onChange={(e) => onFormChange("observacoes", e.target.value)} 
-                    readOnly={readOnly} 
+                <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }} mb={1}>Observações:</Text>
+                <Textarea
+                    {...commonFieldStyles}
+                    value={form.observacoes}
+                    onChange={(e) => onFormChange("observacoes", e.target.value)}
+                    readOnly={readOnly}
+                    rows={3}
+                    placeholder="Informe observações sobre a tabela"
+                />
+            </Box>
+
+            <Box>
+                <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }} mb={1}>Fontes:</Text>
+                <Textarea
+                    {...commonFieldStyles}
+                    value={form.fontes}
+                    onChange={(e) => onFormChange("fontes", e.target.value)}
+                    readOnly={readOnly}
+                    rows={3}
+                    placeholder="Informe as fontes utilizadas"
                 />
             </Box>
         </VStack>

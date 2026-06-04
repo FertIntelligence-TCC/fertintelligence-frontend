@@ -53,6 +53,7 @@ interface CropFertilizationTableResponseDto {
   sugestao_micronutrientes: number;
   sugestao_npk: number;
   observacoes: string;
+  fontes: string;
   tabela_publica?: boolean;
 }
 
@@ -117,6 +118,7 @@ const mapHydratedDataToForm = (data: HydratedTableData): FertilizationTableFormS
     faixasP,
     faixasK,
     observacoes: data.observacoes || "",
+    fontes: data.fontes || "",
     tabelaPublica: Boolean(data.tabela_publica),
   };
 };
@@ -157,6 +159,18 @@ function PublicTableCard({
       </Flex>
       <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }} mt={1}><Text as="span" fontWeight="semibold">Cultivares:</Text> {table.cultivares || "Não informado"}</Text>
       <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }} mt={1}><Text as="span" fontWeight="semibold">Criador:</Text> {table.nome_criador || "-"}</Text>
+
+      {table.observacoes && (
+        <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={2} lineClamp={2}>
+          <Text as="span" fontWeight="semibold">Observações:</Text> {table.observacoes}
+        </Text>
+      )}
+
+      {table.fontes && (
+        <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={1} lineClamp={2}>
+          <Text as="span" fontWeight="semibold">Fontes:</Text> {table.fontes}
+        </Text>
+      )}
 
       {isSelected && (
         <HStack justify="flex-end" gap={2} mt={4}>

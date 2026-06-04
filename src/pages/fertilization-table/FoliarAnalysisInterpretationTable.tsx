@@ -54,6 +54,8 @@ const mapStateToDto = (s: NutrientRangeState) => ({ min: num(s.min), max: num(s.
 const mapResponseToForm = (dto: FoliarTableResponseDto, lines: any[] = []): FoliarTableFormState => ({
     nome: dto.nome_tabela || "",
     region: dto.region || "",
+    observacoes: dto.observacoes || "",
+    fontes: dto.fontes || "",
     tabelaPublica: Boolean(dto.tabela_publica),
     rows: lines.map(line => ({
         id: line.id,
@@ -175,6 +177,8 @@ export default function FoliarAnalysisInterpretationTable() {
             const tableRes = await createFoliarTable({ 
                 nome_tabela: form.nome, 
                 region: form.region as RegionEnum,
+                observacoes: form.observacoes,
+                fontes: form.fontes,
                 tabela_publica: form.tabelaPublica 
             });
             tableId = tableRes.id;
@@ -182,6 +186,8 @@ export default function FoliarAnalysisInterpretationTable() {
             await updateFoliarTable(tableId, { 
                 novo_nome_tabela: form.nome, 
                 novo_regiao_analise_foliar_culturas: form.region as RegionEnum,
+                novas_observacoes: form.observacoes,
+                novas_fontes: form.fontes,
                 tabela_publica: form.tabelaPublica 
             } as any);
             

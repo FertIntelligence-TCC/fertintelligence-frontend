@@ -29,7 +29,7 @@ export default function SoilFertilityTableCard({ item, isSelected, onSelect, onV
             position="relative"
         >
             <Flex justify="space-between" align="start">
-                <Text fontWeight="bold" fontSize="md" color="green.700" _dark={{ color: "green.300" }} mb={1} noOfLines={2}>
+                <Text fontWeight="bold" fontSize="md" color="green.700" _dark={{ color: "green.300" }} mb={1} lineClamp={2}>
                     {item.nome_criterios}
                 </Text>
                 <Badge colorPalette="green" variant="surface">Fertilidade</Badge>
@@ -40,8 +40,20 @@ export default function SoilFertilityTableCard({ item, isSelected, onSelect, onV
             </Text>
             
             {item.descricao_criterios && (
-                <Text fontSize="xs" color="gray.500" mt={1} noOfLines={2}>
+                <Text fontSize="xs" color="gray.500" mt={1} lineClamp={2}>
                     {item.descricao_criterios}
+                </Text>
+            )}
+
+            {item.observacoes && (
+                <Text fontSize="xs" color="gray.500" mt={1} lineClamp={2}>
+                    <Text as="span" fontWeight="semibold">Observações:</Text> {item.observacoes}
+                </Text>
+            )}
+
+            {item.fontes && (
+                <Text fontSize="xs" color="gray.500" mt={1} lineClamp={2}>
+                    <Text as="span" fontWeight="semibold">Fontes:</Text> {item.fontes}
                 </Text>
             )}
 

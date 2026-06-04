@@ -8,6 +8,8 @@ export interface SoilFertilityTableResponseDto {
     id: number;
     nome_criterios: string;
     descricao_criterios?: string;
+    observacoes?: string;
+    fontes?: string;
     regiao: RegionEnum;
     nome_criador?: string;
     nome_comum_cultura?: string;
@@ -20,6 +22,8 @@ export interface SoilFertilityTableResponseDto {
 export interface SoilFertilityTableCreateRequestDto {
     nome_criterios: string;
     regiao: RegionEnum;
+    observacoes?: string;
+    fontes?: string;
     tabela_publica?: boolean;
 }
 
@@ -27,12 +31,16 @@ export interface SoilFertilityTablePostRequestDto {
     novo_nome_criterios?: string;
     nova_descricao_criterios?: string;
     nova_regiao?: RegionEnum;
+    novas_observacoes?: string;
+    novas_fontes?: string;
     tabela_publica?: boolean;
 }
 
 export interface SoilFertilityFormState {
     nome: string;
     descricao: string;
+    observacoes: string;
+    fontes: string;
     regiao: string;
     tabelaPublica: boolean;
 }
@@ -40,6 +48,8 @@ export interface SoilFertilityFormState {
 export const DEFAULT_SOIL_FERTILITY_STATE: SoilFertilityFormState = {
     nome: "",
     descricao: "",
+    observacoes: "",
+    fontes: "",
     regiao: "",
     tabelaPublica: false
 };

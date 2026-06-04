@@ -2,8 +2,7 @@ import { api } from "./axios";
 import { 
     FoliarTableResponseDto, 
     FoliarTableCreateRequestDto, 
-    FoliarTablePostRequestDto,
-    FoliarTableItemDto // Usado como DTO de linha
+    FoliarTablePostRequestDto
 } from "@/interfaces/FoliarAnalysisInterpretationTable";
 
 const TABLE_ENDPOINT = "/crop-foliar-analysis-interpretation-table"; 

@@ -30,6 +30,8 @@ import { fetchPublicSoilFertilityTables } from "@/services/soilFertilityInterpre
 const mapResponseToForm = (dto: SoilFertilityTableResponseDto): SoilFertilityFormState => ({
   nome: dto.nome_criterios || "",
   descricao: dto.descricao_criterios || "",
+  observacoes: dto.observacoes || "",
+  fontes: dto.fontes || "",
   regiao: dto.regiao || "",
   tabelaPublica: Boolean(dto.tabela_publica),
 });
@@ -117,6 +119,18 @@ export default function PublicSoilFertilityInterpretationTable() {
                   {table.descricao_criterios && (
                     <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={2}>
                       {table.descricao_criterios}
+                    </Text>
+                  )}
+
+                  {table.observacoes && (
+                    <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={2} lineClamp={2}>
+                      <Text as="span" fontWeight="semibold">Observações:</Text> {table.observacoes}
+                    </Text>
+                  )}
+
+                  {table.fontes && (
+                    <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={1} lineClamp={2}>
+                      <Text as="span" fontWeight="semibold">Fontes:</Text> {table.fontes}
                     </Text>
                   )}
 
