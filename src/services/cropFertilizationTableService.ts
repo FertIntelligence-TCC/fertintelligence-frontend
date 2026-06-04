@@ -14,8 +14,14 @@ export const createCropFertilizationTable = async (payload: CropFertilizationTab
     return data;
 };
 
-export const updateCropFertilizationTable = async (payload: CropFertilizationTableCreateRequestDto & { id: number }): Promise<CropFertilizationTableResponseDto> => {
-    const { data } = await api.put(`${ENDPOINT}/update`, payload);
+export const updateCropFertilizationTable = async ({
+    id,
+    payload,
+}: {
+    id: number;
+    payload: CropFertilizationTableCreateRequestDto;
+}): Promise<CropFertilizationTableResponseDto> => {
+    const { data } = await api.put(`${ENDPOINT}/update`, { id, ...payload });
     return data;
 };
 

@@ -43,6 +43,8 @@ type Mode = "create" | "edit" | "view";
 const mapResponseToForm = (dto: SoilFertilityTableResponseDto): SoilFertilityFormState => ({
     nome: dto.nome_criterios || "",
     descricao: dto.descricao_criterios || "",
+    observacoes: dto.observacoes || "",
+    fontes: dto.fontes || "",
     regiao: dto.regiao || "",
     tabelaPublica: Boolean(dto.tabela_publica)
 });
@@ -116,6 +118,8 @@ export default function SoilFertilityInterpretationCriteriaTable() {
             const payload: SoilFertilityTableCreateRequestDto = {
                 nome_criterios: form.nome,
                 regiao: form.regiao as RegionEnum,
+                observacoes: form.observacoes,
+                fontes: form.fontes,
                 tabela_publica: form.tabelaPublica
             };
             await createSoilFertilityTable(payload);
@@ -125,6 +129,8 @@ export default function SoilFertilityInterpretationCriteriaTable() {
                 novo_nome_criterios: form.nome,
                 nova_regiao: form.regiao as RegionEnum,
                 nova_descricao_criterios: form.descricao,
+                novas_observacoes: form.observacoes,
+                novas_fontes: form.fontes,
                 tabela_publica: form.tabelaPublica
             };
             await updateSoilFertilityTable(activeItem.id, payload);

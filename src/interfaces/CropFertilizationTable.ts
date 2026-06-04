@@ -100,6 +100,7 @@ export interface CropFertilizationTableResponseDto {
     sugestao_npk: number;
     
     observacoes: string;
+    fontes: string;
     tabela_publica?: boolean;
 
     // Auxiliar para frontend (usado após hidratação)
@@ -147,5 +148,6 @@ export interface CropFertilizationTableCreateRequestDto {
     sugestao_npk: number;
     
     observacoes: string;
+    fontes: string;
     tabela_publica?: boolean;
 }

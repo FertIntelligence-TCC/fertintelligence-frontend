@@ -32,7 +32,7 @@ export default function FoliarAnalysisTableCard({ item, isSelected, onSelect, on
             position="relative"
         >
             <Flex justify="space-between" align="start">
-                <Text fontWeight="bold" fontSize="md" color="orange.700" _dark={{ color: "orange.300" }} mb={1} noOfLines={2}>
+                <Text fontWeight="bold" fontSize="md" color="orange.700" _dark={{ color: "orange.300" }} mb={1} lineClamp={2}>
                     {title}
                 </Text>
                 <Badge colorPalette="orange" variant="surface">Análise Foliar</Badge>
@@ -44,7 +44,17 @@ export default function FoliarAnalysisTableCard({ item, isSelected, onSelect, on
                 </Text>
             )}
             
-            {/* Legenda de contagem de culturas removida aqui */}
+            {item.observacoes && (
+                <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={2} lineClamp={2}>
+                    <Text as="span" fontWeight="semibold">Observações:</Text> {item.observacoes}
+                </Text>
+            )}
+
+            {item.fontes && (
+                <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={1} lineClamp={2}>
+                    <Text as="span" fontWeight="semibold">Fontes:</Text> {item.fontes}
+                </Text>
+            )}
 
             {isSelected && (
                 <HStack justify="flex-end" gap={2} mt={3} animation="fade-in 0.2s">

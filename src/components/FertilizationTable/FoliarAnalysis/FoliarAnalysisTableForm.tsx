@@ -9,6 +9,7 @@ import {
     Button,
     Grid,
     HStack,
+    Textarea,
 } from "@chakra-ui/react";
 import { 
     SelectContent, 
@@ -126,6 +127,32 @@ export default function FoliarAnalysisTableForm({ form, setForm, readOnly }: Pro
                         </Button>
                     </HStack>
                 </Box>
+
+
+                <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4} mt={4}>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1} color="gray.600">Observações</Text>
+                        <Textarea
+                            value={form.observacoes}
+                            onChange={(e) => setForm(p => ({ ...p, observacoes: e.target.value }))}
+                            readOnly={readOnly}
+                            placeholder="Informe observações sobre a tabela"
+                            bg="white" _dark={{ bg: "gray.700" }}
+                            rows={3}
+                        />
+                    </Box>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1} color="gray.600">Fontes</Text>
+                        <Textarea
+                            value={form.fontes}
+                            onChange={(e) => setForm(p => ({ ...p, fontes: e.target.value }))}
+                            readOnly={readOnly}
+                            placeholder="Informe as fontes utilizadas"
+                            bg="white" _dark={{ bg: "gray.700" }}
+                            rows={3}
+                        />
+                    </Box>
+                </Grid>
 
             </Box>
 

@@ -42,6 +42,8 @@ const mapBackendRangeToState = (r: any): NutrientRangeState => ({
 const mapResponseToForm = (dto: FoliarTableResponseDto, lines: any[] = []): FoliarTableFormState => ({
   nome: dto.nome_tabela || "",
   region: dto.region || "",
+  observacoes: dto.observacoes || "",
+  fontes: dto.fontes || "",
   tabelaPublica: Boolean(dto.tabela_publica),
   rows: lines.map((line) => ({
     id: line.id,
@@ -162,6 +164,18 @@ export default function PublicFoliarAnalysisInterpretationTable() {
                       Região:
                     </Text>{" "}
                     {table.region.replace(/_/g, " ")}
+                  </Text>
+                )}
+
+                {table.observacoes && (
+                  <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={2} lineClamp={2}>
+                    <Text as="span" fontWeight="semibold">Observações:</Text> {table.observacoes}
+                  </Text>
+                )}
+
+                {table.fontes && (
+                  <Text fontSize="xs" color="gray.500" _dark={{ color: "gray.300" }} mt={1} lineClamp={2}>
+                    <Text as="span" fontWeight="semibold">Fontes:</Text> {table.fontes}
                   </Text>
                 )}
 
