@@ -22,7 +22,8 @@ export async function generateRecommendation(
       throw error;
     }
 
-    const { origem_adubos, ...legacyPayload } = payload;
+    const legacyPayload = { ...payload };
+    delete legacyPayload.origem_adubos;
     const { data } = await api.post<RecommendationResponse>(`${ENDPOINT}/generate`, legacyPayload);
     return data;
   }
