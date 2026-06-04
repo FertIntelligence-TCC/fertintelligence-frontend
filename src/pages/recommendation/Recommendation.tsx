@@ -8,7 +8,6 @@ import {
   Flex,
   HStack,
   Heading,
-  Input,
   Separator,
   SimpleGrid,
   Spinner,
@@ -32,8 +31,13 @@ import { toaster } from "@/components/ui/toaster";
 import { Cargo } from "@/interfaces/User";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
+import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
+import type { CropResponseDto } from "@/interfaces/Crop";
+import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
+import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
+import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/SaturationExtractAnalysisExtract";
+import { TipoExtrato, type SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import {
-  type RecommendationCropName,
   type RecommendationLimingCriteria,
   type FertilizerSourceOption,
   type RecommendationResponse,
@@ -43,6 +47,14 @@ import {
 import { getPlotsByProperty } from "@/services/plotService";
 import { fetchMyProperties } from "@/services/propertyService";
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
+import { getAllAnnualCropFoldersByPlot } from "@/services/annualCropFolderService";
+import { getCropsByFolder } from "@/services/cropService";
+import { soilAnalysisService } from "@/services/soilAnalysisService";
+import { rangeExtractService } from "@/services/rangeExtractService";
+import { layerExtractService } from "@/services/layerExtractService";
+import { physicalAnalysisExtractService } from "@/services/physicalAnalysisExtractService";
+import { fertilityAnalysisExtractService } from "@/services/fertilityAnalysisExtractService";
+import { saturationExtractAnalysisExtractService } from "@/services/saturationExtractAnalysisExtractService";
 import {
   fetchCropFertilizationTables,
   fetchPublicCropFertilizationTables,
@@ -82,6 +94,11 @@ type TableOption = {
   source: "PRIVATE" | "PUBLIC" | "UNKNOWN";
 };
 
+type AnalysisExtractOption = {
+  id: number;
+  label: string;
+};
+
 type RawTable = {
   id?: number;
   nome?: string;
@@ -100,8 +117,6 @@ const recommendationTypeOptions: { value: RecommendationType; label: string }[] 
   { value: "FERTILIZATION", label: "Adubação" },
   { value: "BOTH", label: "Ambos" },
 ];
-
-const cropOptions: RecommendationCropName[] = ["ALGODAO", "AMENDOIM", "CANA_DE_ACUCAR", "FEIJAO_CAUPI", "FEIJAO_COMUM", "GERGELIM", "MAMONA", "MILHO", "SISAL", "SOJA"];
 
 const fertilizerOriginOptions: { value: FertilizerSourceOption; label: string }[] = [
   { value: "PRIVATE", label: "Adubos privados" },
@@ -134,6 +149,53 @@ const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]):
   const baseName = table.nome ?? table.name ?? table.nome_tabela ?? table.nome_criterios ?? `Tabela ${table.id}`;
   return { id: table.id, label: `${baseName}${cropName}${regionText}`, source };
 };
+
+const formatExtractPosition = (extract: {
+  profundidade_inicial?: number;
+  profundidade_final?: number;
+  camada?: string;
+  subcamada?: number;
+}) => {
+  const depth =
+    extract.profundidade_inicial !== undefined && extract.profundidade_final !== undefined
+      ? `${extract.profundidade_inicial}-${extract.profundidade_final} cm`
+      : undefined;
+  const layer = extract.camada ? `Camada ${extract.camada}${extract.subcamada ? `.${extract.subcamada}` : ""}` : undefined;
+  return [layer, depth].filter(Boolean).join(" • ");
+};
+
+const getAnalysisLabelPrefix = (analysis: SoilAnalysisResponse) =>
+  `Análise ${analysis.ano_analise} • ${analysis.laboratorio_responsavel}`;
+
+const mapPhysicalAnalysisOption = (
+  extract: PhysicalAnalysisExtractResponse,
+  analysis: SoilAnalysisResponse,
+): AnalysisExtractOption => ({
+  id: extract.id,
+  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+});
+
+const mapFertilityAnalysisOption = (
+  extract: FertilityAnalysisExtractResponse,
+  analysis: SoilAnalysisResponse,
+): AnalysisExtractOption => ({
+  id: extract.id,
+  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+});
+
+const mapSaturationAnalysisOption = (
+  extract: SaturationExtractAnalysisExtractResponse,
+  analysis: SoilAnalysisResponse,
+): AnalysisExtractOption => ({
+  id: extract.id,
+  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+});
+
+const getFolderLabel = (folder: AnnualCropFolderResponseDto) =>
+  folder.ano_culturas ? `Pasta anual ${folder.ano_culturas}` : `Pasta ${folder.id}`;
+
+const getCropLabel = (crop: CropResponseDto) =>
+  [crop.nome?.replace(/_/g, " "), crop.variedade, crop.tipo_cultivo].filter(Boolean).join(" • ") || `Cultura ${crop.id}`;
 
 const writePrintableReport = (printWindow: Window, text: string) => {
   const escapeHtml = (value: string) =>
@@ -207,8 +269,11 @@ export default function Recommendation() {
   const [recommendationType, setRecommendationType] = useState("");
   const [selectedPropertyId, setSelectedPropertyId] = useState("");
   const [selectedPlotId, setSelectedPlotId] = useState("");
-  const [cropYear, setCropYear] = useState("");
-  const [cropName, setCropName] = useState("");
+  const [physicalAnalysisExtractId, setPhysicalAnalysisExtractId] = useState("");
+  const [soilFertilityAnalysisId, setSoilFertilityAnalysisId] = useState("");
+  const [saturationExtractAnalysisExtractId, setSaturationExtractAnalysisExtractId] = useState("");
+  const [annualCropFolderId, setAnnualCropFolderId] = useState("");
+  const [cropId, setCropId] = useState("");
   const [cropFertilizationTableId, setCropFertilizationTableId] = useState("");
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
@@ -217,6 +282,11 @@ export default function Recommendation() {
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
+  const [physicalAnalysisOptions, setPhysicalAnalysisOptions] = useState<AnalysisExtractOption[]>([]);
+  const [soilFertilityAnalysisOptions, setSoilFertilityAnalysisOptions] = useState<AnalysisExtractOption[]>([]);
+  const [saturationExtractAnalysisOptions, setSaturationExtractAnalysisOptions] = useState<AnalysisExtractOption[]>([]);
+  const [annualCropFolders, setAnnualCropFolders] = useState<AnnualCropFolderResponseDto[]>([]);
+  const [crops, setCrops] = useState<CropResponseDto[]>([]);
   const [cropFertilizationTables, setCropFertilizationTables] = useState<TableOption[]>([]);
   const [soilFertilityTables, setSoilFertilityTables] = useState<TableOption[]>([]);
   const [foliarInterpretationTables, setFoliarInterpretationTables] = useState<TableOption[]>([]);
@@ -225,6 +295,9 @@ export default function Recommendation() {
 
   const [loadingProperties, setLoadingProperties] = useState(false);
   const [loadingPlots, setLoadingPlots] = useState(false);
+  const [loadingPlotAnalyses, setLoadingPlotAnalyses] = useState(false);
+  const [loadingAnnualCropFolders, setLoadingAnnualCropFolders] = useState(false);
+  const [loadingCrops, setLoadingCrops] = useState(false);
   const [loadingTables, setLoadingTables] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -302,9 +375,122 @@ export default function Recommendation() {
     void loadPlots();
   }, [selectedPropertyId]);
 
+  useEffect(() => {
+    let isCurrent = true;
+
+    const resetPlotDependencies = () => {
+      setPhysicalAnalysisExtractId("");
+      setSoilFertilityAnalysisId("");
+      setSaturationExtractAnalysisExtractId("");
+      setAnnualCropFolderId("");
+      setCropId("");
+      setPhysicalAnalysisOptions([]);
+      setSoilFertilityAnalysisOptions([]);
+      setSaturationExtractAnalysisOptions([]);
+      setAnnualCropFolders([]);
+      setCrops([]);
+    };
+
+    const loadPlotDependencies = async () => {
+      resetPlotDependencies();
+
+      if (!selectedPlotId) return;
+
+      setLoadingPlotAnalyses(true);
+      setLoadingAnnualCropFolders(true);
+
+      try {
+        const plotId = Number(selectedPlotId);
+        const [soilAnalyses, folders] = await Promise.all([
+          soilAnalysisService.getByPlotId(plotId),
+          getAllAnnualCropFoldersByPlot(plotId),
+        ]);
+
+        if (!isCurrent) return;
+
+        const physicalOptions: AnalysisExtractOption[] = [];
+        const fertilityOptions: AnalysisExtractOption[] = [];
+        const saturationOptions: AnalysisExtractOption[] = [];
+
+        for (const analysis of soilAnalyses ?? []) {
+          const isLayerAnalysis = analysis.tipo_extrato === TipoExtrato.CAMADAS;
+          const containers = isLayerAnalysis
+            ? await layerExtractService.getByAnalysisId(analysis.id)
+            : await rangeExtractService.getByAnalysisId(analysis.id);
+
+          if (!isCurrent) return;
+
+          for (const container of containers ?? []) {
+            const containerId = container.id;
+            const [physicalExtracts, fertilityExtracts, saturationExtracts] = await Promise.all([
+              isLayerAnalysis
+                ? physicalAnalysisExtractService.getByLayerExtractId(containerId)
+                : physicalAnalysisExtractService.getByRangeExtractId(containerId),
+              isLayerAnalysis
+                ? fertilityAnalysisExtractService.getByLayerExtractId(containerId)
+                : fertilityAnalysisExtractService.getByRangeExtractId(containerId),
+              isLayerAnalysis
+                ? saturationExtractAnalysisExtractService.getByLayerExtractId(containerId)
+                : saturationExtractAnalysisExtractService.getByRangeExtractId(containerId),
+            ]);
+
+            physicalOptions.push(...(physicalExtracts ?? []).map((extract) => mapPhysicalAnalysisOption(extract, analysis)));
+            fertilityOptions.push(...(fertilityExtracts ?? []).map((extract) => mapFertilityAnalysisOption(extract, analysis)));
+            saturationOptions.push(...(saturationExtracts ?? []).map((extract) => mapSaturationAnalysisOption(extract, analysis)));
+          }
+        }
+
+        if (!isCurrent) return;
+
+        setPhysicalAnalysisOptions(physicalOptions);
+        setSoilFertilityAnalysisOptions(fertilityOptions);
+        setSaturationExtractAnalysisOptions(saturationOptions);
+        setAnnualCropFolders(folders ?? []);
+      } catch (error) {
+        console.error(error);
+        if (!isCurrent) return;
+        toaster.create({ title: "Falha ao carregar dados do talhão.", type: "error" });
+      } finally {
+        if (isCurrent) {
+          setLoadingPlotAnalyses(false);
+          setLoadingAnnualCropFolders(false);
+        }
+      }
+    };
+
+    void loadPlotDependencies();
+
+    return () => { isCurrent = false; };
+  }, [selectedPlotId]);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadCrops = async () => {
+      setCropId("");
+      setCrops([]);
+
+      if (!annualCropFolderId) return;
+
+      setLoadingCrops(true);
+      try {
+        const data = await getCropsByFolder(Number(annualCropFolderId));
+        if (isCurrent) setCrops(data ?? []);
+      } catch (error) {
+        console.error(error);
+        if (isCurrent) toaster.create({ title: "Falha ao carregar culturas da pasta anual.", type: "error" });
+      } finally {
+        if (isCurrent) setLoadingCrops(false);
+      }
+    };
+
+    void loadCrops();
+
+    return () => { isCurrent = false; };
+  }, [annualCropFolderId]);
+
   const handleGenerate = async () => {
-    const year = Number(cropYear);
-    if (!recommendationType || !selectedPropertyId || !selectedPlotId || !cropYear || Number.isNaN(year) || year <= 1900 || !cropName || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !limingCriteria || !fertilizerSourceOption) {
+    if (!recommendationType || !selectedPropertyId || !selectedPlotId || !physicalAnalysisExtractId || !soilFertilityAnalysisId || !saturationExtractAnalysisExtractId || !annualCropFolderId || !cropId || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !limingCriteria || !fertilizerSourceOption) {
       toaster.create({ title: "Campos obrigatórios", description: "Preencha todos os campos necessários antes de gerar a recomendação.", type: "warning" });
       return;
     }
@@ -315,8 +501,11 @@ export default function Recommendation() {
         tipo_recomendacao: recommendationType as RecommendationType,
         id_propriedade: Number(selectedPropertyId),
         id_talhao: Number(selectedPlotId),
-        ano_safra: year,
-        cultura: cropName as RecommendationCropName,
+        physicalAnalysisExtractId: Number(physicalAnalysisExtractId),
+        soilFertilityAnalysisId: Number(soilFertilityAnalysisId),
+        saturationExtractAnalysisExtractId: Number(saturationExtractAnalysisExtractId),
+        annualCropFolderId: Number(annualCropFolderId),
+        cropId: Number(cropId),
         id_tabela_adubacao_cultura: Number(cropFertilizationTableId),
         id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
         id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
@@ -416,6 +605,31 @@ export default function Recommendation() {
   };
 
   const reportText = getRecommendationReportText(selectedRecommendation);
+  const physicalAnalysisPlaceholder = !selectedPlotId
+    ? "Selecione um talhão para ver análises físicas"
+    : physicalAnalysisOptions.length
+      ? "Análise física do talhão"
+      : "Nenhuma análise encontrada";
+  const soilFertilityAnalysisPlaceholder = !selectedPlotId
+    ? "Selecione um talhão para ver análises de fertilidade"
+    : soilFertilityAnalysisOptions.length
+      ? "Análise de fertilidade do talhão"
+      : "Nenhuma análise encontrada";
+  const saturationExtractAnalysisPlaceholder = !selectedPlotId
+    ? "Selecione um talhão para ver análises de extrato de saturação"
+    : saturationExtractAnalysisOptions.length
+      ? "Análise de extrato de saturação do talhão"
+      : "Nenhuma análise encontrada";
+  const annualCropFolderPlaceholder = !selectedPlotId
+    ? "Selecione um talhão para ver pastas anuais"
+    : annualCropFolders.length
+      ? "Pasta de culturas anuais"
+      : "Nenhuma pasta encontrada";
+  const cropPlaceholder = !annualCropFolderId
+    ? "Selecione uma pasta anual para ver culturas"
+    : crops.length
+      ? "Cultura da pasta anual"
+      : "Nenhuma cultura encontrada";
 
   return (
     <UserLayout><FertName subtitle="Módulo de recomendações" /><ConfigMenu />
@@ -430,8 +644,11 @@ export default function Recommendation() {
               <NativeSelect value={recommendationType} onChange={(e) => setRecommendationType(e.target.value)}><option value="">Tipo de recomendação</option>{recommendationTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
               <NativeSelect value={selectedPropertyId} onChange={(e) => setSelectedPropertyId(e.target.value)} disabled={loadingProperties}>{loadingProperties ? <option>Carregando...</option> : <><option value="">Propriedade</option>{properties.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</>}</NativeSelect>
               <NativeSelect value={selectedPlotId} onChange={(e) => setSelectedPlotId(e.target.value)} disabled={!selectedPropertyId || loadingPlots}>{loadingPlots ? <option>Carregando...</option> : <><option value="">Talhão</option>{plots.map((p) => <option key={p.id} value={p.id}>{p.identificacao ?? `Talhão ${p.id}`}</option>)}</>}</NativeSelect>
-              <Input placeholder="Ano da safra" value={cropYear} onChange={(e) => setCropYear(e.target.value)} />
-              <NativeSelect value={cropName} onChange={(e) => setCropName(e.target.value)}><option value="">Cultura</option>{cropOptions.map((crop) => <option key={crop} value={crop}>{crop}</option>)}</NativeSelect>
+              <NativeSelect value={physicalAnalysisExtractId} onChange={(e) => setPhysicalAnalysisExtractId(e.target.value)} disabled={!selectedPlotId || loadingPlotAnalyses || physicalAnalysisOptions.length === 0}>{loadingPlotAnalyses ? <option>Carregando análises físicas...</option> : <><option value="">{physicalAnalysisPlaceholder}</option>{physicalAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}</>}</NativeSelect>
+              <NativeSelect value={soilFertilityAnalysisId} onChange={(e) => setSoilFertilityAnalysisId(e.target.value)} disabled={!selectedPlotId || loadingPlotAnalyses || soilFertilityAnalysisOptions.length === 0}>{loadingPlotAnalyses ? <option>Carregando análises de fertilidade...</option> : <><option value="">{soilFertilityAnalysisPlaceholder}</option>{soilFertilityAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}</>}</NativeSelect>
+              <NativeSelect value={saturationExtractAnalysisExtractId} onChange={(e) => setSaturationExtractAnalysisExtractId(e.target.value)} disabled={!selectedPlotId || loadingPlotAnalyses || saturationExtractAnalysisOptions.length === 0}>{loadingPlotAnalyses ? <option>Carregando análises de extrato de saturação...</option> : <><option value="">{saturationExtractAnalysisPlaceholder}</option>{saturationExtractAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}</>}</NativeSelect>
+              <NativeSelect value={annualCropFolderId} onChange={(e) => setAnnualCropFolderId(e.target.value)} disabled={!selectedPlotId || loadingAnnualCropFolders || annualCropFolders.length === 0}>{loadingAnnualCropFolders ? <option>Carregando pastas anuais...</option> : <><option value="">{annualCropFolderPlaceholder}</option>{annualCropFolders.map((folder) => <option key={folder.id} value={folder.id}>{getFolderLabel(folder)}</option>)}</>}</NativeSelect>
+              <NativeSelect value={cropId} onChange={(e) => setCropId(e.target.value)} disabled={!annualCropFolderId || loadingCrops || crops.length === 0}>{loadingCrops ? <option>Carregando culturas...</option> : <><option value="">{cropPlaceholder}</option>{crops.map((crop) => <option key={crop.id} value={crop.id}>{getCropLabel(crop)}</option>)}</>}</NativeSelect>
               <NativeSelect value={cropFertilizationTableId} onChange={(e) => setCropFertilizationTableId(e.target.value)} disabled={loadingTables || cropFertilizationTables.length === 0}><option value="">{cropFertilizationTables.length ? "Tabela de adubação de culturas" : "Nenhuma tabela encontrada"}</option>{cropFertilizationTables.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</NativeSelect>
               <NativeSelect value={soilFertilityInterpretationTableId} onChange={(e) => setSoilFertilityInterpretationTableId(e.target.value)} disabled={loadingTables || soilFertilityTables.length === 0}><option value="">{soilFertilityTables.length ? "Tabela de interpretação da fertilidade do solo" : "Nenhuma tabela encontrada"}</option>{soilFertilityTables.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</NativeSelect>
               <NativeSelect value={cropFoliarAnalysisInterpretationTableId} onChange={(e) => setCropFoliarAnalysisInterpretationTableId(e.target.value)} disabled={loadingTables || foliarInterpretationTables.length === 0}><option value="">{foliarInterpretationTables.length ? "Tabela de interpretação de análise foliar" : "Nenhuma tabela encontrada"}</option>{foliarInterpretationTables.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</NativeSelect>

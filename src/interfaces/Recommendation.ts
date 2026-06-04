@@ -3,18 +3,6 @@ export type RecommendationType =
   | "FERTILIZATION"
   | "BOTH";
 
-export type RecommendationCropName =
-  | "ALGODAO"
-  | "AMENDOIM"
-  | "CANA_DE_ACUCAR"
-  | "FEIJAO_CAUPI"
-  | "FEIJAO_COMUM"
-  | "GERGELIM"
-  | "MAMONA"
-  | "MILHO"
-  | "SISAL"
-  | "SOJA";
-
 export type FertilizerSourceOption = "PRIVATE" | "PUBLIC" | "BOTH";
 
 export type RecommendationLimingCriteria =
@@ -27,8 +15,11 @@ export interface RecommendationCreatePayload {
   tipo_recomendacao: RecommendationType;
   id_propriedade: number;
   id_talhao: number;
-  ano_safra: number;
-  cultura: RecommendationCropName;
+  physicalAnalysisExtractId: number;
+  soilFertilityAnalysisId: number;
+  saturationExtractAnalysisExtractId: number;
+  annualCropFolderId: number;
+  cropId: number;
   id_tabela_adubacao_cultura: number;
   id_tabela_interpretacao_fertilidade_solo: number;
   id_tabela_interpretacao_analise_foliar: number;
@@ -55,7 +46,7 @@ export interface RecommendationResponse {
   identificacaoTalhao?: string;
 
   tipo_recomendacao?: RecommendationType;
-  cultura?: RecommendationCropName;
+  cultura?: string;
   ano_safra?: number;
   criterio_calagem?: RecommendationLimingCriteria;
   tipoRecomendacao?: RecommendationType;
@@ -71,6 +62,12 @@ export interface RecommendationResponse {
   idTabelaAdubacaoCultura?: number;
   idTabelaInterpretacaoFertilidadeSolo?: number;
   idTabelaInterpretacaoAnaliseFoliar?: number;
+
+  physicalAnalysisExtractId?: number;
+  soilFertilityAnalysisId?: number;
+  saturationExtractAnalysisExtractId?: number;
+  annualCropFolderId?: number;
+  cropId?: number;
 
   laudo_tecnico?: string;
   technicalReport?: string;
