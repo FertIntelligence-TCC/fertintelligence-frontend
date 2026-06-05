@@ -39,3 +39,9 @@ export const fetchContentRangesByTable = async (tableId: number): Promise<Conten
     });
     return response.data;
 };
+
+export const deleteContentRange = async (contentRangeId: number): Promise<void> => {
+    await api.delete(`/content-range/delete`, {
+        params: { contentRangeId }
+    });
+};
