@@ -16,6 +16,7 @@ import ConsultantAgronomistPropertyManagement from "@/pages/property/ConsultantA
 import SecretaryPropertyManagement from "@/pages/property/SecretaryPropertyManagement";
 import AreaSupervisorPropertyManagement from "@/pages/property/AreaSupervisorPropertyManagement";
 import FertilizerManagement from "@/pages/fertilizer/FertilizerManagement";
+import StandardFertilizerManagement from "@/pages/fertilizer/StandardFertilizerManagement";
 import FertilizationTableManagement from "@/pages/fertilization-table/FertilizationTableManagement";
 import CropFertilizationTable from "@/pages/fertilization-table/CropFertilizationTable";
 import FoliarAnalysisInterpretationTable from "@/pages/fertilization-table/FoliarAnalysisInterpretationTable";
@@ -121,6 +122,10 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/fertilizer-management",
     element: <FertilizerManagement />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/adubos-padrao",
+    element: <StandardFertilizerManagement />,
   },
   {
     path: "/fertintelligence/fertilization-table-management/crop-fertilization-table",

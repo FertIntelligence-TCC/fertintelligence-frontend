@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Box, Button, Dialog, Flex, Heading, IconButton, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
 import { FiArrowLeft, FiX } from "react-icons/fi";
@@ -38,6 +38,10 @@ export default function PublicFertilizerListBase<TItem, TForm>({
   renderReadOnlyForm,
 }: PublicFertilizerListBaseProps<TItem, TForm>) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigationState = location.state as { backPath?: string; backLabel?: string } | null;
+  const resolvedBackPath = navigationState?.backPath ?? backPath;
+  const resolvedBackLabel = navigationState?.backLabel ?? "Voltar para meus adubos";
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeItem, setActiveItem] = useState<TItem | null>(null);
 
@@ -53,8 +57,8 @@ export default function PublicFertilizerListBase<TItem, TForm>({
 
       <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
         <Flex direction="column" gap={6}>
-          <Button alignSelf="flex-start" variant="outline" colorPalette="blue" onClick={() => navigate(backPath)}>
-            <FiArrowLeft /> Voltar para meus adubos
+          <Button alignSelf="flex-start" variant="outline" colorPalette="blue" onClick={() => navigate(resolvedBackPath)}>
+            <FiArrowLeft /> {resolvedBackLabel}
           </Button>
 
           <Heading as="h1" size="lg" color="white">{heading}</Heading>
