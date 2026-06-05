@@ -28,7 +28,7 @@ export interface SaturationExtractFormData {
     teorNO3: number;
     teorH2PO4: number;
     teorSO4: number;
-    teorCl?: number;
+    teorCl: number;
 
     // Cátions
     teorNa: number;
