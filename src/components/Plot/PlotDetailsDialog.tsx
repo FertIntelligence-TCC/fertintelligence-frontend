@@ -10,9 +10,16 @@ import { CropReadOnlyDialog } from "@/components/Crop/CropReadOnlyDialog";
 
 import { PlotResponse } from "@/interfaces/Plot";
 import { SoilAnalysisResponse, TipoExtrato } from "@/interfaces/SoilAnalysis";
-import { Camada } from "@/interfaces/LayerExtract";
+import { LayerExtractResponse } from "@/interfaces/LayerExtract";
+import { RangeExtractResponse } from "@/interfaces/RangeExtract";
 import { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
 import { CropResponseDto } from "@/interfaces/Crop";
+import { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
+import { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
+import { SaturationExtractAnalysisExtractResponse } from "@/interfaces/SaturationExtractAnalysisExtract";
+import { PhysicalExtractFormData } from "@/interfaces/PhysicalAnalysisFormTypes";
+import { FertilityExtractFormData } from "@/interfaces/FertilityAnalysisFormTypes";
+import { SaturationExtractFormData } from "@/interfaces/SaturationExtractAnalysisFormTypes";
 
 import { PhysicalAnalysisFormDialog } from "@/components/PlotAnalysis/PhysicalAnalysisFormDialog";
 import { FertilityAnalysisFormDialog } from "@/components/PlotAnalysis/FertilityAnalysisFormDialog";
@@ -72,6 +79,98 @@ const formatCoordinate = (value?: number | null, direction?: string) => {
 };
 
 type AnalysisType = "PHYSICAL" | "CHEMICAL" | "SATURATION" | null;
+type ExtractContainer = LayerExtractResponse | RangeExtractResponse;
+
+const getContainerBaseData = (scientificData: { id: number }, container: ExtractContainer, isLayer: boolean) => ({
+    tempId: scientificData.id.toString(),
+    databaseId: scientificData.id,
+    containerId: container.id,
+    profundidadeInicial: container.profundidade_inicial,
+    profundidadeFinal: container.profundidade_final,
+    camada: isLayer ? (container as LayerExtractResponse).camada : undefined,
+    subcamada: isLayer ? (container as LayerExtractResponse).subcamada : undefined,
+});
+
+const mapPhysicalToFormData = (
+    data: PhysicalAnalysisExtractResponse,
+    container: ExtractContainer,
+    isLayer: boolean,
+): PhysicalExtractFormData => ({
+    ...getContainerBaseData(data, container, isLayer),
+    teorAreia: data.teor_areia,
+    teorSilte: data.teor_silte,
+    teorArgila: data.teor_argila,
+    densidadeAparente: data.densidade_aparente,
+    densidadeReal: data.densidade_real,
+    porosidadeTotal: data.porosidade_total,
+    microporosidade: data.microporosidade,
+    umidadeCapacidadeCampo: data.umidade_capacidade_campo,
+    umidadePontoMurchaPermanente: data.umidade_ponto_murcha_permanente,
+    aguaDisponivel: data.agua_disponivel,
+    resistenciaPenetracao: data.resistencia_penetracao,
+    percAgregados6_0mm: data.perc_agregados_6_0mm,
+    percAgregados4_1a6_0mm: data.perc_agregados_4_1_a_6_0mm,
+    percAgregados2_1a4_0mm: data.perc_agregados_2_1_a_4_0mm,
+    percAgregados1_0a2_0mm: data.perc_agregados_1_0_a_2_0mm ?? 0,
+    percAgregados0_5a1_0mm: data.perc_agregados_0_5_a_1_0mm ?? 0,
+    percAgregados0_25a0_5mm: data.perc_agregados_0_25_a_0_5mm ?? 0,
+    percAgregadosMenor0_25mm: data.perc_agregados_menor_0_25mm ?? 0,
+    dmAgregados: data.dm_agregados ?? 0,
+});
+
+const mapFertilityToFormData = (
+    data: FertilityAnalysisExtractResponse,
+    container: ExtractContainer,
+    isLayer: boolean,
+): FertilityExtractFormData => ({
+    ...getContainerBaseData(data, container, isLayer),
+    phAgua: data.ph_agua,
+    phCacl2: data.ph_cacl2,
+    calcio: data.calcio,
+    magnesio: data.magnesio,
+    potassio: data.potassio,
+    sodio: data.sodio,
+    aluminio: data.aluminio,
+    aluminioMaisHidrogenio: data.aluminio_mais_hidrogenio,
+    somaBases: data.soma_bases,
+    ctcEfetiva: data.ctc_efetiva,
+    ctcPh7: data.ctc_ph7,
+    saturacaoBasesV: data.saturacao_bases_v,
+    saturacaoAluminioM: data.saturacao_aluminio_m,
+    fosforoMehlich1: data.fosforo_mehlich1,
+    fosforoResina: data.fosforo_resina,
+    enxofre: data.enxofre,
+    materiaOrganica: data.materia_organica,
+    boro: data.boro,
+    cobre: data.cobre,
+    ferro: data.ferro,
+    manganes: data.manganes,
+    zinco: data.zinco,
+});
+
+const mapSaturationToFormData = (
+    data: SaturationExtractAnalysisExtractResponse,
+    container: ExtractContainer,
+    isLayer: boolean,
+): SaturationExtractFormData => ({
+    ...getContainerBaseData(data, container, isLayer),
+    ph: data.ph,
+    ce: data.ce,
+    teorCO3: data.teor_co3,
+    teorHCO3: data.teor_hco3,
+    teorNO3: data.teor_no3,
+    teorH2PO4: data.teor_h2po4,
+    teorSO4: data.teor_so4,
+    teorNa: data.teor_na,
+    teorK: data.teor_k,
+    teorCa: data.teor_ca,
+    teorMg: data.teor_mg,
+    residuosSuspensao: data.residuos_suspensao,
+    durezaCaCO3: data.dureza_caco3,
+    durezaTotalCaCO3: data.dureza_total_caco3,
+    ras: data.ras,
+    pst: data.pst,
+});
 
 export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
     const [activeListType, setActiveListType] = useState<AnalysisType>(null);
@@ -117,7 +216,7 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
                 containers = await rangeExtractService.getByAnalysisId(analysis.id);
             }
 
-            const extractsData = await Promise.all(containers.map(async (container) => {
+            const extractsData = await Promise.all(containers.map(async (container: ExtractContainer) => {
                 const containerId = container.id;
                 let scientificData: any = null;
 
@@ -126,40 +225,28 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
                         ? await physicalAnalysisExtractService.getByLayerExtractId(containerId)
                         : await physicalAnalysisExtractService.getByRangeExtractId(containerId);
                     scientificData = res[0];
+                    return scientificData ? mapPhysicalToFormData(scientificData, container, isLayer) : null;
                 } 
                 else if (activeListType === "CHEMICAL") {
                     const res = isLayer
                         ? await fertilityAnalysisExtractService.getByLayerExtractId(containerId)
                         : await fertilityAnalysisExtractService.getByRangeExtractId(containerId);
                     scientificData = res[0];
+                    return scientificData ? mapFertilityToFormData(scientificData, container, isLayer) : null;
                 }
                 else if (activeListType === "SATURATION") {
                     const res = isLayer
                         ? await saturationExtractAnalysisExtractService.getByLayerExtractId(containerId)
                         : await saturationExtractAnalysisExtractService.getByRangeExtractId(containerId);
                     scientificData = res[0];
+                    return scientificData ? mapSaturationToFormData(scientificData, container, isLayer) : null;
                 }
-
-                if (!scientificData) return null;
-
-                const baseData = {
-                    tempId: Math.random().toString(36).substr(2, 9),
-                    databaseId: scientificData.id, 
-                    containerId: container.id,
-                    profundidadeInicial: container.profundidade_inicial,
-                    profundidadeFinal: container.profundidade_final,
-                    camada: isLayer ? (container.camada as Camada) : undefined,
-                    subcamada: isLayer ? container.sub_layer : undefined,
-                };
-
-                if (activeListType === "PHYSICAL") return { ...baseData, /* campos fisicos omitidos para brevidade */ teorAreia: scientificData.teor_areia };
-                if (activeListType === "CHEMICAL") return { ...baseData, /* campos quimicos omitidos */ phAgua: scientificData.ph_agua };
-                if (activeListType === "SATURATION") return { ...baseData, /* campos saturação omitidos */ ph: scientificData.ph };
 
                 return null;
             }));
 
             const validExtracts = extractsData.filter(item => item !== null);
+            validExtracts.sort((a, b) => a.profundidadeInicial - b.profundidadeInicial);
 
             const formData = {
                 analysisId: analysis.id,
