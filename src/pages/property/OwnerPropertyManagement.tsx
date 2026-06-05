@@ -383,6 +383,7 @@ export default function OwnerPropertyManagement() {
       <DialogContainer
         isOpen={viewDisclosure.open}
         onClose={viewDisclosure.onClose}
+        expandable
       >
         <PropertyDetails property={activeProperty} />
       </DialogContainer>

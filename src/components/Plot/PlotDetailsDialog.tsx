@@ -276,7 +276,7 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
 
     return (
         <>
-            <DialogContainer isOpen={isOpen} onClose={onClose}>
+            <DialogContainer isOpen={isOpen} onClose={onClose} expandable>
                 <Heading as="h2" size="md" mb={6} color="green.600">Detalhes do Talhão: {plot.identificacao}</Heading>
                 <VStack align="stretch" gap={4}>
                     <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}><DetailItem label="Área" value={formatBasicValue(plot.area, " ha")} /><DetailItem label="Ano Safra" value={formatBasicValue(plot.ano_incorporacao_safra)} /></Grid>

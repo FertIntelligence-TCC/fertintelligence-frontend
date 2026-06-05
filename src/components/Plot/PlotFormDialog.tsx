@@ -215,7 +215,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
     };
 
     return (
-        <DialogContainer isOpen={isOpen} onClose={onClose} zIndex={1400}>
+        <DialogContainer isOpen={isOpen} onClose={onClose} zIndex={1400} expandable={!!initialData}>
             <Heading as="h2" size="md" mb={4}>
                 {initialData ? (canEditMasterData ? "Editar Talhão" : "Gerenciar Recursos do Talhão") : "Novo Talhão"}
             </Heading>

@@ -297,7 +297,7 @@ export default function PropertyFormDialog({
 
   return (
     <>
-      <DialogContainer isOpen={isOpen} onClose={onClose}>
+      <DialogContainer isOpen={isOpen} onClose={onClose} expandable={isEdit}>
         <Heading as="h2" size="md" mb={4}>
           {isOwner ? title : "Recursos da Propriedade"}
         </Heading>
