@@ -132,8 +132,14 @@ const mapHydratedDataToForm = (
       ...faixasP.map(f => f.coberturas.length),
       ...faixasK.map(f => f.coberturas.length)
   );
+  const coverageCount = Math.max(maxCoverages, 1);
+  const normalizeCoverages = (coverages: string[]) =>
+    Array.from({ length: coverageCount }, (_, i) => coverages[i] ?? "");
   
-  const coberturaLabels = Array.from({ length: maxCoverages }, (_, i) => `${i + 1}ª Cobertura`);
+  const coberturaLabels = Array.from({ length: coverageCount }, (_, i) => `${i + 1}ª Cobertura`);
+  const normalizedCoberturasN = normalizeCoverages(coberturasN);
+  const normalizedFaixasP = faixasP.map(row => ({ ...row, coberturas: normalizeCoverages(row.coberturas) }));
+  const normalizedFaixasK = faixasK.map(row => ({ ...row, coberturas: normalizeCoverages(row.coberturas) }));
 
   return {
     id: data.id,
@@ -162,12 +168,12 @@ const mapHydratedDataToForm = (
 
     sugestaoNPK: String(data.sugestao_npk || ""),
 
-    coberturaLabels: coberturaLabels.length > 0 ? coberturaLabels : ["1ª Cobertura"],
+    coberturaLabels,
     plantioN,
-    coberturasN: coberturasN.length > 0 ? coberturasN : [""],
+    coberturasN: normalizedCoberturasN,
 
-    faixasP,
-    faixasK,
+    faixasP: normalizedFaixasP,
+    faixasK: normalizedFaixasK,
     observacoes: data.observacoes || "",
     fontes: data.fontes || "",
     tabelaPublica: Boolean(data.tabela_publica),
