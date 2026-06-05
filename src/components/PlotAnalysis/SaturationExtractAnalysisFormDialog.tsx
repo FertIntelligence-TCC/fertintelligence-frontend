@@ -151,7 +151,7 @@ export const SaturationExtractAnalysisFormDialog = ({
             teorCa: 0, teorMg: 0, teorNa: 0, teorK: 0, 
             
             // Ânions
-            teorCO3: 0, teorHCO3: 0, teorNO3: 0, teorH2PO4: 0, teorSO4: 0, 
+            teorCO3: 0, teorHCO3: 0, teorNO3: 0, teorH2PO4: 0, teorSO4: 0, teorCl: 0, 
             
             // Dureza e Indicadores
             durezaCaCO3: 0, durezaTotalCaCO3: 0, ras: 0, pst: 0
@@ -285,6 +285,7 @@ export const SaturationExtractAnalysisFormDialog = ({
                     teor_no3: ext.teorNO3,
                     teor_h2po4: ext.teorH2PO4,
                     teor_so4: ext.teorSO4,
+                    teor_cl: ext.teorCl ?? 0,
                     teor_na: ext.teorNa,
                     teor_k: ext.teorK,
                     teor_ca: ext.teorCa,
@@ -488,12 +489,13 @@ export const SaturationExtractAnalysisFormDialog = ({
                                             </Grid>
 
                                             <SectionHeader title="Ânions" colorPalette="teal" />
-                                            <Grid templateColumns="repeat(5, 1fr)" gap={4} mb={4}>
+                                            <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
                                                 <Field label="CO₃" type="number" value={ext.teorCO3} onChange={e => handleChangeExtract(ext.tempId, 'teorCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="HCO₃" type="number" value={ext.teorHCO3} onChange={e => handleChangeExtract(ext.tempId, 'teorHCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="NO₃" type="number" value={ext.teorNO3} onChange={e => handleChangeExtract(ext.tempId, 'teorNO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="H₂PO₄" type="number" value={ext.teorH2PO4} onChange={e => handleChangeExtract(ext.tempId, 'teorH2PO4', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="SO₄" type="number" value={ext.teorSO4} onChange={e => handleChangeExtract(ext.tempId, 'teorSO4', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Cl-" type="number" value={ext.teorCl ?? 0} onChange={e => handleChangeExtract(ext.tempId, 'teorCl', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
 
                                             <SectionHeader title="Dureza e Indicadores" colorPalette="pink" />

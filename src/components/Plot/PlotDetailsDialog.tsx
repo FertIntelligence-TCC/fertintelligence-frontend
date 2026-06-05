@@ -164,6 +164,7 @@ const mapSaturationToFormData = (
     teorNO3: data.teor_no3,
     teorH2PO4: data.teor_h2po4,
     teorSO4: data.teor_so4,
+    teorCl: data.teor_cl ?? 0,
     teorNa: data.teor_na,
     teorK: data.teor_k,
     teorCa: data.teor_ca,
