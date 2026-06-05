@@ -37,6 +37,7 @@ import {
 
 import FormulatedMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FormulatedMineralFertilizerFormFields";
 import FormulatedMineralFertilizerCard from "@/components/Fertilizers/Cards/FormulatedMineralFertilizerCard";
+import { formatNpkValue } from "@/components/Fertilizers/Shared/formatters";
 
 // --- Mappers ---
 
@@ -48,9 +49,9 @@ const mapResponseToForm = (dto: FormulatedMineralFertilizerResponseDto): Formula
   formulaP: String(dto.formula?.p ?? 0),
   formulaK: String(dto.formula?.k ?? 0),
   
-  relacaoN: String(dto.relacao?.n ?? 0),   // CORRIGIDO: 'relacao'
-  relacaoP: String(dto.relacao?.p ?? 0),
-  relacaoK: String(dto.relacao?.k ?? 0),
+  relacaoN: formatNpkValue(dto.relacao?.n),   // CORRIGIDO: 'relacao'
+  relacaoP: formatNpkValue(dto.relacao?.p),
+  relacaoK: formatNpkValue(dto.relacao?.k),
 
   n: String(dto.n ?? 0),
   p2o5: String(dto.p2o5 ?? 0),
@@ -318,7 +319,7 @@ export default function FormulatedMineralFertilizer() {
                 Tem certeza que deseja excluir o formulado 
                 <Text as="span" fontWeight="bold">
                    {/* Optional Chaining para segurança no modal */}
-                   NPK {activeItem?.formula?.n ?? 0}-{activeItem?.formula?.p ?? 0}-{activeItem?.formula?.k ?? 0}
+                   NPK {formatNpkValue(activeItem?.formula?.n)}-{formatNpkValue(activeItem?.formula?.p)}-{formatNpkValue(activeItem?.formula?.k)}
                 </Text>?
               </Text>
               <Text fontSize="sm" color="gray.500" mt={2}>Esta ação não pode ser desfeita.</Text>

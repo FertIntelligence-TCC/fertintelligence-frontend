@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Box, Grid, VStack, Flex, Text } from "@chakra-ui/react";
 import { FormulatedFertilizerFormState } from "@/interfaces/Fertilizer";
 import { FertilizerInputField, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { formatNpkValue } from "@/components/Fertilizers/Shared/formatters";
 
 type Props = {
     form: FormulatedFertilizerFormState;
@@ -23,9 +24,9 @@ export default function FormulatedMineralFertilizerFormFields({ form, onChange, 
 
         setFormState(prev => ({
             ...prev,
-            relacaoN: n > 0 ? (n / minVal).toFixed(2) : "0",
-            relacaoP: p > 0 ? (p / minVal).toFixed(2) : "0",
-            relacaoK: k > 0 ? (k / minVal).toFixed(2) : "0",
+            relacaoN: n > 0 ? formatNpkValue(n / minVal) : "0",
+            relacaoP: p > 0 ? formatNpkValue(p / minVal) : "0",
+            relacaoK: k > 0 ? formatNpkValue(k / minVal) : "0",
             n: form.formulaN,
             p2o5: form.formulaP,
             k2o: form.formulaK
