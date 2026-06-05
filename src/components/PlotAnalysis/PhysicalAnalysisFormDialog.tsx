@@ -40,6 +40,7 @@ import { physicalAnalysisExtractService } from "@/services/physicalAnalysisExtra
 import { TipoExtrato } from "@/interfaces/SoilAnalysis";
 import { Camada } from "@/interfaces/LayerExtract";
 import { AnalysisMode, PhysicalExtractFormData } from "@/interfaces/PhysicalAnalysisFormTypes";
+import { PhysicalAnalysisExtractUpdatePayload } from "@/interfaces/PhysicalAnalysisExtract";
 
 // Interface interna para gerenciar itens a serem deletados
 interface ItemToDelete {
@@ -79,9 +80,53 @@ const Field = ({ label, ...props }: InputProps & { label: string }) => (
     </Box>
 );
 
+const roundToTwoDecimals = (value: number) => Math.round(value * 100) / 100;
+
+const calculatePorosidadeTotal = (densidadeAparente: number, densidadeReal: number) => {
+    if (!Number.isFinite(densidadeAparente) || !Number.isFinite(densidadeReal) || densidadeReal === 0) {
+        return 0;
+    }
+
+    return roundToTwoDecimals(((densidadeReal - densidadeAparente) / densidadeReal) * 100);
+};
+
+const calculateAguaDisponivel = (umidadeCapacidadeCampo: number, umidadePontoMurchaPermanente: number) => {
+    if (!Number.isFinite(umidadeCapacidadeCampo) || !Number.isFinite(umidadePontoMurchaPermanente)) {
+        return 0;
+    }
+
+    return roundToTwoDecimals(umidadeCapacidadeCampo - umidadePontoMurchaPermanente);
+};
+
+const applyCalculatedPhysicalFields = (extract: PhysicalExtractFormData): PhysicalExtractFormData => ({
+    ...extract,
+    porosidadeTotal: calculatePorosidadeTotal(extract.densidadeAparente, extract.densidadeReal),
+    aguaDisponivel: calculateAguaDisponivel(
+        extract.umidadeCapacidadeCampo,
+        extract.umidadePontoMurchaPermanente
+    ),
+});
+
+const getApiErrorMessage = (error: unknown) => {
+    if (typeof error !== "object" || error === null || !("response" in error)) {
+        return "Erro ao salvar dados.";
+    }
+
+    const response = (error as { response?: { data?: { message?: string } } }).response;
+    return response?.data?.message || "Erro ao salvar dados.";
+};
+
 const camadaCollection = createListCollection({
     items: Object.values(Camada).map((c) => ({ label: c, value: c })),
 });
+
+interface PhysicalAnalysisDialogData {
+    analysisId?: number;
+    year: number | string;
+    lab: string;
+    type: TipoExtrato;
+    extracts: PhysicalExtractFormData[];
+}
 
 interface Props {
     isOpen: boolean;
@@ -89,7 +134,7 @@ interface Props {
     onSuccess: () => void;
     plotId: number;
     plotIdentification: string;
-    initialData?: any; // Dados para edição ou visualização
+    initialData?: PhysicalAnalysisDialogData; // Dados para edição ou visualização
     isReadOnly?: boolean; // Novo prop para modo somente leitura
 }
 
@@ -125,7 +170,8 @@ export const PhysicalAnalysisFormDialog = ({
                 setMode(initialData.type === TipoExtrato.CAMADAS ? 'LAYER' : 'RANGE');
                 
                 // Clona os extratos
-                setExtracts(JSON.parse(JSON.stringify(initialData.extracts)));
+                const clonedExtracts = JSON.parse(JSON.stringify(initialData.extracts)) as PhysicalExtractFormData[];
+                setExtracts(clonedExtracts.map(applyCalculatedPhysicalFields));
             } else {
                 // --- MODO CRIAÇÃO ---
                 setAnalysisYear(new Date().getFullYear().toString());
@@ -171,8 +217,14 @@ export const PhysicalAnalysisFormDialog = ({
         else setExtracts(updated);
     };
 
-    const handleChangeExtract = (tempId: string, field: keyof PhysicalExtractFormData, value: any) => {
-        const updated = extracts.map(e => e.tempId === tempId ? { ...e, [field]: value } : e);
+    const handleChangeExtract = (
+        tempId: string,
+        field: keyof PhysicalExtractFormData,
+        value: PhysicalExtractFormData[keyof PhysicalExtractFormData]
+    ) => {
+        const updated = extracts.map(e => (
+            e.tempId === tempId ? applyCalculatedPhysicalFields({ ...e, [field]: value }) : e
+        ));
         if (mode === 'LAYER' && field === 'camada') {
             recalculateSubLayers(updated);
         } else {
@@ -186,7 +238,7 @@ export const PhysicalAnalysisFormDialog = ({
             if (!item.camada) return item;
             const c = item.camada;
             counts[c] = (counts[c] || 0) + 1;
-            return { ...item, subcamada: counts[c] };
+            return applyCalculatedPhysicalFields({ ...item, subcamada: counts[c] });
         });
         setExtracts(newList);
     };
@@ -273,11 +325,14 @@ export const PhysicalAnalysisFormDialog = ({
                     teor_argila: ext.teorArgila,
                     densidade_aparente: ext.densidadeAparente, 
                     densidade_real: ext.densidadeReal,
-                    porosidade_total: ext.porosidadeTotal, 
+                    porosidade_total: calculatePorosidadeTotal(ext.densidadeAparente, ext.densidadeReal), 
                     microporosidade: ext.microporosidade,
                     umidade_capacidade_campo: ext.umidadeCapacidadeCampo, 
                     umidade_ponto_murcha_permanente: ext.umidadePontoMurchaPermanente,
-                    agua_disponivel: ext.aguaDisponivel, 
+                    agua_disponivel: calculateAguaDisponivel(
+                        ext.umidadeCapacidadeCampo,
+                        ext.umidadePontoMurchaPermanente
+                    ), 
                     resistencia_penetracao: ext.resistenciaPenetracao,
                     perc_agregados_6_0mm: ext.percAgregados6_0mm, 
                     perc_agregados_4_1_a_6_0mm: ext.percAgregados4_1a6_0mm,
@@ -293,7 +348,7 @@ export const PhysicalAnalysisFormDialog = ({
                     // --- UPDATE ---
                     
                     // 1. Atualizar dados físicos (Conteúdo)
-                    const updatePayload: any = {};
+                    const updatePayload: PhysicalAnalysisExtractUpdatePayload = {};
                     Object.entries(payloadFisico).forEach(([key, val]) => {
                         let prefix = "novo_"; // Padrão Masculino (O teor, O diâmetro)
 
@@ -313,7 +368,7 @@ export const PhysicalAnalysisFormDialog = ({
                             prefix = "nova_";
                         }
                         
-                        updatePayload[`${prefix}${key}`] = val; 
+                        (updatePayload as Record<string, number>)[`${prefix}${key}`] = val; 
                     });
 
                     await physicalAnalysisExtractService.update(ext.databaseId, updatePayload);
@@ -367,9 +422,9 @@ export const PhysicalAnalysisFormDialog = ({
             onSuccess(); 
             onClose();
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Erro ao salvar:", error);
-            const msg = error.response?.data?.message || "Erro ao salvar dados.";
+            const msg = getApiErrorMessage(error);
             toaster.create({ title: "Erro", description: msg, type: "error" });
         } finally { 
             setIsSubmitting(false); 
@@ -487,7 +542,7 @@ export const PhysicalAnalysisFormDialog = ({
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
                                                 <Field label="Dens. Aparente" type="number" value={ext.densidadeAparente} onChange={e => handleChangeExtract(ext.tempId, 'densidadeAparente', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="Dens. Real" type="number" value={ext.densidadeReal} onChange={e => handleChangeExtract(ext.tempId, 'densidadeReal', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Poros. Total (%)" type="number" value={ext.porosidadeTotal} onChange={e => handleChangeExtract(ext.tempId, 'porosidadeTotal', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Poros. Total (%)" type="number" value={ext.porosidadeTotal} readOnly />
                                                 <Field label="Microporos. (%)" type="number" value={ext.microporosidade} onChange={e => handleChangeExtract(ext.tempId, 'microporosidade', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
 
@@ -495,7 +550,7 @@ export const PhysicalAnalysisFormDialog = ({
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
                                                 <Field label="Umidade CC (%)" type="number" value={ext.umidadeCapacidadeCampo} onChange={e => handleChangeExtract(ext.tempId, 'umidadeCapacidadeCampo', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="Umidade PMP (%)" type="number" value={ext.umidadePontoMurchaPermanente} onChange={e => handleChangeExtract(ext.tempId, 'umidadePontoMurchaPermanente', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Água Disp." type="number" value={ext.aguaDisponivel} onChange={e => handleChangeExtract(ext.tempId, 'aguaDisponivel', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Água Disp. (%)" type="number" value={ext.aguaDisponivel} readOnly />
                                                 <Field label="Resist. Penetr. (MPa)" type="number" value={ext.resistenciaPenetracao} onChange={e => handleChangeExtract(ext.tempId, 'resistenciaPenetracao', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
 
