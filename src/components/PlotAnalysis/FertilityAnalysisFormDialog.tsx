@@ -83,6 +83,33 @@ const camadaCollection = createListCollection({
     items: Object.values(Camada).map((c) => ({ label: c, value: c }))
 });
 
+const toSafeNumber = (value: unknown) => {
+    const numericValue = typeof value === "number" ? value : parseFloat(String(value));
+    return Number.isFinite(numericValue) ? numericValue : 0;
+};
+
+const roundCalculatedValue = (value: number) => Number(value.toFixed(2));
+
+const calculateExchangeComplex = (extract: FertilityExtractFormData) => {
+    const somaBases = roundCalculatedValue(
+        toSafeNumber(extract.calcio) +
+        toSafeNumber(extract.magnesio) +
+        toSafeNumber(extract.potassio) +
+        toSafeNumber(extract.sodio)
+    );
+    const aluminio = toSafeNumber(extract.aluminio);
+    const ctcEfetiva = roundCalculatedValue(somaBases + aluminio);
+    const ctcPh7 = roundCalculatedValue(somaBases + toSafeNumber(extract.aluminioMaisHidrogenio));
+
+    return {
+        somaBases,
+        ctcEfetiva,
+        ctcPh7,
+        saturacaoBasesV: ctcPh7 > 0 ? roundCalculatedValue((100 * somaBases) / ctcPh7) : 0,
+        saturacaoAluminioM: ctcEfetiva > 0 ? roundCalculatedValue((100 * aluminio) / ctcEfetiva) : 0,
+    };
+};
+
 interface Props {
     isOpen: boolean;
     onClose: () => void;
@@ -272,6 +299,7 @@ export const FertilityAnalysisFormDialog = ({
             // 2. GERENCIAMENTO DOS EXTRATOS (UPSERT)
             // =========================================================
             for (const ext of extracts) {
+                const exchangeComplex = calculateExchangeComplex(ext);
                 
                 // Mapeamento dos campos para DTO
                 const payloadQuimico = {
@@ -283,11 +311,11 @@ export const FertilityAnalysisFormDialog = ({
                     sodio: ext.sodio,
                     aluminio: ext.aluminio, 
                     aluminio_mais_hidrogenio: ext.aluminioMaisHidrogenio, 
-                    soma_bases: ext.somaBases, 
-                    ctc_efetiva: ext.ctcEfetiva, 
-                    ctc_ph7: ext.ctcPh7, 
-                    saturacao_bases_v: ext.saturacaoBasesV, 
-                    saturacao_aluminio_m: ext.saturacaoAluminioM, 
+                    soma_bases: exchangeComplex.somaBases, 
+                    ctc_efetiva: exchangeComplex.ctcEfetiva, 
+                    ctc_ph7: exchangeComplex.ctcPh7, 
+                    saturacao_bases_v: exchangeComplex.saturacaoBasesV, 
+                    saturacao_aluminio_m: exchangeComplex.saturacaoAluminioM, 
                     fosforo_mehlich1: ext.fosforoMehlich1, 
                     fosforo_resina: ext.fosforoResina, 
                     enxofre: ext.enxofre, 
@@ -426,7 +454,10 @@ export const FertilityAnalysisFormDialog = ({
                                     )}
                                 </Flex>
                                 <VStack gap={4} align="stretch">
-                                    {extracts.map((ext, idx) => (
+                                    {extracts.map((ext, idx) => {
+                                        const exchangeComplex = calculateExchangeComplex(ext);
+
+                                        return (
                                         <Box key={ext.tempId} p={5} borderWidth="1px" borderColor="gray.300" _dark={{ bg: "gray.800", borderColor: "gray.600" }} borderRadius="lg" bg="white" shadow="sm">
                                             <Flex justify="space-between" mb={4} align="center">
                                                 <Badge colorPalette="teal" size="lg" variant="subtle">{mode === 'LAYER' ? `Camada ${ext.camada}${ext.subcamada}` : `Amostra ${idx + 1}`}</Badge>
@@ -483,11 +514,11 @@ export const FertilityAnalysisFormDialog = ({
 
                                             <SectionHeader title="Complexo de Troca" colorPalette="purple" />
                                             <Grid templateColumns="repeat(5, 1fr)" gap={4} mb={4}>
-                                                <Field label="SB" type="number" value={ext.somaBases} onChange={e => handleChangeExtract(ext.tempId, 'somaBases', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="CTC(t)" type="number" value={ext.ctcEfetiva} onChange={e => handleChangeExtract(ext.tempId, 'ctcEfetiva', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="CTC(T)" type="number" value={ext.ctcPh7} onChange={e => handleChangeExtract(ext.tempId, 'ctcPh7', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="V%" type="number" value={ext.saturacaoBasesV} onChange={e => handleChangeExtract(ext.tempId, 'saturacaoBasesV', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="m%" type="number" value={ext.saturacaoAluminioM} onChange={e => handleChangeExtract(ext.tempId, 'saturacaoAluminioM', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="SB (Cmolc/dm³)" type="number" value={exchangeComplex.somaBases} readOnly />
+                                                <Field label="CTC(t) (Cmolc/dm³)" type="number" value={exchangeComplex.ctcEfetiva} readOnly />
+                                                <Field label="CTC(T) (Cmolc/dm³)" type="number" value={exchangeComplex.ctcPh7} readOnly />
+                                                <Field label="V%" type="number" value={exchangeComplex.saturacaoBasesV} readOnly />
+                                                <Field label="m%" type="number" value={exchangeComplex.saturacaoAluminioM} readOnly />
                                             </Grid>
 
                                             <SectionHeader title="Micronutrientes e Outros" colorPalette="green" />
@@ -505,7 +536,8 @@ export const FertilityAnalysisFormDialog = ({
                                                 <Field label="Zinco" type="number" value={ext.zinco} onChange={e => handleChangeExtract(ext.tempId, 'zinco', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
                                         </Box>
-                                    ))}
+                                        );
+                                    })}
                                 </VStack>
                             </Box>
                         )}
