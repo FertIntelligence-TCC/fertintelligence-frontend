@@ -19,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
+import { useUserStore } from "@/stores/user/user.store";
 import FertilizationTableFormFields from "@/components/FertilizationTable/FertilizationTableFormFields";
 import {
   DEFAULT_TABLE_STATE,
@@ -26,6 +27,10 @@ import {
   NutrientRangeRow,
   CropType,
   CropLabels,
+  RegionType,
+  SpacingType,
+  LimingCriteria,
+  ManureType,
 } from "@/components/FertilizationTable/types";
 import {
   createCropFertilizationTable,
@@ -134,22 +139,22 @@ const mapHydratedDataToForm = (
     id: data.id,
     nomeComum: data.nome_comum_cultura as CropType,
     nomeCientifico: data.nome_cientifico_cultura,
-    regiao: data.regioes_cultura as any,
+    regiao: data.regioes_cultura as RegionType,
     cultivares: data.cultivares || "",
 
-    espacamentoSugeridoTipo: data.espacamentos_sugeridos as any,
+    espacamentoSugeridoTipo: data.espacamentos_sugeridos as SpacingType,
     espacamentoSugeridoMin: String(data.valor_inicial),
     espacamentoSugeridoMax: String(data.valor_final),
 
-    espacamentoUsadoTipo: data.espacamento_usado as any,
+    espacamentoUsadoTipo: data.espacamento_usado as SpacingType,
     espacamentoUsadoValor: String(data.valor_espacamento_usado),
 
     produtividadeRegional: String(data.produtividade_regional),
     produtividadeEsperada: String(data.produtividade_esperada),
 
-    criterioCalagem: data.criterio_de_calagem as any,
+    criterioCalagem: data.criterio_de_calagem as LimingCriteria,
 
-    sugestaoEstercoTipo: data.tipo_de_esterco as any,
+    sugestaoEstercoTipo: data.tipo_de_esterco as ManureType,
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
 
     sugestaoGessagem: String(data.sugestao_gessagem),
@@ -206,7 +211,7 @@ const mapFormToRequest = (
     observacoes: form.observacoes,
     fontes: form.fontes,
     tabela_publica: form.tabelaPublica,
-  } as any;
+  } as unknown as CropFertilizationTableCreateRequestDto;
 };
 
 const parseLabel = (label: string) => {
@@ -230,7 +235,7 @@ const saveContentRangesWithCoverages = async (
   tableId: number,
   form: FertilizationTableFormState
 ) => {
-  const num = (v: any) => (typeof v === "number" ? v : parseFloat(v || "0"));
+  const num = (v: unknown) => (typeof v === "number" ? v : parseFloat(String(v || "0")));
 
   const nitroRangePayload = {
     nutriente: "NITROGENIO",
@@ -288,16 +293,44 @@ const saveContentRangesWithCoverages = async (
 };
 
 type Mode = "create" | "edit" | "view";
+type TableScope = "mine" | "standard";
+
+type CropFertilizationTableProps = {
+  scope?: TableScope;
+};
+
+const normalizeUserFlag = (value?: unknown) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s_-]+/g, "")
+    .toUpperCase();
+
+const isSupremeUser = (user?: unknown) => {
+  const data = (user ?? {}) as Record<string, unknown>;
+  const directValues = [
+    data.cargo,
+    data.role,
+    data.perfil,
+    data.tipo_usuario,
+    data.tipoUsuario,
+  ];
+  const authorities = Array.isArray(data.authorities) ? data.authorities : [];
+  return [...directValues, ...authorities].some((value) =>
+    normalizeUserFlag(value).includes("SUPREMO")
+  );
+};
 
 function TableCard(props: {
   table: CropFertilizationTableResponseDto;
   isSelected: boolean;
   onSelect: () => void;
   onView: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  canEdit?: boolean;
 }) {
-  const { table, isSelected, onSelect, onView, onEdit, onDelete } = props;
+  const { table, isSelected, onSelect, onView, onEdit, onDelete, canEdit = true } = props;
   const cropLabel = CropLabels[table.nome_comum_cultura as CropType] || table.nome_comum_cultura;
 
   return (
@@ -355,34 +388,43 @@ function TableCard(props: {
           >
             <FiEye />
           </IconButton>
-          <IconButton
-            size="sm"
-            aria-label="Editar"
-            borderRadius="full"
-            variant="ghost"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          >
-            <FiEdit />
-          </IconButton>
-          <IconButton
-            size="sm"
-            aria-label="Deletar"
-            borderRadius="full"
-            colorPalette="red"
-            variant="ghost"
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          >
-            <FiTrash />
-          </IconButton>
+          {canEdit && onEdit && (
+            <IconButton
+              size="sm"
+              aria-label="Editar"
+              borderRadius="full"
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            >
+              <FiEdit />
+            </IconButton>
+          )}
+          {canEdit && onDelete && (
+            <IconButton
+              size="sm"
+              aria-label="Deletar"
+              borderRadius="full"
+              colorPalette="red"
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            >
+              <FiTrash />
+            </IconButton>
+          )}
         </HStack>
       )}
     </Box>
   );
 }
 
-export default function CropFertilizationTable() {
+export default function CropFertilizationTable({ scope = "mine" }: CropFertilizationTableProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const user = useUserStore((state) => state.user);
+  const userId = user?.id;
+  const isSupreme = isSupremeUser(user);
+  const isStandardScope = scope === "standard";
+  const canManageTables = !isStandardScope;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -415,6 +457,16 @@ export default function CropFertilizationTable() {
     queryKey: ["crop-fertilization-tables"],
     queryFn: fetchCropFertilizationTables,
   });
+
+  const visibleTables = useMemo(() => {
+    if (isStandardScope) {
+      return tables.filter((table) => table.id_criador !== userId);
+    }
+
+    if (isSupreme || !userId) return tables;
+
+    return tables.filter((table) => table.id_criador === userId);
+  }, [isStandardScope, isSupreme, tables, userId]);
 
   const deleteMutation = useMutation({
     mutationFn: deleteCropFertilizationTable,
@@ -458,6 +510,7 @@ export default function CropFertilizationTable() {
   };
 
   const openCreate = () => {
+    if (!canManageTables) return;
     setMode("create");
     setActiveTable(null);
     setCreateForm(DEFAULT_TABLE_STATE);
@@ -471,12 +524,14 @@ export default function CropFertilizationTable() {
   };
 
   const openEdit = (table: CropFertilizationTableResponseDto) => {
+    if (!canManageTables) return;
     setMode("edit");
     setActiveTable(table);
     fetchAndHydrateTable(table);
   };
 
-  const requestDelete = (table: any) => {
+  const requestDelete = (table: CropFertilizationTableResponseDto) => {
+    if (!canManageTables) return;
     setActiveTable(table);
     setIsDeleteOpen(true);
   };
@@ -554,13 +609,16 @@ export default function CropFertilizationTable() {
 
   const handleFormChange =
     (setter: Dispatch<SetStateAction<FertilizationTableFormState>>) =>
-    (field: keyof FertilizationTableFormState, value: any) => {
+    (
+      field: keyof FertilizationTableFormState,
+      value: FertilizationTableFormState[keyof FertilizationTableFormState]
+    ) => {
       setter((prev) => ({ ...prev, [field]: value }));
     };
 
   return (
     <UserLayout>
-      <FertName subtitle="Tabelas de Adubação" />
+      <FertName subtitle={isStandardScope ? "Tabelas padrão de adubação" : "Minhas tabelas de adubação"} />
       <ConfigMenu />
 
       <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
@@ -572,18 +630,22 @@ export default function CropFertilizationTable() {
           >
             Voltar para o painel
           </Button>
-          <Heading as="h1" size="lg" color="white">Gerenciar Tabelas de Cultura</Heading>
+          <Heading as="h1" size="lg" color="white">
+            {isStandardScope ? "Tabelas padrão de culturas" : "Minhas tabelas de culturas"}
+          </Heading>
           <HStack>
-            <Button
-              alignSelf="flex-start"
-              colorPalette="green"
-              onClick={openCreate}
-              display="inline-flex"
-              alignItems="center"
-              gap={2}
-            >
-              <FiPlus /> Nova Tabela
-            </Button>
+            {canManageTables && (
+              <Button
+                alignSelf="flex-start"
+                colorPalette="green"
+                onClick={openCreate}
+                display="inline-flex"
+                alignItems="center"
+                gap={2}
+              >
+                <FiPlus /> Nova Tabela
+              </Button>
+            )}
             <Button variant="outline" colorPalette="green" onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table/public") }>
               Consultar tabelas públicas
             </Button>
@@ -601,11 +663,11 @@ export default function CropFertilizationTable() {
               <Flex justify="center" minH="200px" align="center"><Spinner color="white" size="lg" /></Flex>
             ) : isError ? (
               <Text color="red.300">Erro ao carregar tabelas.</Text>
-            ) : tables.length === 0 ? (
+            ) : visibleTables.length === 0 ? (
               <Text color="white">Nenhuma tabela cadastrada.</Text>
             ) : (
               <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-                {tables.map((table: any) => (
+                {visibleTables.map((table) => (
                   <TableCard
                     key={table.id}
                     table={table}
@@ -614,6 +676,7 @@ export default function CropFertilizationTable() {
                     onView={() => openView(table)}
                     onEdit={() => openEdit(table)}
                     onDelete={() => requestDelete(table)}
+                    canEdit={canManageTables}
                   />
                 ))}
               </SimpleGrid>
