@@ -1,14 +1,22 @@
-import { ReactNode } from "react";
-import { Box, Flex } from "@chakra-ui/react";
+import { ReactNode, useEffect, useState } from "react";
+import { Box, Flex, IconButton } from "@chakra-ui/react";
+import { FiMaximize2, FiMinimize2 } from "react-icons/fi";
 
 type DialogContainerProps = {
     isOpen: boolean;
     onClose: () => void;
     children: ReactNode;
     zIndex?: number; // Nova prop opcional
+    expandable?: boolean;
 };
 
-const DialogContainer = ({ isOpen, onClose, children, zIndex = 1000 }: DialogContainerProps) => {
+const DialogContainer = ({ isOpen, onClose, children, zIndex = 1000, expandable = false }: DialogContainerProps) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) setIsExpanded(false);
+    }, [isOpen]);
+
     if (!isOpen) {
         return null;
     }
@@ -26,15 +34,34 @@ const DialogContainer = ({ isOpen, onClose, children, zIndex = 1000 }: DialogCon
         >
             <Box
                 w="full"
-                maxW="lg"
+                maxW={isExpanded ? "80vw" : "lg"}
+                h={isExpanded ? "80vh" : "auto"}
                 bg={{ base: "white", _dark: "gray.800" }}
                 borderRadius="lg"
                 boxShadow="2xl"
                 p={6}
+                pt={expandable ? 12 : 6}
                 onClick={(event) => event.stopPropagation()}
-                maxH="90vh"
+                maxH={isExpanded ? "80vh" : "90vh"}
                 overflowY="auto"
+                position="relative"
             >
+                {expandable && (
+                    <IconButton
+                        aria-label={isExpanded ? "Reduzir painel" : "Expandir painel"}
+                        size="sm"
+                        variant="ghost"
+                        position="absolute"
+                        top={3}
+                        right={3}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            setIsExpanded((current) => !current);
+                        }}
+                    >
+                        {isExpanded ? <FiMinimize2 /> : <FiMaximize2 />}
+                    </IconButton>
+                )}
                 {children}
             </Box>
         </Flex>

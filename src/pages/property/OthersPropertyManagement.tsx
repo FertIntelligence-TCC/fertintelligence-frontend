@@ -290,7 +290,7 @@ export function RolePropertyManagement({ variant }: { variant: Variant }) {
         </VStack>
       </DialogContainer>
 
-      <DialogContainer isOpen={viewDisclosure.open} onClose={viewDisclosure.onClose}>
+      <DialogContainer isOpen={viewDisclosure.open} onClose={viewDisclosure.onClose} expandable>
         <PropertyDetails property={activeProperty} />
       </DialogContainer>
 
