@@ -3,9 +3,34 @@ import { useNavigate } from "react-router-dom";
 import UserLayout from "@/components/Layouts/UserLayout";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertName from "@/components/FertName/FertName";
+import { useUserStore } from "@/stores/user/user.store";
+
+const normalizeUserFlag = (value?: unknown) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s_-]+/g, "")
+    .toUpperCase();
+
+const isSupremeUser = (user?: unknown) => {
+  const data = (user ?? {}) as Record<string, unknown>;
+  const directValues = [
+    data.cargo,
+    data.role,
+    data.perfil,
+    data.tipo_usuario,
+    data.tipoUsuario,
+  ];
+  const authorities = Array.isArray(data.authorities) ? data.authorities : [];
+  return [...directValues, ...authorities].some((value) =>
+    normalizeUserFlag(value).includes("SUPREMO")
+  );
+};
 
 export default function FertilizationTableManagement() {
   const navigate = useNavigate();
+  const user = useUserStore((state) => state.user);
+  const isSupreme = isSupremeUser(user);
 
   return (
     <UserLayout>
@@ -37,7 +62,7 @@ export default function FertilizationTableManagement() {
             Tabelas
           </Heading>
 
-          <VStack spacing={4} align="stretch">
+          <VStack gap={4} align="stretch">
             <Button
               colorScheme="blue"
               onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table")}
@@ -47,7 +72,33 @@ export default function FertilizationTableManagement() {
               whiteSpace="normal"
               textAlign="center"
             >
-              Tabela de adubação de culturas
+              Minhas tabelas
+            </Button>
+
+            {!isSupreme && (
+              <Button
+                colorScheme="blue"
+                onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table/default")}
+                h="auto"
+                py={4}
+                fontSize="md"
+                whiteSpace="normal"
+                textAlign="center"
+              >
+                Tabelas padrão
+              </Button>
+            )}
+
+            <Button
+              colorScheme="blue"
+              onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table/public")}
+              h="auto"
+              py={4}
+              fontSize="md"
+              whiteSpace="normal"
+              textAlign="center"
+            >
+              Tabelas públicas
             </Button>
             
             <Button

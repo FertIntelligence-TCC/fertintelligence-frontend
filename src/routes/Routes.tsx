@@ -127,6 +127,10 @@ export const PublicRoutes: RouteObject[] = [
     element: <CropFertilizationTable />,
   },
   {
+    path: "/fertintelligence/fertilization-table-management/crop-fertilization-table/default",
+    element: <CropFertilizationTable scope="standard" />,
+  },
+  {
     path: "/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table",
     element: <FoliarAnalysisInterpretationTable />,
   },
