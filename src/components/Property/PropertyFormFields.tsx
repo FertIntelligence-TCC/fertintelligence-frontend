@@ -110,6 +110,7 @@ type PropertyFormFieldsProps = {
         field: Field,
         value: PropertyFormState[Field],
     ) => void;
+    isReadOnly?: boolean;
 };
 
 /* ======================================================
@@ -119,6 +120,7 @@ type PropertyFormFieldsProps = {
 const PropertyFormFields = ({
     form,
     onFormChange,
+    isReadOnly = false,
 }: PropertyFormFieldsProps) => {
     return (
         <VStack gap={4} align="stretch">
@@ -126,6 +128,7 @@ const PropertyFormFields = ({
                 label="Imagem da Propriedade"
                 currentImageId={form.idfoto}
                 onImageIdChange={(id) => onFormChange("idfoto", id)}
+                readOnly={isReadOnly}
             />
 
             {/* Nome */}
@@ -133,6 +136,7 @@ const PropertyFormFields = ({
                 <Input
                     variant="outline"
                     {...commonFieldStyles}
+                    disabled={isReadOnly}
                     value={form.nome}
                     onChange={(e) =>
                         onFormChange("nome", e.target.value)
@@ -145,6 +149,7 @@ const PropertyFormFields = ({
                 <Input
                     variant="outline"
                     {...commonFieldStyles}
+                    disabled={isReadOnly}
                     placeholder="ex: Rodovia PB 031, KM 25, Município Sapé, CEP: XXXXX-XXX"
                     value={form.endereco}
                     onChange={(e) =>
@@ -158,6 +163,7 @@ const PropertyFormFields = ({
                 <Input
                     variant="outline"
                     {...commonFieldStyles}
+                    disabled={isReadOnly}
                     placeholder="00.000.000/0000-00"
                     value={formatCnpj(form.cnpj)}
                     onChange={(e) =>
@@ -171,19 +177,57 @@ const PropertyFormFields = ({
             </Heading>
 
             {/* Latitude */}
-            <HStack align="start" gap={4}>
-                <Field label="Latitude:" isRequired>
+            <HStack align="start" gap={4} wrap="wrap">
+                <Field label="Latitude - Graus:" isRequired>
                     <Input
                         type="number"
                         min={0}
                         max={90}
                         variant="outline"
                         {...commonFieldStyles}
-                        value={form.latitude}
+                        disabled={isReadOnly}
+                        value={form.latitudeDegrees}
                         onChange={(e) =>
                             onFormChange(
-                                "latitude",
+                                "latitudeDegrees",
                                 sanitizeNumber(e.target.value, 90),
+                            )
+                        }
+                    />
+                </Field>
+
+                <Field label="Minutos:" isRequired>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        variant="outline"
+                        {...commonFieldStyles}
+                        disabled={isReadOnly}
+                        value={form.latitudeMinutes}
+                        onChange={(e) =>
+                            onFormChange(
+                                "latitudeMinutes",
+                                sanitizeNumber(e.target.value, 59),
+                            )
+                        }
+                    />
+                </Field>
+
+                <Field label="Segundos:" isRequired>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        step="0.01"
+                        variant="outline"
+                        {...commonFieldStyles}
+                        disabled={isReadOnly}
+                        value={form.latitudeSeconds}
+                        onChange={(e) =>
+                            onFormChange(
+                                "latitudeSeconds",
+                                sanitizeNumber(e.target.value, 59),
                             )
                         }
                     />
@@ -192,6 +236,7 @@ const PropertyFormFields = ({
                 <Field label="Direção:" isRequired>
                     <SelectElement
                         value={form.latitudeDirection}
+                        disabled={isReadOnly}
                         onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                             onFormChange(
                                 "latitudeDirection",
@@ -211,19 +256,57 @@ const PropertyFormFields = ({
             </HStack>
 
             {/* Longitude */}
-            <HStack align="start" gap={4}>
-                <Field label="Longitude:" isRequired>
+            <HStack align="start" gap={4} wrap="wrap">
+                <Field label="Longitude - Graus:" isRequired>
                     <Input
                         type="number"
                         min={0}
                         max={180}
                         variant="outline"
                         {...commonFieldStyles}
-                        value={form.longitude}
+                        disabled={isReadOnly}
+                        value={form.longitudeDegrees}
                         onChange={(e) =>
                             onFormChange(
-                                "longitude",
+                                "longitudeDegrees",
                                 sanitizeNumber(e.target.value, 180),
+                            )
+                        }
+                    />
+                </Field>
+
+                <Field label="Minutos:" isRequired>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        variant="outline"
+                        {...commonFieldStyles}
+                        disabled={isReadOnly}
+                        value={form.longitudeMinutes}
+                        onChange={(e) =>
+                            onFormChange(
+                                "longitudeMinutes",
+                                sanitizeNumber(e.target.value, 59),
+                            )
+                        }
+                    />
+                </Field>
+
+                <Field label="Segundos:" isRequired>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        step="0.01"
+                        variant="outline"
+                        {...commonFieldStyles}
+                        disabled={isReadOnly}
+                        value={form.longitudeSeconds}
+                        onChange={(e) =>
+                            onFormChange(
+                                "longitudeSeconds",
+                                sanitizeNumber(e.target.value, 59),
                             )
                         }
                     />
@@ -232,6 +315,7 @@ const PropertyFormFields = ({
                 <Field label="Direção:" isRequired>
                     <SelectElement
                         value={form.longitudeDirection}
+                        disabled={isReadOnly}
                         onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                             onFormChange(
                                 "longitudeDirection",
@@ -256,6 +340,7 @@ const PropertyFormFields = ({
                     type="number"
                     variant="outline"
                     {...commonFieldStyles}
+                    disabled={isReadOnly}
                     value={form.altitude}
                     onChange={(e) =>
                         onFormChange(
