@@ -151,7 +151,7 @@ export const SaturationExtractAnalysisFormDialog = ({
             teorCa: 0, teorMg: 0, teorNa: 0, teorK: 0, 
             
             // Ânions
-            teorCO3: 0, teorHCO3: 0, teorNO3: 0, teorH2PO4: 0, teorSO4: 0, 
+            teorCO3: 0, teorHCO3: 0, teorNO3: 0, teorH2PO4: 0, teorSO4: 0, teorCl: 0, 
             
             // Dureza e Indicadores
             durezaCaCO3: 0, durezaTotalCaCO3: 0, ras: 0, pst: 0
@@ -285,6 +285,7 @@ export const SaturationExtractAnalysisFormDialog = ({
                     teor_no3: ext.teorNO3,
                     teor_h2po4: ext.teorH2PO4,
                     teor_so4: ext.teorSO4,
+                    teor_cl: ext.teorCl ?? 0,
                     teor_na: ext.teorNa,
                     teor_k: ext.teorK,
                     teor_ca: ext.teorCa,

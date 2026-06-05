@@ -21,6 +21,7 @@ export interface SaturationExtractAnalysisExtractResponse {
     teor_no3: number;
     teor_h2po4: number;
     teor_so4: number;
+    teor_cl?: number;
     
     // Cations
     teor_na: number;
@@ -44,6 +45,7 @@ export interface SaturationExtractAnalysisExtractCreatePayload {
     teor_no3?: number;
     teor_h2po4?: number;
     teor_so4?: number;
+    teor_cl?: number;
     teor_na?: number;
     teor_k?: number;
     teor_ca?: number;
@@ -65,6 +67,7 @@ export interface SaturationExtractAnalysisExtractUpdatePayload {
     novo_teor_no3?: number;
     novo_teor_h2po4?: number;
     novo_teor_so4?: number;
+    novo_teor_cl?: number;
     novo_teor_na?: number;
     novo_teor_k?: number;
     novo_teor_ca?: number;

@@ -57,7 +57,7 @@ const AddRangePopover = ({ type, currentCount, onAdd }: { type: "P2O5" | "K2O", 
                             <Input placeholder="Valor 1" type="number" value={n1} onChange={(e) => setN1(e.target.value)} {...commonFieldStyles} />
                             {mode === "between" && (<Input placeholder="Valor 2" type="number" value={n2} onChange={(e) => setN2(e.target.value)} {...commonFieldStyles} />)}
                         </HStack>
-                        <Button size="sm" colorScheme="blue" width="full" onClick={handleAdd} isDisabled={!n1}>Adicionar Linha</Button>
+                        <Button size="sm" colorScheme="blue" width="full" onClick={handleAdd} disabled={!n1}>Adicionar Linha</Button>
                     </VStack>
                 </PopoverBody>
             </PopoverContent>
@@ -156,7 +156,7 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
                                 <Table.Cell colSpan={10} p={3}>
                                     <VStack align="start" gap={2}>
                                         <AddRangePopover type="P2O5" currentCount={form.faixasP.length} onAdd={(lbl, op) => addRangeRow("P", lbl, op)} />
-                                        <Button size="sm" variant="ghost" colorScheme="red" onClick={() => removeLastRangeRow("P")} isDisabled={form.faixasP.length === 0}><FiMinus /> Remover faixa</Button>
+                                        <Button size="sm" variant="ghost" colorScheme="red" onClick={() => removeLastRangeRow("P")} disabled={form.faixasP.length === 0}><FiMinus /> Remover faixa</Button>
                                     </VStack>
                                 </Table.Cell>
                             </Table.Row>
@@ -177,7 +177,7 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
                                 <Table.Cell colSpan={10} p={3}>
                                     <VStack align="start" gap={2}>
                                         <AddRangePopover type="K2O" currentCount={form.faixasK.length} onAdd={(lbl, op) => addRangeRow("K", lbl, op)} />
-                                        <Button size="sm" variant="ghost" colorScheme="red" onClick={() => removeLastRangeRow("K")} isDisabled={form.faixasK.length === 0}><FiMinus /> Remover faixa</Button>
+                                        <Button size="sm" variant="ghost" colorScheme="red" onClick={() => removeLastRangeRow("K")} disabled={form.faixasK.length === 0}><FiMinus /> Remover faixa</Button>
                                     </VStack>
                                 </Table.Cell>
                             </Table.Row>

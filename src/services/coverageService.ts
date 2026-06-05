@@ -31,3 +31,9 @@ export const fetchCoveragesByRange = async (contentRangeId: number): Promise<Cov
     });
     return response.data;
 };
+
+export const deleteCoverage = async (coverageId: number): Promise<void> => {
+    await api.delete(`/coverage/delete`, {
+        params: { coverageId }
+    });
+};
