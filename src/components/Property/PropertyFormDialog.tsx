@@ -20,7 +20,12 @@ import PropertyFormFields from "./PropertyFormFields";
 import PlotList from "@/components/Plot/PlotList";
 import PlotFormDialog from "@/components/Plot/PlotFormDialog";
 
-import { PropertyFormState } from "./types";
+import {
+  DEFAULT_FORM_STATE,
+  PropertyFormState,
+  dmsToDecimal,
+  propertyToFormState,
+} from "./types";
 import {
   getPlotsByProperty,
   createPlot,
@@ -40,18 +45,6 @@ import { useUserStore } from "@/stores/user/user.store";
 import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import { getPlotAccessRequests } from "@/services/plotAccessRequestService";
 
-const emptyForm: PropertyFormState = {
-  nome: "",
-  endereco: "",
-  cnpj: "",
-  latitude: "",
-  latitudeDirection: undefined as any,
-  longitude: "",
-  longitudeDirection: undefined as any,
-  altitude: "",
-  idfoto: "",
-};
-
 type Props = {
   title: string;
   isOpen: boolean;
@@ -60,6 +53,14 @@ type Props = {
   onSuccess?: () => void;
   submitLabel?: string;
   cancelLabel?: string;
+  form?: PropertyFormState;
+  onFormChange?: <Field extends keyof PropertyFormState>(
+    field: Field,
+    value: PropertyFormState[Field]
+  ) => void;
+  onSubmit?: () => void;
+  canSubmit?: boolean;
+  isSubmitting?: boolean;
 };
 
 export default function PropertyFormDialog({
@@ -70,6 +71,11 @@ export default function PropertyFormDialog({
   onSuccess,
   submitLabel = "Concluir",
   cancelLabel = "Cancelar",
+  form: controlledForm,
+  onFormChange: controlledOnFormChange,
+  onSubmit,
+  canSubmit: controlledCanSubmit,
+  isSubmitting: controlledIsSubmitting,
 }: Props) {
   const queryClient = useQueryClient();
   const plotFormDisclosure = useDisclosure();
@@ -133,46 +139,58 @@ export default function PropertyFormDialog({
   const hasApprovedAccess = isOwner || isManager || approvedRequests.length > 0;
 
   // === Controle de Formulário ===
-  const [form, setForm] = useState<PropertyFormState>(emptyForm);
+  const [internalForm, setInternalForm] = useState<PropertyFormState>(DEFAULT_FORM_STATE);
+  const form = controlledForm ?? internalForm;
 
   useEffect(() => {
     if (!isOpen) return;
     if (!propertyId) {
-      setForm(emptyForm);
+      if (!controlledForm) setInternalForm(DEFAULT_FORM_STATE);
       return;
     }
-    if (propertyData) {
-      setForm({
-        nome: propertyData.nome ?? "",
-        endereco: propertyData.endereco ?? "",
-        cnpj: propertyData.cnpj ?? "",
-        latitude: String(propertyData.localizacao?.latitude ?? ""),
-        latitudeDirection: (propertyData.localizacao?.latitudeDirection as any) ?? "",
-        longitude: String(propertyData.localizacao?.longitude ?? ""),
-        longitudeDirection: (propertyData.localizacao?.longitudeDirection as any) ?? "",
-        altitude: String(propertyData.localizacao?.altitude ?? ""),
-        idfoto: propertyData.idfoto ?? "",
-      });
+    if (propertyData && !controlledForm) {
+      setInternalForm(propertyToFormState(propertyData));
     }
-  }, [isOpen, propertyId, propertyData]);
+  }, [isOpen, propertyId, propertyData, controlledForm]);
 
-  const canSubmit = useMemo(() => {
+  const internalCanSubmit = useMemo(() => {
     if (!form.nome?.trim() || !form.endereco?.trim() || !form.cnpj?.trim()) return false;
+    if (
+      Number.isNaN(parseFloat(form.latitudeDegrees)) ||
+      Number.isNaN(parseFloat(form.latitudeMinutes)) ||
+      Number.isNaN(parseFloat(form.latitudeSeconds)) ||
+      Number.isNaN(parseFloat(form.longitudeDegrees)) ||
+      Number.isNaN(parseFloat(form.longitudeMinutes)) ||
+      Number.isNaN(parseFloat(form.longitudeSeconds))
+    ) return false;
     return true;
   }, [form]);
+
+  const canSubmitForm = controlledCanSubmit ?? internalCanSubmit;
 
   const onFormChange = <Field extends keyof PropertyFormState>(
     field: Field,
     value: PropertyFormState[Field]
   ) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    if (controlledOnFormChange) {
+      controlledOnFormChange(field, value);
+      return;
+    }
+
+    setInternalForm((prev) => ({ ...prev, [field]: value }));
   };
 
   // === Mutações ===
   const createPropertyMutation = useMutation({
     mutationFn: () => createProperty({
       nome: form.nome, endereco: form.endereco, cnpj: form.cnpj, idfoto: form.idfoto,
-      localizacao: { latitude: Number(form.latitude), latitudeDirection: form.latitudeDirection as any, longitude: Number(form.longitude), longitudeDirection: form.longitudeDirection as any, altitude: Number(form.altitude || 0) }
+      localizacao: {
+        latitude: dmsToDecimal(form.latitudeDegrees, form.latitudeMinutes, form.latitudeSeconds),
+        latitudeDirection: form.latitudeDirection as any,
+        longitude: dmsToDecimal(form.longitudeDegrees, form.longitudeMinutes, form.longitudeSeconds),
+        longitudeDirection: form.longitudeDirection as any,
+        altitude: Number(form.altitude || 0),
+      }
     }),
     onSuccess: async () => {
       toaster.create({ title: "Propriedade criada!", type: "success" });
@@ -184,7 +202,13 @@ export default function PropertyFormDialog({
   const updatePropertyMutation = useMutation({
     mutationFn: () => updateProperty(propertyId!, {
       novo_nome: form.nome, novo_endereco: form.endereco, novo_cnpj: form.cnpj, novo_idfoto: form.idfoto,
-      nova_localizacao: { latitude: Number(form.latitude), latitudeDirection: form.latitudeDirection as any, longitude: Number(form.longitude), longitudeDirection: form.longitudeDirection as any, altitude: Number(form.altitude || 0) }
+      nova_localizacao: {
+        latitude: dmsToDecimal(form.latitudeDegrees, form.latitudeMinutes, form.latitudeSeconds),
+        latitudeDirection: form.latitudeDirection as any,
+        longitude: dmsToDecimal(form.longitudeDegrees, form.longitudeMinutes, form.longitudeSeconds),
+        longitudeDirection: form.longitudeDirection as any,
+        altitude: Number(form.altitude || 0),
+      }
     }),
     onSuccess: async () => {
       toaster.create({ title: "Propriedade atualizada!", type: "success" });
@@ -195,8 +219,12 @@ export default function PropertyFormDialog({
   });
 
   const handleSubmit = () => {
-    if (!canSubmit) {
+    if (!canSubmitForm) {
       toaster.create({ title: "Preencha todos os campos obrigatórios.", type: "warning" });
+      return;
+    }
+    if (onSubmit) {
+      onSubmit();
       return;
     }
     if (isEdit) updatePropertyMutation.mutate();
@@ -254,9 +282,9 @@ export default function PropertyFormDialog({
           nova_pluviosidade_mensal: payload.pluviosidade_mensal,
           nova_pluviosidade_anual: payload.pluviosidade_anual,
           nova_latitude: payload.latitude,
-          nova_latitude_direction: payload.latitude_direction,
+          nova_latitudeDirection: payload.latitudeDirection,
           nova_longitude: payload.longitude,
-          nova_longitude_direction: payload.longitude_direction,
+          nova_longitudeDirection: payload.longitudeDirection,
           nova_altitude: payload.altitude,
           novo_idfoto: payload.idfoto,
         },
@@ -265,7 +293,7 @@ export default function PropertyFormDialog({
     else createPlotMutation.mutate(payload);
   };
 
-  const isSubmitting = createPropertyMutation.isPending || updatePropertyMutation.isPending;
+  const isSubmitting = controlledIsSubmitting ?? (createPropertyMutation.isPending || updatePropertyMutation.isPending);
 
   return (
     <>

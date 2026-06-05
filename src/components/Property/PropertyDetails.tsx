@@ -3,6 +3,7 @@ import { Heading, Text, VStack, Separator, Box, useDisclosure } from "@chakra-ui
 import { useQuery } from "@tanstack/react-query";
 import { LatitudeDirection, LongitudeDirection } from "@/interfaces/Property";
 import { PropertyResponse } from "@/interfaces/Property";
+import { decimalToDms } from "./types";
 import { getPlotsByProperty } from "@/services/plotService";
 import PlotList from "@/components/Plot/PlotList";
 import PlotDetailsDialog from "@/components/Plot/PlotDetailsDialog";
@@ -23,7 +24,8 @@ const formatCoordinate = (
         return "-";
     }
     const directionLabel = DIRECTION_LABEL[direction] ?? direction;
-    return `${value}° ${directionLabel}`;
+    const coordinate = decimalToDms(value);
+    return `${coordinate.degrees}° ${coordinate.minutes}' ${coordinate.seconds}" ${directionLabel}`;
 };
 
 type PropertyDetailsProps = {

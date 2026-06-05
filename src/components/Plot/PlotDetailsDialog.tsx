@@ -9,6 +9,7 @@ import { AnnualCropFolderCropsDialog } from "@/components/Plot/AnnualCropFolderC
 import { CropReadOnlyDialog } from "@/components/Crop/CropReadOnlyDialog";
 
 import { PlotResponse } from "@/interfaces/Plot";
+import { decimalToDms } from "@/components/Property/types";
 import { SoilAnalysisResponse, TipoExtrato } from "@/interfaces/SoilAnalysis";
 import { LayerExtractResponse } from "@/interfaces/LayerExtract";
 import { RangeExtractResponse } from "@/interfaces/RangeExtract";
@@ -75,7 +76,9 @@ const formatCoordinate = (value?: number | null, direction?: string) => {
     };
 
     const localizedDirection = directionMap[normalizedDirection];
-    return localizedDirection ? `${value}° ${localizedDirection}` : `${value}°`;
+    const coordinate = decimalToDms(value);
+    const formattedValue = `${coordinate.degrees}° ${coordinate.minutes}' ${coordinate.seconds}"`;
+    return localizedDirection ? `${formattedValue} ${localizedDirection}` : formattedValue;
 };
 
 type AnalysisType = "PHYSICAL" | "CHEMICAL" | "SATURATION" | null;

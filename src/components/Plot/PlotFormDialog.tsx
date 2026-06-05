@@ -29,6 +29,8 @@ import {
     PlotCreatePayload, 
     PlotResponse 
 } from "@/interfaces/Plot";
+import { LatitudeDirection, LongitudeDirection } from "@/interfaces/Property";
+import { decimalToDms, dmsToDecimal } from "@/components/Property/types";
 
 // Importações para verificar permissões
 import { useUserStore } from "@/stores/user/user.store";
@@ -42,7 +44,21 @@ type Props = {
     isSubmitting: boolean;
 };
 
-const INITIAL_STATE: PlotCreatePayload = {
+type PlotFormState = Omit<
+    PlotCreatePayload,
+    "latitude" | "latitudeDirection" | "longitude" | "longitudeDirection"
+> & {
+    latitudeDegrees: string;
+    latitudeMinutes: string;
+    latitudeSeconds: string;
+    latitudeDirection: string;
+    longitudeDegrees: string;
+    longitudeMinutes: string;
+    longitudeSeconds: string;
+    longitudeDirection: string;
+};
+
+const INITIAL_STATE: PlotFormState = {
     identificacao: "",
     area: 0,
     classe_solo: ClasseSolo.LATOSSOLO,
@@ -52,10 +68,14 @@ const INITIAL_STATE: PlotCreatePayload = {
     declividade: 0,
     pluviosidade_mensal: 0,
     pluviosidade_anual: 0,
-    latitude: undefined,
-    latitude_direction: "",
-    longitude: undefined,
-    longitude_direction: "",
+    latitudeDegrees: "",
+    latitudeMinutes: "",
+    latitudeSeconds: "",
+    latitudeDirection: LatitudeDirection.SUL,
+    longitudeDegrees: "",
+    longitudeMinutes: "",
+    longitudeSeconds: "",
+    longitudeDirection: LongitudeDirection.OESTE,
     altitude: undefined,
     idfoto: "",
 };
@@ -75,8 +95,38 @@ const areaIrrigadaCollection = createListCollection({
     ],
 });
 
+const latitudeDirectionCollection = createListCollection({
+    items: [
+        { label: "Norte", value: LatitudeDirection.NORTE },
+        { label: "Sul", value: LatitudeDirection.SUL },
+    ],
+});
+
+const longitudeDirectionCollection = createListCollection({
+    items: [
+        { label: "Leste", value: LongitudeDirection.LESTE },
+        { label: "Oeste", value: LongitudeDirection.OESTE },
+    ],
+});
+
+const sanitizeNumberText = (value: string, max?: number) => {
+    const cleaned = value.replace(/[^\d.]/g, "");
+    if (!cleaned) return "";
+
+    const numeric = Number(cleaned);
+    if (Number.isNaN(numeric)) return "";
+
+    if (typeof max === "number" && numeric > max) return String(max);
+    return cleaned;
+};
+
+const dmsToOptionalDecimal = (degrees: string, minutes: string, seconds: string) => {
+    if (!degrees && !minutes && !seconds) return undefined;
+    return dmsToDecimal(degrees, minutes, seconds);
+};
+
 export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData, isSubmitting }: Props) {
-    const [form, setForm] = useState<PlotCreatePayload>(INITIAL_STATE);
+    const [form, setForm] = useState<PlotFormState>(INITIAL_STATE);
     const navigate = useNavigate();
 
     // Verificação de permissões
@@ -93,6 +143,9 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
+                const latitude = decimalToDms(initialData.latitude);
+                const longitude = decimalToDms(initialData.longitude);
+
                 setForm({
                     identificacao: initialData.identificacao,
                     area: initialData.area,
@@ -103,10 +156,14 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                     declividade: initialData.declividade,
                     pluviosidade_mensal: initialData.pluviosidade_mensal,
                     pluviosidade_anual: initialData.pluviosidade_anual,
-                    latitude: initialData.latitude,
-                    latitude_direction: initialData.latitude_direction ?? initialData.latitudeDirection ?? "",
-                    longitude: initialData.longitude,
-                    longitude_direction: initialData.longitude_direction ?? initialData.longitudeDirection ?? "",
+                    latitudeDegrees: latitude.degrees,
+                    latitudeMinutes: latitude.minutes,
+                    latitudeSeconds: latitude.seconds,
+                    latitudeDirection: initialData.latitudeDirection ?? initialData.latitude_direction ?? LatitudeDirection.SUL,
+                    longitudeDegrees: longitude.degrees,
+                    longitudeMinutes: longitude.minutes,
+                    longitudeSeconds: longitude.seconds,
+                    longitudeDirection: initialData.longitudeDirection ?? initialData.longitude_direction ?? LongitudeDirection.OESTE,
                     altitude: initialData.altitude,
                     idfoto: initialData.idfoto ?? initialData.idFoto ?? initialData.id_foto ?? "",
                 });
@@ -116,8 +173,28 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
         }
     }, [isOpen, initialData]);
 
-    const handleChange = (field: keyof PlotCreatePayload, value: any) => {
+    const handleChange = (field: keyof PlotFormState, value: any) => {
         setForm(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSubmit = () => {
+        onSubmit({
+            identificacao: form.identificacao,
+            area: form.area,
+            classe_solo: form.classe_solo,
+            textura_solo: form.textura_solo,
+            ano_incorporacao_safra: form.ano_incorporacao_safra,
+            area_irrigada: form.area_irrigada,
+            declividade: form.declividade,
+            pluviosidade_mensal: form.pluviosidade_mensal,
+            pluviosidade_anual: form.pluviosidade_anual,
+            latitude: dmsToOptionalDecimal(form.latitudeDegrees, form.latitudeMinutes, form.latitudeSeconds),
+            latitudeDirection: form.latitudeDirection,
+            longitude: dmsToOptionalDecimal(form.longitudeDegrees, form.longitudeMinutes, form.longitudeSeconds),
+            longitudeDirection: form.longitudeDirection,
+            altitude: form.altitude,
+            idfoto: form.idfoto,
+        });
     };
 
     const handleNavigate = (e: React.MouseEvent, routeTemplate: string) => {
@@ -260,47 +337,117 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                     </Box>
                 </Grid>
 
-                <Grid templateColumns="1fr 1fr" gap={4}>
+                <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={4}>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Latitude</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Latitude - Graus</Text>
                         <Input
                             disabled={isReadOnly}
                             type="number"
-                            value={form.latitude ?? ""}
-                            onChange={e => handleChange("latitude", e.target.value === "" ? undefined : parseFloat(e.target.value))}
-                            placeholder="Ex: 15.1234"
+                            min={0}
+                            max={90}
+                            value={form.latitudeDegrees}
+                            onChange={e => handleChange("latitudeDegrees", sanitizeNumberText(e.target.value, 90))}
                         />
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Direção da Latitude</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Minutos</Text>
                         <Input
                             disabled={isReadOnly}
-                            value={form.latitude_direction ?? ""}
-                            onChange={e => handleChange("latitude_direction", e.target.value)}
-                            placeholder="Ex: N ou S"
+                            type="number"
+                            min={0}
+                            max={59}
+                            value={form.latitudeMinutes}
+                            onChange={e => handleChange("latitudeMinutes", sanitizeNumberText(e.target.value, 59))}
                         />
+                    </Box>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Segundos</Text>
+                        <Input
+                            disabled={isReadOnly}
+                            type="number"
+                            min={0}
+                            max={59}
+                            step="0.01"
+                            value={form.latitudeSeconds}
+                            onChange={e => handleChange("latitudeSeconds", sanitizeNumberText(e.target.value, 59))}
+                        />
+                    </Box>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Direção</Text>
+                        <SelectRoot
+                            disabled={isReadOnly}
+                            collection={latitudeDirectionCollection}
+                            value={[form.latitudeDirection]}
+                            onValueChange={(e) => handleChange("latitudeDirection", e.value[0])}
+                        >
+                            <SelectTrigger>
+                                <SelectValueText placeholder="Selecione..." />
+                            </SelectTrigger>
+                            <SelectContent zIndex={1500}>
+                                {latitudeDirectionCollection.items.map((item) => (
+                                    <SelectItem item={item} key={item.value}>
+                                        {item.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </SelectRoot>
                     </Box>
                 </Grid>
 
-                <Grid templateColumns="1fr 1fr" gap={4}>
+                <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={4}>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Longitude</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Longitude - Graus</Text>
                         <Input
                             disabled={isReadOnly}
                             type="number"
-                            value={form.longitude ?? ""}
-                            onChange={e => handleChange("longitude", e.target.value === "" ? undefined : parseFloat(e.target.value))}
-                            placeholder="Ex: 47.5678"
+                            min={0}
+                            max={180}
+                            value={form.longitudeDegrees}
+                            onChange={e => handleChange("longitudeDegrees", sanitizeNumberText(e.target.value, 180))}
                         />
                     </Box>
                     <Box>
-                        <Text fontSize="sm" fontWeight="bold" mb={1}>Direção da Longitude</Text>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Minutos</Text>
                         <Input
                             disabled={isReadOnly}
-                            value={form.longitude_direction ?? ""}
-                            onChange={e => handleChange("longitude_direction", e.target.value)}
-                            placeholder="Ex: E ou W"
+                            type="number"
+                            min={0}
+                            max={59}
+                            value={form.longitudeMinutes}
+                            onChange={e => handleChange("longitudeMinutes", sanitizeNumberText(e.target.value, 59))}
                         />
+                    </Box>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Segundos</Text>
+                        <Input
+                            disabled={isReadOnly}
+                            type="number"
+                            min={0}
+                            max={59}
+                            step="0.01"
+                            value={form.longitudeSeconds}
+                            onChange={e => handleChange("longitudeSeconds", sanitizeNumberText(e.target.value, 59))}
+                        />
+                    </Box>
+                    <Box>
+                        <Text fontSize="sm" fontWeight="bold" mb={1}>Direção</Text>
+                        <SelectRoot
+                            disabled={isReadOnly}
+                            collection={longitudeDirectionCollection}
+                            value={[form.longitudeDirection]}
+                            onValueChange={(e) => handleChange("longitudeDirection", e.value[0])}
+                        >
+                            <SelectTrigger>
+                                <SelectValueText placeholder="Selecione..." />
+                            </SelectTrigger>
+                            <SelectContent zIndex={1500}>
+                                {longitudeDirectionCollection.items.map((item) => (
+                                    <SelectItem item={item} key={item.value}>
+                                        {item.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </SelectRoot>
                     </Box>
                 </Grid>
 
@@ -371,7 +518,7 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
                 
                 {/* O botão de Salvar os DADOS DO TALHÃO só aparece para Proprietário e Gerente */}
                 {canEditMasterData && (
-                    <Button onClick={() => onSubmit(form)} colorPalette="green" loading={isSubmitting}>Salvar</Button>
+                    <Button onClick={handleSubmit} colorPalette="green" loading={isSubmitting}>Salvar</Button>
                 )}
             </Flex>
         </DialogContainer>

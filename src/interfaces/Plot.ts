@@ -71,9 +71,9 @@ export interface PlotCreatePayload {
     pluviosidade_mensal: number;
     pluviosidade_anual: number;
     latitude?: number;
-    latitude_direction?: string;
+    latitudeDirection?: string;
     longitude?: number;
-    longitude_direction?: string;
+    longitudeDirection?: string;
     altitude?: number;
     idfoto?: string;
 }
@@ -89,9 +89,9 @@ export interface PlotUpdatePayload {
     nova_pluviosidade_mensal?: number;
     nova_pluviosidade_anual?: number;
     nova_latitude?: number;
-    nova_latitude_direction?: string;
+    nova_latitudeDirection?: string;
     nova_longitude?: number;
-    nova_longitude_direction?: string;
+    nova_longitudeDirection?: string;
     nova_altitude?: number;
     novo_idfoto?: string;
 }

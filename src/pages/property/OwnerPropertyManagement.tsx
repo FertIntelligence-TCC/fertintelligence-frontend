@@ -43,6 +43,7 @@ import DialogContainer from "@/components/Property/DialogContainer";
 import {
   DEFAULT_FORM_STATE,
   PropertyFormState,
+  dmsToDecimal,
   propertyToFormState,
 } from "@/components/Property/types";
 
@@ -78,6 +79,24 @@ const toNumber = (value: string) => {
 };
 
 const isCnpjValid = (cnpj: string) => cnpj.replace(/\D/g, "").length === 14;
+
+const isDmsValid = (degrees: string, minutes: string, seconds: string, maxDegrees: number) => {
+  const parsedDegrees = parseFloat(degrees);
+  const parsedMinutes = parseFloat(minutes);
+  const parsedSeconds = parseFloat(seconds);
+
+  return (
+    !Number.isNaN(parsedDegrees) &&
+    !Number.isNaN(parsedMinutes) &&
+    !Number.isNaN(parsedSeconds) &&
+    parsedDegrees >= 0 &&
+    parsedDegrees <= maxDegrees &&
+    parsedMinutes >= 0 &&
+    parsedMinutes < 60 &&
+    parsedSeconds >= 0 &&
+    parsedSeconds < 60
+  );
+};
 
 /* ======================================================
    Component
@@ -158,7 +177,7 @@ export default function OwnerPropertyManagement() {
     }: {
       id: number;
       payload: PropertyUpdatePayload;
-    }) => updateProperty({ id, payload }),
+    }) => updateProperty(id, payload),
     onSuccess: () => {
       invalidateProps();
       toaster.create({
@@ -205,8 +224,8 @@ export default function OwnerPropertyManagement() {
       form.nome.trim().length > 0 &&
       form.endereco.trim().length > 0 &&
       isCnpjValid(form.cnpj) &&
-      !Number.isNaN(parseFloat(form.latitude)) &&
-      !Number.isNaN(parseFloat(form.longitude))
+      isDmsValid(form.latitudeDegrees, form.latitudeMinutes, form.latitudeSeconds, 90) &&
+      isDmsValid(form.longitudeDegrees, form.longitudeMinutes, form.longitudeSeconds, 180)
     );
   };
 
@@ -236,9 +255,9 @@ export default function OwnerPropertyManagement() {
     endereco: form.endereco.trim(),
     cnpj: form.cnpj.replace(/\D/g, ""),
     localizacao: {
-      latitude: toNumber(form.latitude),
+      latitude: dmsToDecimal(form.latitudeDegrees, form.latitudeMinutes, form.latitudeSeconds),
       latitudeDirection: form.latitudeDirection,
-      longitude: toNumber(form.longitude),
+      longitude: dmsToDecimal(form.longitudeDegrees, form.longitudeMinutes, form.longitudeSeconds),
       longitudeDirection: form.longitudeDirection,
       altitude: form.altitude ? toNumber(form.altitude) : 0,
     },
@@ -249,9 +268,9 @@ export default function OwnerPropertyManagement() {
     novo_endereco: form.endereco.trim(),
     novo_cnpj: form.cnpj.replace(/\D/g, ""),
     nova_localizacao: {
-      latitude: toNumber(form.latitude),
+      latitude: dmsToDecimal(form.latitudeDegrees, form.latitudeMinutes, form.latitudeSeconds),
       latitudeDirection: form.latitudeDirection,
-      longitude: toNumber(form.longitude),
+      longitude: dmsToDecimal(form.longitudeDegrees, form.longitudeMinutes, form.longitudeSeconds),
       longitudeDirection: form.longitudeDirection,
       altitude: form.altitude ? toNumber(form.altitude) : 0,
     },
