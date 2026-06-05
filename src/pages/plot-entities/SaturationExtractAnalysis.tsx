@@ -171,6 +171,7 @@ export const SaturationExtractAnalysis = () => {
             teorNO3: r.teor_no3,
             teorH2PO4: r.teor_h2po4,
             teorSO4: r.teor_so4,
+            teorCl: r.teor_cl ?? 0,
             teorNa: r.teor_na,
             teorK: r.teor_k,
             teorCa: r.teor_ca,
