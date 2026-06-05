@@ -35,8 +35,8 @@ import {
 } from "@/services/cropFertilizationTableService";
 
 // Services de orquestração e busca
-import { createContentRange, fetchContentRangesByTable, ContentRangeResponseDto } from "@/services/contentRangeService";
-import { createCoverage, fetchCoveragesByRange, CoverageResponseDto } from "@/services/coverageService";
+import { createContentRange, deleteContentRange, fetchContentRangesByTable, ContentRangeResponseDto } from "@/services/contentRangeService";
+import { createCoverage, deleteCoverage, fetchCoveragesByRange, CoverageResponseDto } from "@/services/coverageService";
 
 import { CropFertilizationTableCreateRequestDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
@@ -226,6 +226,67 @@ const parseLabel = (label: string) => {
   return { smallest, largest };
 };
 
+const saveContentRangesWithCoverages = async (
+  tableId: number,
+  form: FertilizationTableFormState
+) => {
+  const num = (v: any) => (typeof v === "number" ? v : parseFloat(v || "0"));
+
+  const nitroRangePayload = {
+    nutriente: "NITROGENIO",
+    ordem_teor: 1,
+    menor_teor: null,
+    maior_teor: null,
+    aplicacao_recomendada_plantio: num(form.plantioN),
+  };
+  const createdNitroRange = await createContentRange(tableId, nitroRangePayload);
+
+  for (let i = 0; i < form.coberturasN.length; i++) {
+    await createCoverage(createdNitroRange.id, {
+      ordem_cobertura: i + 1,
+      aplicacao_recomendada_cobertura: num(form.coberturasN[i]),
+    });
+  }
+
+  for (let i = 0; i < form.faixasP.length; i++) {
+    const row = form.faixasP[i];
+    const { smallest, largest } = parseLabel(row.label);
+    const rangePayload = {
+      nutriente: "FOSFORO",
+      ordem_teor: i + 1,
+      menor_teor: smallest,
+      maior_teor: largest,
+      aplicacao_recomendada_plantio: num(row.plantio),
+    };
+    const createdRange = await createContentRange(tableId, rangePayload);
+    for (let j = 0; j < row.coberturas.length; j++) {
+      await createCoverage(createdRange.id, {
+        ordem_cobertura: j + 1,
+        aplicacao_recomendada_cobertura: num(row.coberturas[j]),
+      });
+    }
+  }
+
+  for (let i = 0; i < form.faixasK.length; i++) {
+    const row = form.faixasK[i];
+    const { smallest, largest } = parseLabel(row.label);
+    const rangePayload = {
+      nutriente: "POTASSIO",
+      ordem_teor: i + 1,
+      menor_teor: smallest,
+      maior_teor: largest,
+      aplicacao_recomendada_plantio: num(row.plantio),
+    };
+    const createdRange = await createContentRange(tableId, rangePayload);
+    for (let j = 0; j < row.coberturas.length; j++) {
+      await createCoverage(createdRange.id, {
+        ordem_cobertura: j + 1,
+        aplicacao_recomendada_cobertura: num(row.coberturas[j]),
+      });
+    }
+  }
+};
+
 type Mode = "create" | "edit" | "view";
 
 function TableCard(props: {
@@ -366,16 +427,6 @@ export default function CropFertilizationTable() {
     onError: () => toaster.create({ title: "Erro ao remover tabela.", type: "error" }),
   });
 
-  const updateMutation = useMutation({
-    mutationFn: updateCropFertilizationTable,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["crop-fertilization-tables"] });
-      setIsModalOpen(false);
-      toaster.create({ title: "Tabela atualizada com sucesso.", type: "success" });
-    },
-    onError: () => toaster.create({ title: "Erro ao atualizar tabela.", type: "error" }),
-  });
-
   // --- LÓGICA DE HIDRATAÇÃO (Busca dados filhos sob demanda) ---
   const fetchAndHydrateTable = async (table: CropFertilizationTableResponseDto) => {
       setIsLoadingDetails(true);
@@ -441,74 +492,46 @@ export default function CropFertilizationTable() {
     }
 
     const payloadTable = mapFormToRequest(form);
-    const num = (v: any) => (typeof v === "number" ? v : parseFloat(v || "0"));
 
     if (mode === "edit") {
       if (!activeTable) return;
-      updateMutation.mutate({ id: activeTable.id, payload: payloadTable });
-      // Nota: Edição profunda de filhos não implementada neste exemplo simplificado. 
-      // Requereria lógica de diff ou deletar/recriar filhos.
+      setIsOrchestrating(true);
+      try {
+        await updateCropFertilizationTable({ id: activeTable.id, payload: payloadTable });
+
+        const existingRanges = await fetchContentRangesByTable(activeTable.id);
+        const existingRangesWithCoverages = await Promise.all(
+          existingRanges.map(async (range) => ({
+            ...range,
+            coverages: await fetchCoveragesByRange(range.id),
+          }))
+        );
+
+        for (const range of existingRangesWithCoverages) {
+          for (const coverage of range.coverages) {
+            await deleteCoverage(coverage.id);
+          }
+          await deleteContentRange(range.id);
+        }
+
+        await saveContentRangesWithCoverages(activeTable.id, form);
+
+        queryClient.invalidateQueries({ queryKey: ["crop-fertilization-tables"] });
+        setIsModalOpen(false);
+        toaster.create({ title: "Tabela atualizada com sucesso.", type: "success" });
+      } catch (error) {
+        console.error(error);
+        toaster.create({ title: "Erro ao atualizar tabela.", type: "error" });
+      } finally {
+        setIsOrchestrating(false);
+      }
       return;
     }
 
     setIsOrchestrating(true);
     try {
       const newTable = await createCropFertilizationTable(payloadTable);
-      const tableId = newTable.id;
-
-      const nitroRangePayload = {
-        nutriente: "NITROGENIO",
-        ordem_teor: 1,
-        menor_teor: null,
-        maior_teor: null,
-        aplicacao_recomendada_plantio: num(form.plantioN),
-      };
-      const createdNitroRange = await createContentRange(tableId, nitroRangePayload);
-
-      for (let i = 0; i < form.coberturasN.length; i++) {
-        await createCoverage(createdNitroRange.id, {
-          ordem_cobertura: i + 1,
-          aplicacao_recomendada_cobertura: num(form.coberturasN[i]),
-        });
-      }
-
-      for (let i = 0; i < form.faixasP.length; i++) {
-        const row = form.faixasP[i];
-        const { smallest, largest } = parseLabel(row.label);
-        const rangePayload = {
-          nutriente: "FOSFORO",
-          ordem_teor: i + 1,
-          menor_teor: smallest,
-          maior_teor: largest,
-          aplicacao_recomendada_plantio: num(row.plantio),
-        };
-        const createdRange = await createContentRange(tableId, rangePayload);
-        for (let j = 0; j < row.coberturas.length; j++) {
-          await createCoverage(createdRange.id, {
-            ordem_cobertura: j + 1,
-            aplicacao_recomendada_cobertura: num(row.coberturas[j]),
-          });
-        }
-      }
-
-      for (let i = 0; i < form.faixasK.length; i++) {
-        const row = form.faixasK[i];
-        const { smallest, largest } = parseLabel(row.label);
-        const rangePayload = {
-          nutriente: "POTASSIO",
-          ordem_teor: i + 1,
-          menor_teor: smallest,
-          maior_teor: largest,
-          aplicacao_recomendada_plantio: num(row.plantio),
-        };
-        const createdRange = await createContentRange(tableId, rangePayload);
-        for (let j = 0; j < row.coberturas.length; j++) {
-          await createCoverage(createdRange.id, {
-            ordem_cobertura: j + 1,
-            aplicacao_recomendada_cobertura: num(row.coberturas[j]),
-          });
-        }
-      }
+      await saveContentRangesWithCoverages(newTable.id, form);
 
       queryClient.invalidateQueries({ queryKey: ["crop-fertilization-tables"] });
       setIsModalOpen(false);
@@ -527,7 +550,7 @@ export default function CropFertilizationTable() {
     deleteMutation.mutate(activeTable.id);
   };
 
-  const isSaving = updateMutation.isPending || isOrchestrating;
+  const isSaving = isOrchestrating;
 
   const handleFormChange =
     (setter: Dispatch<SetStateAction<FertilizationTableFormState>>) =>
