@@ -8,8 +8,9 @@ export interface DiverseContentRangeResponseDto {
 // Lista de Sufixos (usada para tipagem e iteração)
 export type NutrientSuffix = 
     | "carbono_organico" | "materia_organica" | "calcio" | "magnesio" 
-    | "saturacao_aluminio" | "saturacao_bases" | "boro" | "cobre" 
-    | "ferro" | "manganes" | "zinco";
+    | "aluminio" | "aluminio_mais_hidrogenio" | "ctc_efetiva" | "ctc_ph7"
+    | "saturacao_aluminio" | "saturacao_bases" | "ph_agua" | "ph_cacl2"
+    | "boro" | "cobre" | "ferro" | "manganes" | "zinco";
 
 // DTO para Criação (POST) - Chaves em Português
 export interface DiverseContentRangeCreateRequestDto {
