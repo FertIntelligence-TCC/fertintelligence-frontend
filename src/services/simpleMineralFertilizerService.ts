@@ -18,6 +18,11 @@ export const fetchPublicSimpleMineralFertilizers = async (): Promise<SimpleMiner
     return data;
 };
 
+export const fetchDefaultSimpleMineralFertilizers = async (): Promise<SimpleMineralFertilizerResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-default`);
+    return data;
+};
+
 export const createSimpleMineralFertilizer = async (payload: SimpleMineralFertilizerCreateRequestDto): Promise<SimpleMineralFertilizerResponseDto> => {
     const { data } = await api.post(`${ENDPOINT}/register`, payload);
     return data;

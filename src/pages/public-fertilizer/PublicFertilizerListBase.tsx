@@ -14,6 +14,9 @@ interface PublicFertilizerListBaseProps<TItem, TForm> {
   subtitle: string;
   heading: string;
   typeLabel: string;
+  listLabel?: string;
+  backLabel?: string;
+  dialogTitle?: string;
   backPath: string;
   queryKey: string[];
   fetchFn: () => Promise<TItem[]>;
@@ -28,6 +31,9 @@ export default function PublicFertilizerListBase<TItem, TForm>({
   subtitle,
   heading,
   typeLabel,
+  listLabel = "públicos",
+  backLabel = "Voltar para meus adubos",
+  dialogTitle = "Visualizar adubo público",
   backPath,
   queryKey,
   fetchFn,
@@ -54,7 +60,7 @@ export default function PublicFertilizerListBase<TItem, TForm>({
       <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
         <Flex direction="column" gap={6}>
           <Button alignSelf="flex-start" variant="outline" colorPalette="blue" onClick={() => navigate(backPath)}>
-            <FiArrowLeft /> Voltar para meus adubos
+            <FiArrowLeft /> {backLabel}
           </Button>
 
           <Heading as="h1" size="lg" color="white">{heading}</Heading>
@@ -63,9 +69,9 @@ export default function PublicFertilizerListBase<TItem, TForm>({
             {isLoading ? (
               <Flex justify="center" minH="200px" align="center"><Spinner color="white" size="lg" /></Flex>
             ) : isError ? (
-              <Text color="red.300">Erro ao carregar adubos públicos.</Text>
+              <Text color="red.300">Erro ao carregar adubos {listLabel}.</Text>
             ) : fertilizers.length === 0 ? (
-              <Text color="white">Nenhum adubo público disponível.</Text>
+              <Text color="white">Nenhum adubo {listLabel} disponível.</Text>
             ) : (
               <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
                 {fertilizers.map((fertilizer) => {
@@ -94,7 +100,7 @@ export default function PublicFertilizerListBase<TItem, TForm>({
           <Dialog.Content bg="white" _dark={{ bg: "gray.800" }}>
             <Dialog.Header>
               <Flex justify="space-between" align="center">
-                <Dialog.Title>Visualizar adubo público</Dialog.Title>
+                <Dialog.Title>{dialogTitle}</Dialog.Title>
                 <Dialog.CloseTrigger asChild>
                   <IconButton size="sm" variant="ghost" aria-label="Fechar" onClick={() => setActiveItem(null)}>
                     <FiX />
