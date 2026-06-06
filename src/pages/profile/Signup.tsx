@@ -35,7 +35,7 @@ export default function SignUpPage() {
 
   const generoOptions = enumOptions(Genero);
   const formacaoOptions = enumOptions(Formacao);
-  const cargoOptions = enumOptions(Cargo);
+  const cargoOptions = enumOptions(Cargo).filter((cargo) => cargo !== Cargo.USUARIO_SUPREMO);
 
   const [signUpForm, setSignUpForm] = useState({
     name: "",

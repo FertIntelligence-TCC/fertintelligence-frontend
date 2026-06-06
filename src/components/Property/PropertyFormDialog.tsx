@@ -84,6 +84,7 @@ export default function PropertyFormDialog({
   // === Verificação de Permissões de Cargos ===
   const { user } = useUserStore();
   const roleMode = getAuthorizationRoleMode(user?.cargo);
+  const isSupreme = roleMode === "SUPREME";
   const isOwner = roleMode === "OWNER";
   const isManager = roleMode === "MANAGER";
   const isResident = roleMode === "RESIDENT";
@@ -119,7 +120,7 @@ export default function PropertyFormDialog({
   // === Lógica de Filtragem de Talhões ===
   const permittedPlots = useMemo(() => {
     // Dono e Gerente enxergam tudo
-    if (isOwner || isManager) return allPlots;
+    if (isSupreme || isOwner || isManager) return allPlots;
 
     // Residente edita todos os talhões, DESDE QUE tenha um pedido aprovado
     if (isResident) {
@@ -133,10 +134,10 @@ export default function PropertyFormDialog({
     }
 
     return [];
-  }, [allPlots, approvedRequests, isOwner, isManager, isResident, isConsultant, isSecretary]);
+  }, [allPlots, approvedRequests, isSupreme, isOwner, isManager, isResident, isConsultant, isSecretary]);
 
   // Se for uma edição, garante o acesso caso o utilizador seja dono, gerente ou possua um pedido aprovado (mesmo sem talhões existentes).
-  const hasApprovedAccess = isOwner || isManager || approvedRequests.length > 0;
+  const hasApprovedAccess = isSupreme || isOwner || isManager || approvedRequests.length > 0;
 
   // === Controle de Formulário ===
   const [internalForm, setInternalForm] = useState<PropertyFormState>(DEFAULT_FORM_STATE);
@@ -299,7 +300,7 @@ export default function PropertyFormDialog({
     <>
       <DialogContainer isOpen={isOpen} onClose={onClose} expandable={isEdit}>
         <Heading as="h2" size="md" mb={4}>
-          {isOwner ? title : "Recursos da Propriedade"}
+          {isSupreme || isOwner ? title : "Recursos da Propriedade"}
         </Heading>
 
         {/* Verifica se está a carregar dados da API */}
@@ -322,10 +323,10 @@ export default function PropertyFormDialog({
             <PropertyFormFields 
               form={form} 
               onFormChange={onFormChange} 
-              isReadOnly={!isOwner} 
+              isReadOnly={!(isSupreme || isOwner)}
             />
 
-            {!propertyId && isOwner && (
+            {!propertyId && (isSupreme || isOwner) && (
               <Box bg="blue.50" _dark={{ bg: "blue.900" }} p={3} borderRadius="md">
                 <Text fontSize="sm" color="blue.600" _dark={{ color: "blue.200" }} textAlign="center">
                   Poderá adicionar talhões após criar a propriedade.
@@ -343,7 +344,7 @@ export default function PropertyFormDialog({
                   </Heading>
 
                   {/* Somente proprietários e gerentes criam talhões novos */}
-                  {(isOwner || isManager) && (
+                  {(isSupreme || isOwner || isManager) && (
                     <Button size="xs" colorScheme="blue" onClick={handleAddPlot}>
                       <HStack gap={1}>
                         <FiPlus />
@@ -358,7 +359,7 @@ export default function PropertyFormDialog({
                   mode="edit"
                   onEdit={handleEditPlot}
                   // Apenas donos e gerentes apagam talhões
-                  onDelete={isOwner || isManager ? ((p) => deletePlotMutation.mutate(p.id)) : undefined}
+                  onDelete={isSupreme || isOwner || isManager ? ((p) => deletePlotMutation.mutate(p.id)) : undefined}
                 />
               </Box>
             )}
@@ -366,11 +367,11 @@ export default function PropertyFormDialog({
         )}
 
         <Flex justify="flex-end" gap={3} mt={6}>
-          <Button onClick={onClose} colorScheme={isOwner ? "red" : "gray"} variant="outline">
-            {isOwner ? cancelLabel : "Fechar"}
+          <Button onClick={onClose} colorScheme={isSupreme || isOwner ? "red" : "gray"} variant="outline">
+            {isSupreme || isOwner ? cancelLabel : "Fechar"}
           </Button>
 
-          {isOwner && (
+          {(isSupreme || isOwner) && (
             <Button colorScheme="green" onClick={handleSubmit} loading={isSubmitting}>
               {submitLabel}
             </Button>

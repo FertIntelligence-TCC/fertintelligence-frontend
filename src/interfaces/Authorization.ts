@@ -7,6 +7,7 @@ import type {
 export type AccessCardStatus = "NONE" | "PENDING" | "APPROVED";
 
 export type AuthorizationRoleMode =
+  | "SUPREME"
   | "OWNER"
   | "MANAGER"
   | "RESIDENT"
@@ -27,18 +28,22 @@ export type NormalizedPlotPermission = {
   permissionType: PermissionType | null;
 };
 
-const normalizeCargo = (value?: string) =>
+export const normalizeCargo = (value?: string) =>
   (value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[\s_-]+/g, "")
     .toUpperCase();
 
+export const isSupremeUserCargo = (cargo?: string) =>
+  normalizeCargo(cargo) === normalizeCargo(Cargo.USUARIO_SUPREMO);
+
 export const getAuthorizationRoleMode = (
   cargo?: string
 ): AuthorizationRoleMode => {
   const normalized = normalizeCargo(cargo);
 
+  if (normalized === normalizeCargo(Cargo.USUARIO_SUPREMO)) return "SUPREME";
   if (normalized === normalizeCargo(Cargo.PROPRIETARIO)) return "OWNER";
   if (normalized === normalizeCargo(Cargo.GERENTE)) return "MANAGER";
   if (normalized === normalizeCargo(Cargo.AGRONOMO_RESIDENTE)) return "RESIDENT";

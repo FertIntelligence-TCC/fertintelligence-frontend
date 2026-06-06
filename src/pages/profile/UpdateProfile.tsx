@@ -83,7 +83,9 @@ export default function UpdateProfile() {
 
   const generoOptions = enumOptions(Genero);
   const formacaoOptions = enumOptions(Formacao);
-  const cargoOptions = enumOptions(Cargo);
+  const cargoOptions = enumOptions(Cargo).filter(
+    (cargo) => cargo !== Cargo.USUARIO_SUPREMO || user?.cargo === Cargo.USUARIO_SUPREMO
+  );
 
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 

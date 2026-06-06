@@ -34,12 +34,14 @@ export default function Home() {
 
   const isOwner = roleMode === "OWNER";
   const isManager = roleMode === "MANAGER";
+  const isSupreme = roleMode === "SUPREME";
   const isSupervisor = roleMode === "SUPERVISOR";
 
   const go = useCallback((path: string) => navigate(path), [navigate]);
 
   const handleManageProperties = useCallback(() => {
     const pathByRole = {
+      SUPREME: ROUTES.OWNER_MANAGEMENT,
       OWNER: ROUTES.OWNER_MANAGEMENT,
       MANAGER: ROUTES.MANAGER_MANAGEMENT,
       RESIDENT: ROUTES.RESIDENT_MANAGEMENT,
@@ -53,7 +55,7 @@ export default function Home() {
   }, [go, roleMode]);
 
   const handleMakeRequest = useCallback(() => {
-    if (isOwner || isManager) {
+    if (isSupreme || isOwner || isManager) {
       toaster.create({
         title: "Aviso",
         description: "Você já possui autoridade total nas propriedades sob sua gestão.",
@@ -83,10 +85,10 @@ export default function Home() {
     }
 
     alert("Seu cargo não possui essa funcionalidade no sistema!");
-  }, [go, isOwner, isManager, roleMode]);
+  }, [go, isSupreme, isOwner, isManager, roleMode]);
 
   const handleViewSolicitations = useCallback(() => {
-    if (isOwner) {
+    if (isSupreme || isOwner) {
       go(ROUTES.VIEW_SOLICITATIONS);
       return;
     }
@@ -97,7 +99,7 @@ export default function Home() {
     }
 
     alert("Seu cargo não possui essa funcionalidade no sistema!");
-  }, [go, isOwner, isManager]);
+  }, [go, isSupreme, isOwner, isManager]);
 
   return (
     <UserLayout>
@@ -158,13 +160,13 @@ export default function Home() {
           </Heading>
 
           <Flex direction="column" gap={6}>
-            {!(isOwner || isManager) && (
+            {!(isSupreme || isOwner || isManager) && (
             <Button colorScheme="green" onClick={handleMakeRequest} h="50px" fontSize="md">
               Fazer solicitação
             </Button>
             )}
 
-            {(isOwner || isManager) && (
+            {(isSupreme || isOwner || isManager) && (
               <Button colorScheme="green" onClick={handleViewSolicitations} h="50px" fontSize="md">
                 Visualizar solicitações
               </Button>

@@ -94,6 +94,7 @@ export default function MakePlotSolicitations({ roleOverride }: Props) {
   useEffect(() => {
     if (
       mode === "OTHER" ||
+      mode === "SUPREME" ||
       mode === "OWNER" ||
       mode === "MANAGER" ||
       mode === "SUPERVISOR"
@@ -205,6 +206,7 @@ export default function MakePlotSolicitations({ roleOverride }: Props) {
 
   if (
     mode === "OTHER" ||
+    mode === "SUPREME" ||
     mode === "OWNER" ||
     mode === "MANAGER" ||
     mode === "SUPERVISOR"

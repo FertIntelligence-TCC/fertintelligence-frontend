@@ -309,6 +309,10 @@ export default function OthersPropertyManagement() {
   const { user } = useUserStore();
   const mode = getAuthorizationRoleMode(user?.cargo);
 
+  if (mode === "SUPREME") {
+    return <Navigate to="/fertintelligence/owner-property-management" replace />;
+  }
+
   if (mode === "OWNER") {
     return <Navigate to="/fertintelligence/owner-property-management" replace />;
   }
