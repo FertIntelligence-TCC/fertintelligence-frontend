@@ -29,6 +29,7 @@ import {
 
 import { 
     fetchFoliarTables, 
+    fetchDefaultFoliarTables,
     createFoliarTable, 
     updateFoliarTable, 
     deleteFoliarTable,
@@ -36,6 +37,8 @@ import {
     createFoliarTableLine, 
     deleteFoliarTableLine
 } from "@/services/foliarAnalysisInterpretationTableService";
+import { useUserStore } from "@/stores/user/user.store";
+import { isSupremeUser } from "@/utils/isSupremeUser";
 
 import FoliarAnalysisTableForm from "@/components/FertilizationTable/FoliarAnalysis/FoliarAnalysisTableForm";
 import FoliarAnalysisTableCard from "@/components/FertilizationTable/FoliarAnalysis/FoliarAnalysisTableCard";
@@ -77,9 +80,19 @@ const mapResponseToForm = (dto: FoliarTableResponseDto, lines: any[] = []): Foli
 
 type Mode = "create" | "edit" | "view";
 
-export default function FoliarAnalysisInterpretationTable() {
+type Props = {
+  variant?: "mine" | "default";
+};
+
+export default function FoliarAnalysisInterpretationTable({ variant = "mine" }: Props) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const user = useUserStore((s) => s.user);
+  const isDefaultView = variant === "default";
+  const isSupreme = isSupremeUser(user);
+  const usesDefaultTables = isDefaultView || isSupreme;
+  const canManage = !isDefaultView || isSupreme;
+  const queryKey = usesDefaultTables ? ["foliar-tables-default"] : ["foliar-tables"];
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -100,14 +113,14 @@ export default function FoliarAnalysisInterpretationTable() {
   }, [mode]);
 
   const { data: tables = [], isLoading, isError } = useQuery({
-    queryKey: ["foliar-tables"],
-    queryFn: fetchFoliarTables,
+    queryKey,
+    queryFn: usesDefaultTables ? fetchDefaultFoliarTables : fetchFoliarTables,
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteFoliarTable,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["foliar-tables"] });
+      queryClient.invalidateQueries({ queryKey });
       setIsDeleteOpen(false);
       setSelectedId(null);
       toaster.create({ title: "Tabela removida com sucesso.", type: "success" });
@@ -233,7 +246,7 @@ export default function FoliarAnalysisInterpretationTable() {
         }
 
         toaster.create({ title: mode === "create" ? "Tabela criada com sucesso!" : "Tabela atualizada com sucesso!", type: "success" });
-        queryClient.invalidateQueries({ queryKey: ["foliar-tables"] });
+        queryClient.invalidateQueries({ queryKey });
         setIsModalOpen(false);
 
     } catch (error) {
@@ -246,7 +259,7 @@ export default function FoliarAnalysisInterpretationTable() {
 
   return (
     <UserLayout>
-      <FertName subtitle="Tabelas de Interpretação para Análise Foliar (TIAF)" />
+      <FertName subtitle={isDefaultView ? "Tabelas Padrão de Análise Foliar" : "Tabelas de Interpretação para Análise Foliar (TIAF)"} />
       <ConfigMenu />
 
       <Box 
@@ -258,7 +271,7 @@ export default function FoliarAnalysisInterpretationTable() {
       >
         <Button
           variant="outline"
-          onClick={() => navigate("/fertintelligence/fertilization-table-management")}
+          onClick={() => navigate(isDefaultView ? "/fertintelligence/fertilization-table-management/default" : "/fertintelligence/fertilization-table-management")}
           mb={4}
         >
           Voltar para o painel
@@ -271,18 +284,24 @@ export default function FoliarAnalysisInterpretationTable() {
             gap={4}
         >
             <Box>
-                <Heading size="lg" color="gray.700" _dark={{ color: "gray.200" }}>Gerenciar Tabelas</Heading>
-                <Text color="gray.500" fontSize="sm" mt={1}>Interpretação de análise foliar por cultura e região</Text>
+                <Heading size="lg" color="gray.700" _dark={{ color: "gray.200" }}>
+                  {canManage ? "Gerenciar Tabelas" : "Tabelas Padrão"}
+                </Heading>
+                <Text color="gray.500" fontSize="sm" mt={1}>
+                  {canManage ? "Interpretação de análise foliar por cultura e região" : "Consulte as tabelas padrão em modo somente leitura"}
+                </Text>
             </Box>
             
             <Flex gap={2}>
-              <Button 
-                  colorPalette="orange" 
-                  onClick={() => handleOpen("create")}
-                  size="md"
-              >
-                  <FiPlus /> Nova Tabela
-              </Button>
+              {canManage && (
+                <Button
+                    colorPalette="orange"
+                    onClick={() => handleOpen("create")}
+                    size="md"
+                >
+                    <FiPlus /> Nova Tabela
+                </Button>
+              )}
               <Button variant="outline" colorPalette="orange" onClick={() => navigate("/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table/public") }>
                   Consultar tabelas públicas
               </Button>
@@ -297,7 +316,7 @@ export default function FoliarAnalysisInterpretationTable() {
             ) : isError ? (
                 <Flex justify="center" minH="200px" align="center" direction="column" gap={2}>
                     <Text color="red.500" fontWeight="bold">Erro ao carregar dados.</Text>
-                    <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["foliar-tables"] })}>Tentar Novamente</Button>
+                    <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey })}>Tentar Novamente</Button>
                 </Flex>
             ) : tables.length === 0 ? (
                 <Flex 
@@ -313,7 +332,7 @@ export default function FoliarAnalysisInterpretationTable() {
                     color="gray.500"
                 >
                     <Text fontSize="lg">Nenhuma tabela de interpretação encontrada.</Text>
-                    <Button variant="ghost" colorPalette="orange" onClick={() => handleOpen("create")}>Comece criando uma agora</Button>
+                    {canManage && <Button variant="ghost" colorPalette="orange" onClick={() => handleOpen("create")}>Comece criando uma agora</Button>}
                 </Flex>
             ) : (
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
@@ -324,8 +343,8 @@ export default function FoliarAnalysisInterpretationTable() {
                             isSelected={selectedId === table.id}
                             onSelect={() => setSelectedId(selectedId === table.id ? null : table.id)}
                             onView={() => handleOpen("view", table)}
-                            onEdit={() => handleOpen("edit", table)}
-                            onDelete={() => { setActiveItem(table); setIsDeleteOpen(true); }}
+                            onEdit={canManage ? () => handleOpen("edit", table) : undefined}
+                            onDelete={canManage ? () => { setActiveItem(table); setIsDeleteOpen(true); } : undefined}
                         />
                     ))}
                 </SimpleGrid>

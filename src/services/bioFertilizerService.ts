@@ -18,6 +18,11 @@ export const fetchPublicBioFertilizers = async (): Promise<BioFertilizerResponse
     return data;
 };
 
+export const fetchDefaultBioFertilizers = async (): Promise<BioFertilizerResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-default`);
+    return data;
+};
+
 export const createBioFertilizer = async (payload: BioFertilizerCreateRequestDto): Promise<BioFertilizerResponseDto> => {
     const { data } = await api.post(`${ENDPOINT}/register`, payload);
     return data;

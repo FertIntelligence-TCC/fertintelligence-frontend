@@ -1,11 +1,15 @@
-import { Box, Button, Flex, Heading, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, VStack } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import UserLayout from "@/components/Layouts/UserLayout";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertName from "@/components/FertName/FertName";
+import { isSupremeUserCargo } from "@/interfaces/Authorization";
+import { useUserStore } from "@/stores/user/user.store";
 
 export default function FertilizerManagement() {
   const navigate = useNavigate();
+  const user = useUserStore((s) => s.user);
+  const isSupremeUser = isSupremeUserCargo(user?.cargo);
 
   return (
     <UserLayout>
@@ -38,7 +42,7 @@ export default function FertilizerManagement() {
             Aplicação no solo
           </Heading>
           
-          <VStack spacing={4} align="stretch">
+          <VStack gap={4} align="stretch">
             <Button
               colorScheme="blue"
               onClick={() => navigate("/fertintelligence/fertilizer-management/simple-mineral-fertilizer")}
@@ -90,7 +94,7 @@ export default function FertilizerManagement() {
                 Aplicação Foliar
             </Heading>
             
-            <VStack spacing={4} align="stretch">
+            <VStack gap={4} align="stretch">
                 <Button
                 colorScheme="green"
                 onClick={() => navigate("/fertintelligence/fertilizer-management/foliar-mineral-fertilizer")}
@@ -117,6 +121,19 @@ export default function FertilizerManagement() {
                 </Button>
             </VStack>
             </Box>
+
+            {!isSupremeUser && (
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                onClick={() => navigate("/fertintelligence/fertilizer-management/default")}
+                h="50px"
+                fontSize="md"
+                w="100%"
+              >
+                Consultar adubos padrão
+              </Button>
+            )}
 
             {/* Botão Voltar para o painel principal */}
             <Button

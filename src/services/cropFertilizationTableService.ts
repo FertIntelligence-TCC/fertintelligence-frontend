@@ -33,3 +33,8 @@ export const fetchPublicCropFertilizationTables = async (): Promise<CropFertiliz
     const { data } = await api.get(`${ENDPOINT}/get-all-public`);
     return data;
 };
+
+export const fetchDefaultCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-default`);
+    return data;
+};
