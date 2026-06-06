@@ -37,3 +37,8 @@ export const fetchPublicSoilFertilityTables = async (): Promise<SoilFertilityTab
     const { data } = await api.get(`${ENDPOINT}/get-all-public`);
     return data;
 };
+
+export const fetchDefaultSoilFertilityTables = async (): Promise<SoilFertilityTableResponseDto[]> => {
+    const { data } = await api.get(`${ENDPOINT}/get-all-default`);
+    return data;
+};

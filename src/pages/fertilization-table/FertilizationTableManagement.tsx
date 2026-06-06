@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import UserLayout from "@/components/Layouts/UserLayout";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertName from "@/components/FertName/FertName";
+import { useUserStore } from "@/stores/user/user.store";
+import { isSupremeUser } from "@/utils/isSupremeUser";
 
 export default function FertilizationTableManagement() {
   const navigate = useNavigate();
+  const user = useUserStore((s) => s.user);
+  const showDefaultTables = !isSupremeUser(user);
 
   return (
     <UserLayout>
@@ -37,7 +41,7 @@ export default function FertilizationTableManagement() {
             Tabelas
           </Heading>
 
-          <VStack spacing={4} align="stretch">
+          <VStack gap={4} align="stretch">
             <Button
               colorScheme="blue"
               onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table")}
@@ -73,6 +77,20 @@ export default function FertilizationTableManagement() {
             >
               Tabela de interpretação de análise foliar
             </Button>
+
+            {showDefaultTables && (
+              <Button
+                colorScheme="green"
+                onClick={() => navigate("/fertintelligence/fertilization-table-management/default")}
+                h="auto"
+                py={4}
+                fontSize="md"
+                whiteSpace="normal"
+                textAlign="center"
+              >
+                Tabelas padrão
+              </Button>
+            )}
           </VStack>
         </Box>
 

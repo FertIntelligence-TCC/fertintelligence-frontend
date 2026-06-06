@@ -30,10 +30,13 @@ import {
 
 import { 
     fetchSoilFertilityTables, 
+    fetchDefaultSoilFertilityTables,
     createSoilFertilityTable, 
     updateSoilFertilityTable, 
     deleteSoilFertilityTable
 } from "@/services/soilFertilityInterpretationCriteriaTableService";
+import { useUserStore } from "@/stores/user/user.store";
+import { isSupremeUser } from "@/utils/isSupremeUser";
 
 import SoilFertilityTableForm from "@/components/FertilizationTable/SoilFertility/SoilFertilityTableForm";
 import SoilFertilityTableCard from "@/components/FertilizationTable/SoilFertility/SoilFertilityTableCard";
@@ -49,9 +52,19 @@ const mapResponseToForm = (dto: SoilFertilityTableResponseDto): SoilFertilityFor
     tabelaPublica: Boolean(dto.tabela_publica)
 });
 
-export default function SoilFertilityInterpretationCriteriaTable() {
+type Props = {
+  variant?: "mine" | "default";
+};
+
+export default function SoilFertilityInterpretationCriteriaTable({ variant = "mine" }: Props) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const user = useUserStore((s) => s.user);
+  const isDefaultView = variant === "default";
+  const isSupreme = isSupremeUser(user);
+  const usesDefaultTables = isDefaultView || isSupreme;
+  const canManage = !isDefaultView || isSupreme;
+  const queryKey = usesDefaultTables ? ["soil-fertility-tables-default"] : ["soil-fertility-tables"];
   
   // Estados
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,14 +85,14 @@ export default function SoilFertilityInterpretationCriteriaTable() {
 
   // Queries
   const { data: tables = [], isLoading, isError } = useQuery({
-    queryKey: ["soil-fertility-tables"],
-    queryFn: fetchSoilFertilityTables,
+    queryKey,
+    queryFn: usesDefaultTables ? fetchDefaultSoilFertilityTables : fetchSoilFertilityTables,
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteSoilFertilityTable,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["soil-fertility-tables"] });
+      queryClient.invalidateQueries({ queryKey });
       setIsDeleteOpen(false);
       setSelectedId(null);
       toaster.create({ title: "Tabela removida com sucesso.", type: "success" });
@@ -137,7 +150,7 @@ export default function SoilFertilityInterpretationCriteriaTable() {
             toaster.create({ title: "Tabela atualizada com sucesso!", type: "success" });
         }
 
-        queryClient.invalidateQueries({ queryKey: ["soil-fertility-tables"] });
+        queryClient.invalidateQueries({ queryKey });
         setIsModalOpen(false);
     } catch (error) {
         console.error(error);
@@ -149,7 +162,7 @@ export default function SoilFertilityInterpretationCriteriaTable() {
 
   return (
     <UserLayout>
-      <FertName subtitle="Interpretação de Fertilidade do Solo" />
+      <FertName subtitle={isDefaultView ? "Tabelas Padrão de Fertilidade do Solo" : "Interpretação de Fertilidade do Solo"} />
       <ConfigMenu />
 
       <Box 
@@ -161,7 +174,7 @@ export default function SoilFertilityInterpretationCriteriaTable() {
       >
         <Button
           variant="outline"
-          onClick={() => navigate("/fertintelligence/fertilization-table-management")}
+          onClick={() => navigate(isDefaultView ? "/fertintelligence/fertilization-table-management/default" : "/fertintelligence/fertilization-table-management")}
           mb={4}
         >
           Voltar para o painel
@@ -174,18 +187,24 @@ export default function SoilFertilityInterpretationCriteriaTable() {
             gap={4}
         >
             <Box>
-                <Heading size="lg" color="gray.700" _dark={{ color: "gray.200" }}>Critérios de Fertilidade</Heading>
-                <Text color="gray.500" fontSize="sm" mt={1}>Gerencie as tabelas de referência para interpretação de solo</Text>
+                <Heading size="lg" color="gray.700" _dark={{ color: "gray.200" }}>
+                  {canManage ? "Critérios de Fertilidade" : "Tabelas Padrão de Fertilidade"}
+                </Heading>
+                <Text color="gray.500" fontSize="sm" mt={1}>
+                  {canManage ? "Gerencie as tabelas de referência para interpretação de solo" : "Consulte as tabelas padrão em modo somente leitura"}
+                </Text>
             </Box>
             
             <Flex gap={2}>
-              <Button 
-                  colorPalette="green" 
-                  onClick={() => handleOpen("create")}
-                  size="md"
-              >
-                  <FiPlus /> Nova Tabela
-              </Button>
+              {canManage && (
+                <Button
+                    colorPalette="green"
+                    onClick={() => handleOpen("create")}
+                    size="md"
+                >
+                    <FiPlus /> Nova Tabela
+                </Button>
+              )}
               <Button variant="outline" colorPalette="green" onClick={() => navigate("/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table/public") }>
                   Consultar tabelas públicas
               </Button>
@@ -200,7 +219,7 @@ export default function SoilFertilityInterpretationCriteriaTable() {
             ) : isError ? (
                 <Flex justify="center" minH="200px" align="center" direction="column" gap={2}>
                     <Text color="red.500" fontWeight="bold">Erro ao carregar dados.</Text>
-                    <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["soil-fertility-tables"] })}>Tentar Novamente</Button>
+                    <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey })}>Tentar Novamente</Button>
                 </Flex>
             ) : tables.length === 0 ? (
                 <Flex 
@@ -216,7 +235,7 @@ export default function SoilFertilityInterpretationCriteriaTable() {
                     color="gray.500"
                 >
                     <Text fontSize="lg">Nenhuma tabela de critérios encontrada.</Text>
-                    <Button variant="ghost" colorPalette="green" onClick={() => handleOpen("create")}>Criar primeira tabela</Button>
+                    {canManage && <Button variant="ghost" colorPalette="green" onClick={() => handleOpen("create")}>Criar primeira tabela</Button>}
                 </Flex>
             ) : (
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
@@ -227,8 +246,8 @@ export default function SoilFertilityInterpretationCriteriaTable() {
                             isSelected={selectedId === table.id}
                             onSelect={() => setSelectedId(selectedId === table.id ? null : table.id)}
                             onView={() => handleOpen("view", table)}
-                            onEdit={() => handleOpen("edit", table)}
-                            onDelete={() => { setActiveItem(table); setIsDeleteOpen(true); }}
+                            onEdit={canManage ? () => handleOpen("edit", table) : undefined}
+                            onDelete={canManage ? () => { setActiveItem(table); setIsDeleteOpen(true); } : undefined}
                         />
                     ))}
                 </SimpleGrid>
