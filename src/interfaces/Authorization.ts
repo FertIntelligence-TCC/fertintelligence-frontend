@@ -27,12 +27,17 @@ export type NormalizedPlotPermission = {
   permissionType: PermissionType | null;
 };
 
-const normalizeCargo = (value?: string) =>
+export const normalizeCargo = (value?: string) =>
   (value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[\s_-]+/g, "")
     .toUpperCase();
+
+export const SUPREME_USER_CARGO = "USUARIO_SUPREMO";
+
+export const isSupremeUserCargo = (cargo?: string) =>
+  normalizeCargo(cargo) === normalizeCargo(SUPREME_USER_CARGO);
 
 export const getAuthorizationRoleMode = (
   cargo?: string

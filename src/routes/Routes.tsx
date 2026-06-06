@@ -34,6 +34,16 @@ import PublicGreenFertilizer from "@/pages/public-fertilizer/PublicGreenFertiliz
 import PublicFoliarMineralFertilizer from "@/pages/public-fertilizer/PublicFoliarMineralFertilizer";
 import PublicChelatedFertilizer from "@/pages/public-fertilizer/PublicChelatedFertilizer";
 import PublicBioFertilizer from "@/pages/public-fertilizer/PublicBioFertilizer";
+import DefaultFertilizerManagement from "@/pages/default-fertilizer/DefaultFertilizerManagement";
+import {
+  DefaultBioFertilizer,
+  DefaultChelatedFertilizer,
+  DefaultFoliarMineralFertilizer,
+  DefaultFormulatedMineralFertilizer,
+  DefaultGreenFertilizer,
+  DefaultOrganoMineralFertilizer,
+  DefaultSimpleMineralFertilizer,
+} from "@/pages/default-fertilizer/DefaultFertilizers";
 import GreenFertilizer from "@/pages/fertilizer/GreenFertilizer";
 import SimpleMineralFertilizer from "@/pages/fertilizer/SimpleMineralFertilizer";
 import OrganoMineralFertilizer from "@/pages/fertilizer/OrganoMineralFertilizer";
@@ -173,6 +183,38 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/fertilizer-management/simple-mineral-fertilizer",
     element: <SimpleMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/default",
+    element: <DefaultFertilizerManagement />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/default/simple-mineral-fertilizer",
+    element: <DefaultSimpleMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/default/formulated-mineral-fertilizer",
+    element: <DefaultFormulatedMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/default/organo-mineral-fertilizer",
+    element: <DefaultOrganoMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/default/green-fertilizer",
+    element: <DefaultGreenFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/default/foliar-mineral-fertilizer",
+    element: <DefaultFoliarMineralFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/default/chelated-fertilizer",
+    element: <DefaultChelatedFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/default/bio-fertilizer",
+    element: <DefaultBioFertilizer />,
   },
   {
     path: "/fertintelligence/fertilizer-management/simple-mineral-fertilizer/publicos",
