@@ -7,8 +7,8 @@ type Props = {
     isSelected: boolean;
     onSelect: () => void;
     onView: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
+    onEdit?: () => void;
+    onDelete?: () => void;
 };
 
 export default function FoliarAnalysisTableCard({ item, isSelected, onSelect, onView, onEdit, onDelete }: Props) {
@@ -68,25 +68,29 @@ export default function FoliarAnalysisTableCard({ item, isSelected, onSelect, on
                     >
                         <FiEye />
                     </IconButton>
-                    <IconButton
-                        size="sm"
-                        aria-label="Editar"
-                        borderRadius="full"
-                        variant="ghost"
-                        onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                    >
-                        <FiEdit />
-                    </IconButton>
-                    <IconButton
-                        size="sm"
-                        aria-label="Deletar"
-                        borderRadius="full"
-                        colorPalette="red"
-                        variant="ghost"
-                        onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                    >
-                        <FiTrash />
-                    </IconButton>
+                    {onEdit && (
+                        <IconButton
+                            size="sm"
+                            aria-label="Editar"
+                            borderRadius="full"
+                            variant="ghost"
+                            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                        >
+                            <FiEdit />
+                        </IconButton>
+                    )}
+                    {onDelete && (
+                        <IconButton
+                            size="sm"
+                            aria-label="Deletar"
+                            borderRadius="full"
+                            colorPalette="red"
+                            variant="ghost"
+                            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                        >
+                            <FiTrash />
+                        </IconButton>
+                    )}
                 </HStack>
             )}
         </Box>

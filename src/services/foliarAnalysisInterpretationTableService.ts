@@ -51,3 +51,8 @@ export const fetchPublicFoliarTables = async (): Promise<FoliarTableResponseDto[
     const { data } = await api.get(`${TABLE_ENDPOINT}/get-all-public`);
     return data;
 };
+
+export const fetchDefaultFoliarTables = async (): Promise<FoliarTableResponseDto[]> => {
+    const { data } = await api.get(`${TABLE_ENDPOINT}/get-all-default`);
+    return data;
+};

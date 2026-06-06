@@ -31,8 +31,11 @@ import {
   createCropFertilizationTable,
   deleteCropFertilizationTable,
   fetchCropFertilizationTables,
+  fetchDefaultCropFertilizationTables,
   updateCropFertilizationTable,
 } from "@/services/cropFertilizationTableService";
+import { useUserStore } from "@/stores/user/user.store";
+import { isSupremeUser } from "@/utils/isSupremeUser";
 
 // Services de orquestração e busca
 import { createContentRange, deleteContentRange, fetchContentRangesByTable, ContentRangeResponseDto } from "@/services/contentRangeService";
@@ -294,8 +297,8 @@ function TableCard(props: {
   isSelected: boolean;
   onSelect: () => void;
   onView: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const { table, isSelected, onSelect, onView, onEdit, onDelete } = props;
   const cropLabel = CropLabels[table.nome_comum_cultura as CropType] || table.nome_comum_cultura;
@@ -355,34 +358,48 @@ function TableCard(props: {
           >
             <FiEye />
           </IconButton>
-          <IconButton
-            size="sm"
-            aria-label="Editar"
-            borderRadius="full"
-            variant="ghost"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          >
-            <FiEdit />
-          </IconButton>
-          <IconButton
-            size="sm"
-            aria-label="Deletar"
-            borderRadius="full"
-            colorPalette="red"
-            variant="ghost"
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          >
-            <FiTrash />
-          </IconButton>
+          {onEdit && (
+            <IconButton
+              size="sm"
+              aria-label="Editar"
+              borderRadius="full"
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            >
+              <FiEdit />
+            </IconButton>
+          )}
+          {onDelete && (
+            <IconButton
+              size="sm"
+              aria-label="Deletar"
+              borderRadius="full"
+              colorPalette="red"
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            >
+              <FiTrash />
+            </IconButton>
+          )}
         </HStack>
       )}
     </Box>
   );
 }
 
-export default function CropFertilizationTable() {
+type Props = {
+  variant?: "mine" | "default";
+};
+
+export default function CropFertilizationTable({ variant = "mine" }: Props) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const user = useUserStore((s) => s.user);
+  const isDefaultView = variant === "default";
+  const isSupreme = isSupremeUser(user);
+  const usesDefaultTables = isDefaultView || isSupreme;
+  const canManage = !isDefaultView || isSupreme;
+  const queryKey = usesDefaultTables ? ["crop-fertilization-tables-default"] : ["crop-fertilization-tables"];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -412,14 +429,14 @@ export default function CropFertilizationTable() {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["crop-fertilization-tables"],
-    queryFn: fetchCropFertilizationTables,
+    queryKey,
+    queryFn: usesDefaultTables ? fetchDefaultCropFertilizationTables : fetchCropFertilizationTables,
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCropFertilizationTable,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["crop-fertilization-tables"] });
+      queryClient.invalidateQueries({ queryKey });
       setIsDeleteOpen(false);
       setSelectedTableId(null);
       toaster.create({ title: "Tabela removida.", type: "success" });
@@ -516,7 +533,7 @@ export default function CropFertilizationTable() {
 
         await saveContentRangesWithCoverages(activeTable.id, form);
 
-        queryClient.invalidateQueries({ queryKey: ["crop-fertilization-tables"] });
+        queryClient.invalidateQueries({ queryKey });
         setIsModalOpen(false);
         toaster.create({ title: "Tabela atualizada com sucesso.", type: "success" });
       } catch (error) {
@@ -533,7 +550,7 @@ export default function CropFertilizationTable() {
       const newTable = await createCropFertilizationTable(payloadTable);
       await saveContentRangesWithCoverages(newTable.id, form);
 
-      queryClient.invalidateQueries({ queryKey: ["crop-fertilization-tables"] });
+      queryClient.invalidateQueries({ queryKey });
       setIsModalOpen(false);
       setCreateForm(DEFAULT_TABLE_STATE);
       toaster.create({ title: "Tabela criada com sucesso!", type: "success" });
@@ -560,7 +577,7 @@ export default function CropFertilizationTable() {
 
   return (
     <UserLayout>
-      <FertName subtitle="Tabelas de Adubação" />
+      <FertName subtitle={isDefaultView ? "Tabelas Padrão de Adubação" : "Tabelas de Adubação"} />
       <ConfigMenu />
 
       <Box pt={{ base: 16, md: 24 }} px={{ base: 4, md: 8 }} w="full">
@@ -568,22 +585,26 @@ export default function CropFertilizationTable() {
           <Button
             variant="outline"
             alignSelf="flex-start"
-            onClick={() => navigate("/fertintelligence/fertilization-table-management")}
+            onClick={() => navigate(isDefaultView ? "/fertintelligence/fertilization-table-management/default" : "/fertintelligence/fertilization-table-management")}
           >
             Voltar para o painel
           </Button>
-          <Heading as="h1" size="lg" color="white">Gerenciar Tabelas de Cultura</Heading>
+          <Heading as="h1" size="lg" color="white">
+            {canManage ? "Gerenciar Tabelas de Cultura" : "Tabelas Padrão de Cultura"}
+          </Heading>
           <HStack>
-            <Button
-              alignSelf="flex-start"
-              colorPalette="green"
-              onClick={openCreate}
-              display="inline-flex"
-              alignItems="center"
-              gap={2}
-            >
-              <FiPlus /> Nova Tabela
-            </Button>
+            {canManage && (
+              <Button
+                alignSelf="flex-start"
+                colorPalette="green"
+                onClick={openCreate}
+                display="inline-flex"
+                alignItems="center"
+                gap={2}
+              >
+                <FiPlus /> Nova Tabela
+              </Button>
+            )}
             <Button variant="outline" colorPalette="green" onClick={() => navigate("/fertintelligence/fertilization-table-management/crop-fertilization-table/public") }>
               Consultar tabelas públicas
             </Button>
@@ -612,8 +633,8 @@ export default function CropFertilizationTable() {
                     isSelected={selectedTableId === table.id}
                     onSelect={() => handleTableSelection(table.id)}
                     onView={() => openView(table)}
-                    onEdit={() => openEdit(table)}
-                    onDelete={() => requestDelete(table)}
+                    onEdit={canManage ? () => openEdit(table) : undefined}
+                    onDelete={canManage ? () => requestDelete(table) : undefined}
                   />
                 ))}
               </SimpleGrid>

@@ -17,6 +17,7 @@ import SecretaryPropertyManagement from "@/pages/property/SecretaryPropertyManag
 import AreaSupervisorPropertyManagement from "@/pages/property/AreaSupervisorPropertyManagement";
 import FertilizerManagement from "@/pages/fertilizer/FertilizerManagement";
 import FertilizationTableManagement from "@/pages/fertilization-table/FertilizationTableManagement";
+import DefaultFertilizationTableManagement from "@/pages/fertilization-table/DefaultFertilizationTableManagement";
 import CropFertilizationTable from "@/pages/fertilization-table/CropFertilizationTable";
 import FoliarAnalysisInterpretationTable from "@/pages/fertilization-table/FoliarAnalysisInterpretationTable";
 import SoilFertilityInterpretationTable from "@/pages/fertilization-table/SoilFertilityInterpretationTable";
@@ -119,6 +120,10 @@ export const PublicRoutes: RouteObject[] = [
     element: <FertilizationTableManagement />,
   },
   {
+    path: "/fertintelligence/fertilization-table-management/default",
+    element: <DefaultFertilizationTableManagement />,
+  },
+  {
     path: "/fertintelligence/fertilizer-management",
     element: <FertilizerManagement />,
   },
@@ -127,12 +132,24 @@ export const PublicRoutes: RouteObject[] = [
     element: <CropFertilizationTable />,
   },
   {
+    path: "/fertintelligence/fertilization-table-management/crop-fertilization-table/default",
+    element: <CropFertilizationTable variant="default" />,
+  },
+  {
     path: "/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table",
     element: <FoliarAnalysisInterpretationTable />,
   },
   {
+    path: "/fertintelligence/fertilization-table-management/foliar-analysis-interpretation-table/default",
+    element: <FoliarAnalysisInterpretationTable variant="default" />,
+  },
+  {
     path: "/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table",
     element: <SoilFertilityInterpretationTable />,
+  },
+  {
+    path: "/fertintelligence/fertilization-table-management/soil-fertility-interpretation-table/default",
+    element: <SoilFertilityInterpretationTable variant="default" />,
   },
   {
     path: "/fertintelligence/fertilization-table-management/crop-fertilization-table/public",
