@@ -132,12 +132,13 @@ export default function PlotFormDialog({ isOpen, onClose, onSubmit, initialData,
     // Verificação de permissões
     const { user } = useUserStore();
     const roleMode = getAuthorizationRoleMode(user?.cargo);
+    const isSupreme = roleMode === "SUPREME";
     const isOwner = roleMode === "OWNER";
     const isManager = roleMode === "MANAGER";
     const isSecretary = roleMode === "SECRETARY";
 
     // Somente donos e gerentes editam os dados cadastrais do talhão
-    const canEditMasterData = isOwner || isManager;
+    const canEditMasterData = isSupreme || isOwner || isManager;
     const isReadOnly = !canEditMasterData;
 
     useEffect(() => {

@@ -14,6 +14,7 @@ import { decidePlotAccessRequest, getPlotAccessRequests, revokePlotAccessRequest
 import { useUserStore } from "@/stores/user/user.store";
 import type { PlotAccessRequestResponseDto } from "@/interfaces/PlotAccessRequest";
 import type { PropertyResponse } from "@/interfaces/Property";
+import { isSupremeUserCargo } from "@/interfaces/Authorization";
 
 type Status = "PENDING" | "APPROVED" | "REVOKED";
 
@@ -114,7 +115,7 @@ export default function ViewPlotSolicitations() {
 
   const canManage = useMemo(() => {
     const c = normalize(user?.cargo as any);
-    return c === "GERENTE" || c === "PROPRIETARIO";
+    return isSupremeUserCargo(user?.cargo) || c === "GERENTE" || c === "PROPRIETARIO";
   }, [user?.cargo]);
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);

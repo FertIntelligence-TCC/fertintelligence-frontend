@@ -25,6 +25,7 @@ import {
   PropertyResponse,
 } from "@/interfaces/Property";
 import { Cargo } from "@/interfaces/User";
+import { isSupremeUserCargo } from "@/interfaces/Authorization";
 
 import {
   createProperty,
@@ -236,7 +237,7 @@ export default function OwnerPropertyManagement() {
        Guard
     ====================================================== */
 
-  if (!user || user.cargo !== Cargo.PROPRIETARIO) {
+  if (!user || (user.cargo !== Cargo.PROPRIETARIO && !isSupremeUserCargo(user.cargo))) {
     return (
       <UserLayout>
         <Flex justify="center" align="center" h="50vh">

@@ -45,8 +45,9 @@ import {
   getRecommendationReportText,
 } from "@/interfaces/Recommendation";
 import { getPlotsByProperty } from "@/services/plotService";
-import { fetchMyProperties } from "@/services/propertyService";
+import { fetchManageableProperties, fetchMyProperties } from "@/services/propertyService";
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
+import { isSupremeUserCargo } from "@/interfaces/Authorization";
 import { getAllAnnualCropFoldersByPlot } from "@/services/annualCropFolderService";
 import { getCropsByFolder } from "@/services/cropService";
 import { soilAnalysisService } from "@/services/soilAnalysisService";
@@ -132,7 +133,7 @@ const limingCriteriaOptions: RecommendationLimingCriteria[] = [
 ];
 
 const canPrintRecommendation = (cargo?: string) =>
-  cargo === "AGRONOMO_RESIDENTE" || cargo === "AGRONOMO_CONSULTOR";
+  isSupremeUserCargo(cargo) || cargo === "AGRONOMO_RESIDENTE" || cargo === "AGRONOMO_CONSULTOR";
 
 const normalizeLimingCriteria = (criteria?: string | null): RecommendationLimingCriteria | undefined => {
   if (!criteria) return undefined;
@@ -327,7 +328,11 @@ export default function Recommendation() {
     const loadProperties = async () => {
       setLoadingProperties(true);
       try {
-        const data = user?.cargo === Cargo.PROPRIETARIO ? await fetchMyProperties() : await propertyAccessRequestService.getMyApprovedProperties();
+        const data = isSupremeUserCargo(user?.cargo)
+          ? await fetchManageableProperties()
+          : user?.cargo === Cargo.PROPRIETARIO
+            ? await fetchMyProperties()
+            : await propertyAccessRequestService.getMyApprovedProperties();
         setProperties(data ?? []);
       } catch (error) {
         console.error(error);
