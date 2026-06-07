@@ -49,7 +49,7 @@ export default function PlotList({ plots, mode, onView, onEdit, onDelete }: Prop
                     alignItems="center"
                 >
                     <ImageThumb imageId={plotImageId || undefined} alt={plot.identificacao} />
-                    <Text fontWeight="bold" textAlign="center" noOfLines={2}>
+                    <Text fontWeight="bold" textAlign="center" lineClamp={2}>
                         {plot.identificacao}
                     </Text>
                     <Text fontSize="xs" color="gray.500">

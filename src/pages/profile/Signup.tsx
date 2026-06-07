@@ -23,7 +23,6 @@ import {
   Box,
   Flex,
   SimpleGrid,
-  chakra,
 } from "@chakra-ui/react";
 
 export default function SignUpPage() {
@@ -230,17 +229,14 @@ export default function SignUpPage() {
   };
 
   // Select nativo estilizado com Chakra
-  const NativeSelect = chakra("select", {
-    baseStyle: {
-      height: "40px",
-      px: 3,
-      borderWidth: "1px",
-      borderRadius: "md",
-      bg: "white",
-      _dark: { bg: "gray.800" },
-      _focusVisible: { outline: "2px solid", outlineColor: "blue.400" },
-    },
-  });
+  const nativeSelectStyles = {
+    height: "40px",
+    paddingInline: "0.75rem",
+    borderWidth: "1px",
+    borderRadius: "0.375rem",
+    background: "white",
+    width: "100%",
+  } satisfies React.CSSProperties;
 
   return (
     <UserLayout>
@@ -269,7 +265,7 @@ export default function SignUpPage() {
             Cadastro
           </Heading>
 
-          <VStack spacing={6} align="stretch">
+          <VStack gap={6} align="stretch">
             {error && (
               <Box
                 bg="red.100"
@@ -317,14 +313,14 @@ export default function SignUpPage() {
 
                   <Box>
                     <Text mb={1}>Gênero</Text>
-                    <NativeSelect name="genero" value={signUpForm.genero} onChange={handleSignUpChange}>
+                    <select name="genero" value={signUpForm.genero} onChange={handleSignUpChange} style={nativeSelectStyles}>
                       <option value="">Selecione seu gênero</option>
                       {generoOptions.map((g) => (
                         <option key={g} value={g}>
                           {g}
                         </option>
                       ))}
-                    </NativeSelect>
+                    </select>
                   </Box>
                 </>
               ) : (
@@ -336,14 +332,14 @@ export default function SignUpPage() {
 
                   <Box>
                     <Text mb={1}>Formação</Text>
-                    <NativeSelect name="formacao" value={signUpForm.formacao} onChange={handleSignUpChange}>
+                    <select name="formacao" value={signUpForm.formacao} onChange={handleSignUpChange} style={nativeSelectStyles}>
                       <option value="">Selecione sua formação</option>
                       {formacaoOptions.map((f) => (
                         <option key={f} value={f}>
                           {String(f).replace(/_/g, " ")}
                         </option>
                       ))}
-                    </NativeSelect>
+                    </select>
                   </Box>
 
                   <Box>
@@ -353,14 +349,14 @@ export default function SignUpPage() {
 
                   <Box>
                     <Text mb={1}>Cargo</Text>
-                    <NativeSelect name="cargo" value={signUpForm.cargo} onChange={handleSignUpChange}>
+                    <select name="cargo" value={signUpForm.cargo} onChange={handleSignUpChange} style={nativeSelectStyles}>
                       <option value="">Selecione seu cargo</option>
                       {cargoOptions.map((c) => (
                         <option key={c} value={c}>
                           {String(c).replace(/_/g, " ")}
                         </option>
                       ))}
-                    </NativeSelect>
+                    </select>
                   </Box>
 
                   <Box>
@@ -398,7 +394,7 @@ export default function SignUpPage() {
                   maxWidth="100%"
                   flex={1}
                   onClick={submitSignUp}
-                  isLoading={signUpMutation.isLoading}
+                  loading={signUpMutation.isPending}
                 >
                   Cadastrar
                 </Button>

@@ -30,7 +30,7 @@ export default function BioFertilizerCard(props: Props) {
             </Text>
             
             {hasMicros && (
-                <Text fontSize="xs" color="gray.500" mt={1} noOfLines={1}>
+                <Text fontSize="xs" color="gray.500" mt={1} lineClamp={1}>
                     Micros presentes
                 </Text>
             )}

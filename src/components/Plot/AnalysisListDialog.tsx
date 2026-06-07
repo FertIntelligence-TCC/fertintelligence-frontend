@@ -165,7 +165,7 @@ export default function AnalysisListDialog({ isOpen, onClose, title, plotId, ana
                                 <Text fontWeight="bold" fontSize="xl" color="gray.700" _dark={{ color: "white" }}>
                                     {analysis.ano_analise}
                                 </Text>
-                                <Text fontSize="xs" color="gray.500" textAlign="center" noOfLines={1} mt={1}>
+                                <Text fontSize="xs" color="gray.500" textAlign="center" lineClamp={1} mt={1}>
                                     {analysis.laboratorio_responsavel}
                                 </Text>
                                 <Text fontSize="xs" color="green.600" fontWeight="bold" mt={2} textTransform="uppercase">
@@ -187,12 +187,12 @@ export default function AnalysisListDialog({ isOpen, onClose, title, plotId, ana
                                         <Button
                                             size="sm"
                                             colorScheme="green"
-                                            leftIcon={<FiEye />}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onSelectAnalysis(analysis);
                                             }}
                                         >
+                                            <FiEye />
                                             Visualizar
                                         </Button>
                                     </Flex>

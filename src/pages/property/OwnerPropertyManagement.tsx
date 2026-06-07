@@ -298,12 +298,12 @@ export default function OwnerPropertyManagement() {
           <HStack gap={3} flexWrap="wrap">
             <Button
               colorScheme="green"
-              leftIcon={<FiPlus />}
               onClick={() => {
                 setCreateForm(DEFAULT_FORM_STATE);
                 createDisclosure.onOpen();
               }}
             >
+              <FiPlus />
               Nova Propriedade
             </Button>
           </HStack>

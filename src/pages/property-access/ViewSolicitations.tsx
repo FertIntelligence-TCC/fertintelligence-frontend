@@ -9,7 +9,7 @@ import { fetchManageableProperties } from "@/services/propertyService";
 import { toaster } from "@/components/ui/toaster";
 import { PropertyAccessRequestResponse } from "@/interfaces/PropertyAccessRequest";
 import { PropertyResponse } from "@/interfaces/Property";
-import { Cargo } from "@/interfaces/User";
+import { Cargo } from "@/interfaces/Enums";
 
 // 2. Importamos os componentes customizados que criamos!
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@/components/ui/custom-tabs";
@@ -67,7 +67,7 @@ export default function ViewSolicitations() {
     // Validação de Gerente
     if (cargoSolicitante === Cargo.GERENTE || cargoSolicitante === "GERENTE") {
       const hasGerente = acceptedRequests.some(
-        (r) => r.cargo_solicitante === Cargo.GERENTE || r.cargo_solicitante === "GERENTE"
+        (r) => String(r.cargo_solicitante) === Cargo.GERENTE
       );
       
       if (hasGerente) {
@@ -115,22 +115,16 @@ export default function ViewSolicitations() {
         {/* Seleção de Propriedade (Adaptado com Box as="select" para evitar bugs do Chakra V3) */}
         <Box mb={8} bg="white" _dark={{ bg: "gray.800" }} p={4} borderRadius="md" boxShadow="sm">
           <Text mb={2} fontWeight="bold">Selecione a Propriedade:</Text>
-          <Box 
-            as="select"
-            w="full"
-            p={2}
-            borderWidth="1px"
-            borderRadius="md"
-            borderColor="gray.200"
-            _dark={{ borderColor: "gray.600", bg: "gray.700" }}
+          <select
             value={selectedPropertyId}
             onChange={(e: any) => setSelectedPropertyId(Number(e.target.value))}
+            style={{ width: "100%", padding: "0.5rem", borderWidth: "1px", borderRadius: "0.375rem" }}
           >
             <option value="" disabled>Escolha uma propriedade</option>
             {properties.map(prop => (
               <option key={prop.id} value={prop.id}>{prop.nome}</option>
             ))}
-          </Box>
+          </select>
         </Box>
 
         {/* Box com as Abas */}

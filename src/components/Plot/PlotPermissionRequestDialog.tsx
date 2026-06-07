@@ -2,13 +2,13 @@ import {
     Dialog,
     Button,
     Field,
-    Select,
     Stack,
     Text,
   } from "@chakra-ui/react";
-  import { useEffect, useMemo, useState } from "react";
+  import { useMemo, useState } from "react";
   import { toaster } from "@/components/ui/toaster";
-  import { requestPlotAccess, PermissionType } from "@/services/plotAccessRequestService";
+  import { requestPlotAccess } from "@/services/plotAccessRequestService";
+  import type { PermissionType } from "@/interfaces/PlotAccessRequest";
   
   type Property = { id: number; nome: string };
   type Plot = { id: number; identification: string };
@@ -25,8 +25,8 @@ import {
     cargoNormalized,
   }: Props) {
     const [loading, setLoading] = useState(false);
-    const [properties, setProperties] = useState<Property[]>([]);
-    const [plots, setPlots] = useState<Plot[]>([]);
+    const [properties] = useState<Property[]>([]);
+    const [plots] = useState<Plot[]>([]);
     const [propertyId, setPropertyId] = useState<number | "">("");
     const [plotId, setPlotId] = useState<number | "">("");
   
@@ -57,9 +57,9 @@ import {
       setLoading(true);
       try {
         await requestPlotAccess({
-          id_propriedade: propertyId as number,
-          id_talhao: requiresPlot ? (plotId as number) : null,
-          tipo_permissao: permissionType,
+          propertyId: propertyId as number,
+          plotId: requiresPlot ? (plotId as number) : null,
+          permissionType,
         });
   
         toaster.create({
@@ -99,41 +99,37 @@ import {
                 <Stack gap="4">
                   <Field.Root required>
                     <Field.Label>Propriedade</Field.Label>
-                    <Select.Root
+                    <select
                       value={propertyId ? String(propertyId) : ""}
-                      onValueChange={(e) =>
-                        setPropertyId(e.value ? Number(e.value) : "")
+                      onChange={(e) =>
+                        setPropertyId(e.target.value ? Number(e.target.value) : "")
                       }
                     >
-                      <Select.Trigger />
-                      <Select.Content>
+                      <option value="">Selecione a propriedade</option>
                         {properties.map((p) => (
-                          <Select.Item key={p.id} value={String(p.id)}>
+                          <option key={p.id} value={String(p.id)}>
                             {p.nome}
-                          </Select.Item>
+                          </option>
                         ))}
-                      </Select.Content>
-                    </Select.Root>
+                    </select>
                   </Field.Root>
   
                   {requiresPlot && (
                     <Field.Root required>
                       <Field.Label>Talhão</Field.Label>
-                      <Select.Root
+                      <select
                         value={plotId ? String(plotId) : ""}
-                        onValueChange={(e) =>
-                          setPlotId(e.value ? Number(e.value) : "")
+                        onChange={(e) =>
+                          setPlotId(e.target.value ? Number(e.target.value) : "")
                         }
                       >
-                        <Select.Trigger />
-                        <Select.Content>
+                        <option value="">Selecione o talhão</option>
                           {plots.map((pl) => (
-                            <Select.Item key={pl.id} value={String(pl.id)}>
+                            <option key={pl.id} value={String(pl.id)}>
                               {pl.identification || `Talhão ${pl.id}`}
-                            </Select.Item>
+                            </option>
                           ))}
-                        </Select.Content>
-                      </Select.Root>
+                      </select>
                     </Field.Root>
                   )}
   

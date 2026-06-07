@@ -9,7 +9,6 @@ import {
   Text,
   Flex,
   SimpleGrid,
-  chakra,
   HStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
@@ -65,17 +64,14 @@ const enumOptions = (obj: Record<string, unknown>) =>
   Object.values(obj).filter((v) => typeof v === "string") as string[];
 
 // Select nativo estilizado (igual ao Signup)
-const NativeSelect = chakra("select", {
-  baseStyle: {
-    height: "40px",
-    px: 3,
-    borderWidth: "1px",
-    borderRadius: "md",
-    bg: "white",
-    _dark: { bg: "gray.800" },
-    _focusVisible: { outline: "2px solid", outlineColor: "blue.400" },
-  },
-});
+const nativeSelectStyles: React.CSSProperties = {
+  height: "40px",
+  paddingInline: "0.75rem",
+  borderWidth: "1px",
+  borderRadius: "0.375rem",
+  background: "white",
+  width: "100%",
+};
 
 export default function UpdateProfile() {
   const navigate = useNavigate();
@@ -286,7 +282,7 @@ export default function UpdateProfile() {
             Editar Perfil
           </Heading>
 
-          <VStack spacing={6} align="stretch">
+          <VStack gap={6} align="stretch">
             {error && (
               <Box
                 bg="red.100"
@@ -325,12 +321,12 @@ export default function UpdateProfile() {
                   </Box>
                   <Box>
                     <Text mb={1}>Gênero</Text>
-                    <NativeSelect name="genero" value={profileForm.genero} onChange={handleInputChange}>
+                    <select name="genero" value={profileForm.genero} onChange={handleInputChange} style={nativeSelectStyles}>
                       <option value="">Selecione seu gênero</option>
                       {generoOptions.map((g) => (
                         <option key={g} value={g}>{g}</option>
                       ))}
-                    </NativeSelect>
+                    </select>
                   </Box>
                 </>
               ) : (
@@ -341,12 +337,12 @@ export default function UpdateProfile() {
                   </Box>
                   <Box>
                     <Text mb={1}>Formação</Text>
-                    <NativeSelect name="formacao" value={profileForm.formacao} onChange={handleInputChange}>
+                    <select name="formacao" value={profileForm.formacao} onChange={handleInputChange} style={nativeSelectStyles}>
                       <option value="">Selecione sua formação</option>
                       {formacaoOptions.map((f) => (
                         <option key={f} value={f}>{String(f).replace(/_/g, " ")}</option>
                       ))}
-                    </NativeSelect>
+                    </select>
                   </Box>
                   <Box>
                     <Text mb={1}>Profissão</Text>
@@ -354,18 +350,18 @@ export default function UpdateProfile() {
                   </Box>
                   <Box>
                     <Text mb={1}>Cargo</Text>
-                    <NativeSelect name="cargo" value={profileForm.cargo} onChange={handleInputChange}>
+                    <select name="cargo" value={profileForm.cargo} onChange={handleInputChange} style={nativeSelectStyles}>
                       <option value="">Selecione seu cargo</option>
                       {cargoOptions.map((c) => (
                         <option key={c} value={c}>{String(c).replace(/_/g, " ")}</option>
                       ))}
-                    </NativeSelect>
+                    </select>
                   </Box>
                 </>
               )}
             </SimpleGrid>
 
-            <HStack mt={4} spacing={3}>
+            <HStack mt={4} gap={3}>
               <Button variant="outline" onClick={() => navigate("/fertintelligence/home")} flex={1}>
                 Voltar para o painel
               </Button>

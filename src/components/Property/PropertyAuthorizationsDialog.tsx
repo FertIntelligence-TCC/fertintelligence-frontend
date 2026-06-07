@@ -144,7 +144,7 @@ import {
   
     return (
       <DialogContainer isOpen={isOpen} onClose={onClose}>
-        <VStack align="stretch" spacing={4}>
+        <VStack align="stretch" gap={4}>
           <Heading size="md">Autorizações</Heading>
   
           {!propertyId ? (
@@ -178,7 +178,7 @@ import {
               ) : error ? (
                 <Text color="red.500">{getErrorMessage(error)}</Text>
               ) : (
-                <VStack align="stretch" spacing={3} maxH="420px" overflowY="auto">
+                <VStack align="stretch" gap={3} maxH="420px" overflowY="auto">
                   {list.map((r) => (
                     <Box
                       key={r.id}
@@ -213,7 +213,7 @@ import {
                             <Button
                               colorScheme="green"
                               onClick={() => handleApprove(r)}
-                              isLoading={decideAccessMutation.isPending}
+                              loading={decideAccessMutation.isPending}
                             >
                               Aceitar
                             </Button>
@@ -224,7 +224,7 @@ import {
                               onClick={() =>
                                 decideAccessMutation.mutate({ requestId: r.id, approved: false })
                               }
-                              isLoading={decideAccessMutation.isPending}
+                              loading={decideAccessMutation.isPending}
                             >
                               Recusar
                             </Button>
@@ -236,7 +236,7 @@ import {
                             onClick={() =>
                               decideAccessMutation.mutate({ requestId: r.id, approved: false })
                             }
-                            isLoading={decideAccessMutation.isPending}
+                            loading={decideAccessMutation.isPending}
                           >
                             Expulsar
                           </Button>

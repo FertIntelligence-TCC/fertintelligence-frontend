@@ -292,19 +292,13 @@ export default function ViewPlotSolicitations() {
             Selecione a Propriedade:
           </Text>
 
-          <Box
-            as="select"
-            w="full"
-            p={2}
-            borderWidth="1px"
-            borderRadius="md"
-            borderColor="gray.200"
-            _dark={{ borderColor: "gray.600", bg: "gray.700" }}
+          <select
             value={selectedPropertyId}
             onChange={(e: any) => {
               const v = e.target.value;
               setSelectedPropertyId(v ? Number(v) : "");
             }}
+            style={{ width: "100%", padding: "0.5rem", borderWidth: "1px", borderRadius: "0.375rem" }}
           >
             <option value="" disabled>
               Escolha uma propriedade
@@ -314,7 +308,7 @@ export default function ViewPlotSolicitations() {
                 {p.nome}
               </option>
             ))}
-          </Box>
+          </select>
         </Box>
 
         {/* Filtro por talhão (opcional) */}
@@ -323,20 +317,14 @@ export default function ViewPlotSolicitations() {
             Filtrar por Talhão (opcional):
           </Text>
 
-          <Box
-            as="select"
-            w="full"
-            p={2}
-            borderWidth="1px"
-            borderRadius="md"
-            borderColor="gray.200"
-            _dark={{ borderColor: "gray.600", bg: "gray.700" }}
+          <select
             value={selectedPlotId}
             onChange={(e: any) => {
               const v = e.target.value;
               setSelectedPlotId(v ? Number(v) : "");
             }}
             disabled={!selectedPropertyId || plotsForFilter.length === 0}
+            style={{ width: "100%", padding: "0.5rem", borderWidth: "1px", borderRadius: "0.375rem" }}
           >
             <option value="">Todos os talhões</option>
             {plotsForFilter.map((p) => (
@@ -344,7 +332,7 @@ export default function ViewPlotSolicitations() {
                 {p.identification}
               </option>
             ))}
-          </Box>
+          </select>
 
           <Text fontSize="xs" opacity={0.8} mt={2}>
             Obs: pedidos “Todos os talhões” (escopo PROPERTY) não entram nesse filtro.
