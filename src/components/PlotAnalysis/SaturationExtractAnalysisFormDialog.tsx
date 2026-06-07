@@ -489,12 +489,13 @@ export const SaturationExtractAnalysisFormDialog = ({
                                             </Grid>
 
                                             <SectionHeader title="Ânions Solúveis" colorPalette="teal" />
-                                            <Grid templateColumns="repeat(5, 1fr)" gap={4} mb={4}>
+                                            <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
                                                 <Field label="CO3 2- (mg/L)" type="number" value={ext.teorCO3} onChange={e => handleChangeExtract(ext.tempId, 'teorCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="HCO3 - (mg/L)" type="number" value={ext.teorHCO3} onChange={e => handleChangeExtract(ext.tempId, 'teorHCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="NO3 - (mg/L)" type="number" value={ext.teorNO3} onChange={e => handleChangeExtract(ext.tempId, 'teorNO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="H2PO4 - (mg/L)" type="number" value={ext.teorH2PO4} onChange={e => handleChangeExtract(ext.tempId, 'teorH2PO4', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="SO4 2- (mg/L)" type="number" value={ext.teorSO4} onChange={e => handleChangeExtract(ext.tempId, 'teorSO4', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Cl - (mg/L)" type="number" value={ext.teorCl ?? 0} onChange={e => handleChangeExtract(ext.tempId, 'teorCl', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
 
                                             <SectionHeader title="Dureza e Indicadores" colorPalette="pink" />
