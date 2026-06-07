@@ -1,12 +1,11 @@
 import { ENDPOINT } from "../constants/Endpoint";
 import axiosInstace from "./axios";
-// Importa a nova UserResponse
-import { UserResponse } from "../interfaces/ServiceResponse";
+import { UserResponse } from "../interfaces/User";
 import {
   SignInPayload,
   SignUpPayload,
   UpdateUserPayload,
-} from "@/interfaces/ServicePayload";
+} from "@/interfaces/User";
 
 // 🔹 LOGIN (autenticação)
 export const authenticateUser = async (credentials: SignInPayload) => {

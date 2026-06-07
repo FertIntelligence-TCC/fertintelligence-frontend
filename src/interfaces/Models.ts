@@ -1,4 +1,4 @@
-import { UserResponse } from "./ServiceResponse";
+import { UserResponse } from "./User";
 
 export type User = {
 } & UserResponse;
