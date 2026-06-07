@@ -126,13 +126,12 @@ export const AnnualCropFolderListDialog = ({
                     <Button
                       size="sm"
                       colorScheme="green"
-                      leftIcon={<FiEye />}
                       onClick={(event) => {
                         event.stopPropagation();
                         onSelectFolder(folder);
                       }}
                     >
-                      Visualizar Culturas
+                      <FiEye /> Visualizar Culturas
                     </Button>
                   </Flex>
                 )}

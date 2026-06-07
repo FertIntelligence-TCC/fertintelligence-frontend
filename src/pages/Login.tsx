@@ -152,7 +152,7 @@ export default function LoginPage() {
               <Text>{serverError}</Text>
             </Box>
           )}
-          <VStack spacing={4} align="stretch">
+          <VStack gap={4} align="stretch">
             <FormControl isDisabled={!isServerHealthy}>
               <FormLabel textAlign="left">Username</FormLabel>
               <Input
@@ -187,7 +187,7 @@ export default function LoginPage() {
               colorScheme="blue"
               width="full"
               onClick={submitLogin}
-              isDisabled={!isServerHealthy}
+              disabled={!isServerHealthy}
             >
               Entrar
             </Button>

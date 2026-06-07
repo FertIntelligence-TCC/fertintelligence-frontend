@@ -15,7 +15,7 @@ export default function ConfigMenu() {
   const menuRef = useRef(null);
   const user = useUserStore((s) => s.user) as User | null;
   const [userImage, setUserImage] = useState(sessionStorage.getItem("userImage") || "");
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [, setLoadingUser] = useState(true);
 
   // Função para lidar com o clique fora do menu
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function ConfigMenu() {
       <HStack>
         <Avatar
           size={"xs"}
-          name={user?.nome || "User"}
+          name={user?.name || "User"}
           src={userImage}
           cursor="pointer"
           onClick={() => setIsProfileImageOpen(true)}
@@ -111,7 +111,7 @@ export default function ConfigMenu() {
             {userImage ? (
               <img
                 src={userImage}
-                alt={`Foto de perfil de ${user?.nome || "User"}`}
+                alt={`Foto de perfil de ${user?.name || "User"}`}
                 style={{
                   maxWidth: "90vw",
                   maxHeight: "80vh",
@@ -125,7 +125,7 @@ export default function ConfigMenu() {
             ) : (
               <Avatar
                 size="2xl"
-                name={user?.nome || "User"}
+                name={user?.name || "User"}
                 src={userImage}
               />
             )}
@@ -138,7 +138,7 @@ export default function ConfigMenu() {
           top="100%"
           right={0}
           mt={2}
-          spacing={0}
+          gap={0}
           bg={{ base: "white", _dark: "gray.700" }}
           _light={{ color: "black", _hover: { bg: "gray.100" } }}
           _dark={{ color: "white", _hover: { bg: "whiteAlpha.200" } }}

@@ -230,17 +230,7 @@ export default function SignUpPage() {
   };
 
   // Select nativo estilizado com Chakra
-  const NativeSelect = chakra("select", {
-    baseStyle: {
-      height: "40px",
-      px: 3,
-      borderWidth: "1px",
-      borderRadius: "md",
-      bg: "white",
-      _dark: { bg: "gray.800" },
-      _focusVisible: { outline: "2px solid", outlineColor: "blue.400" },
-    },
-  });
+  const NativeSelect = chakra("select");
 
   return (
     <UserLayout>
@@ -269,7 +259,7 @@ export default function SignUpPage() {
             Cadastro
           </Heading>
 
-          <VStack spacing={6} align="stretch">
+          <VStack gap={6} align="stretch">
             {error && (
               <Box
                 bg="red.100"
@@ -398,7 +388,7 @@ export default function SignUpPage() {
                   maxWidth="100%"
                   flex={1}
                   onClick={submitSignUp}
-                  isLoading={signUpMutation.isLoading}
+                  loading={signUpMutation.isPending}
                 >
                   Cadastrar
                 </Button>

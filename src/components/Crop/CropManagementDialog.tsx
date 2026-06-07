@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Box,
-  Heading,
   Text,
   VStack,
   Spinner,
@@ -124,7 +123,7 @@ export const CropManagementDialog = ({
                     borderRadius="md"
                   >
                     <Text color="gray.500">Nenhuma cultura cadastrada.</Text>
-                    <Button variant="link" colorPalette="green" onClick={handleCreate}>
+                    <Button variant="plain" colorPalette="green" onClick={handleCreate}>
                       Clique aqui para adicionar a primeira cultura.
                     </Button>
                   </Flex>

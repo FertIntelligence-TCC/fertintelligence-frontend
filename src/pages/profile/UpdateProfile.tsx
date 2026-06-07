@@ -65,17 +65,7 @@ const enumOptions = (obj: Record<string, unknown>) =>
   Object.values(obj).filter((v) => typeof v === "string") as string[];
 
 // Select nativo estilizado (igual ao Signup)
-const NativeSelect = chakra("select", {
-  baseStyle: {
-    height: "40px",
-    px: 3,
-    borderWidth: "1px",
-    borderRadius: "md",
-    bg: "white",
-    _dark: { bg: "gray.800" },
-    _focusVisible: { outline: "2px solid", outlineColor: "blue.400" },
-  },
-});
+const NativeSelect = chakra("select");
 
 export default function UpdateProfile() {
   const navigate = useNavigate();
@@ -286,7 +276,7 @@ export default function UpdateProfile() {
             Editar Perfil
           </Heading>
 
-          <VStack spacing={6} align="stretch">
+          <VStack gap={6} align="stretch">
             {error && (
               <Box
                 bg="red.100"
@@ -365,7 +355,7 @@ export default function UpdateProfile() {
               )}
             </SimpleGrid>
 
-            <HStack mt={4} spacing={3}>
+            <HStack mt={4} gap={3}>
               <Button variant="outline" onClick={() => navigate("/fertintelligence/home")} flex={1}>
                 Voltar para o painel
               </Button>
