@@ -58,13 +58,19 @@ import { fertilityAnalysisExtractService } from "@/services/fertilityAnalysisExt
 import { saturationExtractAnalysisExtractService } from "@/services/saturationExtractAnalysisExtractService";
 import {
   fetchCropFertilizationTables,
+  fetchDefaultCropFertilizationTables,
   fetchPublicCropFertilizationTables,
 } from "@/services/cropFertilizationTableService";
 import {
+  fetchDefaultSoilFertilityTables,
   fetchPublicSoilFertilityTables,
   fetchSoilFertilityTables,
 } from "@/services/soilFertilityInterpretationCriteriaTableService";
-import { fetchFoliarTables, fetchPublicFoliarTables } from "@/services/foliarAnalysisInterpretationTableService";
+import {
+  fetchDefaultFoliarTables,
+  fetchFoliarTables,
+  fetchPublicFoliarTables,
+} from "@/services/foliarAnalysisInterpretationTableService";
 import {
   deleteRecommendation,
   generateRecommendation,
@@ -89,10 +95,13 @@ const NativeSelect = chakra("select", {
   },
 });
 
+type TableSource = "PRIVATE" | "PUBLIC" | "DEFAULT";
+type TableGroupValue = TableSource | "";
+
 type TableOption = {
   id: number;
   label: string;
-  source: "PRIVATE" | "PUBLIC" | "UNKNOWN";
+  source: TableSource;
 };
 
 type AnalysisExtractOption = {
@@ -125,6 +134,12 @@ const fertilizerOriginOptions: { value: FertilizerSourceOption; label: string }[
   { value: "BOTH", label: "Ambos" },
 ];
 
+const tableGroupOptions: { value: TableSource; label: string }[] = [
+  { value: "PRIVATE", label: "Privadas" },
+  { value: "PUBLIC", label: "Públicas" },
+  { value: "DEFAULT", label: "Padrão" },
+];
+
 const limingCriteriaOptions: RecommendationLimingCriteria[] = [
   "SATURACAO_POR_BASES_TROCAVEIS",
   "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL",
@@ -143,13 +158,19 @@ const normalizeLimingCriteria = (criteria?: string | null): RecommendationLiming
 
 const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]): TableOption | null => {
   if (!table?.id) return null;
-  const source = table.tabela_publica === true || table.public === true ? "PUBLIC" : fallbackSource;
+  const source =
+    fallbackSource === "DEFAULT" || (table.tabela_publica !== true && table.public !== true)
+      ? fallbackSource
+      : "PUBLIC";
   const cropName = table.nome_comum_cultura ? ` • ${table.nome_comum_cultura}` : "";
   const region = table.regiao ?? table.region;
   const regionText = region ? ` (${region})` : "";
   const baseName = table.nome ?? table.name ?? table.nome_tabela ?? table.nome_criterios ?? `Tabela ${table.id}`;
   return { id: table.id, label: `${baseName}${cropName}${regionText}`, source };
 };
+
+const filterTablesByGroup = (tables: TableOption[], group: TableGroupValue) =>
+  group ? tables.filter((table) => table.source === group) : [];
 
 const formatExtractPosition = (extract: {
   profundidade_inicial?: number;
@@ -275,6 +296,9 @@ export default function Recommendation() {
   const [saturationExtractAnalysisExtractId, setSaturationExtractAnalysisExtractId] = useState("");
   const [annualCropFolderId, setAnnualCropFolderId] = useState("");
   const [cropId, setCropId] = useState("");
+  const [cropFertilizationTableGroup, setCropFertilizationTableGroup] = useState<TableGroupValue>("");
+  const [soilFertilityInterpretationTableGroup, setSoilFertilityInterpretationTableGroup] = useState<TableGroupValue>("");
+  const [cropFoliarAnalysisInterpretationTableGroup, setCropFoliarAnalysisInterpretationTableGroup] = useState<TableGroupValue>("");
   const [cropFertilizationTableId, setCropFertilizationTableId] = useState("");
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
@@ -310,6 +334,18 @@ export default function Recommendation() {
 
   const selectedProperty = useMemo(() => properties.find((p) => String(p.id) === selectedPropertyId), [properties, selectedPropertyId]);
   const selectedPlot = useMemo(() => plots.find((p) => String(p.id) === selectedPlotId), [plots, selectedPlotId]);
+  const filteredCropFertilizationTables = useMemo(
+    () => filterTablesByGroup(cropFertilizationTables, cropFertilizationTableGroup),
+    [cropFertilizationTables, cropFertilizationTableGroup],
+  );
+  const filteredSoilFertilityTables = useMemo(
+    () => filterTablesByGroup(soilFertilityTables, soilFertilityInterpretationTableGroup),
+    [soilFertilityTables, soilFertilityInterpretationTableGroup],
+  );
+  const filteredFoliarInterpretationTables = useMemo(
+    () => filterTablesByGroup(foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup),
+    [foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup],
+  );
 
   const loadHistory = async () => {
     setLoadingHistory(true);
@@ -344,12 +380,42 @@ export default function Recommendation() {
     const loadTables = async () => {
       setLoadingTables(true);
       try {
-        const [cropPrivate, cropPublic, soilPrivate, soilPublic, foliarPrivate, foliarPublic] = await Promise.all([
-          fetchCropFertilizationTables(), fetchPublicCropFertilizationTables(), fetchSoilFertilityTables(), fetchPublicSoilFertilityTables(), fetchFoliarTables(), fetchPublicFoliarTables(),
+        const [
+          cropPrivate,
+          cropPublic,
+          cropDefault,
+          soilPrivate,
+          soilPublic,
+          soilDefault,
+          foliarPrivate,
+          foliarPublic,
+          foliarDefault,
+        ] = await Promise.all([
+          fetchCropFertilizationTables(),
+          fetchPublicCropFertilizationTables(),
+          fetchDefaultCropFertilizationTables(),
+          fetchSoilFertilityTables(),
+          fetchPublicSoilFertilityTables(),
+          fetchDefaultSoilFertilityTables(),
+          fetchFoliarTables(),
+          fetchPublicFoliarTables(),
+          fetchDefaultFoliarTables(),
         ]);
-        setCropFertilizationTables([...(cropPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")), ...(cropPublic ?? []).map((t) => normalizeTable(t, "PUBLIC"))].filter(Boolean) as TableOption[]);
-        setSoilFertilityTables([...(soilPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")), ...(soilPublic ?? []).map((t) => normalizeTable(t, "PUBLIC"))].filter(Boolean) as TableOption[]);
-        setFoliarInterpretationTables([...(foliarPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")), ...(foliarPublic ?? []).map((t) => normalizeTable(t, "PUBLIC"))].filter(Boolean) as TableOption[]);
+        setCropFertilizationTables([
+          ...(cropPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")),
+          ...(cropPublic ?? []).map((t) => normalizeTable(t, "PUBLIC")),
+          ...(cropDefault ?? []).map((t) => normalizeTable(t, "DEFAULT")),
+        ].filter(Boolean) as TableOption[]);
+        setSoilFertilityTables([
+          ...(soilPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")),
+          ...(soilPublic ?? []).map((t) => normalizeTable(t, "PUBLIC")),
+          ...(soilDefault ?? []).map((t) => normalizeTable(t, "DEFAULT")),
+        ].filter(Boolean) as TableOption[]);
+        setFoliarInterpretationTables([
+          ...(foliarPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")),
+          ...(foliarPublic ?? []).map((t) => normalizeTable(t, "PUBLIC")),
+          ...(foliarDefault ?? []).map((t) => normalizeTable(t, "DEFAULT")),
+        ].filter(Boolean) as TableOption[]);
       } catch (error) {
         console.error(error);
         toaster.create({ title: "Falha ao carregar tabelas.", type: "error" });
@@ -636,6 +702,56 @@ export default function Recommendation() {
     : crops.length
       ? "Cultura da pasta anual"
       : "Nenhuma cultura encontrada";
+  const getTableChoicePlaceholder = (group: TableGroupValue, tables: TableOption[]) => {
+    if (!group) return "Selecione o grupo da tabela";
+    return tables.length ? "Escolha da tabela" : "Nenhuma tabela encontrada";
+  };
+  const renderTableSelectors = ({
+    label,
+    group,
+    tableId,
+    tables,
+    onGroupChange,
+    onTableChange,
+  }: {
+    label: string;
+    group: TableGroupValue;
+    tableId: string;
+    tables: TableOption[];
+    onGroupChange: (value: TableGroupValue) => void;
+    onTableChange: (value: string) => void;
+  }) => (
+    <Box>
+      <Text fontSize="sm" mb={1}>{label}</Text>
+      <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2}>
+        <NativeSelect
+          value={group}
+          onChange={(e) => {
+            onGroupChange(e.target.value as TableGroupValue);
+            onTableChange("");
+          }}
+          disabled={loadingTables}
+          aria-label={`${label}: grupo da tabela`}
+        >
+          <option value="">Grupo da tabela</option>
+          {tableGroupOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </NativeSelect>
+        <NativeSelect
+          value={tableId}
+          onChange={(e) => onTableChange(e.target.value)}
+          disabled={loadingTables || !group || tables.length === 0}
+          aria-label={`${label}: escolha da tabela`}
+        >
+          <option value="">{getTableChoicePlaceholder(group, tables)}</option>
+          {tables.map((table) => (
+            <option key={`${table.source}-${table.id}`} value={table.id}>{table.label}</option>
+          ))}
+        </NativeSelect>
+      </SimpleGrid>
+    </Box>
+  );
 
   return (
     <UserLayout><FertName subtitle="Módulo de recomendações" /><ConfigMenu />
@@ -655,9 +771,30 @@ export default function Recommendation() {
               <NativeSelect value={saturationExtractAnalysisExtractId} onChange={(e) => setSaturationExtractAnalysisExtractId(e.target.value)} disabled={!selectedPlotId || loadingPlotAnalyses || saturationExtractAnalysisOptions.length === 0}>{loadingPlotAnalyses ? <option>Carregando análises de extrato de saturação...</option> : <><option value="">{saturationExtractAnalysisPlaceholder}</option>{saturationExtractAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}</>}</NativeSelect>
               <NativeSelect value={annualCropFolderId} onChange={(e) => setAnnualCropFolderId(e.target.value)} disabled={!selectedPlotId || loadingAnnualCropFolders || annualCropFolders.length === 0}>{loadingAnnualCropFolders ? <option>Carregando pastas anuais...</option> : <><option value="">{annualCropFolderPlaceholder}</option>{annualCropFolders.map((folder) => <option key={folder.id} value={folder.id}>{getFolderLabel(folder)}</option>)}</>}</NativeSelect>
               <NativeSelect value={cropId} onChange={(e) => setCropId(e.target.value)} disabled={!annualCropFolderId || loadingCrops || crops.length === 0}>{loadingCrops ? <option>Carregando culturas...</option> : <><option value="">{cropPlaceholder}</option>{crops.map((crop) => <option key={crop.id} value={crop.id}>{getCropLabel(crop)}</option>)}</>}</NativeSelect>
-              <NativeSelect value={cropFertilizationTableId} onChange={(e) => setCropFertilizationTableId(e.target.value)} disabled={loadingTables || cropFertilizationTables.length === 0}><option value="">{cropFertilizationTables.length ? "Tabela de adubação de culturas" : "Nenhuma tabela encontrada"}</option>{cropFertilizationTables.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</NativeSelect>
-              <NativeSelect value={soilFertilityInterpretationTableId} onChange={(e) => setSoilFertilityInterpretationTableId(e.target.value)} disabled={loadingTables || soilFertilityTables.length === 0}><option value="">{soilFertilityTables.length ? "Tabela de interpretação da fertilidade do solo" : "Nenhuma tabela encontrada"}</option>{soilFertilityTables.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</NativeSelect>
-              <NativeSelect value={cropFoliarAnalysisInterpretationTableId} onChange={(e) => setCropFoliarAnalysisInterpretationTableId(e.target.value)} disabled={loadingTables || foliarInterpretationTables.length === 0}><option value="">{foliarInterpretationTables.length ? "Tabela de interpretação de análise foliar" : "Nenhuma tabela encontrada"}</option>{foliarInterpretationTables.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</NativeSelect>
+              {renderTableSelectors({
+                label: "Tabela de adubação de culturas",
+                group: cropFertilizationTableGroup,
+                tableId: cropFertilizationTableId,
+                tables: filteredCropFertilizationTables,
+                onGroupChange: setCropFertilizationTableGroup,
+                onTableChange: setCropFertilizationTableId,
+              })}
+              {renderTableSelectors({
+                label: "Tabela de interpretação da fertilidade do solo",
+                group: soilFertilityInterpretationTableGroup,
+                tableId: soilFertilityInterpretationTableId,
+                tables: filteredSoilFertilityTables,
+                onGroupChange: setSoilFertilityInterpretationTableGroup,
+                onTableChange: setSoilFertilityInterpretationTableId,
+              })}
+              {renderTableSelectors({
+                label: "Tabela de interpretação de análise foliar",
+                group: cropFoliarAnalysisInterpretationTableGroup,
+                tableId: cropFoliarAnalysisInterpretationTableId,
+                tables: filteredFoliarInterpretationTables,
+                onGroupChange: setCropFoliarAnalysisInterpretationTableGroup,
+                onTableChange: setCropFoliarAnalysisInterpretationTableId,
+              })}
               <NativeSelect value={limingCriteria} onChange={(e) => setLimingCriteria(e.target.value)}><option value="">Critério de calagem</option>{limingCriteriaOptions.map((c) => <option key={c} value={c}>{c}</option>)}</NativeSelect>
               <Box>
                 <Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
