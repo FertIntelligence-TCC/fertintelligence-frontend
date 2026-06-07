@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Grid, Text, Input, Heading } from "@chakra-ui/react";
 import { FertilizationTableFormState, CropType, CropScientificNames, CropLabels, RegionType, RegionLabels } from "../types";
-import { SelectElement, selectFieldStyles, commonFieldStyles, readOnlyFieldStyles } from "../styles";
+import { SelectElement, selectFieldStyles, commonFieldStyles } from "../styles";
 
 // Helper para estilo readonly específico se necessário, ou reimportar do styles
 const readOnlyStyles = { ...commonFieldStyles, bg: "gray.100", _dark: { bg: "gray.700", borderColor: "gray.600", color: "gray.300" }, cursor: "not-allowed" };
@@ -34,9 +34,9 @@ export default function IdentificationSection({ form, onFormChange, readOnly }: 
                         {...selectFieldStyles} 
                         value={form.nomeComum} 
                         onChange={handleCropChange}
-                        placeholder="Selecione uma cultura"
                         disabled={readOnly}
                     >
+                        <option value="">Selecione uma cultura</option>
                         {Object.values(CropType).map(key => (
                             <option key={key} value={key}>{CropLabels[key]}</option>
                         ))}
@@ -53,9 +53,9 @@ export default function IdentificationSection({ form, onFormChange, readOnly }: 
                         {...selectFieldStyles} 
                         value={form.regiao} 
                         onChange={(e: any) => onFormChange("regiao", e.target.value)}
-                        placeholder="Selecione a região"
                         disabled={readOnly}
                     >
+                        <option value="">Selecione a região</option>
                         {Object.values(RegionType).map(key => (
                             <option key={key} value={key}>{RegionLabels[key]}</option>
                         ))}

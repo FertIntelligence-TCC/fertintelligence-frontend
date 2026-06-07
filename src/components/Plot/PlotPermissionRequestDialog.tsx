@@ -2,13 +2,16 @@ import {
     Dialog,
     Button,
     Field,
-    Select,
     Stack,
     Text,
   } from "@chakra-ui/react";
   import { useEffect, useMemo, useState } from "react";
   import { toaster } from "@/components/ui/toaster";
-  import { requestPlotAccess, PermissionType } from "@/services/plotAccessRequestService";
+  import { requestPlotAccess } from "@/services/plotAccessRequestService";
+  import { fetchMyProperties } from "@/services/propertyService";
+  import { getPlotsByProperty } from "@/services/plotService";
+  import { SelectElement } from "@/components/FertilizationTable/styles";
+  import type { PermissionType } from "@/interfaces/PlotAccessRequest";
   
   type Property = { id: number; nome: string };
   type Plot = { id: number; identification: string };
@@ -50,16 +53,60 @@ import {
   
     const canSubmit =
       typeof propertyId === "number" && (!requiresPlot || typeof plotId === "number");
+
+    useEffect(() => {
+      if (!open || mode === "other") return;
+
+      (async () => {
+        try {
+          const data = await fetchMyProperties();
+          setProperties((data ?? []).map((property) => ({
+            id: property.id,
+            nome: property.nome,
+          })));
+        } catch {
+          toaster.create({
+            title: "Erro",
+            description: "Não foi possível carregar as propriedades.",
+            type: "error",
+          });
+        }
+      })();
+    }, [mode, open]);
+
+    useEffect(() => {
+      if (!requiresPlot || typeof propertyId !== "number") {
+        setPlots([]);
+        setPlotId("");
+        return;
+      }
+
+      (async () => {
+        try {
+          const data = await getPlotsByProperty(propertyId);
+          setPlots((data ?? []).map((plot) => ({
+            id: plot.id,
+            identification: plot.identificacao ?? "",
+          })));
+        } catch {
+          toaster.create({
+            title: "Erro",
+            description: "Não foi possível carregar os talhões.",
+            type: "error",
+          });
+        }
+      })();
+    }, [propertyId, requiresPlot]);
   
     const submit = async () => {
       if (!canSubmit) return;
   
-      setLoading(true);
-      try {
-        await requestPlotAccess({
-          id_propriedade: propertyId as number,
-          id_talhao: requiresPlot ? (plotId as number) : null,
-          tipo_permissao: permissionType,
+        setLoading(true);
+        try {
+          await requestPlotAccess({
+          propertyId: propertyId as number,
+          plotId: requiresPlot ? (plotId as number) : null,
+          permissionType,
         });
   
         toaster.create({
@@ -99,41 +146,41 @@ import {
                 <Stack gap="4">
                   <Field.Root required>
                     <Field.Label>Propriedade</Field.Label>
-                    <Select.Root
+                    <SelectElement
+                      w="full"
+                      p={2}
+                      borderWidth="1px"
+                      borderRadius="md"
                       value={propertyId ? String(propertyId) : ""}
-                      onValueChange={(e) =>
-                        setPropertyId(e.value ? Number(e.value) : "")
-                      }
+                      onChange={(e) => setPropertyId(e.target.value ? Number(e.target.value) : "")}
                     >
-                      <Select.Trigger />
-                      <Select.Content>
-                        {properties.map((p) => (
-                          <Select.Item key={p.id} value={String(p.id)}>
-                            {p.nome}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Root>
+                      <option value="">Selecione uma propriedade</option>
+                      {properties.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.nome}
+                        </option>
+                      ))}
+                    </SelectElement>
                   </Field.Root>
   
                   {requiresPlot && (
                     <Field.Root required>
                       <Field.Label>Talhão</Field.Label>
-                      <Select.Root
+                      <SelectElement
+                        w="full"
+                        p={2}
+                        borderWidth="1px"
+                        borderRadius="md"
                         value={plotId ? String(plotId) : ""}
-                        onValueChange={(e) =>
-                          setPlotId(e.value ? Number(e.value) : "")
-                        }
+                        onChange={(e) => setPlotId(e.target.value ? Number(e.target.value) : "")}
                       >
-                        <Select.Trigger />
-                        <Select.Content>
-                          {plots.map((pl) => (
-                            <Select.Item key={pl.id} value={String(pl.id)}>
-                              {pl.identification || `Talhão ${pl.id}`}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Root>
+                        <option value="">Selecione um talhão</option>
+                        {plots.map((pl) => (
+                          <option key={pl.id} value={pl.id}>
+                            {pl.identification || `Talhão ${pl.id}`}
+                          </option>
+                        ))}
+                      </SelectElement>
                     </Field.Root>
                   )}
   

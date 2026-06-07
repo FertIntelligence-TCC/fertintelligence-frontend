@@ -31,7 +31,7 @@ export default function FoliarMineralFertilizerCard(props: Props) {
             <Text fontSize="xs" color="gray.500" mt={1}>
                 Secundários & Micros:
             </Text>
-            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} noOfLines={1}>
+            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={1}>
                Ca: {item.ca}% | Mg: {item.mg}% | S: {item.s}% | B: {item.b}%...
             </Text>
         </FertilizerCardBase>

@@ -150,13 +150,12 @@ export const AnnualCropFolderCropsDialog = ({
                     <Button
                       size="sm"
                       colorScheme="green"
-                      leftIcon={<FiEye />}
                       onClick={(event) => {
                         event.stopPropagation();
                         onSelectCrop(crop);
                       }}
                     >
-                      Visualizar Dados
+                      <FiEye /> Visualizar Dados
                     </Button>
                   </Flex>
                 )}

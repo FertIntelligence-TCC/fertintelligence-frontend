@@ -279,7 +279,7 @@ export const PhysicalAnalysis = () => {
                                             {group.type}
                                         </Badge>
                                     </Flex>
-                                    <Text fontWeight="bold" mt={2} noOfLines={1} title={group.lab}>
+                                    <Text fontWeight="bold" mt={2} lineClamp={1} title={group.lab}>
                                         {group.lab}
                                     </Text>
                                 </Box>

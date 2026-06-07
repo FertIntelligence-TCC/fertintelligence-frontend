@@ -138,11 +138,7 @@ export const AnnualCropFolders = () => {
       <Box pt={{ base: 4, md: 8 }} pb={8} px={{ base: 4, md: 8 }}>
         <Flex justify="space-between" align="center" mb={6} wrap="wrap" gap={4}>
           <FertName
-            label={`Talhão: ${plotIdentification || "Carregando..."}`}
-            crumbs={[
-              { label: "Propriedades", to: "/owner-properties" },
-              { label: "Detalhes", to: "#" },
-            ]}
+            subtitle={`Talhão: ${plotIdentification || "Carregando..."}`}
           />
           <ConfigMenu />
         </Flex>

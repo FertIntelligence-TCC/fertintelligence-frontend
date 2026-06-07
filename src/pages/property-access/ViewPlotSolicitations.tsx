@@ -6,6 +6,7 @@ import { Box, Button, Flex, Heading, Text, Spinner, Badge } from "@chakra-ui/rea
 
 import UserLayout from "@/components/Layouts/UserLayout";
 import { toaster } from "@/components/ui/toaster";
+import { SelectElement } from "@/components/FertilizationTable/styles";
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@/components/ui/custom-tabs";
 
 import { fetchManageableProperties } from "@/services/propertyService";
@@ -292,8 +293,7 @@ export default function ViewPlotSolicitations() {
             Selecione a Propriedade:
           </Text>
 
-          <Box
-            as="select"
+          <SelectElement
             w="full"
             p={2}
             borderWidth="1px"
@@ -314,7 +314,7 @@ export default function ViewPlotSolicitations() {
                 {p.nome}
               </option>
             ))}
-          </Box>
+          </SelectElement>
         </Box>
 
         {/* Filtro por talhão (opcional) */}
@@ -323,8 +323,7 @@ export default function ViewPlotSolicitations() {
             Filtrar por Talhão (opcional):
           </Text>
 
-          <Box
-            as="select"
+          <SelectElement
             w="full"
             p={2}
             borderWidth="1px"
@@ -344,7 +343,7 @@ export default function ViewPlotSolicitations() {
                 {p.identification}
               </option>
             ))}
-          </Box>
+          </SelectElement>
 
           <Text fontSize="xs" opacity={0.8} mt={2}>
             Obs: pedidos “Todos os talhões” (escopo PROPERTY) não entram nesse filtro.
