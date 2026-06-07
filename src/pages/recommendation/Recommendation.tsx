@@ -120,8 +120,9 @@ const recommendationTypeOptions: { value: RecommendationType; label: string }[] 
 ];
 
 const fertilizerOriginOptions: { value: FertilizerSourceOption; label: string }[] = [
-  { value: "PRIVATE", label: "Adubos privados" },
-  { value: "PUBLIC", label: "Adubos públicos" },
+  { value: "PRIVATE", label: "Privados" },
+  { value: "PUBLIC", label: "Públicos" },
+  { value: "DEFAULT", label: "Padrão" },
   { value: "BOTH", label: "Ambos" },
 ];
 

@@ -3,7 +3,7 @@ export type RecommendationType =
   | "FERTILIZATION"
   | "BOTH";
 
-export type FertilizerSourceOption = "PRIVATE" | "PUBLIC" | "BOTH";
+export type FertilizerSourceOption = "PRIVATE" | "PUBLIC" | "DEFAULT" | "BOTH";
 
 export type RecommendationLimingCriteria =
   | "SATURACAO_POR_BASES_TROCAVEIS"
