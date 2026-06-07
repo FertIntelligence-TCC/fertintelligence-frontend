@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // 1. Removemos Select, Tabs, etc, daqui:
-import { Box, Button, Flex, Heading, Text, Spinner, Badge } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Text, Spinner, Badge, chakra } from "@chakra-ui/react";
 
 import UserLayout from "@/components/Layouts/UserLayout";
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
@@ -9,10 +9,11 @@ import { fetchManageableProperties } from "@/services/propertyService";
 import { toaster } from "@/components/ui/toaster";
 import { PropertyAccessRequestResponse } from "@/interfaces/PropertyAccessRequest";
 import { PropertyResponse } from "@/interfaces/Property";
-import { Cargo } from "@/interfaces/User";
 
 // 2. Importamos os componentes customizados que criamos!
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from "@/components/ui/custom-tabs";
+
+const NativeSelect = chakra("select");
 
 export default function ViewSolicitations() {
   const navigate = useNavigate();
@@ -65,9 +66,9 @@ export default function ViewSolicitations() {
   // AÇÃO: Aceitar
   const handleAccept = async (requestId: number, cargoSolicitante: string) => {
     // Validação de Gerente
-    if (cargoSolicitante === Cargo.GERENTE || cargoSolicitante === "GERENTE") {
+    if (cargoSolicitante === "GERENTE") {
       const hasGerente = acceptedRequests.some(
-        (r) => r.cargo_solicitante === Cargo.GERENTE || r.cargo_solicitante === "GERENTE"
+        (r) => r.cargo_solicitante === "GERENTE"
       );
       
       if (hasGerente) {
@@ -115,8 +116,7 @@ export default function ViewSolicitations() {
         {/* Seleção de Propriedade (Adaptado com Box as="select" para evitar bugs do Chakra V3) */}
         <Box mb={8} bg="white" _dark={{ bg: "gray.800" }} p={4} borderRadius="md" boxShadow="sm">
           <Text mb={2} fontWeight="bold">Selecione a Propriedade:</Text>
-          <Box 
-            as="select"
+          <NativeSelect
             w="full"
             p={2}
             borderWidth="1px"
@@ -130,7 +130,7 @@ export default function ViewSolicitations() {
             {properties.map(prop => (
               <option key={prop.id} value={prop.id}>{prop.nome}</option>
             ))}
-          </Box>
+          </NativeSelect>
         </Box>
 
         {/* Box com as Abas */}

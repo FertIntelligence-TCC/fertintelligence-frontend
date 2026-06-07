@@ -7,6 +7,7 @@ import type {
 export type AccessCardStatus = "NONE" | "PENDING" | "APPROVED";
 
 export type AuthorizationRoleMode =
+  | "SUPREME"
   | "OWNER"
   | "MANAGER"
   | "RESIDENT"
@@ -45,6 +46,7 @@ export const getAuthorizationRoleMode = (
   const normalized = normalizeCargo(cargo);
 
   if (normalized === normalizeCargo(Cargo.PROPRIETARIO)) return "OWNER";
+  if (normalized === normalizeCargo(Cargo.USUARIO_SUPREMO)) return "SUPREME";
   if (normalized === normalizeCargo(Cargo.GERENTE)) return "MANAGER";
   if (normalized === normalizeCargo(Cargo.AGRONOMO_RESIDENTE)) return "RESIDENT";
   if (normalized === normalizeCargo(Cargo.AGRONOMO_CONSULTOR)) return "CONSULTANT";

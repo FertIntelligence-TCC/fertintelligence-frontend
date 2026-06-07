@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Flex, Heading, Text, Spinner, Badge } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Text, Spinner, Badge, chakra } from "@chakra-ui/react";
 
 import UserLayout from "@/components/Layouts/UserLayout";
 import { toaster } from "@/components/ui/toaster";
@@ -17,6 +17,7 @@ import type { PropertyResponse } from "@/interfaces/Property";
 import { isSupremeUserCargo } from "@/interfaces/Authorization";
 
 type Status = "PENDING" | "APPROVED" | "REVOKED";
+const NativeSelect = chakra("select");
 
 const normalize = (v?: string) =>
   (v ?? "")
@@ -292,8 +293,7 @@ export default function ViewPlotSolicitations() {
             Selecione a Propriedade:
           </Text>
 
-          <Box
-            as="select"
+          <NativeSelect
             w="full"
             p={2}
             borderWidth="1px"
@@ -314,7 +314,7 @@ export default function ViewPlotSolicitations() {
                 {p.nome}
               </option>
             ))}
-          </Box>
+          </NativeSelect>
         </Box>
 
         {/* Filtro por talhão (opcional) */}
@@ -323,8 +323,7 @@ export default function ViewPlotSolicitations() {
             Filtrar por Talhão (opcional):
           </Text>
 
-          <Box
-            as="select"
+          <NativeSelect
             w="full"
             p={2}
             borderWidth="1px"
@@ -344,7 +343,7 @@ export default function ViewPlotSolicitations() {
                 {p.identification}
               </option>
             ))}
-          </Box>
+          </NativeSelect>
 
           <Text fontSize="xs" opacity={0.8} mt={2}>
             Obs: pedidos “Todos os talhões” (escopo PROPERTY) não entram nesse filtro.

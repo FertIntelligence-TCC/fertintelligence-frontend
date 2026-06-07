@@ -2,16 +2,18 @@ import {
     Dialog,
     Button,
     Field,
-    Select,
     Stack,
     Text,
+    chakra,
   } from "@chakra-ui/react";
-  import { useEffect, useMemo, useState } from "react";
+  import { useMemo, useState } from "react";
   import { toaster } from "@/components/ui/toaster";
-  import { requestPlotAccess, PermissionType } from "@/services/plotAccessRequestService";
+  import { requestPlotAccess } from "@/services/plotAccessRequestService";
+  import type { PermissionType } from "@/interfaces/PlotAccessRequest";
   
   type Property = { id: number; nome: string };
   type Plot = { id: number; identification: string };
+  const NativeSelect = chakra("select");
   
   type Props = {
     open: boolean;
@@ -25,8 +27,8 @@ import {
     cargoNormalized,
   }: Props) {
     const [loading, setLoading] = useState(false);
-    const [properties, setProperties] = useState<Property[]>([]);
-    const [plots, setPlots] = useState<Plot[]>([]);
+    const [properties] = useState<Property[]>([]);
+    const [plots] = useState<Plot[]>([]);
     const [propertyId, setPropertyId] = useState<number | "">("");
     const [plotId, setPlotId] = useState<number | "">("");
   
@@ -57,9 +59,9 @@ import {
       setLoading(true);
       try {
         await requestPlotAccess({
-          id_propriedade: propertyId as number,
-          id_talhao: requiresPlot ? (plotId as number) : null,
-          tipo_permissao: permissionType,
+          propertyId: propertyId as number,
+          plotId: requiresPlot ? (plotId as number) : null,
+          permissionType,
         });
   
         toaster.create({
@@ -99,41 +101,43 @@ import {
                 <Stack gap="4">
                   <Field.Root required>
                     <Field.Label>Propriedade</Field.Label>
-                    <Select.Root
+                    <NativeSelect
                       value={propertyId ? String(propertyId) : ""}
-                      onValueChange={(e) =>
-                        setPropertyId(e.value ? Number(e.value) : "")
+                      onChange={(e) =>
+                        setPropertyId(e.target.value ? Number(e.target.value) : "")
                       }
+                      p={2}
+                      borderWidth="1px"
+                      borderRadius="md"
                     >
-                      <Select.Trigger />
-                      <Select.Content>
-                        {properties.map((p) => (
-                          <Select.Item key={p.id} value={String(p.id)}>
-                            {p.nome}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Root>
+                      <option value="">Selecione uma propriedade</option>
+                      {properties.map((p) => (
+                        <option key={p.id} value={String(p.id)}>
+                          {p.nome}
+                        </option>
+                      ))}
+                    </NativeSelect>
                   </Field.Root>
   
                   {requiresPlot && (
                     <Field.Root required>
                       <Field.Label>Talhão</Field.Label>
-                      <Select.Root
+                      <NativeSelect
                         value={plotId ? String(plotId) : ""}
-                        onValueChange={(e) =>
-                          setPlotId(e.value ? Number(e.value) : "")
+                        onChange={(e) =>
+                          setPlotId(e.target.value ? Number(e.target.value) : "")
                         }
+                        p={2}
+                        borderWidth="1px"
+                        borderRadius="md"
                       >
-                        <Select.Trigger />
-                        <Select.Content>
-                          {plots.map((pl) => (
-                            <Select.Item key={pl.id} value={String(pl.id)}>
-                              {pl.identification || `Talhão ${pl.id}`}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Root>
+                        <option value="">Selecione um talhão</option>
+                        {plots.map((pl) => (
+                          <option key={pl.id} value={String(pl.id)}>
+                            {pl.identification || `Talhão ${pl.id}`}
+                          </option>
+                        ))}
+                      </NativeSelect>
                     </Field.Root>
                   )}
   

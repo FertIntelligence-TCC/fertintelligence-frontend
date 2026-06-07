@@ -15,7 +15,6 @@ export default function ConfigMenu() {
   const menuRef = useRef(null);
   const user = useUserStore((s) => s.user) as User | null;
   const [userImage, setUserImage] = useState(sessionStorage.getItem("userImage") || "");
-  const [loadingUser, setLoadingUser] = useState(true);
 
   // Função para lidar com o clique fora do menu
   useEffect(() => {
@@ -50,7 +49,6 @@ export default function ConfigMenu() {
     async function loadUserImage() {
       // Cláusula de guarda: bloqueia a requisição se não houver usuário ou id da foto
       if (!user || !user.idfoto) {
-        if (isMounted) setLoadingUser(false);
         return;
       }
   
@@ -63,10 +61,6 @@ export default function ConfigMenu() {
         }
       } catch (error) {
         console.error("Erro ao buscar imagem no MongoDB:", error);
-      } finally {
-        if (isMounted) {
-          setLoadingUser(false);
-        }
       }
     }
   
@@ -138,7 +132,7 @@ export default function ConfigMenu() {
           top="100%"
           right={0}
           mt={2}
-          spacing={0}
+          gap={0}
           bg={{ base: "white", _dark: "gray.700" }}
           _light={{ color: "black", _hover: { bg: "gray.100" } }}
           _dark={{ color: "white", _hover: { bg: "whiteAlpha.200" } }}
