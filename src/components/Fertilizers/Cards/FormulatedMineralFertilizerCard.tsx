@@ -1,6 +1,7 @@
 import { Text } from "@chakra-ui/react";
 import { FormulatedMineralFertilizerResponseDto } from "@/interfaces/Fertilizer";
 import FertilizerCardBase from "@/components/Fertilizers/Shared/FertilizerCardBase";
+import { formatNpkRelation } from "@/utils/npkRelation";
 
 type Props = {
     item: FormulatedMineralFertilizerResponseDto;
@@ -15,7 +16,7 @@ export default function FormulatedMineralFertilizerCard(props: Props) {
     const { item } = props;
     
     const f = item.formula || { n: 0, p: 0, k: 0 };
-    const r = item.relacao || { n: 0, p: 0, k: 0 };
+    const r = formatNpkRelation(item.relacao || { n: 0, p: 0, k: 0 });
     const formulaName = `NPK ${f.n}-${f.p}-${f.k}`;
     const relationString = `${r.n} : ${r.p} : ${r.k}`;
 

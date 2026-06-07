@@ -37,37 +37,42 @@ import {
 
 import FormulatedMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FormulatedMineralFertilizerFormFields";
 import FormulatedMineralFertilizerCard from "@/components/Fertilizers/Cards/FormulatedMineralFertilizerCard";
+import { formatNpkRelation } from "@/utils/npkRelation";
 
 // --- Mappers ---
 
 const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 // Mapeia da Resposta (Backend) para o Formulário (Frontend)
-const mapResponseToForm = (dto: FormulatedMineralFertilizerResponseDto): FormulatedFertilizerFormState => ({
-  formulaN: String(dto.formula?.n ?? 0),   // CORRIGIDO: 'formula'
-  formulaP: String(dto.formula?.p ?? 0),
-  formulaK: String(dto.formula?.k ?? 0),
-  
-  relacaoN: String(dto.relacao?.n ?? 0),   // CORRIGIDO: 'relacao'
-  relacaoP: String(dto.relacao?.p ?? 0),
-  relacaoK: String(dto.relacao?.k ?? 0),
+const mapResponseToForm = (dto: FormulatedMineralFertilizerResponseDto): FormulatedFertilizerFormState => {
+  const relation = formatNpkRelation(dto.relacao ?? { n: 0, p: 0, k: 0 });
 
-  n: String(dto.n ?? 0),
-  p2o5: String(dto.p2o5 ?? 0),
-  k2o: String(dto.k2o ?? 0),
-  ca: String(dto.ca ?? 0),
-  mg: String(dto.mg ?? 0),
-  s: String(dto.s ?? 0),
-  b: String(dto.b ?? 0),
-  cu: String(dto.cu ?? 0),
-  fe: String(dto.fe ?? 0),
-  mn: String(dto.mn ?? 0),
-  mo: String(dto.mo ?? 0),
-  zn: String(dto.zn ?? 0),
-  
-  numeroFormulaIndicada: String(dto.numero_formula_indicada ?? 0), // CORRIGIDO
-  publico: dto.publico ? "sim" : "nao",
-});
+  return {
+    formulaN: String(dto.formula?.n ?? 0),   // CORRIGIDO: 'formula'
+    formulaP: String(dto.formula?.p ?? 0),
+    formulaK: String(dto.formula?.k ?? 0),
+
+    relacaoN: relation.n,   // CORRIGIDO: 'relacao'
+    relacaoP: relation.p,
+    relacaoK: relation.k,
+
+    n: String(dto.n ?? 0),
+    p2o5: String(dto.p2o5 ?? 0),
+    k2o: String(dto.k2o ?? 0),
+    ca: String(dto.ca ?? 0),
+    mg: String(dto.mg ?? 0),
+    s: String(dto.s ?? 0),
+    b: String(dto.b ?? 0),
+    cu: String(dto.cu ?? 0),
+    fe: String(dto.fe ?? 0),
+    mn: String(dto.mn ?? 0),
+    mo: String(dto.mo ?? 0),
+    zn: String(dto.zn ?? 0),
+
+    numeroFormulaIndicada: String(dto.numero_formula_indicada ?? 0), // CORRIGIDO
+    publico: dto.publico ? "sim" : "nao",
+  };
+};
 
 // Mapeia do Formulário para o Payload de CRIAÇÃO
 const mapFormToCreatePayload = (form: FormulatedFertilizerFormState): FormulatedMineralFertilizerCreateRequestDto => ({

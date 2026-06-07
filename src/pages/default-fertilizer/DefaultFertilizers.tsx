@@ -33,6 +33,7 @@ import { fetchDefaultBioFertilizers } from "@/services/bioFertilizerService";
 import { fetchDefaultChelatedFertilizers } from "@/services/chelatedFertilizerService";
 import { fetchDefaultMineralFertilizers } from "@/services/foliarMineralFertilizerService";
 import { fetchDefaultFormulatedFertilizers } from "@/services/formulatedMineralFertilizerService";
+import { formatNpkRelation } from "@/utils/npkRelation";
 import { fetchDefaultGreenFertilizers } from "@/services/greenFertilizerService";
 import { fetchDefaultOrganoMineralFertilizers } from "@/services/organoMineralFertilizerService";
 import { fetchDefaultSimpleMineralFertilizers } from "@/services/simpleMineralFertilizerService";
@@ -117,29 +118,33 @@ const toOrganoMineralForm = (item: OrganoMineralFertilizerResponseDto): OrganoMi
 const toGreenForm = (item: GreenFertilizerResponseDto): GreenFertilizerFormState =>
   toCarbonFertilizerForm(item, DEFAULT_GREEN_FERTILIZER_FORM_STATE);
 
-const toFormulatedForm = (item: FormulatedMineralFertilizerResponseDto): FormulatedFertilizerFormState => ({
-  ...DEFAULT_FORMULATED_FORM_STATE,
-  formulaN: String(item.formula?.n ?? 0),
-  formulaP: String(item.formula?.p ?? 0),
-  formulaK: String(item.formula?.k ?? 0),
-  relacaoN: String(item.relacao?.n ?? 0),
-  relacaoP: String(item.relacao?.p ?? 0),
-  relacaoK: String(item.relacao?.k ?? 0),
-  n: String(item.n ?? 0),
-  p2o5: String(item.p2o5 ?? 0),
-  k2o: String(item.k2o ?? 0),
-  ca: String(item.ca ?? 0),
-  mg: String(item.mg ?? 0),
-  s: String(item.s ?? 0),
-  b: String(item.b ?? 0),
-  cu: String(item.cu ?? 0),
-  fe: String(item.fe ?? 0),
-  mn: String(item.mn ?? 0),
-  mo: String(item.mo ?? 0),
-  zn: String(item.zn ?? 0),
-  numeroFormulaIndicada: String(item.numero_formula_indicada ?? 0),
-  publico: publicValue(item.publico),
-});
+const toFormulatedForm = (item: FormulatedMineralFertilizerResponseDto): FormulatedFertilizerFormState => {
+  const relation = formatNpkRelation(item.relacao ?? { n: 0, p: 0, k: 0 });
+
+  return {
+    ...DEFAULT_FORMULATED_FORM_STATE,
+    formulaN: String(item.formula?.n ?? 0),
+    formulaP: String(item.formula?.p ?? 0),
+    formulaK: String(item.formula?.k ?? 0),
+    relacaoN: relation.n,
+    relacaoP: relation.p,
+    relacaoK: relation.k,
+    n: String(item.n ?? 0),
+    p2o5: String(item.p2o5 ?? 0),
+    k2o: String(item.k2o ?? 0),
+    ca: String(item.ca ?? 0),
+    mg: String(item.mg ?? 0),
+    s: String(item.s ?? 0),
+    b: String(item.b ?? 0),
+    cu: String(item.cu ?? 0),
+    fe: String(item.fe ?? 0),
+    mn: String(item.mn ?? 0),
+    mo: String(item.mo ?? 0),
+    zn: String(item.zn ?? 0),
+    numeroFormulaIndicada: String(item.numero_formula_indicada ?? 0),
+    publico: publicValue(item.publico),
+  };
+};
 
 export function DefaultSimpleMineralFertilizer() {
   return (
