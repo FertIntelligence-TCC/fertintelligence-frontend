@@ -37,6 +37,12 @@ interface Props {
 
 // Configuração dos Nutrientes
 const NUTRIENTS = [
+    { label: "Al trocável (Al³+, cmolc/dm³)", value: "aluminio" },
+    { label: "H+Al (cmolc/dm³)", value: "aluminio_mais_hidrogenio" },
+    { label: "CTC (t) (cmolc/dm³)", value: "ctc_efetiva" },
+    { label: "CTC (T) (cmolc/dm³)", value: "ctc_ph7" },
+    { label: "pH em água (1:2,5)", value: "ph_agua" },
+    { label: "pH em CaCl2 0,01 mol/L (1:2,5)", value: "ph_cacl2" },
     { label: "Carbono Orgânico (dag/kg)", value: "carbono_organico" },
     { label: "Matéria Orgânica (dag/kg)", value: "materia_organica" },
     { label: "Cálcio (cmolc/dm³)", value: "calcio" },
@@ -86,14 +92,14 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
         const newForm: Record<string, string> = {};
         NUTRIENTS.forEach(n => {
             const suffix = n.value;
-            newForm[`menor_teor_${suffix}`] = String(data[`menor_teor_${suffix}`] || "");
-            newForm[`teor_inicial_baixo_${suffix}`] = String(data[`teor_inicial_baixo_${suffix}`] || "");
-            newForm[`teor_final_baixo_${suffix}`] = String(data[`teor_final_baixo_${suffix}`] || "");
-            newForm[`teor_inicial_medio_${suffix}`] = String(data[`teor_inicial_medio_${suffix}`] || "");
-            newForm[`teor_final_medio_${suffix}`] = String(data[`teor_final_medio_${suffix}`] || "");
-            newForm[`teor_inicial_alto_${suffix}`] = String(data[`teor_inicial_alto_${suffix}`] || "");
-            newForm[`teor_final_alto_${suffix}`] = String(data[`teor_final_alto_${suffix}`] || "");
-            newForm[`maior_teor_${suffix}`] = String(data[`maior_teor_${suffix}`] || "");
+            newForm[`menor_teor_${suffix}`] = String(data[`menor_teor_${suffix}`] ?? "");
+            newForm[`teor_inicial_baixo_${suffix}`] = String(data[`teor_inicial_baixo_${suffix}`] ?? "");
+            newForm[`teor_final_baixo_${suffix}`] = String(data[`teor_final_baixo_${suffix}`] ?? "");
+            newForm[`teor_inicial_medio_${suffix}`] = String(data[`teor_inicial_medio_${suffix}`] ?? "");
+            newForm[`teor_final_medio_${suffix}`] = String(data[`teor_final_medio_${suffix}`] ?? "");
+            newForm[`teor_inicial_alto_${suffix}`] = String(data[`teor_inicial_alto_${suffix}`] ?? "");
+            newForm[`teor_final_alto_${suffix}`] = String(data[`teor_final_alto_${suffix}`] ?? "");
+            newForm[`maior_teor_${suffix}`] = String(data[`maior_teor_${suffix}`] ?? "");
         });
         setForm(newForm);
       } else {
