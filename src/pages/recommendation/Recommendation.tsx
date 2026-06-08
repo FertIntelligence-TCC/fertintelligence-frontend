@@ -378,79 +378,104 @@ export default function Recommendation() {
       } finally { setLoadingProperties(false); }
     };
 
-    const loadTables = async () => {
-      setLoadingTables(true);
-      try {
-        const [
-          soilPrivate,
-          soilPublic,
-          soilDefault,
-          foliarPrivate,
-          foliarPublic,
-          foliarDefault,
-        ] = await Promise.all([
-          fetchSoilFertilityTables(),
-          fetchPublicSoilFertilityTables(),
-          fetchDefaultSoilFertilityTables(),
-          fetchFoliarTables(),
-          fetchPublicFoliarTables(),
-          fetchDefaultFoliarTables(),
-        ]);
-        setSoilFertilityTables([
-          ...(soilPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")),
-          ...(soilPublic ?? []).map((t) => normalizeTable(t, "PUBLIC")),
-          ...(soilDefault ?? []).map((t) => normalizeTable(t, "DEFAULT")),
-        ].filter(Boolean) as TableOption[]);
-        setFoliarInterpretationTables([
-          ...(foliarPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")),
-          ...(foliarPublic ?? []).map((t) => normalizeTable(t, "PUBLIC")),
-          ...(foliarDefault ?? []).map((t) => normalizeTable(t, "DEFAULT")),
-        ].filter(Boolean) as TableOption[]);
-      } catch (error) {
-        console.error(error);
-        toaster.create({ title: "Falha ao carregar tabelas.", type: "error" });
-      } finally { setLoadingTables(false); }
-    };
-
-    void Promise.all([loadProperties(), loadTables(), loadHistory()]);
+    void Promise.all([loadProperties(), loadHistory()]);
   }, [user?.cargo]);
 
   useEffect(() => {
     const loadCropTables = async () => {
       if (!cropFertilizationTableGroup) {
         setCropFertilizationTables([]);
-        setCropFertilizationTableId("");
         return;
       }
       setLoadingTables(true);
       try {
-        let data: any[];
+        let data: TableOption[];
         switch (cropFertilizationTableGroup) {
           case "PRIVATE":
-            data = await fetchCropFertilizationTables();
+            data = (await fetchCropFertilizationTables()).map(t => normalizeTable(t, "PRIVATE")).filter(Boolean) as TableOption[];
             break;
           case "PUBLIC":
-            data = await fetchPublicCropFertilizationTables();
+            data = (await fetchPublicCropFertilizationTables()).map(t => normalizeTable(t, "PUBLIC")).filter(Boolean) as TableOption[];
             break;
           case "DEFAULT":
-            data = await fetchDefaultCropFertilizationTables();
+            data = (await fetchDefaultCropFertilizationTables()).map(t => normalizeTable(t, "DEFAULT")).filter(Boolean) as TableOption[];
             break;
           default:
             data = [];
         }
-        const normalized = (data ?? []).map((t) => normalizeTable(t, cropFertilizationTableGroup as TableSource)).filter(Boolean) as TableOption[];
-        setCropFertilizationTables(normalized);
-        setCropFertilizationTableId("");
+        setCropFertilizationTables(data);
       } catch (error) {
         console.error(error);
-        setCropFertilizationTables([]);
         toaster.create({ title: "Falha ao carregar tabelas de adubação.", type: "error" });
-      } finally {
-        setLoadingTables(false);
-      }
+        setCropFertilizationTables([]);
+      } finally { setLoadingTables(false); }
     };
     loadCropTables();
   }, [cropFertilizationTableGroup]);
+
+  useEffect(() => {
+    const loadSoilTables = async () => {
+      if (!soilFertilityInterpretationTableGroup) {
+        setSoilFertilityTables([]);
+        return;
+      }
+      setLoadingTables(true);
+      try {
+        let data: TableOption[];
+        switch (soilFertilityInterpretationTableGroup) {
+          case "PRIVATE":
+            data = (await fetchSoilFertilityTables()).map(t => normalizeTable(t, "PRIVATE")).filter(Boolean) as TableOption[];
+            break;
+          case "PUBLIC":
+            data = (await fetchPublicSoilFertilityTables()).map(t => normalizeTable(t, "PUBLIC")).filter(Boolean) as TableOption[];
+            break;
+          case "DEFAULT":
+            data = (await fetchDefaultSoilFertilityTables()).map(t => normalizeTable(t, "DEFAULT")).filter(Boolean) as TableOption[];
+            break;
+          default:
+            data = [];
+        }
+        setSoilFertilityTables(data);
+      } catch (error) {
+        console.error(error);
+        toaster.create({ title: "Falha ao carregar tabelas de fertilidade.", type: "error" });
+        setSoilFertilityTables([]);
+      } finally { setLoadingTables(false); }
+    };
+    loadSoilTables();
+  }, [soilFertilityInterpretationTableGroup]);
+
+  useEffect(() => {
+    const loadFoliarTables = async () => {
+      if (!cropFoliarAnalysisInterpretationTableGroup) {
+        setFoliarInterpretationTables([]);
+        return;
+      }
+      setLoadingTables(true);
+      try {
+        let data: TableOption[];
+        switch (cropFoliarAnalysisInterpretationTableGroup) {
+          case "PRIVATE":
+            data = (await fetchFoliarTables()).map(t => normalizeTable(t, "PRIVATE")).filter(Boolean) as TableOption[];
+            break;
+          case "PUBLIC":
+            data = (await fetchPublicFoliarTables()).map(t => normalizeTable(t, "PUBLIC")).filter(Boolean) as TableOption[];
+            break;
+          case "DEFAULT":
+            data = (await fetchDefaultFoliarTables()).map(t => normalizeTable(t, "DEFAULT")).filter(Boolean) as TableOption[];
+            break;
+          default:
+            data = [];
+        }
+        setFoliarInterpretationTables(data);
+      } catch (error) {
+        console.error(error);
+        toaster.create({ title: "Falha ao carregar tabelas foliares.", type: "error" });
+        setFoliarInterpretationTables([]);
+      } finally { setLoadingTables(false); }
+    };
+    loadFoliarTables();
+  }, [cropFoliarAnalysisInterpretationTableGroup]);
 
   useEffect(() => {
     const loadPlots = async () => {
