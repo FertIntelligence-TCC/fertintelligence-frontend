@@ -382,9 +382,6 @@ export default function Recommendation() {
       setLoadingTables(true);
       try {
         const [
-          cropPrivate,
-          cropPublic,
-          cropDefault,
           soilPrivate,
           soilPublic,
           soilDefault,
@@ -392,9 +389,6 @@ export default function Recommendation() {
           foliarPublic,
           foliarDefault,
         ] = await Promise.all([
-          fetchCropFertilizationTables(),
-          fetchPublicCropFertilizationTables(),
-          fetchDefaultCropFertilizationTables(),
           fetchSoilFertilityTables(),
           fetchPublicSoilFertilityTables(),
           fetchDefaultSoilFertilityTables(),
@@ -402,11 +396,6 @@ export default function Recommendation() {
           fetchPublicFoliarTables(),
           fetchDefaultFoliarTables(),
         ]);
-        setCropFertilizationTables([
-          ...(cropPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")),
-          ...(cropPublic ?? []).map((t) => normalizeTable(t, "PUBLIC")),
-          ...(cropDefault ?? []).map((t) => normalizeTable(t, "DEFAULT")),
-        ].filter(Boolean) as TableOption[]);
         setSoilFertilityTables([
           ...(soilPrivate ?? []).map((t) => normalizeTable(t, "PRIVATE")),
           ...(soilPublic ?? []).map((t) => normalizeTable(t, "PUBLIC")),
@@ -425,6 +414,43 @@ export default function Recommendation() {
 
     void Promise.all([loadProperties(), loadTables(), loadHistory()]);
   }, [user?.cargo]);
+
+  useEffect(() => {
+    const loadCropTables = async () => {
+      if (!cropFertilizationTableGroup) {
+        setCropFertilizationTables([]);
+        setCropFertilizationTableId("");
+        return;
+      }
+      setLoadingTables(true);
+      try {
+        let data: any[];
+        switch (cropFertilizationTableGroup) {
+          case "PRIVATE":
+            data = await fetchCropFertilizationTables();
+            break;
+          case "PUBLIC":
+            data = await fetchPublicCropFertilizationTables();
+            break;
+          case "DEFAULT":
+            data = await fetchDefaultCropFertilizationTables();
+            break;
+          default:
+            data = [];
+        }
+        const normalized = (data ?? []).map((t) => normalizeTable(t, cropFertilizationTableGroup as TableSource)).filter(Boolean) as TableOption[];
+        setCropFertilizationTables(normalized);
+        setCropFertilizationTableId("");
+      } catch (error) {
+        console.error(error);
+        setCropFertilizationTables([]);
+        toaster.create({ title: "Falha ao carregar tabelas de adubação.", type: "error" });
+      } finally {
+        setLoadingTables(false);
+      }
+    };
+    loadCropTables();
+  }, [cropFertilizationTableGroup]);
 
   useEffect(() => {
     const loadPlots = async () => {
