@@ -365,7 +365,8 @@ export default function Recommendation() {
     const loadProperties = async () => {
       setLoadingProperties(true);
       try {
-        const data = isSupremeUserCargo(user?.cargo)
+        const isSupreme = isSupremeUserCargo(user?.cargo) || user?.cargo === "USUARIO_SUPREMO";
+        const data = isSupreme
           ? await fetchManageableProperties()
           : user?.cargo === Cargo.PROPRIETARIO
             ? await fetchMyProperties()
