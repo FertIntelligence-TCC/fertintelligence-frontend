@@ -30,7 +30,6 @@ export default function LoginPage() {
     login?: string;
     senha?: string;
   }>({});
-  const [isServerHealthy, setIsServerHealthy] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,11 +37,9 @@ export default function LoginPage() {
       try {
         const { data } = await axiosInstace.get("/health");
         if (data === "Ok") {
-          setIsServerHealthy(true);
           setServerError(null);
         }
       } catch (error) {
-        setIsServerHealthy(false);
         setServerError("Não foi possível conectar ao servidor.");
       }
     };
@@ -153,7 +150,7 @@ export default function LoginPage() {
             </Box>
           )}
           <VStack gap={4} align="stretch">
-            <FormControl isDisabled={!isServerHealthy}>
+            <FormControl>
               <FormLabel textAlign="left">Username</FormLabel>
               <Input
                 name="login"
@@ -167,7 +164,7 @@ export default function LoginPage() {
                 }}
               />
             </FormControl>
-            <FormControl isDisabled={!isServerHealthy}>
+            <FormControl>
               <FormLabel textAlign="left">Senha</FormLabel>
               <PasswordInput
                 name="senha"
@@ -187,7 +184,7 @@ export default function LoginPage() {
               colorScheme="blue"
               width="full"
               onClick={submitLogin}
-              disabled={!isServerHealthy}
+              disabled={false}
             >
               Entrar
             </Button>
