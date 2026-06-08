@@ -450,9 +450,11 @@ export default function Recommendation() {
     const loadFoliarTables = async () => {
       if (!cropFoliarAnalysisInterpretationTableGroup) {
         setFoliarInterpretationTables([]);
+        setCropFoliarAnalysisInterpretationTableId("");
         return;
       }
       setLoadingTables(true);
+      setCropFoliarAnalysisInterpretationTableId("");
       try {
         let data: TableOption[];
         switch (cropFoliarAnalysisInterpretationTableGroup) {
