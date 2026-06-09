@@ -167,6 +167,20 @@ export default function PropertyFormDialog({
     return true;
   }, [form]);
 
+  const missingFields = useMemo(() => {
+    const missing: string[] = [];
+    if (!form.nome?.trim()) missing.push('Nome da Propriedade');
+    if (!form.endereco?.trim()) missing.push('Endereço');
+    if (!form.cnpj?.trim()) missing.push('CNPJ');
+    if (Number.isNaN(parseFloat(form.latitudeDegrees))) missing.push('Latitude - Graus');
+    if (Number.isNaN(parseFloat(form.latitudeMinutes))) missing.push('Latitude - Minutos');
+    if (Number.isNaN(parseFloat(form.latitudeSeconds))) missing.push('Latitude - Segundos');
+    if (Number.isNaN(parseFloat(form.longitudeDegrees))) missing.push('Longitude - Graus');
+    if (Number.isNaN(parseFloat(form.longitudeMinutes))) missing.push('Longitude - Minutos');
+    if (Number.isNaN(parseFloat(form.longitudeSeconds))) missing.push('Longitude - Segundos');
+    return missing;
+  }, [form]);
+
   const canSubmitForm = controlledCanSubmit ?? internalCanSubmit;
 
   const onFormChange = <Field extends keyof PropertyFormState>(
@@ -221,7 +235,10 @@ export default function PropertyFormDialog({
 
   const handleSubmit = () => {
     if (!canSubmitForm) {
-      toaster.create({ title: "Preencha todos os campos obrigatórios.", type: "warning" });
+      const message = missingFields.length > 0
+        ? `Campos obrigatórios faltando: ${missingFields.join(', ')}`
+        : 'Preencha todos os campos obrigatórios.';
+      toaster.create({ title: message, type: "warning" });
       return;
     }
     if (onSubmit) {
