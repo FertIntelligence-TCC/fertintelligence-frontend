@@ -52,6 +52,8 @@ const mapResponseToForm = (dto: SoilFertilityTableResponseDto): SoilFertilityFor
     tabelaPublica: Boolean(dto.tabela_publica)
 });
 
+
+
 type Props = {
   variant?: "mine" | "default";
 };
