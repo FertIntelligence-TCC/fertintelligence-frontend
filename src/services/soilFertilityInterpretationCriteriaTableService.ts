@@ -40,5 +40,10 @@ export const fetchPublicSoilFertilityTables = async (): Promise<SoilFertilityTab
 
 export const fetchDefaultSoilFertilityTables = async (): Promise<SoilFertilityTableResponseDto[]> => {
     const { data } = await api.get(`${ENDPOINT}/get-all-default`);
-    return data;
+    // Garantir que sempre retorne array, mesmo se backend retornar objeto ou null
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    // Se for objeto com chave 'content' (paginação) ou similar, extrair
+    if (data.content && Array.isArray(data.content)) return data.content;
+    return [];
 };

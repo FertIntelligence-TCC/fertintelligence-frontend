@@ -84,7 +84,7 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
   }, [mode]);
 
   // Queries
-  const { data: tables = [], isLoading, isError } = useQuery({
+  const { data: tables = [], isLoading, isError } = useQuery<SoilFertilityTableResponseDto[]>({
     queryKey,
     queryFn: usesDefaultTables ? fetchDefaultSoilFertilityTables : fetchSoilFertilityTables,
   });
@@ -239,7 +239,7 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
                 </Flex>
             ) : (
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
-                    {tables.map((table) => (
+                    {tables.map((table: SoilFertilityTableResponseDto) => (
                         <SoilFertilityTableCard
                             key={table.id}
                             item={table}
