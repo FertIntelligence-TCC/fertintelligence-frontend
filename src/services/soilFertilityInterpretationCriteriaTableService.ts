@@ -9,7 +9,7 @@ const ENDPOINT = "/soil-fertility-interpretation-criteria-table";
 
 export const fetchSoilFertilityTables = async (): Promise<SoilFertilityTableResponseDto[]> => {
     const { data } = await api.get(`${ENDPOINT}/get-all`);
-    return data;
+    return Array.isArray(data) ? data : [];
 };
 
 export const createSoilFertilityTable = async (payload: SoilFertilityTableCreateRequestDto): Promise<SoilFertilityTableResponseDto> => {
@@ -35,10 +35,10 @@ export const deleteSoilFertilityTable = async (id: number): Promise<void> => {
 
 export const fetchPublicSoilFertilityTables = async (): Promise<SoilFertilityTableResponseDto[]> => {
     const { data } = await api.get(`${ENDPOINT}/get-all-public`);
-    return data;
+    return Array.isArray(data) ? data : [];
 };
 
 export const fetchDefaultSoilFertilityTables = async (): Promise<SoilFertilityTableResponseDto[]> => {
     const { data } = await api.get(`${ENDPOINT}/get-all-default`);
-    return data;
+    return Array.isArray(data) ? data : [];
 };
