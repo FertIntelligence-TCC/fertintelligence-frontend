@@ -241,6 +241,8 @@ export default function PropertyFormDialog({
       toaster.create({ title: message, type: "warning" });
       return;
     }
+    // Evita múltiplos toasts repetidos
+    if (isSubmitting) return;
     if (onSubmit) {
       onSubmit();
       return;
