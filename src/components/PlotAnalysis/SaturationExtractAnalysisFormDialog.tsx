@@ -375,7 +375,7 @@ export const SaturationExtractAnalysisFormDialog = ({
     };
 
     return (
-        <DialogRoot open={isOpen} onOpenChange={onClose} size="xl">
+        <DialogRoot open={isOpen} onOpenChange={onClose} size="xl" scrollBehavior="inside" motionPreset="slide-in-bottom">
             <DialogContent bg="gray.50" _dark={{ bg: "gray.900", color: "gray.100" }}>
                 <DialogHeader borderBottomWidth="1px" borderColor="gray.200" _dark={{ bg: "gray.800", borderColor: "gray.700" }} bg="white">
                     <DialogTitle color="gray.800" _dark={{ color: "white" }}>

@@ -358,6 +358,7 @@ export default function FoliarAnalysisInterpretationTable({ variant = "mine" }: 
         onOpenChange={(e) => setIsModalOpen(e.open)} 
         size="xl" 
         scrollBehavior="inside"
+        motionPreset="slide-in-bottom"
       >
         <Dialog.Backdrop />
         <Dialog.Positioner>

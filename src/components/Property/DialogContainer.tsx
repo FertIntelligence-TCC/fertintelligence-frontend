@@ -34,15 +34,15 @@ const DialogContainer = ({ isOpen, onClose, children, zIndex = 1000, expandable 
         >
             <Box
                 w="full"
-                maxW={isExpanded ? "80vw" : "lg"}
-                h={isExpanded ? "80vh" : "auto"}
+                maxW={isExpanded ? "90vw" : "xl"}
+                h={isExpanded ? "85vh" : "auto"}
                 bg={{ base: "white", _dark: "gray.800" }}
                 borderRadius="lg"
                 boxShadow="2xl"
                 p={6}
                 pt={expandable ? 12 : 6}
                 onClick={(event) => event.stopPropagation()}
-                maxH={isExpanded ? "80vh" : "90vh"}
+                maxH={isExpanded ? "85vh" : "90vh"}
                 overflowY="auto"
                 position="relative"
             >

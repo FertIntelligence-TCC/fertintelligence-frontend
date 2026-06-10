@@ -263,6 +263,7 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
         onOpenChange={(e) => setIsModalOpen(e.open)} 
         size="xl" 
         scrollBehavior="inside"
+        motionPreset="slide-in-bottom"
       >
         <Dialog.Backdrop />
         <Dialog.Positioner>
