@@ -43,5 +43,7 @@ export const fetchDefaultSoilFertilityTables = async (): Promise<SoilFertilityTa
     if (!data) return [];
     if (Array.isArray(data)) return data;
     if (data.content && Array.isArray(data.content)) return data.content;
+    // Fallback: se for objeto com chave 'data' (padrão de algumas APIs)
+    if (data.data && Array.isArray(data.data)) return data.data;
     return [];
 };
