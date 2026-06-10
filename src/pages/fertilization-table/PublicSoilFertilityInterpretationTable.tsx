@@ -163,6 +163,7 @@ export default function PublicSoilFertilityInterpretationTable() {
         onOpenChange={(e) => !e.open && setActiveItem(null)}
         size="xl"
         scrollBehavior="inside"
+        motionPreset="slide-in-bottom"
       >
         <Dialog.Backdrop />
         <Dialog.Positioner>

@@ -268,7 +268,7 @@ export default function SimpleMineralFertilizer() {
       </Box>
 
       {/* Dialog Principal */}
-      <Dialog.Root open={isModalOpen} onOpenChange={(e) => setIsModalOpen(e.open)} size="lg" scrollBehavior="inside">
+      <Dialog.Root open={isModalOpen} onOpenChange={(e) => setIsModalOpen(e.open)} size="xl" scrollBehavior="inside">
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content bg="white" _dark={{ bg: "gray.800" }}>
