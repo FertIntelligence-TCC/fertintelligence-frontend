@@ -67,6 +67,7 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
   const usesDefaultTables = isDefaultView || isSupreme;
   const canManage = !isDefaultView || isSupreme;
   const queryKey = usesDefaultTables ? ["soil-fertility-tables-default"] : ["soil-fertility-tables"];
+  const queryFn = usesDefaultTables ? fetchDefaultSoilFertilityTables : fetchSoilFertilityTables;
   
   // Estados
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,7 +89,7 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
   // Queries
   const { data: tables = [], isLoading, isError } = useQuery<SoilFertilityTableResponseDto[]>({
     queryKey,
-    queryFn: usesDefaultTables ? fetchDefaultSoilFertilityTables : fetchSoilFertilityTables,
+    queryFn,
   });
 
   const deleteMutation = useMutation({
