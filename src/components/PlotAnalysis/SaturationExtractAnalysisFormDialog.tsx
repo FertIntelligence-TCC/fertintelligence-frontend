@@ -503,7 +503,7 @@ export const SaturationExtractAnalysisFormDialog = ({
                                                 <Field label="Dureza CaCO3 (mg/L)" type="number" value={ext.durezaCaCO3} onChange={e => handleChangeExtract(ext.tempId, 'durezaCaCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="Dureza Total (mg/L)" type="number" value={ext.durezaTotalCaCO3} onChange={e => handleChangeExtract(ext.tempId, 'durezaTotalCaCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="RAS" type="number" value={ext.ras} onChange={e => handleChangeExtract(ext.tempId, 'ras', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="PST (%)" type="number" value={ext.pst} onChange={e => handleChangeExtract(ext.tempId, 'pst', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="PST (%)" type="number" step="0.01" value={ext.pst} onChange={e => handleChangeExtract(ext.tempId, 'pst', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
                                         </Box>
                                     ))}
