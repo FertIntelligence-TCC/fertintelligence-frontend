@@ -5,7 +5,7 @@ import { CropFertilizationTableCreateRequestDto, CropFertilizationTableResponseD
 const ENDPOINT = "/crop-fertilization-table"; 
 
 export const fetchCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all`, { params: { grupo: "PRIVADAS" } }); 
+    const { data } = await api.get(`${ENDPOINT}/get-all`, { params: { grupo: "MINHAS" } }); 
     return data;
 };
 
@@ -21,7 +21,9 @@ export const updateCropFertilizationTable = async ({
     id: number;
     payload: CropFertilizationTableCreateRequestDto;
 }): Promise<CropFertilizationTableResponseDto> => {
-    const { data } = await api.put(`${ENDPOINT}/update`, { id, ...payload });
+    const { data } = await api.put(`${ENDPOINT}/update`, payload, {
+        params: { tableId: id },
+    });
     return data;
 };
 
