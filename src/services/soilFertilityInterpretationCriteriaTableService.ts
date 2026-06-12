@@ -8,7 +8,7 @@ import {
 const ENDPOINT = "/soil-fertility-interpretation-criteria-table"; 
 
 export const fetchSoilFertilityTables = async (): Promise<SoilFertilityTableResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all`);
+    const { data } = await api.get(`${ENDPOINT}/get-all`, { params: { grupo: "PRIVADAS" } });
     return data;
 };
 

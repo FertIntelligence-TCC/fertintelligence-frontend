@@ -11,7 +11,7 @@ const LINE_ENDPOINT = "/crop-foliar-analysis-interpretation-table-line";
 // --- TABELAS ---
 
 export const fetchFoliarTables = async (): Promise<FoliarTableResponseDto[]> => {
-    const { data } = await api.get(`${TABLE_ENDPOINT}/get-all`);
+    const { data } = await api.get(`${TABLE_ENDPOINT}/get-all`, { params: { grupo: "PRIVADAS" } });
     return data;
 };
 

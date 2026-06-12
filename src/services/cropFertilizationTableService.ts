@@ -5,7 +5,7 @@ import { CropFertilizationTableCreateRequestDto, CropFertilizationTableResponseD
 const ENDPOINT = "/crop-fertilization-table"; 
 
 export const fetchCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all`); 
+    const { data } = await api.get(`${ENDPOINT}/get-all`, { params: { grupo: "PRIVADAS" } }); 
     return data;
 };
 
