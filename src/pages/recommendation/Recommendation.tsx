@@ -119,6 +119,8 @@ type RawTable = {
   region?: string;
   regiao?: string;
   tabela_publica?: boolean;
+  public_table?: boolean;
+  publicTable?: boolean;
   public?: boolean;
 };
 
@@ -159,8 +161,9 @@ const normalizeLimingCriteria = (criteria?: string | null): RecommendationLiming
 
 const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]): TableOption | null => {
   if (!table?.id) return null;
+  const isPublic = table.tabela_publica === true || table.public_table === true || table.publicTable === true || table.public === true;
   const source =
-    fallbackSource === "DEFAULT" || (table.tabela_publica !== true && table.public !== true)
+    fallbackSource === "DEFAULT" || !isPublic
       ? fallbackSource
       : "PUBLIC";
   const cropName = table.nome_comum_cultura ? ` • ${table.nome_comum_cultura}` : "";
