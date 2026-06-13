@@ -350,26 +350,23 @@ export const PhysicalAnalysisFormDialog = ({
                     // 1. Atualizar dados físicos (Conteúdo)
                     const updatePayload: PhysicalAnalysisExtractUpdatePayload = {};
                     Object.entries(payloadFisico).forEach(([key, val]) => {
-                        let prefix = "novo_"; // Padrão Masculino (O teor, O diâmetro)
+            if (val === undefined || val === null) return;
 
-                        // Lista de campos femininos que exigem "nova_"
-                        const feminineKeys = [
-                            "densidade_aparente", 
-                            "densidade_real", 
-                            "porosidade_total", 
-                            "microporosidade",
-                            "umidade_capacidade_campo", 
-                            "umidade_ponto_murcha_permanente",
-                            "agua_disponivel", 
-                            "resistencia_penetracao"
-                        ];
-                        
-                        if (feminineKeys.includes(key) || key.startsWith("perc_")) {
-                            prefix = "nova_";
-                        }
-                        
-                        (updatePayload as Record<string, number>)[`${prefix}${key}`] = val; 
-                    });
+            const feminineKeys = [
+              "densidade_aparente",
+              "densidade_real",
+              "porosidade_total",
+              "microporosidade",
+              "umidade_capacidade_campo",
+              "umidade_ponto_murcha_permanente",
+              "agua_disponivel",
+              "resistencia_penetracao",
+            ];
+
+            const prefix = feminineKeys.includes(key) ? "nova_" : "novo_";
+
+            (updatePayload as Record<string, number>)[`${prefix}${key}`] = val;
+          });
 
                     await physicalAnalysisExtractService.update(ext.databaseId, updatePayload);
 

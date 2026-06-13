@@ -31,7 +31,7 @@ export const physicalAnalysisExtractService = {
     },
 
     getById: async (physicalAnalysisExtractId: number): Promise<PhysicalAnalysisExtractResponse> => {
-        const response = await api.get<PhysicalAnalysisExtractResponse>(`${ENDPOINT}/get-extract`, {
+        const response = await api.get<PhysicalAnalysisExtractResponse>(`${ENDPOINT}/get`, {
             params: { physicalAnalysisExtractId }
         });
         return response.data;
