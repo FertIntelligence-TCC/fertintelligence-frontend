@@ -1,5 +1,6 @@
 import { api } from "./axios";
 
+// Interface para o Payload de Criação
 export interface ContentRangeCreateRequest {
   nutriente: string;
   ordem_teor: number;
@@ -8,22 +9,15 @@ export interface ContentRangeCreateRequest {
   aplicacao_recomendada_plantio: number | null;
 }
 
-export interface ContentRangeUpdateRequest {
-  novo_nutriente?: string;
-  novo_ordem_teor?: number;
-  novo_menor_teor?: number | null;
-  novo_maior_teor?: number | null;
-  novo_aplicacao_recomendada_plantio?: number | null;
-}
-
+// Interface de Resposta (snake_case do Java)
 export interface ContentRangeResponseDto {
-  id: number;
-  id_tabela: number;
-  nutriente: string;
-  ordem_teor: number;
-  menor_teor?: number | null;
-  maior_teor?: number | null;
-  aplicacao_recomendada_plantio?: number | null;
+    id: number;
+    id_tabela: number;
+    nutriente: string;
+    ordem_teor: number;
+    menor_teor?: number;
+    maior_teor?: number;
+    aplicacao_recomendada_plantio?: number;
 }
 
 export const createContentRange = async (
@@ -38,29 +32,16 @@ export const createContentRange = async (
   return response.data;
 };
 
-export const updateContentRange = async (
-  contentRangeId: number,
-  payload: ContentRangeUpdateRequest
-): Promise<ContentRangeResponseDto> => {
-  const response = await api.put<ContentRangeResponseDto>(
-    `/content-range/update`,
-    payload,
-    { params: { contentRangeId } }
-  );
-  return response.data;
-};
-
-export const fetchContentRangesByTable = async (
-  tableId: number
-): Promise<ContentRangeResponseDto[]> => {
-  const response = await api.get<ContentRangeResponseDto[]>(`/content-range/get-by-table`, {
-    params: { tableId },
-  });
-  return response.data;
+// NOVA FUNÇÃO: Buscar todas as faixas de uma tabela
+export const fetchContentRangesByTable = async (tableId: number): Promise<ContentRangeResponseDto[]> => {
+    const response = await api.get<ContentRangeResponseDto[]>(`/content-range/get-by-table`, {
+        params: { tableId }
+    });
+    return response.data;
 };
 
 export const deleteContentRange = async (contentRangeId: number): Promise<void> => {
-  await api.delete(`/content-range/delete`, {
-    params: { contentRangeId },
-  });
+    await api.delete(`/content-range/delete`, {
+        params: { contentRangeId }
+    });
 };
