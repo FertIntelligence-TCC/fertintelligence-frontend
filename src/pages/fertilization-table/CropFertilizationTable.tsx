@@ -98,18 +98,30 @@ const mapHydratedDataToForm = (
       ranges.sort((a, b) => a.ordem_teor - b.ordem_teor);
 
       return ranges.map(r => {
-          // Construir Label Visual
+          const nutrientLabel = nutrientKey === "FOSFORO" ? "P2O5" : "K2O";
+
           let label = "";
-          if (r.menor_teor === null && r.maior_teor !== null) label = `${nutrientKey === "FOSFORO" ? "P" : "K"} < ${r.maior_teor}`;
-          else if (r.menor_teor !== null && r.maior_teor === null) label = `${nutrientKey === "FOSFORO" ? "P" : "K"} > ${r.menor_teor}`;
-          else if (r.menor_teor !== null && r.maior_teor !== null) label = `${r.menor_teor} < ${nutrientKey === "FOSFORO" ? "P" : "K"} < ${r.maior_teor}`;
-          
+          let operatorType: "less" | "between" | "more" = "between";
+
+          if (r.menor_teor === null && r.maior_teor !== null) {
+              label = `${nutrientLabel} < ${r.maior_teor}`;
+              operatorType = "less";
+          } else if (r.menor_teor !== null && r.maior_teor === null) {
+              label = `${nutrientLabel} > ${r.menor_teor}`;
+              operatorType = "more";
+          } else if (r.menor_teor !== null && r.maior_teor !== null) {
+              label = `${r.menor_teor} < ${nutrientLabel} < ${r.maior_teor}`;
+              operatorType = "between";
+          }
+
           return {
               id: makeRowId(r.id),
-              label: label,
-              operatorType: "between",
+              label,
+              operatorType,
               plantio: String(r.aplicacao_recomendada_plantio || ""),
-              coberturas: r.coverages.sort((a, b) => a.ordem_cobertura - b.ordem_cobertura).map(c => String(c.aplicacao_recomendada_cobertura))
+              coberturas: r.coverages
+                .sort((a, b) => a.ordem_cobertura - b.ordem_cobertura)
+                .map(c => String(c.aplicacao_recomendada_cobertura))
           } as NutrientRangeRow;
       });
   };
@@ -236,19 +248,26 @@ const mapFormToRequest = (
 };
 
 const parseLabel = (label: string) => {
-  let smallest = null;
-  let largest = null;
+  const parseNumber = (value: string) => {
+    const match = value.replace(",", ".").match(/-?\d+(?:\.\d+)?/);
+    return match ? parseFloat(match[0]) : null;
+  };
+
+  let smallest: number | null = null;
+  let largest: number | null = null;
+
   if (label.includes("<") && label.split("<").length === 3) {
     const parts = label.split("<");
-    smallest = parseFloat(parts[0].trim());
-    largest = parseFloat(parts[2].trim());
+    smallest = parseNumber(parts[0]);
+    largest = parseNumber(parts[2]);
   } else if (label.includes("<")) {
-    const clean = label.replace(/[^0-9.]/g, "");
-    largest = parseFloat(clean);
+    const parts = label.split("<");
+    largest = parseNumber(parts[1]);
   } else if (label.includes(">")) {
-    const clean = label.replace(/[^0-9.]/g, "");
-    smallest = parseFloat(clean);
+    const parts = label.split(">");
+    smallest = parseNumber(parts[1]);
   }
+
   return { smallest, largest };
 };
 
