@@ -38,8 +38,8 @@ import { useUserStore } from "@/stores/user/user.store";
 import { isSupremeUser } from "@/utils/isSupremeUser";
 
 // Services de orquestração e busca
-import { createContentRange, fetchContentRangesByTable, updateContentRange, ContentRangeResponseDto } from "@/services/contentRangeService";
-import { createCoverage, fetchCoveragesByRange, updateCoverage, CoverageResponseDto } from "@/services/coverageService";
+import { createContentRange, fetchContentRangesByTable, updateContentRange, deleteContentRange, ContentRangeResponseDto } from "@/services/contentRangeService";
+import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage, CoverageResponseDto } from "@/services/coverageService";
 
 import { CropFertilizationTableCreateRequestDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
@@ -301,21 +301,57 @@ const upsertCoverages = async (
   contentRangeId: number,
   coberturas: { coverageId?: number; value: string }[]
 ) => {
+  const existingCoverages = (await fetchCoveragesByRange(contentRangeId))
+    .sort((a, b) => a.ordem_cobertura - b.ordem_cobertura);
+
+  const usedCoverageIds = new Set<number>();
+
   for (let i = 0; i < coberturas.length; i++) {
     const cell = coberturas[i];
+    const existingByIndex = existingCoverages[i];
+    const coverageId = cell.coverageId ?? existingByIndex?.id;
+
     const payload = {
       novo_ordem_cobertura: i + 1,
       novo_aplicacao_recomendada_cobertura: toNumberOrNull(cell.value),
     };
 
-    if (cell.coverageId) {
-      await updateCoverage(cell.coverageId, payload);
+    if (coverageId) {
+      usedCoverageIds.add(coverageId);
+      await updateCoverage(coverageId, payload);
     } else {
-      await createCoverage(contentRangeId, {
+      const created = await createCoverage(contentRangeId, {
         ordem_cobertura: i + 1,
         aplicacao_recomendada_cobertura: toNumberOrNull(cell.value),
       });
+      usedCoverageIds.add(created.id);
     }
+  }
+
+  for (const coverage of existingCoverages) {
+    if (!usedCoverageIds.has(coverage.id)) {
+      await deleteCoverage(coverage.id);
+    }
+  }
+};
+
+const deleteStaleContentRanges = async (
+  currentRanges: ContentRangeResponseDto[],
+  form: FertilizationTableFormState
+) => {
+  const keptRangeIds = new Set<number>();
+
+  for (const row of [...form.faixasP, ...form.faixasK]) {
+    if (row.contentRangeId) keptRangeIds.add(row.contentRangeId);
+  }
+
+  const staleRanges = currentRanges.filter((range) => {
+    if (range.nutriente === "NITROGENIO") return false;
+    return !keptRangeIds.has(range.id);
+  });
+
+  for (const range of staleRanges) {
+    await deleteContentRange(range.id);
   }
 };
 
@@ -324,6 +360,7 @@ const updateExistingContentRangesWithCoverages = async (
   form: FertilizationTableFormState
 ) => {
   const currentRanges = await fetchContentRangesByTable(tableId);
+
   const nitroRange =
     currentRanges.find((r) => r.nutriente === "NITROGENIO") ?? null;
 
@@ -414,6 +451,8 @@ const updateExistingContentRangesWithCoverages = async (
 
     previousKLargest = bounds.nextPreviousLargest;
   }
+
+  await deleteStaleContentRanges(currentRanges, form);
 };
 
 const saveContentRangesWithCoverages = async (

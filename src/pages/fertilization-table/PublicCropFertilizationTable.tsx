@@ -76,10 +76,16 @@ const mapHydratedDataToForm = (data: HydratedTableData): FertilizationTableFormS
 
       return {
         id: makeRowId(r.id),
+        contentRangeId: r.id,
         label,
         operatorType: "between",
         plantio: String(r.aplicacao_recomendada_plantio || ""),
-        coberturas: r.coverages.sort((a, b) => a.ordem_cobertura - b.ordem_cobertura).map((c) => String(c.aplicacao_recomendada_cobertura)),
+        coberturas: r.coverages
+          .sort((a, b) => a.ordem_cobertura - b.ordem_cobertura)
+          .map((c) => ({
+            coverageId: c.id,
+            value: String(c.aplicacao_recomendada_cobertura)
+          })),
       } as NutrientRangeRow;
     });
   };
