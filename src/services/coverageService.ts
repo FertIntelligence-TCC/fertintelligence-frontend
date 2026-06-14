@@ -5,6 +5,11 @@ export interface CoverageCreateRequest {
   aplicacao_recomendada_cobertura: number | null;
 }
 
+export interface CoverageUpdateRequest {
+  novo_ordem_cobertura: number;
+  novo_aplicacao_recomendada_cobertura: number | null;
+}
+
 export interface CoverageResponseDto {
   id: number;
   id_intervalo_teor: number;
@@ -36,4 +41,17 @@ export const deleteCoverage = async (coverageId: number): Promise<void> => {
     await api.delete(`/coverage/delete`, {
         params: { coverageId }
     });
+};
+
+
+export const updateCoverage = async (
+  coverageId: number,
+  payload: CoverageUpdateRequest
+): Promise<CoverageResponseDto> => {
+  const response = await api.put<CoverageResponseDto>(
+    `/coverage/update`,
+    payload,
+    { params: { coverageId } }
+  );
+  return response.data;
 };

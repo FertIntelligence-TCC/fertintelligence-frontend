@@ -72,8 +72,8 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
         const nextIndex = form.coberturaLabels.length + 1;
         onFormChange("coberturaLabels", [...form.coberturaLabels, `${nextIndex}ª cobertura`]);
         onFormChange("coberturasN", [...form.coberturasN, ""]);
-        onFormChange("faixasP", form.faixasP.map(row => ({ ...row, coberturas: [...row.coberturas, ""] })));
-        onFormChange("faixasK", form.faixasK.map(row => ({ ...row, coberturas: [...row.coberturas, ""] })));
+        onFormChange("faixasP", form.faixasP.map(row => ({ ...row, coberturas: [...row.coberturas, { value: "" }] })));
+        onFormChange("faixasK", form.faixasK.map(row => ({ ...row, coberturas: [...row.coberturas, { value: "" }] })));
     };
 
     const removeCoverageColumn = () => {
@@ -87,7 +87,7 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
     const addRangeRow = (nutrient: "P" | "K", label: string, operator: "less" | "between" | "more") => {
         const newRow: NutrientRangeRow = {
             id: Math.random().toString(36).substr(2, 9),
-            label, operatorType: operator, plantio: "", coberturas: Array(form.coberturaLabels.length).fill("")
+            label, operatorType: operator, plantio: "", coberturas: Array.from({ length: form.coberturaLabels.length }, () => ({ value: "" }))
         };
         nutrient === "P" ? onFormChange("faixasP", [...form.faixasP, newRow]) : onFormChange("faixasK", [...form.faixasK, newRow]);
     };
@@ -107,7 +107,7 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
             const rowIdx = rows.findIndex(r => r.id === rowId);
             if (rowIdx === -1) return;
             if (colIndex === "plantio") rows[rowIdx].plantio = value;
-            else rows[rowIdx].coberturas[colIndex] = value;
+            else rows[rowIdx].coberturas[colIndex].value = value;
             onFormChange(field, rows);
         }
     };
@@ -147,7 +147,7 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
                                 <Table.Row key={row.id} _dark={{ bg: "transparent" }}>
                                 <Table.Cell fontSize="sm" _dark={{ color: "gray.200" }}>{row.label}</Table.Cell>
                                 <Table.Cell><Input size="sm" type="number" {...commonFieldStyles} value={row.plantio} onChange={(e) => updateRowValue("P", row.id, "plantio", e.target.value)} readOnly={readOnly} /></Table.Cell>
-                                {row.coberturas.map((val, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={val} onChange={(e) => updateRowValue("P", row.id, idx, e.target.value)} readOnly={readOnly} /></Table.Cell>))}
+                                {row.coberturas.map((cell, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={cell.value} onChange={(e) => updateRowValue("P", row.id, idx, e.target.value)} readOnly={readOnly} /></Table.Cell>))}
                                 <Table.Cell bg="transparent"></Table.Cell>
                                 </Table.Row>
                         ))}
@@ -168,7 +168,7 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
                                 <Table.Row key={row.id} _dark={{ bg: "transparent" }}>
                                 <Table.Cell fontSize="sm" _dark={{ color: "gray.200" }}>{row.label}</Table.Cell>
                                 <Table.Cell><Input size="sm" type="number" {...commonFieldStyles} value={row.plantio} onChange={(e) => updateRowValue("K", row.id, "plantio", e.target.value)} readOnly={readOnly} /></Table.Cell>
-                                {row.coberturas.map((val, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={val} onChange={(e) => updateRowValue("K", row.id, idx, e.target.value)} readOnly={readOnly} /></Table.Cell>))}
+                                {row.coberturas.map((cell, idx) => (<Table.Cell key={idx}><Input size="sm" type="number" {...commonFieldStyles} value={cell.value} onChange={(e) => updateRowValue("K", row.id, idx, e.target.value)} readOnly={readOnly} /></Table.Cell>))}
                                 <Table.Cell bg="transparent"></Table.Cell>
                                 </Table.Row>
                         ))}

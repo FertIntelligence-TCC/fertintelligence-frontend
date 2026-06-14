@@ -103,12 +103,22 @@ export const RegionLabels: Record<RegionType, string> = {
 
 // --- Interfaces de Estado do Formulário ---
 
+export interface CoverageCell {
+    coverageId?: number;
+    value: string;
+}
+
 export interface NutrientRangeRow {
     id: string;
-    label: string; 
+
+    contentRangeId?: number;
+
+    label: string;
     operatorType: "less" | "between" | "more";
-    plantio: string; // Valor numérico como string
-    coberturas: string[]; // Valores numéricos como string
+
+    plantio: string;
+
+    coberturas: CoverageCell[];
 }
 
 export type FertilizationTableFormState = {

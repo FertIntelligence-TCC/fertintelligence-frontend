@@ -38,8 +38,8 @@ import { useUserStore } from "@/stores/user/user.store";
 import { isSupremeUser } from "@/utils/isSupremeUser";
 
 // Services de orquestração e busca
-import { createContentRange, fetchContentRangesByTable, ContentRangeResponseDto } from "@/services/contentRangeService";
-import { createCoverage, fetchCoveragesByRange, CoverageResponseDto } from "@/services/coverageService";
+import { createContentRange, fetchContentRangesByTable, updateContentRange, ContentRangeResponseDto } from "@/services/contentRangeService";
+import { createCoverage, fetchCoveragesByRange, updateCoverage, CoverageResponseDto } from "@/services/coverageService";
 
 import { CropFertilizationTableCreateRequestDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
@@ -116,12 +116,16 @@ const mapHydratedDataToForm = (
 
           return {
               id: makeRowId(r.id),
+              contentRangeId: r.id,
               label,
               operatorType,
               plantio: String(r.aplicacao_recomendada_plantio || ""),
               coberturas: r.coverages
                 .sort((a, b) => a.ordem_cobertura - b.ordem_cobertura)
-                .map(c => String(c.aplicacao_recomendada_cobertura))
+                .map(c => ({
+                  coverageId: c.id,
+                  value: String(c.aplicacao_recomendada_cobertura)
+                }))
           } as NutrientRangeRow;
       });
   };
@@ -269,6 +273,147 @@ const parseLabel = (label: string) => {
   }
 
   return { smallest, largest };
+};
+
+const toNumberOrNull = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === "") return null;
+  const n = typeof value === "number" ? value : parseFloat(String(value));
+  return Number.isFinite(n) ? n : null;
+};
+
+const buildRangeBounds = (
+  rows: NutrientRangeRow[],
+  index: number,
+  previousLargest: number | null
+) => {
+  const row = rows[index];
+  const { smallest, largest } = parseLabel(row.label);
+  const isLastRange = index === rows.length - 1;
+
+  return {
+    smallest: index === 0 ? smallest : previousLargest,
+    largest: isLastRange ? null : largest,
+    nextPreviousLargest: largest,
+  };
+};
+
+const upsertCoverages = async (
+  contentRangeId: number,
+  coberturas: { coverageId?: number; value: string }[]
+) => {
+  for (let i = 0; i < coberturas.length; i++) {
+    const cell = coberturas[i];
+    const payload = {
+      novo_ordem_cobertura: i + 1,
+      novo_aplicacao_recomendada_cobertura: toNumberOrNull(cell.value),
+    };
+
+    if (cell.coverageId) {
+      await updateCoverage(cell.coverageId, payload);
+    } else {
+      await createCoverage(contentRangeId, {
+        ordem_cobertura: i + 1,
+        aplicacao_recomendada_cobertura: toNumberOrNull(cell.value),
+      });
+    }
+  }
+};
+
+const updateExistingContentRangesWithCoverages = async (
+  tableId: number,
+  form: FertilizationTableFormState
+) => {
+  const currentRanges = await fetchContentRangesByTable(tableId);
+  const nitroRange =
+    currentRanges.find((r) => r.nutriente === "NITROGENIO") ?? null;
+
+  if (nitroRange) {
+    await updateContentRange(nitroRange.id, {
+      novo_nutriente: "NITROGENIO",
+      novo_ordem_teor: 1,
+      novo_menor_teor: null,
+      novo_maior_teor: null,
+      novo_aplicacao_recomendada_plantio: toNumberOrNull(form.plantioN),
+    });
+
+    const existingNitroCoverages = await fetchCoveragesByRange(nitroRange.id);
+    const nitroCells = form.coberturasN.map((value, index) => ({
+      coverageId: existingNitroCoverages
+        .sort((a, b) => a.ordem_cobertura - b.ordem_cobertura)[index]?.id,
+      value,
+    }));
+
+    await upsertCoverages(nitroRange.id, nitroCells);
+  } else {
+    const createdNitroRange = await createContentRange(tableId, {
+      nutriente: "NITROGENIO",
+      ordem_teor: 1,
+      menor_teor: null,
+      maior_teor: null,
+      aplicacao_recomendada_plantio: toNumberOrNull(form.plantioN),
+    });
+
+    await upsertCoverages(
+      createdNitroRange.id,
+      form.coberturasN.map((value) => ({ value }))
+    );
+  }
+
+  let previousPLargest: number | null = null;
+  for (let i = 0; i < form.faixasP.length; i++) {
+    const row = form.faixasP[i];
+    const bounds = buildRangeBounds(form.faixasP, i, previousPLargest);
+
+    if (row.contentRangeId) {
+      await updateContentRange(row.contentRangeId, {
+        novo_nutriente: "FOSFORO",
+        novo_ordem_teor: i + 1,
+        novo_menor_teor: bounds.smallest,
+        novo_maior_teor: bounds.largest,
+        novo_aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
+      });
+      await upsertCoverages(row.contentRangeId, row.coberturas);
+    } else {
+      const createdRange = await createContentRange(tableId, {
+        nutriente: "FOSFORO",
+        ordem_teor: i + 1,
+        menor_teor: bounds.smallest,
+        maior_teor: bounds.largest,
+        aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
+      });
+      await upsertCoverages(createdRange.id, row.coberturas);
+    }
+
+    previousPLargest = bounds.nextPreviousLargest;
+  }
+
+  let previousKLargest: number | null = null;
+  for (let i = 0; i < form.faixasK.length; i++) {
+    const row = form.faixasK[i];
+    const bounds = buildRangeBounds(form.faixasK, i, previousKLargest);
+
+    if (row.contentRangeId) {
+      await updateContentRange(row.contentRangeId, {
+        novo_nutriente: "POTASSIO",
+        novo_ordem_teor: i + 1,
+        novo_menor_teor: bounds.smallest,
+        novo_maior_teor: bounds.largest,
+        novo_aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
+      });
+      await upsertCoverages(row.contentRangeId, row.coberturas);
+    } else {
+      const createdRange = await createContentRange(tableId, {
+        nutriente: "POTASSIO",
+        ordem_teor: i + 1,
+        menor_teor: bounds.smallest,
+        maior_teor: bounds.largest,
+        aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
+      });
+      await upsertCoverages(createdRange.id, row.coberturas);
+    }
+
+    previousKLargest = bounds.nextPreviousLargest;
+  }
 };
 
 const saveContentRangesWithCoverages = async (
@@ -567,6 +712,7 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
       setIsOrchestrating(true);
       try {
         await updateCropFertilizationTable({ id: activeTable.id, payload: payloadTable });
+        await updateExistingContentRangesWithCoverages(activeTable.id, form);
 
         queryClient.invalidateQueries({ queryKey });
         setIsModalOpen(false);

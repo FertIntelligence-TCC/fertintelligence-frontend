@@ -9,6 +9,14 @@ export interface ContentRangeCreateRequest {
   aplicacao_recomendada_plantio: number | null;
 }
 
+export interface ContentRangeUpdateRequest {
+  novo_nutriente: string;
+  novo_ordem_teor: number;
+  novo_menor_teor: number | null;
+  novo_maior_teor: number | null;
+  novo_aplicacao_recomendada_plantio: number | null;
+}
+
 // Interface de Resposta (snake_case do Java)
 export interface ContentRangeResponseDto {
     id: number;
@@ -44,4 +52,17 @@ export const deleteContentRange = async (contentRangeId: number): Promise<void> 
     await api.delete(`/content-range/delete`, {
         params: { contentRangeId }
     });
+};
+
+
+export const updateContentRange = async (
+  contentRangeId: number,
+  payload: ContentRangeUpdateRequest
+): Promise<ContentRangeResponseDto> => {
+  const response = await api.put<ContentRangeResponseDto>(
+    `/content-range/update`,
+    payload,
+    { params: { contentRangeId } }
+  );
+  return response.data;
 };
