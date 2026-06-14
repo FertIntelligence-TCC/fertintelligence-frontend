@@ -38,7 +38,7 @@ import { useUserStore } from "@/stores/user/user.store";
 import { isSupremeUser } from "@/utils/isSupremeUser";
 
 // Services de orquestração e busca
-import { createContentRange, fetchContentRangesByTable, updateContentRange, deleteContentRange, ContentRangeResponseDto } from "@/services/contentRangeService";
+import { createContentRange, fetchContentRangesByTable, updateContentRange, replaceContentRangesByNutrient, ContentRangeResponseDto } from "@/services/contentRangeService";
 import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage, CoverageResponseDto } from "@/services/coverageService";
 
 import { CropFertilizationTableCreateRequestDto } from "@/interfaces/CropFertilizationTable";
@@ -297,6 +297,51 @@ const buildRangeBounds = (
   };
 };
 
+
+const normalizeRangeRowsForSave = (rows: NutrientRangeRow[]) => {
+  return [...rows].sort((a, b) => {
+    const pa = parseLabel(a.label);
+    const pb = parseLabel(b.label);
+
+    const rank = (row: NutrientRangeRow) => {
+      if (row.operatorType === "less") return 0;
+      if (row.operatorType === "between") return 1;
+      return 2;
+    };
+
+    const rankDiff = rank(a) - rank(b);
+    if (rankDiff !== 0) return rankDiff;
+
+    const aStart = pa.smallest ?? Number.NEGATIVE_INFINITY;
+    const bStart = pb.smallest ?? Number.NEGATIVE_INFINITY;
+
+    return aStart - bStart;
+  });
+};
+
+const buildReplaceRangesPayload = (rows: NutrientRangeRow[]) => {
+  const normalizedRows = normalizeRangeRowsForSave(rows);
+  let previousLargest: number | null = null;
+
+  return normalizedRows.map((row, index) => {
+    const bounds = buildRangeBounds(normalizedRows, index, previousLargest);
+    previousLargest = bounds.nextPreviousLargest;
+
+    return {
+      id: row.contentRangeId,
+      ordem_teor: index + 1,
+      menor_teor: bounds.smallest,
+      maior_teor: bounds.largest,
+      aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
+      coberturas: row.coberturas.map((cell, coverageIndex) => ({
+        id: cell.coverageId,
+        ordem_cobertura: coverageIndex + 1,
+        aplicacao_recomendada_cobertura: toNumberOrNull(cell.value),
+      })),
+    };
+  });
+};
+
 const upsertCoverages = async (
   contentRangeId: number,
   coberturas: { coverageId?: number; value: string }[]
@@ -332,26 +377,6 @@ const upsertCoverages = async (
     if (!usedCoverageIds.has(coverage.id)) {
       await deleteCoverage(coverage.id);
     }
-  }
-};
-
-const deleteStaleContentRanges = async (
-  currentRanges: ContentRangeResponseDto[],
-  form: FertilizationTableFormState
-) => {
-  const keptRangeIds = new Set<number>();
-
-  for (const row of [...form.faixasP, ...form.faixasK]) {
-    if (row.contentRangeId) keptRangeIds.add(row.contentRangeId);
-  }
-
-  const staleRanges = currentRanges.filter((range) => {
-    if (range.nutriente === "NITROGENIO") return false;
-    return !keptRangeIds.has(range.id);
-  });
-
-  for (const range of staleRanges) {
-    await deleteContentRange(range.id);
   }
 };
 
@@ -396,63 +421,13 @@ const updateExistingContentRangesWithCoverages = async (
     );
   }
 
-  let previousPLargest: number | null = null;
-  for (let i = 0; i < form.faixasP.length; i++) {
-    const row = form.faixasP[i];
-    const bounds = buildRangeBounds(form.faixasP, i, previousPLargest);
+  await replaceContentRangesByNutrient(tableId, "FOSFORO", {
+    faixas: buildReplaceRangesPayload(form.faixasP),
+  });
 
-    if (row.contentRangeId) {
-      await updateContentRange(row.contentRangeId, {
-        novo_nutriente: "FOSFORO",
-        novo_ordem_teor: i + 1,
-        novo_menor_teor: bounds.smallest,
-        novo_maior_teor: bounds.largest,
-        novo_aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
-      });
-      await upsertCoverages(row.contentRangeId, row.coberturas);
-    } else {
-      const createdRange = await createContentRange(tableId, {
-        nutriente: "FOSFORO",
-        ordem_teor: i + 1,
-        menor_teor: bounds.smallest,
-        maior_teor: bounds.largest,
-        aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
-      });
-      await upsertCoverages(createdRange.id, row.coberturas);
-    }
-
-    previousPLargest = bounds.nextPreviousLargest;
-  }
-
-  let previousKLargest: number | null = null;
-  for (let i = 0; i < form.faixasK.length; i++) {
-    const row = form.faixasK[i];
-    const bounds = buildRangeBounds(form.faixasK, i, previousKLargest);
-
-    if (row.contentRangeId) {
-      await updateContentRange(row.contentRangeId, {
-        novo_nutriente: "POTASSIO",
-        novo_ordem_teor: i + 1,
-        novo_menor_teor: bounds.smallest,
-        novo_maior_teor: bounds.largest,
-        novo_aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
-      });
-      await upsertCoverages(row.contentRangeId, row.coberturas);
-    } else {
-      const createdRange = await createContentRange(tableId, {
-        nutriente: "POTASSIO",
-        ordem_teor: i + 1,
-        menor_teor: bounds.smallest,
-        maior_teor: bounds.largest,
-        aplicacao_recomendada_plantio: toNumberOrNull(row.plantio),
-      });
-      await upsertCoverages(createdRange.id, row.coberturas);
-    }
-
-    previousKLargest = bounds.nextPreviousLargest;
-  }
-
-  await deleteStaleContentRanges(currentRanges, form);
+  await replaceContentRangesByNutrient(tableId, "POTASSIO", {
+    faixas: buildReplaceRangesPayload(form.faixasK),
+  });
 };
 
 const saveContentRangesWithCoverages = async (

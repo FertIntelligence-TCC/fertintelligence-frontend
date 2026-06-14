@@ -66,3 +66,36 @@ export const updateContentRange = async (
   );
   return response.data;
 };
+
+export interface ContentRangeReplaceCoverageRequest {
+  id?: number;
+  ordem_cobertura: number;
+  aplicacao_recomendada_cobertura: number | null;
+}
+
+export interface ContentRangeReplaceItemRequest {
+  id?: number;
+  ordem_teor: number;
+  menor_teor: number | null;
+  maior_teor: number | null;
+  aplicacao_recomendada_plantio: number | null;
+  coberturas: ContentRangeReplaceCoverageRequest[];
+}
+
+export interface ContentRangeReplaceByNutrientRequest {
+  faixas: ContentRangeReplaceItemRequest[];
+}
+
+export const replaceContentRangesByNutrient = async (
+  tableId: number,
+  nutrient: "FOSFORO" | "POTASSIO",
+  payload: ContentRangeReplaceByNutrientRequest
+): Promise<ContentRangeResponseDto[]> => {
+  const response = await api.put<ContentRangeResponseDto[]>(
+    `/content-range/replace-by-nutrient`,
+    payload,
+    { params: { tableId, nutrient } }
+  );
+  return response.data;
+};
+
