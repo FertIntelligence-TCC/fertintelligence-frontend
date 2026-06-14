@@ -38,8 +38,8 @@ import { useUserStore } from "@/stores/user/user.store";
 import { isSupremeUser } from "@/utils/isSupremeUser";
 
 // Services de orquestração e busca
-import { createContentRange, deleteContentRange, fetchContentRangesByTable, ContentRangeResponseDto } from "@/services/contentRangeService";
-import { createCoverage, deleteCoverage, fetchCoveragesByRange, CoverageResponseDto } from "@/services/coverageService";
+import { createContentRange, fetchContentRangesByTable, ContentRangeResponseDto } from "@/services/contentRangeService";
+import { createCoverage, fetchCoveragesByRange, CoverageResponseDto } from "@/services/coverageService";
 
 import { CropFertilizationTableCreateRequestDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
@@ -540,23 +540,6 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
       setIsOrchestrating(true);
       try {
         await updateCropFertilizationTable({ id: activeTable.id, payload: payloadTable });
-
-        const existingRanges = await fetchContentRangesByTable(activeTable.id);
-        const existingRangesWithCoverages = await Promise.all(
-          existingRanges.map(async (range) => ({
-            ...range,
-            coverages: await fetchCoveragesByRange(range.id),
-          }))
-        );
-
-        for (const range of existingRangesWithCoverages) {
-          for (const coverage of range.coverages) {
-            await deleteCoverage(coverage.id);
-          }
-          await deleteContentRange(range.id);
-        }
-
-        await saveContentRangesWithCoverages(activeTable.id, form);
 
         queryClient.invalidateQueries({ queryKey });
         setIsModalOpen(false);
