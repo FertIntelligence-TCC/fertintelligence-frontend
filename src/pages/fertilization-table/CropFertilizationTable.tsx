@@ -277,11 +277,12 @@ const saveContentRangesWithCoverages = async (
   for (let i = 0; i < form.faixasP.length; i++) {
     const row = form.faixasP[i];
     const { smallest, largest } = parseLabel(row.label);
+    const isLastRange = i === form.faixasP.length - 1;
     const rangePayload = {
       nutriente: "FOSFORO",
       ordem_teor: i + 1,
       menor_teor: smallest,
-      maior_teor: largest,
+      maior_teor: isLastRange ? null : largest,
       aplicacao_recomendada_plantio: num(row.plantio),
     };
     const createdRange = await createContentRange(tableId, rangePayload);
@@ -296,11 +297,12 @@ const saveContentRangesWithCoverages = async (
   for (let i = 0; i < form.faixasK.length; i++) {
     const row = form.faixasK[i];
     const { smallest, largest } = parseLabel(row.label);
+    const isLastRange = i === form.faixasK.length - 1;
     const rangePayload = {
       nutriente: "POTASSIO",
       ordem_teor: i + 1,
       menor_teor: smallest,
-      maior_teor: largest,
+      maior_teor: isLastRange ? null : largest,
       aplicacao_recomendada_plantio: num(row.plantio),
     };
     const createdRange = await createContentRange(tableId, rangePayload);
