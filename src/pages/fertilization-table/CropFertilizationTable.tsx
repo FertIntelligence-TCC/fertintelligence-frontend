@@ -294,6 +294,8 @@ const saveContentRangesWithCoverages = async (
         aplicacao_recomendada_cobertura: num(row.coberturas[j]),
       });
     }
+
+    previousPLargest = largest;
   }
 
   let previousKLargest: number | null = null;
@@ -316,6 +318,8 @@ const saveContentRangesWithCoverages = async (
         aplicacao_recomendada_cobertura: num(row.coberturas[j]),
       });
     }
+
+    previousKLargest = largest;
   }
 };
 
