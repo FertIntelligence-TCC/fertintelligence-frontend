@@ -72,16 +72,16 @@ export const CropLabels: Record<CropType, string> = {
 };
 
 export const CropScientificNames: Record<CropType, string> = {
-    [CropType.ALGODAO]: "Gossypium hirsutum",
-    [CropType.AMENDOIM]: "Arachis hypogaea",
-    [CropType.CANA_DE_ACUCAR]: "Saccharum officinarum",
-    [CropType.FEIJAO_CAUPI]: "Vigna unguiculata",
-    [CropType.FEIJAO_COMUM]: "Phaseolus vulgaris",
-    [CropType.GERGELIM]: "Sesamum indicum",
-    [CropType.MAMONA]: "Ricinus communis",
-    [CropType.MILHO]: "Zea mays",
-    [CropType.SISAL]: "Agave sisalana",
-    [CropType.SOJA]: "Glycine max"
+    [CropType.ALGODAO]: "Gossypium_hirsutum",
+    [CropType.AMENDOIM]: "Arachis_hypogaea",
+    [CropType.CANA_DE_ACUCAR]: "Saccharum_officinarum",
+    [CropType.FEIJAO_CAUPI]: "Vigna_unguiculata",
+    [CropType.FEIJAO_COMUM]: "Phaseolus_vulgaris",
+    [CropType.GERGELIM]: "Sesamum_indicum",
+    [CropType.MAMONA]: "Ricinus_communis",
+    [CropType.MILHO]: "Zea_mays",
+    [CropType.SISAL]: "Agave_sisalana",
+    [CropType.SOJA]: "Glycine_max"
 };
 
 // --- Regiões ---
