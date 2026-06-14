@@ -172,6 +172,29 @@ const mapHydratedDataToForm = (
   };
 };
 
+const SCIENTIFIC_NAME_BY_CROP: Record<string, string> = {
+  ALGODAO: "Gossypium_hirsutum",
+  AMENDOIM: "Arachis_hypogaea",
+  CANA_DE_ACUCAR: "Saccharum_officinarum",
+  FEIJAO_CAUPI: "Vigna_unguiculata",
+  FEIJAO_COMUM: "Phaseolus_vulgaris",
+  GERGELIM: "Sesamum_indicum",
+  MAMONA: "Ricinus_communis",
+  MILHO: "Zea_mays",
+  SISAL: "Agave_sisalana",
+  SOJA: "Glycine_max",
+};
+
+const normalizeLimingCriteriaForBackend = (value: unknown) => {
+  if (value === "NEUTRALIZACAO_ALUMINIO_TROCAVEL") {
+    return "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL";
+  }
+  if (value === "ELEVACAO__DO_TEOR_DE_CALCIO_MAIS_MAGNESIO") {
+    return "ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO";
+  }
+  return value;
+};
+
 const mapFormToRequest = (
   form: FertilizationTableFormState
 ): CropFertilizationTableCreateRequestDto => {
@@ -182,7 +205,7 @@ const mapFormToRequest = (
 
   return {
     nome_comum_cultura: form.nomeComum,
-    nome_cientifico_cultura: form.nomeCientifico,
+    nome_cientifico_cultura: SCIENTIFIC_NAME_BY_CROP[String(form.nomeComum)] ?? String(form.nomeCientifico).replace(/ /g, "_"),
     cultivares: form.cultivares,
     regioes_cultura: form.regiao,
 
@@ -196,7 +219,7 @@ const mapFormToRequest = (
     produtividade_regional: num(form.produtividadeRegional),
     produtividade_esperada: num(form.produtividadeEsperada),
 
-    criterio_de_calagem: form.criterioCalagem,
+    criterio_de_calagem: normalizeLimingCriteriaForBackend(form.criterioCalagem),
 
     tipo_de_esterco: form.sugestaoEstercoTipo,
     quantidade_de_esterco: num(form.sugestaoEstercoQtd),
@@ -397,7 +420,7 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
   const user = useUserStore((s) => s.user);
   const isDefaultView = variant === "default";
   const isSupreme = isSupremeUser(user);
-  const usesDefaultTables = isDefaultView || isSupreme;
+  const usesDefaultTables = isDefaultView;
   const canManage = !isDefaultView || isSupreme;
   const queryKey = usesDefaultTables ? ["crop-fertilization-tables-default"] : ["crop-fertilization-tables"];
 
