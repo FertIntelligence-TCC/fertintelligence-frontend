@@ -274,6 +274,8 @@ const saveContentRangesWithCoverages = async (
     });
   }
 
+  let previousPLargest: number | null = null;
+
   for (let i = 0; i < form.faixasP.length; i++) {
     const row = form.faixasP[i];
     const { smallest, largest } = parseLabel(row.label);
@@ -281,7 +283,7 @@ const saveContentRangesWithCoverages = async (
     const rangePayload = {
       nutriente: "FOSFORO",
       ordem_teor: i + 1,
-      menor_teor: smallest,
+      menor_teor: i === 0 ? smallest : previousPLargest,
       maior_teor: isLastRange ? null : largest,
       aplicacao_recomendada_plantio: num(row.plantio),
     };
@@ -294,6 +296,8 @@ const saveContentRangesWithCoverages = async (
     }
   }
 
+  let previousKLargest: number | null = null;
+
   for (let i = 0; i < form.faixasK.length; i++) {
     const row = form.faixasK[i];
     const { smallest, largest } = parseLabel(row.label);
@@ -301,7 +305,7 @@ const saveContentRangesWithCoverages = async (
     const rangePayload = {
       nutriente: "POTASSIO",
       ordem_teor: i + 1,
-      menor_teor: smallest,
+      menor_teor: i === 0 ? smallest : previousKLargest,
       maior_teor: isLastRange ? null : largest,
       aplicacao_recomendada_plantio: num(row.plantio),
     };
