@@ -57,8 +57,6 @@ const mapResponseToForm = (dto: GreenFertilizerResponseDto): GreenFertilizerForm
   mn: String(dto.mn ?? 0),
   mo: String(dto.mo ?? 0),
   zn: String(dto.zn ?? 0),
-  indiceSalino: String(dto.indice_salino ?? 0),
-  indiceAcidez: String(dto.indice_acidez ?? 0),
   publico: dto.publico ? "sim" : "nao",
 });
 
@@ -78,8 +76,6 @@ const mapFormToCreatePayload = (form: GreenFertilizerFormState): GreenFertilizer
     mn: num(form.mn),
     mo: num(form.mo),
     zn: num(form.zn),
-    indice_salino: num(form.indiceSalino),
-    indice_acidez: num(form.indiceAcidez),
     publico: form.publico === "sim"
 });
 
@@ -99,8 +95,6 @@ const mapFormToUpdatePayload = (form: GreenFertilizerFormState): GreenFertilizer
     novo_mn: num(form.mn),
     novo_mo: num(form.mo),
     novo_zn: num(form.zn),
-    novo_indice_salino: num(form.indiceSalino),
-    novo_indice_acidez: num(form.indiceAcidez),
     novo_publico: form.publico === "sim"
 });
 

@@ -502,8 +502,6 @@ export interface GreenFertilizerResponseDto {
     mn: number;
     mo: number;
     zn: number;
-    indice_salino: number;
-    indice_acidez: number;
 }
 
 // POST /register
@@ -523,8 +521,6 @@ export interface GreenFertilizerCreateRequestDto {
     mn: number;
     mo: number;
     zn: number;
-    indice_salino: number;
-    indice_acidez: number;
 }
 
 // PUT /update (prefixo "novo_")
@@ -544,8 +540,6 @@ export interface GreenFertilizerPostRequestDto {
     novo_mn: number;
     novo_mo: number;
     novo_zn: number;
-    novo_indice_salino: number;
-    novo_indice_acidez: number;
 }
 
 // Estado do Formulário (Strings para inputs controlados)
@@ -565,8 +559,6 @@ export interface GreenFertilizerFormState {
     mn: string;
     mo: string;
     zn: string;
-    indiceSalino: string;
-    indiceAcidez: string;
 }
 
 export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
@@ -574,7 +566,6 @@ export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
     c: "", n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
-    indiceSalino: "", indiceAcidez: "",
     publico: "nao"
 };
 

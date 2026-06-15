@@ -43,7 +43,6 @@ export default function GreenFertilizerFormFields({ form, onChange, readOnly }: 
                 </Grid>
             </Box>
 
-            {/* Micronutrientes e Índices iguais aos anteriores, só mudar form.b, etc */}
             <Box>
                 <FormSectionHeader title="Micronutrientes (%)" colorScheme={color} />
                 <Grid templateColumns="repeat(3, 1fr)" gap={3}>
@@ -55,15 +54,6 @@ export default function GreenFertilizerFormFields({ form, onChange, readOnly }: 
                     <FertilizerInputField label="Zn" value={form.zn} onChange={(v) => onChange("zn", v)} readOnly={readOnly} colorScheme={color} />
                 </Grid>
             </Box>
-
-            <Box>
-                <FormSectionHeader title="Índices Físico-Químicos" colorScheme={color} />
-                <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-                    <FertilizerInputField label="Índice Salino" value={form.indiceSalino} onChange={(v) => onChange("indiceSalino", v)} readOnly={readOnly} colorScheme={color} />
-                    <FertilizerInputField label="Índice de Acidez" value={form.indiceAcidez} onChange={(v) => onChange("indiceAcidez", v)} readOnly={readOnly} colorScheme={color} />
-                </Grid>
-            </Box>
-
 
             <Box>
                 <FormSectionHeader title="Compartilhamento" colorScheme={color} />

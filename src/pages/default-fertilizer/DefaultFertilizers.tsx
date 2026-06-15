@@ -86,13 +86,8 @@ const toChelatedForm = (item: ChelatedFertilizerResponseDto): ChelatedFertilizer
 const toBioForm = (item: BioFertilizerResponseDto): BioFertilizerFormState =>
   toBaseNutrientForm(item);
 
-const toCarbonFertilizerForm = <
-  T extends OrganoMineralFertilizerResponseDto | GreenFertilizerResponseDto,
->(
-  item: T,
-  defaults: typeof DEFAULT_ORGANO_MINERAL_FORM_STATE | typeof DEFAULT_GREEN_FERTILIZER_FORM_STATE
-) => ({
-  ...defaults,
+const toOrganoMineralForm = (item: OrganoMineralFertilizerResponseDto): OrganoMineralFertilizerFormState => ({
+  ...DEFAULT_ORGANO_MINERAL_FORM_STATE,
   nome: item.nome_adubo,
   c: String(item.c ?? 0),
   n: String(item.n ?? 0),
@@ -112,11 +107,24 @@ const toCarbonFertilizerForm = <
   publico: publicValue(item.publico),
 });
 
-const toOrganoMineralForm = (item: OrganoMineralFertilizerResponseDto): OrganoMineralFertilizerFormState =>
-  toCarbonFertilizerForm(item, DEFAULT_ORGANO_MINERAL_FORM_STATE);
-
-const toGreenForm = (item: GreenFertilizerResponseDto): GreenFertilizerFormState =>
-  toCarbonFertilizerForm(item, DEFAULT_GREEN_FERTILIZER_FORM_STATE);
+const toGreenForm = (item: GreenFertilizerResponseDto): GreenFertilizerFormState => ({
+  ...DEFAULT_GREEN_FERTILIZER_FORM_STATE,
+  nome: item.nome_adubo,
+  c: String(item.c ?? 0),
+  n: String(item.n ?? 0),
+  p2o5: String(item.p2o5 ?? 0),
+  k2o: String(item.k2o ?? 0),
+  ca: String(item.ca ?? 0),
+  mg: String(item.mg ?? 0),
+  s: String(item.s ?? 0),
+  b: String(item.b ?? 0),
+  cu: String(item.cu ?? 0),
+  fe: String(item.fe ?? 0),
+  mn: String(item.mn ?? 0),
+  mo: String(item.mo ?? 0),
+  zn: String(item.zn ?? 0),
+  publico: publicValue(item.publico),
+});
 
 const toFormulatedForm = (item: FormulatedMineralFertilizerResponseDto): FormulatedFertilizerFormState => {
   const relation = formatNpkRelation(item.relacao ?? { n: 0, p: 0, k: 0 });
