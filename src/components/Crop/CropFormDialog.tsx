@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { AxiosError } from "axios";
 import { 
   VStack, 
   SimpleGrid, 
@@ -68,6 +69,40 @@ const CROP_NAMES: NomeComum[] = [
   'ALGODAO', 'AMENDOIM', 'CANA_DE_ACUCAR', 'FEIJAO_CAUPI', 
   'FEIJAO_COMUM', 'GERGELIM', 'MAMONA', 'MILHO', 'SISAL', 'SOJA'
 ];
+
+type ApiErrorData = { message?: string; error?: string } | string;
+
+const AREA_CONFLICT_MESSAGE =
+  "A soma das áreas das culturas em meses coincidentes não pode ultrapassar a área total do talhão. Revise a área usada ou as datas da cultura.";
+
+const normalizeMessage = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const getApiErrorMessage = (error: unknown): string => {
+  const axiosError = error as AxiosError<ApiErrorData>;
+  const data = axiosError.response?.data;
+
+  if (typeof data === "string") return data;
+  return data?.message || data?.error || "";
+};
+
+const isAreaConflictError = (message: string) => {
+  const normalized = normalizeMessage(message);
+
+  return (
+    normalized.includes("area") &&
+    normalized.includes("talhao") &&
+    (
+      normalized.includes("mes") ||
+      normalized.includes("coincid") ||
+      normalized.includes("sobrepos") ||
+      normalized.includes("exced")
+    )
+  );
+};
 
 export const CropFormDialog = ({
   open,
@@ -239,7 +274,16 @@ export const CropFormDialog = ({
       onSuccess();
     } catch (error) {
       console.error(error);
-      toaster.create({ title: "Erro ao salvar", type: "error" });
+      const apiMessage = getApiErrorMessage(error);
+      const isAreaConflict = isAreaConflictError(apiMessage);
+
+      toaster.create({
+        title: isAreaConflict ? "Área do talhão excedida" : "Erro ao salvar",
+        description: isAreaConflict
+          ? AREA_CONFLICT_MESSAGE
+          : apiMessage || "Ocorreu um erro ao tentar salvar a cultura. Tente novamente.",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
