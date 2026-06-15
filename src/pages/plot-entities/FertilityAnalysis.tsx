@@ -46,6 +46,8 @@ interface GroupedAnalysis {
     extracts: FertilityExtractFormData[]; 
 }
 
+const formatPstValue = (value?: number) => (value ?? 0).toFixed(1);
+
 export const FertilityAnalysis = () => {
     const { plotId } = useParams();
     const navigate = useNavigate();
@@ -303,7 +305,7 @@ export const FertilityAnalysis = () => {
                                                     <Text>Ca: <b>{ext.calcio}</b></Text>
                                                     <Text>Mg: <b>{ext.magnesio}</b></Text>
                                                     <Text>V%: <b>{ext.saturacaoBasesV}</b></Text>
-                                                    <Text>PST: <b>{ext.pst.toFixed(1)}%</b></Text>
+                                                    <Text>PST: <b>{formatPstValue(ext.pst)}%</b></Text>
                                                 </Grid>
                                             </Box>
                                         ))}

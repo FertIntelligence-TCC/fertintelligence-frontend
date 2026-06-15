@@ -34,7 +34,6 @@ export interface SaturationExtractAnalysisExtractResponse {
     dureza_caco3: number;
     dureza_total_caco3: number;
     ras: number; // Razão de Adsorção de Sódio
-    pst: number; // Porcentagem de Sódio Trocável
 }
 
 export interface SaturationExtractAnalysisExtractCreatePayload {

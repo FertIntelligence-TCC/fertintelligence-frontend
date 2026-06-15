@@ -25,7 +25,7 @@ export interface FertilityAnalysisExtractResponse {
     ctc_ph7: number;
     saturacao_bases_v: number;
     saturacao_aluminio_m: number;
-    pst: number;
+    pst?: number;
     fosforo_mehlich1: number;
     fosforo_resina: number;
     enxofre: number;
