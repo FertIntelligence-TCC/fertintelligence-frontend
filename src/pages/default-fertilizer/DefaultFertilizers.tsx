@@ -3,6 +3,7 @@ import ChelatedFertilizerFormFields from "@/components/Fertilizers/FormFields/Ch
 import FoliarMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FoliarMineralFertilizerFormFields";
 import FormulatedMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FormulatedMineralFertilizerFormFields";
 import GreenFertilizerFormFields from "@/components/Fertilizers/FormFields/GreenFertilizerFormFields";
+import OrganicFertilizerFormFields from "@/components/Fertilizers/FormFields/OrganicFertilizerFormFields";
 import OrganoMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/OrganoMineralFertilizerFormFields";
 import SimpleMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/SimpleMineralFertilizerFormFields";
 import PublicFertilizerListBase from "@/pages/public-fertilizer/PublicFertilizerListBase";
@@ -16,6 +17,7 @@ import {
   DEFAULT_FORMULATED_FORM_STATE,
   DEFAULT_GREEN_FERTILIZER_FORM_STATE,
   DEFAULT_MINERAL_FERTILIZER_FORM_STATE,
+  DEFAULT_ORGANIC_FERTILIZER_FORM_STATE,
   DEFAULT_ORGANO_MINERAL_FORM_STATE,
   DEFAULT_SIMPLE_MINERAL_FORM_STATE,
   FormulatedFertilizerFormState,
@@ -24,6 +26,8 @@ import {
   GreenFertilizerResponseDto,
   MineralFertilizerFormState,
   MineralFertilizerResponseDto,
+  OrganicFertilizerFormState,
+  OrganicFertilizerResponseDto,
   OrganoMineralFertilizerFormState,
   OrganoMineralFertilizerResponseDto,
   SimpleMineralFertilizerFormState,
@@ -35,6 +39,7 @@ import { fetchDefaultMineralFertilizers } from "@/services/foliarMineralFertiliz
 import { fetchDefaultFormulatedFertilizers } from "@/services/formulatedMineralFertilizerService";
 import { formatNpkRelation } from "@/utils/npkRelation";
 import { fetchDefaultGreenFertilizers } from "@/services/greenFertilizerService";
+import { fetchDefaultOrganicFertilizers } from "@/services/organicFertilizerService";
 import { fetchDefaultOrganoMineralFertilizers } from "@/services/organoMineralFertilizerService";
 import { fetchDefaultSimpleMineralFertilizers } from "@/services/simpleMineralFertilizerService";
 
@@ -111,6 +116,26 @@ const toGreenForm = (item: GreenFertilizerResponseDto): GreenFertilizerFormState
   ...DEFAULT_GREEN_FERTILIZER_FORM_STATE,
   nome: item.nome_adubo,
   c: String(item.c ?? 0),
+  n: String(item.n ?? 0),
+  p2o5: String(item.p2o5 ?? 0),
+  k2o: String(item.k2o ?? 0),
+  ca: String(item.ca ?? 0),
+  mg: String(item.mg ?? 0),
+  s: String(item.s ?? 0),
+  b: String(item.b ?? 0),
+  cu: String(item.cu ?? 0),
+  fe: String(item.fe ?? 0),
+  mn: String(item.mn ?? 0),
+  mo: String(item.mo ?? 0),
+  zn: String(item.zn ?? 0),
+  publico: publicValue(item.publico),
+});
+
+const toOrganicForm = (item: OrganicFertilizerResponseDto): OrganicFertilizerFormState => ({
+  ...DEFAULT_ORGANIC_FERTILIZER_FORM_STATE,
+  nome: item.nome_adubo,
+  teorUmidade: String(item.teor_umidade ?? 0),
+  teorCinzas: String(item.teor_cinzas ?? 0),
   n: String(item.n ?? 0),
   p2o5: String(item.p2o5 ?? 0),
   k2o: String(item.k2o ?? 0),
@@ -222,6 +247,24 @@ export function DefaultGreenFertilizer() {
       getCreatorName={(item) => creatorName(item.nome_criador)}
       toForm={toGreenForm}
       renderReadOnlyForm={(form) => <GreenFertilizerFormFields form={form} onChange={() => undefined} readOnly />}
+    />
+  );
+}
+
+export function DefaultOrganicFertilizer() {
+  return (
+    <PublicFertilizerListBase<OrganicFertilizerResponseDto, typeof DEFAULT_ORGANIC_FERTILIZER_FORM_STATE>
+      {...defaultListProps}
+      subtitle="Adubos Orgânicos Padrão"
+      heading="Consultar adubos orgânicos padrão"
+      typeLabel="Adubo Orgânico"
+      queryKey={["organic-default-fertilizers"]}
+      fetchFn={fetchDefaultOrganicFertilizers}
+      getId={(item) => item.id}
+      getName={(item) => item.nome_adubo}
+      getCreatorName={(item) => creatorName(item.nome_criador)}
+      toForm={toOrganicForm}
+      renderReadOnlyForm={(form) => <OrganicFertilizerFormFields form={form} onChange={() => undefined} readOnly />}
     />
   );
 }

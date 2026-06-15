@@ -32,6 +32,7 @@ import PublicSimpleMineralFertilizer from "@/pages/public-fertilizer/PublicSimpl
 import PublicFormulatedMineralFertilizer from "@/pages/public-fertilizer/PublicFormulatedMineralFertilizer";
 import PublicOrganoMineralFertilizer from "@/pages/public-fertilizer/PublicOrganoMineralFertilizer";
 import PublicGreenFertilizer from "@/pages/public-fertilizer/PublicGreenFertilizer";
+import PublicOrganicFertilizer from "@/pages/public-fertilizer/PublicOrganicFertilizer";
 import PublicFoliarMineralFertilizer from "@/pages/public-fertilizer/PublicFoliarMineralFertilizer";
 import PublicChelatedFertilizer from "@/pages/public-fertilizer/PublicChelatedFertilizer";
 import PublicBioFertilizer from "@/pages/public-fertilizer/PublicBioFertilizer";
@@ -42,10 +43,12 @@ import {
   DefaultFoliarMineralFertilizer,
   DefaultFormulatedMineralFertilizer,
   DefaultGreenFertilizer,
+  DefaultOrganicFertilizer,
   DefaultOrganoMineralFertilizer,
   DefaultSimpleMineralFertilizer,
 } from "@/pages/default-fertilizer/DefaultFertilizers";
 import GreenFertilizer from "@/pages/fertilizer/GreenFertilizer";
+import OrganicFertilizer from "@/pages/fertilizer/OrganicFertilizer";
 import SimpleMineralFertilizer from "@/pages/fertilizer/SimpleMineralFertilizer";
 import OrganoMineralFertilizer from "@/pages/fertilizer/OrganoMineralFertilizer";
 import { PhysicalAnalysis } from "@/pages/plot-entities/PhysicalAnalysis";
@@ -194,6 +197,10 @@ export const PublicRoutes: RouteObject[] = [
     element: <GreenFertilizer />,
   },
   {
+    path: "/fertintelligence/fertilizer-management/organic-fertilizer",
+    element: <OrganicFertilizer />,
+  },
+  {
     path: "/fertintelligence/fertilizer-management/organo-mineral-fertilizer",
     element: <OrganoMineralFertilizer />,
   },
@@ -222,6 +229,10 @@ export const PublicRoutes: RouteObject[] = [
     element: <DefaultGreenFertilizer />,
   },
   {
+    path: "/fertintelligence/fertilizer-management/default/organic-fertilizer",
+    element: <DefaultOrganicFertilizer />,
+  },
+  {
     path: "/fertintelligence/fertilizer-management/default/foliar-mineral-fertilizer",
     element: <DefaultFoliarMineralFertilizer />,
   },
@@ -248,6 +259,10 @@ export const PublicRoutes: RouteObject[] = [
   {
     path: "/fertintelligence/fertilizer-management/green-fertilizer/publicos",
     element: <PublicGreenFertilizer />,
+  },
+  {
+    path: "/fertintelligence/fertilizer-management/organic-fertilizer/publicos",
+    element: <PublicOrganicFertilizer />,
   },
   {
     path: "/fertintelligence/fertilizer-management/foliar-mineral-fertilizer/publicos",

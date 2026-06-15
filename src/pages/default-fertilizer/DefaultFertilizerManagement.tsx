@@ -52,6 +52,9 @@ export default function DefaultFertilizerManagement() {
             <Button colorScheme="blue" onClick={() => navigate("/fertintelligence/fertilizer-management/default/green-fertilizer")} h="50px" fontSize="md">
               Adubos verdes
             </Button>
+            <Button colorScheme="blue" onClick={() => navigate("/fertintelligence/fertilizer-management/default/organic-fertilizer")} h="50px" fontSize="md">
+              Adubos orgânicos
+            </Button>
           </VStack>
         </Box>
 

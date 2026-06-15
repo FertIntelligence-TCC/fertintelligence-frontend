@@ -569,6 +569,99 @@ export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
     publico: "nao"
 };
 
+// --- ORGANIC FERTILIZER ---
+
+// GET /get-all
+export interface OrganicFertilizerResponseDto {
+    id: number;
+    publico?: boolean;
+    nome_criador?: string;
+    nome_adubo: string;
+    teor_umidade: number;
+    teor_cinzas: number;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+}
+
+// POST /register
+export interface OrganicFertilizerCreateRequestDto {
+    publico?: boolean;
+    nome_adubo: string;
+    teor_umidade: number;
+    teor_cinzas: number;
+    n: number;
+    p2o5: number;
+    k2o: number;
+    ca: number;
+    mg: number;
+    s: number;
+    b: number;
+    cu: number;
+    fe: number;
+    mn: number;
+    mo: number;
+    zn: number;
+}
+
+// PUT /update (prefixo "novo_")
+export interface OrganicFertilizerPostRequestDto {
+    novo_publico?: boolean;
+    novo_nome_adubo: string;
+    novo_teor_umidade: number;
+    novo_teor_cinzas: number;
+    novo_n: number;
+    novo_p2o5: number;
+    novo_k2o: number;
+    novo_ca: number;
+    novo_mg: number;
+    novo_s: number;
+    novo_b: number;
+    novo_cu: number;
+    novo_fe: number;
+    novo_mn: number;
+    novo_mo: number;
+    novo_zn: number;
+}
+
+// Estado do Formulário
+export interface OrganicFertilizerFormState {
+    publico?: "sim" | "nao";
+    nome: string;
+    teorUmidade: string;
+    teorCinzas: string;
+    n: string;
+    p2o5: string;
+    k2o: string;
+    ca: string;
+    mg: string;
+    s: string;
+    b: string;
+    cu: string;
+    fe: string;
+    mn: string;
+    mo: string;
+    zn: string;
+}
+
+export const DEFAULT_ORGANIC_FERTILIZER_FORM_STATE: OrganicFertilizerFormState = {
+    nome: "",
+    teorUmidade: "", teorCinzas: "",
+    n: "", p2o5: "", k2o: "",
+    ca: "", mg: "", s: "",
+    b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
+    publico: "nao"
+};
+
 // --- FOLIAR MINERAL FERTILIZER ---
 
 // GET /get-all
