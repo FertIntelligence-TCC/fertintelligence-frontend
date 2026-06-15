@@ -1,5 +1,6 @@
 // src/components/Fertilizers/Shared/FertilizerFormComponents.tsx
-import { Box, Input, Text, BoxProps, Button, HStack } from "@chakra-ui/react";
+import { Box, Input, Text, BoxProps, Button, HStack, SimpleGrid } from "@chakra-ui/react";
+import EntityImageUploader from "@/components/EntityImageUploader";
 
 interface FertilizerInputFieldProps {
     label: string;
@@ -138,3 +139,70 @@ export const PublicVisibilitySelector = ({
         </HStack>
     </Box>
 );
+
+interface FertilizerPhotosSectionProps {
+    photoIds?: string[];
+    onChange?: (photoIds: string[]) => void;
+    readOnly?: boolean;
+    colorScheme?: string;
+}
+
+const MAX_FERTILIZER_PHOTOS = 5;
+
+export const FertilizerPhotosSection = ({
+    photoIds = [],
+    onChange,
+    readOnly,
+    colorScheme = "green",
+}: FertilizerPhotosSectionProps) => {
+    const normalizedPhotoIds = photoIds.filter(Boolean).slice(0, MAX_FERTILIZER_PHOTOS);
+    const canAddPhoto = normalizedPhotoIds.length < MAX_FERTILIZER_PHOTOS;
+    const slots = readOnly
+        ? normalizedPhotoIds
+        : canAddPhoto
+            ? [...normalizedPhotoIds, ""]
+            : normalizedPhotoIds;
+
+    const handlePhotoChange = (index: number, imageId: string) => {
+        const nextPhotoIds = [...normalizedPhotoIds];
+
+        if (imageId) {
+            nextPhotoIds[index] = imageId;
+        } else {
+            nextPhotoIds.splice(index, 1);
+        }
+
+        onChange?.(nextPhotoIds.filter(Boolean).slice(0, MAX_FERTILIZER_PHOTOS));
+    };
+
+    return (
+        <Box>
+            <FormSectionHeader title="Fotos" colorScheme={colorScheme} />
+            <Text fontSize="xs" color="gray.500" mb={3} _dark={{ color: "gray.400" }}>
+                {normalizedPhotoIds.length}/{MAX_FERTILIZER_PHOTOS} fotos cadastradas
+            </Text>
+            {slots.length > 0 ? (
+                <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+                    {slots.map((photoId, index) => (
+                        <EntityImageUploader
+                            key={`${photoId || "new"}-${index}`}
+                            currentImageId={photoId}
+                            onImageIdChange={(imageId) => handlePhotoChange(index, imageId)}
+                            label={`Foto ${index + 1}`}
+                            readOnly={readOnly}
+                        />
+                    ))}
+                </SimpleGrid>
+            ) : (
+                <Text color="gray.500" fontSize="sm" _dark={{ color: "gray.400" }}>
+                    Nenhuma foto cadastrada.
+                </Text>
+            )}
+            {!readOnly && !canAddPhoto && (
+                <Text mt={2} fontSize="sm" color="orange.600" _dark={{ color: "orange.300" }}>
+                    Limite de {MAX_FERTILIZER_PHOTOS} fotos atingido.
+                </Text>
+            )}
+        </Box>
+    );
+};

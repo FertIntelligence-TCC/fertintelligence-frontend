@@ -1,5 +1,5 @@
 import { Text } from "@chakra-ui/react";
-import { ChelatedFertilizerResponseDto } from "@/interfaces/Fertilizer";
+import { ChelatedFertilizerResponseDto, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
 import FertilizerCardBase from "@/components/Fertilizers/Shared/FertilizerCardBase";
 
 type Props = {
@@ -30,6 +30,7 @@ export default function ChelatedFertilizerCard(props: Props) {
             title={item.nome_adubo}
             badgeLabel="Quelatado"
             colorScheme="purple"
+            photoIds={getFertilizerPhotoIds(item)}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

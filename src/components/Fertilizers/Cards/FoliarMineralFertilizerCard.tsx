@@ -1,5 +1,5 @@
 import { Text } from "@chakra-ui/react";
-import { MineralFertilizerResponseDto } from "@/interfaces/Fertilizer";
+import { MineralFertilizerResponseDto, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
 import FertilizerCardBase from "@/components/Fertilizers/Shared/FertilizerCardBase";
 
 type Props = {
@@ -21,6 +21,7 @@ export default function FoliarMineralFertilizerCard(props: Props) {
             title={item.nome_adubo}
             badgeLabel="Foliar Mineral"
             colorScheme="blue"
+            photoIds={getFertilizerPhotoIds(item)}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

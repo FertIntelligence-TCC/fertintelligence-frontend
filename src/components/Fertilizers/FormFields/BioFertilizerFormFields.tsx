@@ -1,10 +1,10 @@
 import { Box, Grid, VStack } from "@chakra-ui/react";
 import { BioFertilizerFormState } from "@/interfaces/Fertilizer";
-import { FertilizerInputField, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 
 type Props = {
     form: BioFertilizerFormState;
-    onChange: (field: keyof BioFertilizerFormState, value: string) => void;
+    onChange: (field: keyof BioFertilizerFormState, value: BioFertilizerFormState[keyof BioFertilizerFormState]) => void;
     readOnly?: boolean;
 };
 
@@ -17,6 +17,13 @@ export default function BioFertilizerFormFields({ form, onChange, readOnly }: Pr
                 <FormSectionHeader title="Identificação" colorScheme={color} />
                 <FertilizerInputField label="Nome do Biofertilizante *" type="text" value={form.nome} onChange={(v) => onChange("nome", v)} readOnly={readOnly} colorScheme={color} />
             </Box>
+
+            <FertilizerPhotosSection
+                photoIds={form.fotoIds}
+                onChange={(fotoIds) => onChange("fotoIds", fotoIds)}
+                readOnly={readOnly}
+                colorScheme={color}
+            />
 
             <Box>
                 <FormSectionHeader title="Especificações Técnicas" colorScheme={color} />
@@ -70,6 +77,13 @@ export default function BioFertilizerFormFields({ form, onChange, readOnly }: Pr
                 </Grid>
             </Box>
 
+            <Box>
+                <FormSectionHeader title="Informações adicionais" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="Observação" type="text" value={form.observacao} onChange={(v) => onChange("observacao", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Fonte" type="text" value={form.fonte} onChange={(v) => onChange("fonte", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
 
             <Box>
                 <FormSectionHeader title="Compartilhamento" colorScheme={color} />

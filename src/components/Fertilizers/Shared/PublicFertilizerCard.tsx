@@ -1,11 +1,13 @@
 import { Box, Text, HStack, IconButton, Badge, Flex } from "@chakra-ui/react";
 import { ReactNode } from "react";
 import { FiEye } from "react-icons/fi";
+import ImageThumb from "@/components/ImageThumb";
 
 interface PublicFertilizerCardProps {
   fertilizerName: string;
   creatorName: string;
   typeLabel: string;
+  photoIds?: string[];
   isSelected: boolean;
   onSelect: () => void;
   onView: () => void;
@@ -16,6 +18,7 @@ export default function PublicFertilizerCard({
   fertilizerName,
   creatorName,
   typeLabel,
+  photoIds = [],
   isSelected,
   onSelect,
   onView,
@@ -47,6 +50,12 @@ export default function PublicFertilizerCard({
       <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
         Criado por: <Text as="span" fontWeight="semibold">{creatorName}</Text>
       </Text>
+
+      {photoIds.length > 0 && (
+        <Box mt={3}>
+          <ImageThumb imageId={photoIds[0]} alt={`Foto de referência do adubo ${fertilizerName}`} />
+        </Box>
+      )}
 
       {children}
 

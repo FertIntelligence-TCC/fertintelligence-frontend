@@ -1,10 +1,10 @@
 import { Box, Grid, Text, VStack } from "@chakra-ui/react";
 import { GreenFertilizerFormState } from "@/interfaces/Fertilizer";
-import { FertilizerInputField, FormSectionHeader, ReadOnlyDisplay, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, ReadOnlyDisplay, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 
 type Props = {
     form: GreenFertilizerFormState;
-    onChange: (field: keyof GreenFertilizerFormState, value: string) => void;
+    onChange: (field: keyof GreenFertilizerFormState, value: GreenFertilizerFormState[keyof GreenFertilizerFormState]) => void;
     readOnly?: boolean;
 };
 
@@ -31,6 +31,13 @@ export default function GreenFertilizerFormFields({ form, onChange, readOnly }: 
                 </Grid>
             </Box>
 
+            <FertilizerPhotosSection
+                photoIds={form.fotoIds}
+                onChange={(fotoIds) => onChange("fotoIds", fotoIds)}
+                readOnly={readOnly}
+                colorScheme={color}
+            />
+
             <Box>
                 <FormSectionHeader title="Outros Macronutrientes (%)" colorScheme={color} />
                 <Grid templateColumns="repeat(3, 1fr)" gap={3}>
@@ -52,6 +59,14 @@ export default function GreenFertilizerFormFields({ form, onChange, readOnly }: 
                     <FertilizerInputField label="Mn" value={form.mn} onChange={(v) => onChange("mn", v)} readOnly={readOnly} colorScheme={color} />
                     <FertilizerInputField label="Mo" value={form.mo} onChange={(v) => onChange("mo", v)} readOnly={readOnly} colorScheme={color} />
                     <FertilizerInputField label="Zn" value={form.zn} onChange={(v) => onChange("zn", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
+
+            <Box>
+                <FormSectionHeader title="Informações adicionais" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="Observação" type="text" value={form.observacao} onChange={(v) => onChange("observacao", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Fonte" type="text" value={form.fonte} onChange={(v) => onChange("fonte", v)} readOnly={readOnly} colorScheme={color} />
                 </Grid>
             </Box>
 

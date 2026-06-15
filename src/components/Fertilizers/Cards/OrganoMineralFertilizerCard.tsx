@@ -1,5 +1,5 @@
 import { Text } from "@chakra-ui/react";
-import { OrganoMineralFertilizerResponseDto } from "@/interfaces/Fertilizer";
+import { OrganoMineralFertilizerResponseDto, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
 import FertilizerCardBase from "@/components/Fertilizers/Shared/FertilizerCardBase";
 
 type Props = {
@@ -19,6 +19,7 @@ export default function OrganoMineralFertilizerCard(props: Props) {
             title={item.nome_adubo}
             badgeLabel="Organomineral"
             colorScheme="orange"
+            photoIds={getFertilizerPhotoIds(item)}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

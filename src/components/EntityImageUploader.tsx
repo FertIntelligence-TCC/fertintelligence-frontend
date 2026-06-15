@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, Button, Image, Input, Text, VStack } from "@chakra-ui/react";
-import { FiImage, FiUploadCloud } from "react-icons/fi";
+import { FiImage, FiTrash2, FiUploadCloud } from "react-icons/fi";
 import { getImageFromMongoDB, updateImageMongoDB, uploadImageMongoDB } from "@/services/imageService";
 
 type Props = {
@@ -71,6 +71,12 @@ export default function EntityImageUploader({ currentImageId, onImageIdChange, l
             <FiUploadCloud />
             {loading ? "Processando..." : "Enviar imagem"}
           </Button>
+          {currentImageId && (
+            <Button variant="outline" colorPalette="red" onClick={() => onImageIdChange("")} disabled={loading}>
+              <FiTrash2 />
+              Remover imagem
+            </Button>
+          )}
         </>
       )}
     </VStack>

@@ -1,10 +1,10 @@
 import { Box, Grid, VStack } from "@chakra-ui/react";
 import { SimpleMineralFertilizerFormState } from "@/interfaces/Fertilizer";
-import { FertilizerInputField, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 
 type Props = {
     form: SimpleMineralFertilizerFormState;
-    onChange: (field: keyof SimpleMineralFertilizerFormState, value: string) => void;
+    onChange: (field: keyof SimpleMineralFertilizerFormState, value: SimpleMineralFertilizerFormState[keyof SimpleMineralFertilizerFormState]) => void;
     readOnly?: boolean;
 };
 
@@ -63,6 +63,20 @@ export default function SimpleMineralFertilizerFormFields({ form, onChange, read
                 </Grid>
             </Box>
 
+            <FertilizerPhotosSection
+                photoIds={form.fotoIds}
+                onChange={(fotoIds) => onChange("fotoIds", fotoIds)}
+                readOnly={readOnly}
+                colorScheme={color}
+            />
+
+            <Box>
+                <FormSectionHeader title="Informações adicionais" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="Observação" type="text" value={form.observacao} onChange={(v) => onChange("observacao", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Fonte" type="text" value={form.fonte} onChange={(v) => onChange("fonte", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
 
             <Box>
                 <FormSectionHeader title="Compartilhamento" colorScheme={color} />

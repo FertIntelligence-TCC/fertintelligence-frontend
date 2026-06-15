@@ -9,8 +9,9 @@ import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import PublicFertilizerCard from "@/components/Fertilizers/Shared/PublicFertilizerCard";
+import { FertilizerPhotoCarrier, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
 
-interface PublicFertilizerListBaseProps<TItem, TForm> {
+interface PublicFertilizerListBaseProps<TItem extends FertilizerPhotoCarrier, TForm> {
   subtitle: string;
   heading: string;
   typeLabel: string;
@@ -28,7 +29,7 @@ interface PublicFertilizerListBaseProps<TItem, TForm> {
   renderReadOnlyForm: (form: TForm) => ReactNode;
 }
 
-export default function PublicFertilizerListBase<TItem, TForm>({
+export default function PublicFertilizerListBase<TItem extends FertilizerPhotoCarrier, TForm>({
   subtitle,
   heading,
   typeLabel,
@@ -84,6 +85,7 @@ export default function PublicFertilizerListBase<TItem, TForm>({
                       fertilizerName={getName(fertilizer)}
                       creatorName={getCreatorName(fertilizer)}
                       typeLabel={typeLabel}
+                      photoIds={getFertilizerPhotoIds(fertilizer)}
                       isSelected={selectedId === id}
                       onSelect={() => setSelectedId(selectedId === id ? null : id)}
                       onView={() => setActiveItem(fertilizer)}

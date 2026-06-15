@@ -25,7 +25,8 @@ import {
     DEFAULT_FORMULATED_FORM_STATE,
     FormulatedMineralFertilizerCreateRequestDto,
     FormulatedMineralFertilizerPostRequestDto,
-    FormulateDto
+    FormulateDto,
+    getFertilizerPhotoIds
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -94,6 +95,9 @@ const mapResponseToForm = (dto: FormulatedMineralFertilizerResponseDto): Formula
   const relation = formatNpkRelation(dto.relacao ?? { n: 0, p: 0, k: 0 });
 
   return {
+    fotoIds: getFertilizerPhotoIds(dto),
+    observacao: dto.observacao ?? "",
+    fonte: dto.fonte ?? "",
     formulaN: String(dto.formula?.n ?? 0),   // CORRIGIDO: 'formula'
     formulaP: String(dto.formula?.p ?? 0),
     formulaK: String(dto.formula?.k ?? 0),
@@ -124,6 +128,9 @@ const mapResponseToForm = (dto: FormulatedMineralFertilizerResponseDto): Formula
 const mapFormToCreatePayload = (form: FormulatedFertilizerFormState): FormulatedMineralFertilizerCreateRequestDto => ({
     formula: { n: num(form.formulaN), p: num(form.formulaP), k: num(form.formulaK) }, // CORRIGIDO
     relacao: { n: num(form.relacaoN), p: num(form.relacaoP), k: num(form.relacaoK) }, // CORRIGIDO
+    id_fotos: form.fotoIds,
+    observacao: form.observacao,
+    fonte: form.fonte,
     n: num(form.n),
     p2o5: num(form.p2o5),
     k2o: num(form.k2o),
@@ -144,6 +151,9 @@ const mapFormToCreatePayload = (form: FormulatedFertilizerFormState): Formulated
 const mapFormToUpdatePayload = (form: FormulatedFertilizerFormState): FormulatedMineralFertilizerPostRequestDto => ({
     nova_formula: { n: num(form.formulaN), p: num(form.formulaP), k: num(form.formulaK) }, // CORRIGIDO
     nova_relacao: { n: num(form.relacaoN), p: num(form.relacaoP), k: num(form.relacaoK) }, // CORRIGIDO
+    novo_id_fotos: form.fotoIds,
+    nova_observacao: form.observacao,
+    nova_fonte: form.fonte,
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),

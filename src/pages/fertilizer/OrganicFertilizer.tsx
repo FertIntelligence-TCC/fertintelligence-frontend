@@ -24,7 +24,8 @@ import {
     OrganicFertilizerFormState,
     DEFAULT_ORGANIC_FERTILIZER_FORM_STATE,
     OrganicFertilizerCreateRequestDto,
-    OrganicFertilizerPostRequestDto
+    OrganicFertilizerPostRequestDto,
+    getFertilizerPhotoIds
 } from "@/interfaces/Fertilizer";
 
 import {
@@ -42,6 +43,9 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizerFormState => ({
   nome: dto.nome_adubo,
+  fotoIds: getFertilizerPhotoIds(dto),
+  observacao: dto.observacao ?? "",
+  fonte: dto.fonte ?? "",
   teorUmidade: String(dto.teor_umidade ?? 0),
   teorCinzas: String(dto.teor_cinzas ?? 0),
   n: String(dto.n ?? 0),
@@ -61,6 +65,9 @@ const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizer
 
 const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
+    id_fotos: form.fotoIds,
+    observacao: form.observacao,
+    fonte: form.fonte,
     teor_umidade: num(form.teorUmidade),
     teor_cinzas: num(form.teorCinzas),
     n: num(form.n),
@@ -80,6 +87,9 @@ const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertil
 
 const mapFormToUpdatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
+    novo_id_fotos: form.fotoIds,
+    nova_observacao: form.observacao,
+    nova_fonte: form.fonte,
     novo_teor_umidade: num(form.teorUmidade),
     novo_teor_cinzas: num(form.teorCinzas),
     novo_n: num(form.n),

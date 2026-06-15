@@ -24,7 +24,8 @@ import {
     BioFertilizerFormState, 
     DEFAULT_BIO_FERTILIZER_FORM_STATE,
     BioFertilizerCreateRequestDto,
-    BioFertilizerPostRequestDto
+    BioFertilizerPostRequestDto,
+    getFertilizerPhotoIds
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -44,6 +45,9 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: BioFertilizerResponseDto): BioFertilizerFormState => ({
   nome: dto.nome_adubo,
+  fotoIds: getFertilizerPhotoIds(dto),
+  observacao: dto.observacao ?? "",
+  fonte: dto.fonte ?? "",
   densidade: String(dto.densidade_g_ml ?? ""),
   concentracaoVolume: String(dto.concentracao_volume_g_l ?? ""),
   concentracaoMassa: String(dto.concentracao_massa_g_kg ?? ""),
@@ -71,6 +75,9 @@ const mapResponseToForm = (dto: BioFertilizerResponseDto): BioFertilizerFormStat
 
 const mapFormToCreatePayload = (form: BioFertilizerFormState): BioFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
+    id_fotos: form.fotoIds,
+    observacao: form.observacao,
+    fonte: form.fonte,
     densidade_g_ml: num(form.densidade),
     concentracao_volume_g_l: num(form.concentracaoVolume),
     concentracao_massa_g_kg: num(form.concentracaoMassa),
@@ -98,6 +105,9 @@ const mapFormToCreatePayload = (form: BioFertilizerFormState): BioFertilizerCrea
 
 const mapFormToUpdatePayload = (form: BioFertilizerFormState): BioFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
+    novo_id_fotos: form.fotoIds,
+    nova_observacao: form.observacao,
+    nova_fonte: form.fonte,
     nova_densidade_g_ml: num(form.densidade),
     nova_concentracao_volume_g_l: num(form.concentracaoVolume),
     nova_concentracao_massa_g_kg: num(form.concentracaoMassa),

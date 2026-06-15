@@ -24,7 +24,8 @@ import {
     ChelatedFertilizerFormState, 
     DEFAULT_CHELATED_FERTILIZER_FORM_STATE,
     ChelatedFertilizerCreateRequestDto,
-    ChelatedFertilizerPostRequestDto
+    ChelatedFertilizerPostRequestDto,
+    getFertilizerPhotoIds
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -44,6 +45,9 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: ChelatedFertilizerResponseDto): ChelatedFertilizerFormState => ({
   nome: dto.nome_adubo,
+  fotoIds: getFertilizerPhotoIds(dto),
+  observacao: dto.observacao ?? "",
+  fonte: dto.fonte ?? "",
   densidade: String(dto.densidade ?? ""),
   concentracaoVolume: String(dto.concentracao_volume ?? ""),
   concentracaoMassa: String(dto.concentracao_massa ?? ""),
@@ -66,6 +70,9 @@ const mapResponseToForm = (dto: ChelatedFertilizerResponseDto): ChelatedFertiliz
 
 const mapFormToCreatePayload = (form: ChelatedFertilizerFormState): ChelatedFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
+    id_fotos: form.fotoIds,
+    observacao: form.observacao,
+    fonte: form.fonte,
     densidade: num(form.densidade),
     concentracao_volume: num(form.concentracaoVolume),
     concentracao_massa: num(form.concentracaoMassa),
@@ -88,6 +95,9 @@ const mapFormToCreatePayload = (form: ChelatedFertilizerFormState): ChelatedFert
 
 const mapFormToUpdatePayload = (form: ChelatedFertilizerFormState): ChelatedFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
+    novo_id_fotos: form.fotoIds,
+    nova_observacao: form.observacao,
+    nova_fonte: form.fonte,
     nova_densidade: num(form.densidade),
     nova_concentracao_volume: num(form.concentracaoVolume),
     nova_concentracao_massa: num(form.concentracaoMassa),

@@ -24,7 +24,8 @@ import {
     OrganoMineralFertilizerFormState, 
     DEFAULT_ORGANO_MINERAL_FORM_STATE,
     OrganoMineralFertilizerCreateRequestDto,
-    OrganoMineralFertilizerPostRequestDto
+    OrganoMineralFertilizerPostRequestDto,
+    getFertilizerPhotoIds
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -44,6 +45,9 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: OrganoMineralFertilizerResponseDto): OrganoMineralFertilizerFormState => ({
   nome: dto.nome_adubo,
+  fotoIds: getFertilizerPhotoIds(dto),
+  observacao: dto.observacao ?? "",
+  fonte: dto.fonte ?? "",
   c: String(dto.c ?? 0),
   n: String(dto.n ?? 0),
   p2o5: String(dto.p2o5 ?? 0),
@@ -64,6 +68,9 @@ const mapResponseToForm = (dto: OrganoMineralFertilizerResponseDto): OrganoMiner
 
 const mapFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
+    id_fotos: form.fotoIds,
+    observacao: form.observacao,
+    fonte: form.fonte,
     c: num(form.c),
     n: num(form.n),
     p2o5: num(form.p2o5),
@@ -84,6 +91,9 @@ const mapFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoM
 
 const mapFormToUpdatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
+    novo_id_fotos: form.fotoIds,
+    nova_observacao: form.observacao,
+    nova_fonte: form.fonte,
     novo_c: num(form.c),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),

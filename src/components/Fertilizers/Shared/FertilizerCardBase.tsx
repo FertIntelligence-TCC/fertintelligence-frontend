@@ -1,11 +1,13 @@
 import { Box, Text, HStack, IconButton, Badge, Flex } from "@chakra-ui/react";
 import { FiEye, FiEdit, FiTrash } from "react-icons/fi";
 import { ReactNode } from "react";
+import ImageThumb from "@/components/ImageThumb";
 
 interface FertilizerCardBaseProps {
     title: string;
     badgeLabel: string;
     colorScheme?: string; // "green", "blue", "purple", "teal", "orange", etc.
+    photoIds?: string[];
     isSelected: boolean;
     onSelect: () => void;
     onView: () => void;
@@ -18,6 +20,7 @@ export default function FertilizerCardBase({
     title,
     badgeLabel,
     colorScheme = "green",
+    photoIds = [],
     isSelected,
     onSelect,
     onView,
@@ -46,6 +49,10 @@ export default function FertilizerCardBase({
                 </Text>
                 <Badge colorPalette={colorScheme} variant="surface">{badgeLabel}</Badge>
             </Flex>
+
+            {photoIds.length > 0 && (
+                <ImageThumb imageId={photoIds[0]} alt={`Foto de referência do adubo ${title}`} />
+            )}
             
             {/* Conteúdo Específico do Card Injetado Aqui */}
             <Box mb={2}>

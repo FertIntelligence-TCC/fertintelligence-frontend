@@ -1,5 +1,5 @@
 import { Text } from "@chakra-ui/react";
-import { FormulatedMineralFertilizerResponseDto } from "@/interfaces/Fertilizer";
+import { FormulatedMineralFertilizerResponseDto, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
 import FertilizerCardBase from "@/components/Fertilizers/Shared/FertilizerCardBase";
 import { formatNpkRelation } from "@/utils/npkRelation";
 
@@ -25,6 +25,7 @@ export default function FormulatedMineralFertilizerCard(props: Props) {
             title={formulaName}
             badgeLabel="Formulado"
             colorScheme="purple"
+            photoIds={getFertilizerPhotoIds(item)}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

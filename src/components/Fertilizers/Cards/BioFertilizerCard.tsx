@@ -1,5 +1,5 @@
 import { Text } from "@chakra-ui/react";
-import { BioFertilizerResponseDto } from "@/interfaces/Fertilizer";
+import { BioFertilizerResponseDto, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
 import FertilizerCardBase from "@/components/Fertilizers/Shared/FertilizerCardBase";
 import BioFertilizerTechnicalDetails from "@/components/Fertilizers/Shared/BioFertilizerTechnicalDetails";
 
@@ -21,6 +21,7 @@ export default function BioFertilizerCard(props: Props) {
             title={item.nome_adubo}
             badgeLabel="Biofertilizante"
             colorScheme="teal"
+            photoIds={getFertilizerPhotoIds(item)}
             {...props}
         >
             <BioFertilizerTechnicalDetails item={item} />

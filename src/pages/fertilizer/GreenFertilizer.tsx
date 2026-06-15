@@ -24,7 +24,8 @@ import {
     GreenFertilizerFormState, 
     DEFAULT_GREEN_FERTILIZER_FORM_STATE,
     GreenFertilizerCreateRequestDto,
-    GreenFertilizerPostRequestDto
+    GreenFertilizerPostRequestDto,
+    getFertilizerPhotoIds
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -44,6 +45,9 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: GreenFertilizerResponseDto): GreenFertilizerFormState => ({
   nome: dto.nome_adubo,
+  fotoIds: getFertilizerPhotoIds(dto),
+  observacao: dto.observacao ?? "",
+  fonte: dto.fonte ?? "",
   c: String(dto.c ?? 0),
   n: String(dto.n ?? 0),
   p2o5: String(dto.p2o5 ?? 0),
@@ -63,6 +67,9 @@ const mapResponseToForm = (dto: GreenFertilizerResponseDto): GreenFertilizerForm
 // Create DTO (para o Backend)
 const mapFormToCreatePayload = (form: GreenFertilizerFormState): GreenFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
+    id_fotos: form.fotoIds,
+    observacao: form.observacao,
+    fonte: form.fonte,
     c: num(form.c),
     n: num(form.n),
     p2o5: num(form.p2o5),
@@ -82,6 +89,9 @@ const mapFormToCreatePayload = (form: GreenFertilizerFormState): GreenFertilizer
 // Update DTO (para o Backend, com prefixo 'novo_')
 const mapFormToUpdatePayload = (form: GreenFertilizerFormState): GreenFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
+    novo_id_fotos: form.fotoIds,
+    nova_observacao: form.observacao,
+    nova_fonte: form.fonte,
     novo_c: num(form.c),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),

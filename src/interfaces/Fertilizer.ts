@@ -1,5 +1,20 @@
 // src/interfaces/Fertilizer.ts
 
+export type FertilizerPhotoIds = string[];
+
+export interface FertilizerPhotoCarrier {
+    id_fotos?: FertilizerPhotoIds;
+    idfotos?: FertilizerPhotoIds;
+    fotos?: FertilizerPhotoIds;
+    fotoIds?: FertilizerPhotoIds;
+}
+
+export const getFertilizerPhotoIds = (item?: FertilizerPhotoCarrier): FertilizerPhotoIds => {
+    if (!item) return [];
+    const photoIds = item.id_fotos ?? item.idfotos ?? item.fotos ?? item.fotoIds ?? [];
+    return photoIds.filter(Boolean).slice(0, 5);
+};
+
 // --- ADUBOS MINERAIS SIMPLES ---
 
 // GET /get-all
@@ -22,11 +37,17 @@ export interface SimpleMineralFertilizerResponseDto {
     zn: number;
     indice_salino: number; // @JsonProperty("indice_salino")
     indice_acidez: number; // @JsonProperty("indice_acidez")
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface SimpleMineralFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     nome_adubo: string;
     n: number;
     p2o5: number;
@@ -47,6 +68,9 @@ export interface SimpleMineralFertilizerCreateRequestDto {
 // PUT /update (Com prefixo "novo_")
 export interface SimpleMineralFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_nome_adubo: string;
     novo_n: number;
     novo_p2o5: number;
@@ -67,6 +91,9 @@ export interface SimpleMineralFertilizerPostRequestDto {
 // Estado interno do formulário (React)
 export interface SimpleMineralFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     nome: string;
     n: string;
     p2o5: string;
@@ -86,6 +113,9 @@ export interface SimpleMineralFertilizerFormState {
 
 export const DEFAULT_SIMPLE_MINERAL_FORM_STATE: SimpleMineralFertilizerFormState = {
     nome: "",
+    fotoIds: [],
+    observacao: "",
+    fonte: "",
     n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
@@ -127,11 +157,17 @@ export interface FormulatedMineralFertilizerResponseDto {
     mo: number;
     zn: number;
     indicatedFormulaNumber: number; // @JsonProperty("numero_formula_indicada")
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface FormulatedMineralFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     formulate?: FormulateDto;
     relation?: NPKRelationDto;
     n: number;
@@ -152,6 +188,9 @@ export interface FormulatedMineralFertilizerCreateRequestDto {
 // PUT /update (com prefixo "novo_")
 export interface FormulatedMineralFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_formulate?: FormulateDto;
     novo_relation?: NPKRelationDto;
     novo_n: number;
@@ -172,6 +211,9 @@ export interface FormulatedMineralFertilizerPostRequestDto {
 // Estado do Formulário (Strings para facilitar edição)
 export interface FormulatedFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     // Fórmula (Nome do adubo, ex: 04-14-08)
     formulaN: string;
     formulaP: string;
@@ -199,6 +241,9 @@ export interface FormulatedFertilizerFormState {
 }
 
 export const DEFAULT_FORMULATED_FORM_STATE: FormulatedFertilizerFormState = {
+    fotoIds: [],
+    observacao: "",
+    fonte: "",
     formulaN: "", formulaP: "", formulaK: "",
     relacaoN: "", relacaoP: "", relacaoK: "",
     n: "", p2o5: "", k2o: "",
@@ -243,10 +288,16 @@ export interface SimpleMineralFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 export interface SimpleMineralFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     nome_adubo: string;
     n: number;
     p2o5: number;
@@ -266,6 +317,9 @@ export interface SimpleMineralFertilizerCreateRequestDto {
 
 export interface SimpleMineralFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_nome_adubo: string;
     novo_n: number;
     novo_p2o5: number;
@@ -285,6 +339,9 @@ export interface SimpleMineralFertilizerPostRequestDto {
 
 export interface SimpleMineralFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     nome: string;
     n: string;
     p2o5: string;
@@ -322,12 +379,18 @@ export interface FormulatedMineralFertilizerResponseDto {
     mo: number;
     zn: number;
     numero_formula_indicada: number; // CORRIGIDO: @JsonProperty("numero_formula_indicada")
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface FormulatedMineralFertilizerCreateRequestDto {
     formula: FormulateDto;   // CORRIGIDO
     relacao: NPKRelationDto; // CORRIGIDO
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     n: number;
     p2o5: number;
     k2o: number;
@@ -347,6 +410,9 @@ export interface FormulatedMineralFertilizerCreateRequestDto {
 export interface FormulatedMineralFertilizerPostRequestDto {
     nova_formula: FormulateDto;   // CORRIGIDO: prefixo "nova_"
     nova_relacao: NPKRelationDto; // CORRIGIDO: prefixo "nova_"
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -363,6 +429,9 @@ export interface FormulatedMineralFertilizerPostRequestDto {
 }
 
 export interface FormulatedFertilizerFormState {
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     formulaN: string;
     formulaP: string;
     formulaK: string;
@@ -407,11 +476,17 @@ export interface OrganoMineralFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface OrganoMineralFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     nome_adubo: string;
     c: number;
     n: number;
@@ -433,6 +508,9 @@ export interface OrganoMineralFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface OrganoMineralFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_nome_adubo: string;
     novo_c: number;
     novo_n: number;
@@ -454,6 +532,9 @@ export interface OrganoMineralFertilizerPostRequestDto {
 // Estado do Formulário
 export interface OrganoMineralFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     nome: string;
     c: string;
     n: string;
@@ -474,6 +555,9 @@ export interface OrganoMineralFertilizerFormState {
 
 export const DEFAULT_ORGANO_MINERAL_FORM_STATE: OrganoMineralFertilizerFormState = {
     nome: "",
+    fotoIds: [],
+    observacao: "",
+    fonte: "",
     c: "", n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
@@ -502,11 +586,17 @@ export interface GreenFertilizerResponseDto {
     mn: number;
     mo: number;
     zn: number;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface GreenFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     nome_adubo: string;
     c: number;
     n: number;
@@ -526,6 +616,9 @@ export interface GreenFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface GreenFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_nome_adubo: string;
     novo_c: number;
     novo_n: number;
@@ -545,6 +638,9 @@ export interface GreenFertilizerPostRequestDto {
 // Estado do Formulário (Strings para inputs controlados)
 export interface GreenFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     nome: string;
     c: string;
     n: string;
@@ -563,6 +659,9 @@ export interface GreenFertilizerFormState {
 
 export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
     nome: "",
+    fotoIds: [],
+    observacao: "",
+    fonte: "",
     c: "", n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
@@ -591,11 +690,17 @@ export interface OrganicFertilizerResponseDto {
     mn: number;
     mo: number;
     zn: number;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface OrganicFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     nome_adubo: string;
     teor_umidade: number;
     teor_cinzas: number;
@@ -616,6 +721,9 @@ export interface OrganicFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface OrganicFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_nome_adubo: string;
     novo_teor_umidade: number;
     novo_teor_cinzas: number;
@@ -636,6 +744,9 @@ export interface OrganicFertilizerPostRequestDto {
 // Estado do Formulário
 export interface OrganicFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     nome: string;
     teorUmidade: string;
     teorCinzas: string;
@@ -655,6 +766,9 @@ export interface OrganicFertilizerFormState {
 
 export const DEFAULT_ORGANIC_FERTILIZER_FORM_STATE: OrganicFertilizerFormState = {
     nome: "",
+    fotoIds: [],
+    observacao: "",
+    fonte: "",
     teorUmidade: "", teorCinzas: "",
     n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
@@ -690,11 +804,17 @@ export interface MineralFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface MineralFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     nome_adubo: string;
     natureza_fisica?: FertilizerPhysicalNature;
     densidade?: number;
@@ -719,6 +839,9 @@ export interface MineralFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface MineralFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_nome_adubo: string;
     nova_natureza_fisica?: FertilizerPhysicalNature;
     nova_densidade?: number;
@@ -743,6 +866,9 @@ export interface MineralFertilizerPostRequestDto {
 // Estado do Formulário
 export interface MineralFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     nome: string;
     naturezaFisica: FertilizerPhysicalNature;
     densidade: string;
@@ -766,6 +892,9 @@ export interface MineralFertilizerFormState {
 
 export const DEFAULT_MINERAL_FERTILIZER_FORM_STATE: MineralFertilizerFormState = {
     nome: "",
+    fotoIds: [],
+    observacao: "",
+    fonte: "",
     naturezaFisica: "SOLIDO",
     densidade: "",
     concentracaoVolume: "",
@@ -802,11 +931,17 @@ export interface ChelatedFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface ChelatedFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     nome_adubo: string;
     densidade?: number;
     concentracao_volume?: number;
@@ -830,6 +965,9 @@ export interface ChelatedFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface ChelatedFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_nome_adubo: string;
     nova_densidade?: number;
     nova_concentracao_volume?: number;
@@ -853,6 +991,9 @@ export interface ChelatedFertilizerPostRequestDto {
 // Estado do Formulário
 export interface ChelatedFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     nome: string;
     densidade: string;
     concentracaoVolume: string;
@@ -875,6 +1016,9 @@ export interface ChelatedFertilizerFormState {
 
 export const DEFAULT_CHELATED_FERTILIZER_FORM_STATE: ChelatedFertilizerFormState = {
     nome: "",
+    fotoIds: [],
+    observacao: "",
+    fonte: "",
     densidade: "",
     concentracaoVolume: "",
     concentracaoMassa: "",
@@ -915,11 +1059,17 @@ export interface BioFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
 }
 
 // POST /register
 export interface BioFertilizerCreateRequestDto {
     publico?: boolean;
+    id_fotos?: FertilizerPhotoIds;
+    observacao?: string;
+    fonte?: string;
     nome_adubo: string;
     densidade_g_ml?: number;
     concentracao_volume_g_l?: number;
@@ -948,6 +1098,9 @@ export interface BioFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface BioFertilizerPostRequestDto {
     novo_publico?: boolean;
+    novo_id_fotos?: FertilizerPhotoIds;
+    nova_observacao?: string;
+    nova_fonte?: string;
     novo_nome_adubo: string;
     nova_densidade_g_ml?: number;
     nova_concentracao_volume_g_l?: number;
@@ -976,6 +1129,9 @@ export interface BioFertilizerPostRequestDto {
 // Estado do Formulário
 export interface BioFertilizerFormState {
     publico?: "sim" | "nao";
+    fotoIds?: FertilizerPhotoIds;
+    observacao: string;
+    fonte: string;
     nome: string;
     densidade: string;
     concentracaoVolume: string;
@@ -1003,6 +1159,9 @@ export interface BioFertilizerFormState {
 
 export const DEFAULT_BIO_FERTILIZER_FORM_STATE: BioFertilizerFormState = {
     nome: "",
+    fotoIds: [],
+    observacao: "",
+    fonte: "",
     densidade: "",
     concentracaoVolume: "",
     concentracaoMassa: "",
