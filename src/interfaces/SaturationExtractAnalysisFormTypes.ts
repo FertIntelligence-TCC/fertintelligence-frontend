@@ -41,5 +41,4 @@ export interface SaturationExtractFormData {
     durezaCaCO3: number;
     durezaTotalCaCO3: number;
     ras: number; // Razão de Adsorção de Sódio
-    pst: number; // Porcentagem de Sódio Trocável
 }

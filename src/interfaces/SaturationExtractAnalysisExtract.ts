@@ -54,7 +54,6 @@ export interface SaturationExtractAnalysisExtractCreatePayload {
     dureza_caco3?: number;
     dureza_total_caco3?: number;
     ras?: number;
-    pst?: number;
 }
 
 export interface SaturationExtractAnalysisExtractUpdatePayload {
@@ -79,5 +78,4 @@ export interface SaturationExtractAnalysisExtractUpdatePayload {
     nova_dureza_caco3?: number;
     nova_dureza_total_caco3?: number;
     novo_ras?: number;
-    novo_pst?: number;
 }

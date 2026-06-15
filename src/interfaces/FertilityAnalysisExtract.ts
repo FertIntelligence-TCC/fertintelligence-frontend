@@ -25,6 +25,7 @@ export interface FertilityAnalysisExtractResponse {
     ctc_ph7: number;
     saturacao_bases_v: number;
     saturacao_aluminio_m: number;
+    pst: number;
     fosforo_mehlich1: number;
     fosforo_resina: number;
     enxofre: number;
@@ -50,6 +51,7 @@ export interface FertilityAnalysisExtractCreatePayload {
     ctc_ph7?: number;
     saturacao_bases_v?: number;
     saturacao_aluminio_m?: number;
+    pst?: number;
     fosforo_mehlich1?: number;
     fosforo_resina?: number;
     enxofre?: number;
@@ -75,6 +77,7 @@ export interface FertilityAnalysisExtractUpdatePayload {
     nova_ctc_ph7?: number;
     nova_saturacao_bases_v?: number;
     nova_saturacao_aluminio_m?: number;
+    novo_pst?: number;
     novo_fosforo_mehlich1?: number;
     novo_fosforo_resina?: number;
     novo_enxofre?: number;

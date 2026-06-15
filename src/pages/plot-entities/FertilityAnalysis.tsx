@@ -177,6 +177,7 @@ export const FertilityAnalysis = () => {
             ctcPh7: c.ctc_ph7,
             saturacaoBasesV: c.saturacao_bases_v,
             saturacaoAluminioM: c.saturacao_aluminio_m,
+            pst: c.pst ?? 0,
             fosforoMehlich1: c.fosforo_mehlich1,
             fosforoResina: c.fosforo_resina,
             enxofre: c.enxofre,
@@ -302,6 +303,7 @@ export const FertilityAnalysis = () => {
                                                     <Text>Ca: <b>{ext.calcio}</b></Text>
                                                     <Text>Mg: <b>{ext.magnesio}</b></Text>
                                                     <Text>V%: <b>{ext.saturacaoBasesV}</b></Text>
+                                                    <Text>PST: <b>{ext.pst.toFixed(1)}%</b></Text>
                                                 </Grid>
                                             </Box>
                                         ))}

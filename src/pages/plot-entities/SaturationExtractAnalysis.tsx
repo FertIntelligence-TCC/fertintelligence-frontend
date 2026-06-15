@@ -179,8 +179,7 @@ export const SaturationExtractAnalysis = () => {
             residuosSuspensao: r.residuos_suspensao,
             durezaCaCO3: r.dureza_caco3,
             durezaTotalCaCO3: r.dureza_total_caco3,
-            ras: r.ras,
-            pst: r.pst
+            ras: r.ras
         };
     };
 
@@ -294,7 +293,6 @@ export const SaturationExtractAnalysis = () => {
                                                     <Text>pH: <b>{ext.ph}</b></Text>
                                                     <Text>CE: <b>{ext.ce}</b> dS/m</Text>
                                                     <Text>RAS: <b>{ext.ras}</b></Text>
-                                                    <Text>PST: <b>{ext.pst}%</b></Text>
                                                 </Grid>
                                             </Box>
                                         ))}

@@ -140,6 +140,7 @@ const mapFertilityToFormData = (
     ctcPh7: data.ctc_ph7,
     saturacaoBasesV: data.saturacao_bases_v,
     saturacaoAluminioM: data.saturacao_aluminio_m,
+    pst: data.pst ?? 0,
     fosforoMehlich1: data.fosforo_mehlich1,
     fosforoResina: data.fosforo_resina,
     enxofre: data.enxofre,
@@ -173,7 +174,6 @@ const mapSaturationToFormData = (
     durezaCaCO3: data.dureza_caco3,
     durezaTotalCaCO3: data.dureza_total_caco3,
     ras: data.ras,
-    pst: data.pst,
 });
 
 export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {

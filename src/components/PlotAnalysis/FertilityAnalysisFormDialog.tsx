@@ -89,6 +89,8 @@ const toSafeNumber = (value: unknown) => {
 };
 
 const roundCalculatedValue = (value: number) => Number(value.toFixed(2));
+const roundPstValue = (value: number) => Number(value.toFixed(1));
+const formatPstValue = (value: number) => value.toFixed(1);
 
 const calculateExchangeComplex = (extract: FertilityExtractFormData) => {
     const somaBases = roundCalculatedValue(
@@ -107,6 +109,7 @@ const calculateExchangeComplex = (extract: FertilityExtractFormData) => {
         ctcPh7,
         saturacaoBasesV: ctcPh7 > 0 ? roundCalculatedValue((100 * somaBases) / ctcPh7) : 0,
         saturacaoAluminioM: ctcEfetiva > 0 ? roundCalculatedValue((100 * aluminio) / ctcEfetiva) : 0,
+        pst: ctcPh7 > 0 ? roundPstValue((100 * toSafeNumber(extract.sodio)) / ctcPh7) : 0,
     };
 };
 
@@ -175,7 +178,7 @@ export const FertilityAnalysisFormDialog = ({
             // Campos de Fertilidade
             phAgua: 0, phCacl2: 0, calcio: 0, magnesio: 0, potassio: 0, enxofre: 0, sodio: 0, 
             aluminio: 0, aluminioMaisHidrogenio: 0, somaBases: 0, ctcEfetiva: 0, ctcPh7: 0, 
-            saturacaoBasesV: 0, saturacaoAluminioM: 0, fosforoMehlich1: 0, fosforoResina: 0, 
+            saturacaoBasesV: 0, saturacaoAluminioM: 0, pst: 0, fosforoMehlich1: 0, fosforoResina: 0, 
             materiaOrganica: 0, boro: 0, cobre: 0, ferro: 0, manganes: 0, zinco: 0
         };
         const updated = [...extracts, newExtract];
@@ -316,6 +319,7 @@ export const FertilityAnalysisFormDialog = ({
                     ctc_ph7: exchangeComplex.ctcPh7, 
                     saturacao_bases_v: exchangeComplex.saturacaoBasesV, 
                     saturacao_aluminio_m: exchangeComplex.saturacaoAluminioM, 
+                    pst: exchangeComplex.pst,
                     fosforo_mehlich1: ext.fosforoMehlich1, 
                     fosforo_resina: ext.fosforoResina, 
                     enxofre: ext.enxofre, 
@@ -513,12 +517,13 @@ export const FertilityAnalysisFormDialog = ({
                                             </Grid>
 
                                             <SectionHeader title="Complexo de Troca" colorPalette="purple" />
-                                            <Grid templateColumns="repeat(5, 1fr)" gap={4} mb={4}>
+                                            <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
                                                 <Field label="SB (Cmolc/dm³)" type="number" value={exchangeComplex.somaBases} readOnly />
                                                 <Field label="CTC(t) (Cmolc/dm³)" type="number" value={exchangeComplex.ctcEfetiva} readOnly />
                                                 <Field label="CTC(T) (Cmolc/dm³)" type="number" value={exchangeComplex.ctcPh7} readOnly />
                                                 <Field label="V%" type="number" value={exchangeComplex.saturacaoBasesV} readOnly />
                                                 <Field label="m%" type="number" value={exchangeComplex.saturacaoAluminioM} readOnly />
+                                                <Field label="PST (%)" type="number" value={formatPstValue(exchangeComplex.pst)} readOnly />
                                             </Grid>
 
                                             <SectionHeader title="Micronutrientes e Outros" colorPalette="green" />

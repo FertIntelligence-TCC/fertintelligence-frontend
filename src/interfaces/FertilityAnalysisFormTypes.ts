@@ -40,6 +40,7 @@ export interface FertilityExtractFormData {
     ctcPh7: number;
     saturacaoBasesV: number;
     saturacaoAluminioM: number;
+    pst: number;
     
     // Fósforo e MO
     fosforoMehlich1: number;

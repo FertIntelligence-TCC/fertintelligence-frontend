@@ -154,7 +154,7 @@ export const SaturationExtractAnalysisFormDialog = ({
             teorCO3: 0, teorHCO3: 0, teorNO3: 0, teorH2PO4: 0, teorSO4: 0, teorCl: 0, 
             
             // Dureza e Indicadores
-            durezaCaCO3: 0, durezaTotalCaCO3: 0, ras: 0, pst: 0
+            durezaCaCO3: 0, durezaTotalCaCO3: 0, ras: 0
         };
         const updated = [...extracts, newExtract];
         if (mode === 'LAYER') recalculateSubLayers(updated);
@@ -293,8 +293,7 @@ export const SaturationExtractAnalysisFormDialog = ({
                     residuos_suspensao: ext.residuosSuspensao,
                     dureza_caco3: ext.durezaCaCO3,
                     dureza_total_caco3: ext.durezaTotalCaCO3,
-                    ras: ext.ras,
-                    pst: ext.pst
+                    ras: ext.ras
                 };
 
                 if (ext.databaseId) {
@@ -307,7 +306,7 @@ export const SaturationExtractAnalysisFormDialog = ({
 
                         if (key === "residuos_suspensao") {
                             prefix = "novos_"; // Plural
-                        } else if (["ce", "ras", "pst", "dureza_caco3", "dureza_total_caco3"].includes(key)) {
+                        } else if (["ce", "ras", "dureza_caco3", "dureza_total_caco3"].includes(key)) {
                             prefix = "nova_"; // Feminino
                         }
 
@@ -499,11 +498,10 @@ export const SaturationExtractAnalysisFormDialog = ({
                                             </Grid>
 
                                             <SectionHeader title="Dureza e Indicadores" colorPalette="pink" />
-                                            <Grid templateColumns="repeat(4, 1fr)" gap={4}>
+                                            <Grid templateColumns="repeat(3, 1fr)" gap={4}>
                                                 <Field label="Dureza CaCO3 (mg/L)" type="number" value={ext.durezaCaCO3} onChange={e => handleChangeExtract(ext.tempId, 'durezaCaCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="Dureza Total (mg/L)" type="number" value={ext.durezaTotalCaCO3} onChange={e => handleChangeExtract(ext.tempId, 'durezaTotalCaCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="RAS" type="number" value={ext.ras} onChange={e => handleChangeExtract(ext.tempId, 'ras', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="PST (%)" type="number" value={ext.pst} onChange={e => handleChangeExtract(ext.tempId, 'pst', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
                                         </Box>
                                     ))}
