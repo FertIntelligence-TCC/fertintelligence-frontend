@@ -7,6 +7,7 @@ import OrganicFertilizerFormFields from "@/components/Fertilizers/FormFields/Org
 import OrganoMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/OrganoMineralFertilizerFormFields";
 import SimpleMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/SimpleMineralFertilizerFormFields";
 import PublicFertilizerListBase from "@/pages/public-fertilizer/PublicFertilizerListBase";
+import { Text } from "@chakra-ui/react";
 import {
   BioFertilizerFormState,
   BioFertilizerResponseDto,
@@ -52,6 +53,27 @@ const defaultListProps = {
 
 const creatorName = (name?: string) => name || "Usuário supremo";
 
+const renderMineralPhysicalNatureDetails = (item: MineralFertilizerResponseDto) => {
+  const naturezaFisica = item.natureza_fisica ?? "SOLIDO";
+  const isLiquid = naturezaFisica === "LIQUIDO";
+
+  return (
+    <>
+      <Text fontSize="xs" color="gray.500" mt={2}>
+        Natureza Física:
+      </Text>
+      <Text fontSize="sm" fontWeight="semibold">
+        {isLiquid ? "LÍQUIDO" : "SÓLIDO"}
+      </Text>
+      {isLiquid && (
+        <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={1}>
+          Densidade: {item.densidade ?? "-"} g/ml | Vol.: {item.concentracao_volume ?? "-"} g/L | Massa: {item.concentracao_massa ?? "-"} g/kg
+        </Text>
+      )}
+    </>
+  );
+};
+
 type BaseNutrientFertilizer = SimpleMineralFertilizerResponseDto
   | MineralFertilizerResponseDto
   | ChelatedFertilizerResponseDto
@@ -82,8 +104,14 @@ const toBaseNutrientForm = <T extends BaseNutrientFertilizer>(item: T) => ({
 const toSimpleMineralForm = (item: SimpleMineralFertilizerResponseDto): SimpleMineralFertilizerFormState =>
   toBaseNutrientForm(item);
 
-const toMineralForm = (item: MineralFertilizerResponseDto): MineralFertilizerFormState =>
-  toBaseNutrientForm(item);
+const toMineralForm = (item: MineralFertilizerResponseDto): MineralFertilizerFormState => ({
+  ...DEFAULT_MINERAL_FERTILIZER_FORM_STATE,
+  ...toBaseNutrientForm(item),
+  naturezaFisica: item.natureza_fisica ?? "SOLIDO",
+  densidade: String(item.densidade ?? ""),
+  concentracaoVolume: String(item.concentracao_volume ?? ""),
+  concentracaoMassa: String(item.concentracao_massa ?? ""),
+});
 
 const toChelatedForm = (item: ChelatedFertilizerResponseDto): ChelatedFertilizerFormState =>
   toBaseNutrientForm(item);
@@ -281,6 +309,7 @@ export function DefaultFoliarMineralFertilizer() {
       getId={(item) => item.id}
       getName={(item) => item.nome_adubo}
       getCreatorName={(item) => creatorName(item.nome_criador)}
+      renderCardDetails={renderMineralPhysicalNatureDetails}
       toForm={toMineralForm}
       renderReadOnlyForm={(form) => <FoliarMineralFertilizerFormFields form={form} onChange={() => undefined} readOnly />}
     />

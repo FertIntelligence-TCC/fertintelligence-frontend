@@ -1,4 +1,5 @@
 import { Box, Text, HStack, IconButton, Badge, Flex } from "@chakra-ui/react";
+import { ReactNode } from "react";
 import { FiEye } from "react-icons/fi";
 
 interface PublicFertilizerCardProps {
@@ -8,6 +9,7 @@ interface PublicFertilizerCardProps {
   isSelected: boolean;
   onSelect: () => void;
   onView: () => void;
+  children?: ReactNode;
 }
 
 export default function PublicFertilizerCard({
@@ -17,6 +19,7 @@ export default function PublicFertilizerCard({
   isSelected,
   onSelect,
   onView,
+  children,
 }: PublicFertilizerCardProps) {
   return (
     <Box
@@ -44,6 +47,8 @@ export default function PublicFertilizerCard({
       <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
         Criado por: <Text as="span" fontWeight="semibold">{creatorName}</Text>
       </Text>
+
+      {children}
 
       {isSelected && (
         <HStack justify="flex-end" mt={3}>

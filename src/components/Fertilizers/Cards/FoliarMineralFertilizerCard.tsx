@@ -13,6 +13,8 @@ type Props = {
 
 export default function FoliarMineralFertilizerCard(props: Props) {
     const { item } = props;
+    const naturezaFisica = item.natureza_fisica ?? "SOLIDO";
+    const isLiquid = naturezaFisica === "LIQUIDO";
 
     return (
         <FertilizerCardBase
@@ -21,6 +23,19 @@ export default function FoliarMineralFertilizerCard(props: Props) {
             colorScheme="blue"
             {...props}
         >
+            <Text fontSize="xs" color="gray.500" mt={1}>
+                Natureza Física:
+            </Text>
+            <Text fontSize="sm" fontWeight="semibold">
+                {isLiquid ? "LÍQUIDO" : "SÓLIDO"}
+            </Text>
+
+            {isLiquid && (
+                <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={1}>
+                    Densidade: {item.densidade ?? "-"} g/ml | Vol.: {item.concentracao_volume ?? "-"} g/L | Massa: {item.concentracao_massa ?? "-"} g/kg
+                </Text>
+            )}
+
             <Text fontSize="xs" color="gray.500" mt={1}>
                 Garantias Principais:
             </Text>

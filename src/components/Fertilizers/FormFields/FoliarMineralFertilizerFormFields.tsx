@@ -1,4 +1,4 @@
-import { Box, Grid, VStack } from "@chakra-ui/react";
+import { Box, Grid, Text, VStack, chakra } from "@chakra-ui/react";
 import { MineralFertilizerFormState } from "@/interfaces/Fertilizer";
 import { FertilizerInputField, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 
@@ -8,14 +8,53 @@ type Props = {
     readOnly?: boolean;
 };
 
+const SelectElement = chakra("select");
+
 export default function FoliarMineralFertilizerFormFields({ form, onChange, readOnly }: Props) {
     const color = "blue";
+    const isLiquid = form.naturezaFisica === "LIQUIDO";
 
     return (
         <VStack gap={5} align="stretch" py={2}>
             <Box>
                 <FormSectionHeader title="Identificação" colorScheme={color} />
                 <FertilizerInputField label="Nome do Adubo *" type="text" value={form.nome} onChange={(v) => onChange("nome", v)} readOnly={readOnly} colorScheme={color} />
+            </Box>
+
+            <Box>
+                <FormSectionHeader title="Especificações Técnicas" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: isLiquid ? "repeat(4, 1fr)" : "1fr" }} gap={3}>
+                    <Box>
+                        <Text fontSize="xs" fontWeight="semibold" mb={1} color="gray.600" _dark={{ color: "gray.400" }}>
+                            Natureza Física
+                        </Text>
+                        <SelectElement
+                            value={form.naturezaFisica}
+                            onChange={(e) => onChange("naturezaFisica", e.target.value)}
+                            disabled={readOnly}
+                            bg="white"
+                            borderColor="gray.300"
+                            borderWidth="1px"
+                            borderRadius="md"
+                            h="40px"
+                            px={3}
+                            _focus={{ borderColor: `${color}.500`, boxShadow: `0 0 0 1px var(--chakra-colors-${color}-500)` }}
+                            _dark={{ bg: "gray.800", borderColor: "gray.600", color: "white" }}
+                            _disabled={{ opacity: 1, bg: "gray.100", cursor: "not-allowed", _dark: { bg: "gray.700" } }}
+                        >
+                            <option value="SOLIDO">SÓLIDO</option>
+                            <option value="LIQUIDO">LÍQUIDO</option>
+                        </SelectElement>
+                    </Box>
+
+                    {isLiquid && (
+                        <>
+                            <FertilizerInputField label="Densidade (g/ml)" value={form.densidade} onChange={(v) => onChange("densidade", v)} readOnly={readOnly} colorScheme={color} />
+                            <FertilizerInputField label="Concentração em volume (g/L)" value={form.concentracaoVolume} onChange={(v) => onChange("concentracaoVolume", v)} readOnly={readOnly} colorScheme={color} />
+                            <FertilizerInputField label="Concentração em massa (g/kg)" value={form.concentracaoMassa} onChange={(v) => onChange("concentracaoMassa", v)} readOnly={readOnly} colorScheme={color} />
+                        </>
+                    )}
+                </Grid>
             </Box>
 
             <Box>

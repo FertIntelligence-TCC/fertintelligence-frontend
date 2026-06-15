@@ -23,6 +23,7 @@ interface PublicFertilizerListBaseProps<TItem, TForm> {
   getId: (item: TItem) => number;
   getName: (item: TItem) => string;
   getCreatorName: (item: TItem) => string;
+  renderCardDetails?: (item: TItem) => ReactNode;
   toForm: (item: TItem) => TForm;
   renderReadOnlyForm: (form: TForm) => ReactNode;
 }
@@ -40,6 +41,7 @@ export default function PublicFertilizerListBase<TItem, TForm>({
   getId,
   getName,
   getCreatorName,
+  renderCardDetails,
   toForm,
   renderReadOnlyForm,
 }: PublicFertilizerListBaseProps<TItem, TForm>) {
@@ -85,7 +87,9 @@ export default function PublicFertilizerListBase<TItem, TForm>({
                       isSelected={selectedId === id}
                       onSelect={() => setSelectedId(selectedId === id ? null : id)}
                       onView={() => setActiveItem(fertilizer)}
-                    />
+                    >
+                      {renderCardDetails?.(fertilizer)}
+                    </PublicFertilizerCard>
                   );
                 })}
               </SimpleGrid>

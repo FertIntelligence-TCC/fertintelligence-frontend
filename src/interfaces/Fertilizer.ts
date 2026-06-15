@@ -664,12 +664,18 @@ export const DEFAULT_ORGANIC_FERTILIZER_FORM_STATE: OrganicFertilizerFormState =
 
 // --- FOLIAR MINERAL FERTILIZER ---
 
+export type FertilizerPhysicalNature = "SOLIDO" | "LIQUIDO";
+
 // GET /get-all
 export interface MineralFertilizerResponseDto {
     id: number;
     publico?: boolean;
     nome_criador?: string;
     nome_adubo: string;
+    natureza_fisica?: FertilizerPhysicalNature;
+    densidade?: number;
+    concentracao_volume?: number;
+    concentracao_massa?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -690,6 +696,10 @@ export interface MineralFertilizerResponseDto {
 export interface MineralFertilizerCreateRequestDto {
     publico?: boolean;
     nome_adubo: string;
+    natureza_fisica?: FertilizerPhysicalNature;
+    densidade?: number;
+    concentracao_volume?: number;
+    concentracao_massa?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -710,6 +720,10 @@ export interface MineralFertilizerCreateRequestDto {
 export interface MineralFertilizerPostRequestDto {
     novo_publico?: boolean;
     novo_nome_adubo: string;
+    nova_natureza_fisica?: FertilizerPhysicalNature;
+    nova_densidade?: number;
+    nova_concentracao_volume?: number;
+    nova_concentracao_massa?: number;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -730,6 +744,10 @@ export interface MineralFertilizerPostRequestDto {
 export interface MineralFertilizerFormState {
     publico?: "sim" | "nao";
     nome: string;
+    naturezaFisica: FertilizerPhysicalNature;
+    densidade: string;
+    concentracaoVolume: string;
+    concentracaoMassa: string;
     n: string;
     p2o5: string;
     k2o: string;
@@ -748,6 +766,10 @@ export interface MineralFertilizerFormState {
 
 export const DEFAULT_MINERAL_FERTILIZER_FORM_STATE: MineralFertilizerFormState = {
     nome: "",
+    naturezaFisica: "SOLIDO",
+    densidade: "",
+    concentracaoVolume: "",
+    concentracaoMassa: "",
     n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
