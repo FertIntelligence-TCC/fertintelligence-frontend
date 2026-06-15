@@ -785,6 +785,9 @@ export interface ChelatedFertilizerResponseDto {
     publico?: boolean;
     nome_criador?: string;
     nome_adubo: string;
+    densidade?: number;
+    concentracao_volume?: number;
+    concentracao_massa?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -805,6 +808,9 @@ export interface ChelatedFertilizerResponseDto {
 export interface ChelatedFertilizerCreateRequestDto {
     publico?: boolean;
     nome_adubo: string;
+    densidade?: number;
+    concentracao_volume?: number;
+    concentracao_massa?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -825,6 +831,9 @@ export interface ChelatedFertilizerCreateRequestDto {
 export interface ChelatedFertilizerPostRequestDto {
     novo_publico?: boolean;
     novo_nome_adubo: string;
+    nova_densidade?: number;
+    nova_concentracao_volume?: number;
+    nova_concentracao_massa?: number;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -845,6 +854,9 @@ export interface ChelatedFertilizerPostRequestDto {
 export interface ChelatedFertilizerFormState {
     publico?: "sim" | "nao";
     nome: string;
+    densidade: string;
+    concentracaoVolume: string;
+    concentracaoMassa: string;
     n: string;
     p2o5: string;
     k2o: string;
@@ -863,6 +875,9 @@ export interface ChelatedFertilizerFormState {
 
 export const DEFAULT_CHELATED_FERTILIZER_FORM_STATE: ChelatedFertilizerFormState = {
     nome: "",
+    densidade: "",
+    concentracaoVolume: "",
+    concentracaoMassa: "",
     n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",

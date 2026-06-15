@@ -44,6 +44,9 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: ChelatedFertilizerResponseDto): ChelatedFertilizerFormState => ({
   nome: dto.nome_adubo,
+  densidade: String(dto.densidade ?? ""),
+  concentracaoVolume: String(dto.concentracao_volume ?? ""),
+  concentracaoMassa: String(dto.concentracao_massa ?? ""),
   n: String(dto.n ?? 0),
   p2o5: String(dto.p2o5 ?? 0),
   k2o: String(dto.k2o ?? 0),
@@ -63,6 +66,9 @@ const mapResponseToForm = (dto: ChelatedFertilizerResponseDto): ChelatedFertiliz
 
 const mapFormToCreatePayload = (form: ChelatedFertilizerFormState): ChelatedFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
+    densidade: num(form.densidade),
+    concentracao_volume: num(form.concentracaoVolume),
+    concentracao_massa: num(form.concentracaoMassa),
     n: num(form.n),
     p2o5: num(form.p2o5),
     k2o: num(form.k2o),
@@ -82,6 +88,9 @@ const mapFormToCreatePayload = (form: ChelatedFertilizerFormState): ChelatedFert
 
 const mapFormToUpdatePayload = (form: ChelatedFertilizerFormState): ChelatedFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
+    nova_densidade: num(form.densidade),
+    nova_concentracao_volume: num(form.concentracaoVolume),
+    nova_concentracao_massa: num(form.concentracaoMassa),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),

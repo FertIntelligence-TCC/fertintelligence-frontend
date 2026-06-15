@@ -18,6 +18,15 @@ export default function ChelatedFertilizerFormFields({ form, onChange, readOnly 
                 <FertilizerInputField label="Nome do Adubo Quelatado *" type="text" value={form.nome} onChange={(v) => onChange("nome", v)} readOnly={readOnly} colorScheme={color} />
             </Box>
 
+            <Box>
+                <FormSectionHeader title="Especificações Técnicas" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="Densidade (g/ml)" value={form.densidade} onChange={(v) => onChange("densidade", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Concentração em volume (g/L)" value={form.concentracaoVolume} onChange={(v) => onChange("concentracaoVolume", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Concentração em massa (g/kg)" value={form.concentracaoMassa} onChange={(v) => onChange("concentracaoMassa", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
+
             {/* Destaque para Micronutrientes */}
             <Box>
                 <FormSectionHeader title="Micronutrientes (%)" colorScheme={color} />

@@ -13,6 +13,7 @@ type Props = {
 
 export default function ChelatedFertilizerCard(props: Props) {
     const { item } = props;
+    const technicalSummary = `Densidade: ${item.densidade ?? "-"} g/ml | Vol.: ${item.concentracao_volume ?? "-"} g/L | Massa: ${item.concentracao_massa ?? "-"} g/kg`;
 
     const getMicrosSummary = () => {
         const parts = [];
@@ -31,6 +32,13 @@ export default function ChelatedFertilizerCard(props: Props) {
             colorScheme="purple"
             {...props}
         >
+            <Text fontSize="xs" color="gray.500" mt={1}>
+                Especificações Técnicas:
+            </Text>
+            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={1}>
+                {technicalSummary}
+            </Text>
+
             <Text fontSize="xs" color="gray.500" mt={1}>
                 Micronutrientes Principais:
             </Text>

@@ -74,6 +74,17 @@ const renderMineralPhysicalNatureDetails = (item: MineralFertilizerResponseDto) 
   );
 };
 
+const renderChelatedTechnicalDetails = (item: ChelatedFertilizerResponseDto) => (
+  <>
+    <Text fontSize="xs" color="gray.500" mt={2}>
+      Especificações Técnicas:
+    </Text>
+    <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={1}>
+      Densidade: {item.densidade ?? "-"} g/ml | Vol.: {item.concentracao_volume ?? "-"} g/L | Massa: {item.concentracao_massa ?? "-"} g/kg
+    </Text>
+  </>
+);
+
 type BaseNutrientFertilizer = SimpleMineralFertilizerResponseDto
   | MineralFertilizerResponseDto
   | ChelatedFertilizerResponseDto
@@ -113,8 +124,13 @@ const toMineralForm = (item: MineralFertilizerResponseDto): MineralFertilizerFor
   concentracaoMassa: String(item.concentracao_massa ?? ""),
 });
 
-const toChelatedForm = (item: ChelatedFertilizerResponseDto): ChelatedFertilizerFormState =>
-  toBaseNutrientForm(item);
+const toChelatedForm = (item: ChelatedFertilizerResponseDto): ChelatedFertilizerFormState => ({
+  ...DEFAULT_CHELATED_FERTILIZER_FORM_STATE,
+  ...toBaseNutrientForm(item),
+  densidade: String(item.densidade ?? ""),
+  concentracaoVolume: String(item.concentracao_volume ?? ""),
+  concentracaoMassa: String(item.concentracao_massa ?? ""),
+});
 
 const toBioForm = (item: BioFertilizerResponseDto): BioFertilizerFormState =>
   toBaseNutrientForm(item);
@@ -328,6 +344,7 @@ export function DefaultChelatedFertilizer() {
       getId={(item) => item.id}
       getName={(item) => item.nome_adubo}
       getCreatorName={(item) => creatorName(item.nome_criador)}
+      renderCardDetails={renderChelatedTechnicalDetails}
       toForm={toChelatedForm}
       renderReadOnlyForm={(form) => <ChelatedFertilizerFormFields form={form} onChange={() => undefined} readOnly />}
     />
