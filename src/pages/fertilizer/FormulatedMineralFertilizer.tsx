@@ -24,7 +24,8 @@ import {
     FormulatedFertilizerFormState, 
     DEFAULT_FORMULATED_FORM_STATE,
     FormulatedMineralFertilizerCreateRequestDto,
-    FormulatedMineralFertilizerPostRequestDto
+    FormulatedMineralFertilizerPostRequestDto,
+    FormulateDto
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -42,6 +43,51 @@ import { formatNpkRelation } from "@/utils/npkRelation";
 // --- Mappers ---
 
 const num = (val: string) => (val ? parseFloat(val) : 0.0);
+
+type ApiErrorResponse = {
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+      error?: string;
+      detail?: string;
+    } | string;
+  };
+};
+
+const NPK_SUM_ERROR_DESCRIPTION = "A soma de N, P₂O₅ e K₂O da fórmula deve ser de pelo menos 24 para adubos formulados sólidos.";
+
+const getApiErrorMessage = (error: unknown) => {
+  const data = (error as ApiErrorResponse).response?.data;
+
+  if (typeof data === "string") return data;
+
+  return data?.message ?? data?.error ?? data?.detail ?? "";
+};
+
+const isValidationError = (error: unknown) => {
+  const status = (error as ApiErrorResponse).response?.status;
+  return status === 400 || status === 422;
+};
+
+const hasNpkSumBelowMinimum = (formula?: FormulateDto) => {
+  if (!formula) return false;
+
+  return (formula.n ?? 0) + (formula.p ?? 0) + (formula.k ?? 0) < 24;
+};
+
+const getNpkSumErrorDescription = (error: unknown, formula?: FormulateDto) => {
+  const message = getApiErrorMessage(error).toLowerCase();
+  const backendMessageIndicatesNpkMinimum =
+    message.includes("npk") &&
+    message.includes("24");
+
+  if (isValidationError(error) && (backendMessageIndicatesNpkMinimum || hasNpkSumBelowMinimum(formula))) {
+    return NPK_SUM_ERROR_DESCRIPTION;
+  }
+
+  return undefined;
+};
 
 // Mapeia da Resposta (Backend) para o Formulário (Frontend)
 const mapResponseToForm = (dto: FormulatedMineralFertilizerResponseDto): FormulatedFertilizerFormState => {
@@ -149,7 +195,11 @@ export default function FormulatedMineralFertilizer() {
       setForm(DEFAULT_FORMULATED_FORM_STATE);
       toaster.create({ title: "Adubo criado com sucesso!", type: "success" });
     },
-    onError: () => toaster.create({ title: "Erro ao criar adubo. Verifique os dados.", type: "error" })
+    onError: (error, payload) => toaster.create({
+      title: "Erro ao criar adubo. Verifique os dados.",
+      description: getNpkSumErrorDescription(error, payload.formula),
+      type: "error"
+    })
   });
 
   const updateMutation = useMutation({
@@ -160,7 +210,11 @@ export default function FormulatedMineralFertilizer() {
       setIsModalOpen(false);
       toaster.create({ title: "Adubo atualizado com sucesso!", type: "success" });
     },
-    onError: () => toaster.create({ title: "Erro ao atualizar adubo.", type: "error" })
+    onError: (error, variables) => toaster.create({
+      title: "Erro ao atualizar adubo.",
+      description: getNpkSumErrorDescription(error, variables.payload.nova_formula),
+      type: "error"
+    })
   });
 
   const deleteMutation = useMutation({
