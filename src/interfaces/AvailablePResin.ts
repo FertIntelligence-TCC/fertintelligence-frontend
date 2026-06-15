@@ -1,21 +1,26 @@
-// DTO de Resposta (GET) - Chaves em Inglês
 export interface AvailablePResinResponseDto {
     id: number;
     id_tabela: number;
-    [key: string]: number; // Assinatura de índice para acesso dinâmico seguro
+    unidade: string;
+    muito_baixo: number;
+    baixo_menor: number;
+    baixo_maior: number;
+    medio_menor: number;
+    medio_maior: number;
+    alto_menor: number;
+    alto_maior: number;
+    muito_alto: number;
 }
 
-// Helper type para os campos de uma cultura específica (usado no loop de geração)
-export type CropFieldSuffix = 
-    | "cotton" | "peanut" | "sugar_cane" | "cowpea" | "common_bean" 
-    | "sesame" | "castor_bean" | "corn" | "sisal" | "soybean";
+export type AvailablePResinCreateRequestDto = Omit<AvailablePResinResponseDto, 'id' | 'id_tabela' | 'unidade'>;
 
-// DTO para Criação (POST) - Chaves em Português
-export interface AvailablePResinCreateRequestDto {
-    [key: string]: number;
-}
-
-// DTO para Atualização (PUT) - Chaves com prefixo "novo_"
 export interface AvailablePResinPostRequestDto {
-    [key: string]: number;
+    novo_muito_baixo?: number;
+    novo_baixo_menor?: number;
+    novo_baixo_maior?: number;
+    novo_medio_menor?: number;
+    novo_medio_maior?: number;
+    novo_alto_menor?: number;
+    novo_alto_maior?: number;
+    novo_muito_alto?: number;
 }
