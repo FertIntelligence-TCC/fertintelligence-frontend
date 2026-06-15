@@ -373,10 +373,12 @@ const upsertCoverages = async (
     }
   }
 
-  for (const coverage of existingCoverages) {
-    if (!usedCoverageIds.has(coverage.id)) {
-      await deleteCoverage(coverage.id);
-    }
+  const coveragesToDelete = existingCoverages
+    .filter((coverage) => !usedCoverageIds.has(coverage.id))
+    .sort((a, b) => b.ordem_cobertura - a.ordem_cobertura);
+
+  for (const coverage of coveragesToDelete) {
+    await deleteCoverage(coverage.id);
   }
 };
 
