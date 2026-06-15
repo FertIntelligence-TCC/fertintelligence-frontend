@@ -893,6 +893,14 @@ export interface BioFertilizerResponseDto {
     publico?: boolean;
     nome_criador?: string;
     nome_adubo: string;
+    densidade_g_ml?: number;
+    concentracao_volume_g_l?: number;
+    concentracao_massa_g_kg?: number;
+    proteinas_g_l?: number;
+    aminoacidos_g_l?: number;
+    amidos_g_l?: number;
+    acucares_g_l?: number;
+    compostos_diversos_g_l?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -913,6 +921,14 @@ export interface BioFertilizerResponseDto {
 export interface BioFertilizerCreateRequestDto {
     publico?: boolean;
     nome_adubo: string;
+    densidade_g_ml?: number;
+    concentracao_volume_g_l?: number;
+    concentracao_massa_g_kg?: number;
+    proteinas_g_l?: number;
+    aminoacidos_g_l?: number;
+    amidos_g_l?: number;
+    acucares_g_l?: number;
+    compostos_diversos_g_l?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -933,6 +949,14 @@ export interface BioFertilizerCreateRequestDto {
 export interface BioFertilizerPostRequestDto {
     novo_publico?: boolean;
     novo_nome_adubo: string;
+    nova_densidade_g_ml?: number;
+    nova_concentracao_volume_g_l?: number;
+    nova_concentracao_massa_g_kg?: number;
+    novas_proteinas_g_l?: number;
+    novos_aminoacidos_g_l?: number;
+    novos_amidos_g_l?: number;
+    novos_acucares_g_l?: number;
+    novos_compostos_diversos_g_l?: number;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -953,6 +977,14 @@ export interface BioFertilizerPostRequestDto {
 export interface BioFertilizerFormState {
     publico?: "sim" | "nao";
     nome: string;
+    densidade: string;
+    concentracaoVolume: string;
+    concentracaoMassa: string;
+    proteinas: string;
+    aminoacidos: string;
+    amidos: string;
+    acucares: string;
+    compostosDiversos: string;
     n: string;
     p2o5: string;
     k2o: string;
@@ -971,6 +1003,14 @@ export interface BioFertilizerFormState {
 
 export const DEFAULT_BIO_FERTILIZER_FORM_STATE: BioFertilizerFormState = {
     nome: "",
+    densidade: "",
+    concentracaoVolume: "",
+    concentracaoMassa: "",
+    proteinas: "",
+    aminoacidos: "",
+    amidos: "",
+    acucares: "",
+    compostosDiversos: "",
     n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",

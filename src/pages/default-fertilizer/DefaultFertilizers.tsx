@@ -1,4 +1,5 @@
 import BioFertilizerFormFields from "@/components/Fertilizers/FormFields/BioFertilizerFormFields";
+import BioFertilizerTechnicalDetails from "@/components/Fertilizers/Shared/BioFertilizerTechnicalDetails";
 import ChelatedFertilizerFormFields from "@/components/Fertilizers/FormFields/ChelatedFertilizerFormFields";
 import FoliarMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FoliarMineralFertilizerFormFields";
 import FormulatedMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FormulatedMineralFertilizerFormFields";
@@ -133,7 +134,18 @@ const toChelatedForm = (item: ChelatedFertilizerResponseDto): ChelatedFertilizer
 });
 
 const toBioForm = (item: BioFertilizerResponseDto): BioFertilizerFormState =>
-  toBaseNutrientForm(item);
+  ({
+    ...DEFAULT_BIO_FERTILIZER_FORM_STATE,
+    ...toBaseNutrientForm(item),
+    densidade: String(item.densidade_g_ml ?? ""),
+    concentracaoVolume: String(item.concentracao_volume_g_l ?? ""),
+    concentracaoMassa: String(item.concentracao_massa_g_kg ?? ""),
+    proteinas: String(item.proteinas_g_l ?? ""),
+    aminoacidos: String(item.aminoacidos_g_l ?? ""),
+    amidos: String(item.amidos_g_l ?? ""),
+    acucares: String(item.acucares_g_l ?? ""),
+    compostosDiversos: String(item.compostos_diversos_g_l ?? ""),
+  });
 
 const toOrganoMineralForm = (item: OrganoMineralFertilizerResponseDto): OrganoMineralFertilizerFormState => ({
   ...DEFAULT_ORGANO_MINERAL_FORM_STATE,
@@ -363,6 +375,7 @@ export function DefaultBioFertilizer() {
       getId={(item) => item.id}
       getName={(item) => item.nome_adubo}
       getCreatorName={(item) => creatorName(item.nome_criador)}
+      renderCardDetails={(item) => <BioFertilizerTechnicalDetails item={item} mt={2} />}
       toForm={toBioForm}
       renderReadOnlyForm={(form) => <BioFertilizerFormFields form={form} onChange={() => undefined} readOnly />}
     />

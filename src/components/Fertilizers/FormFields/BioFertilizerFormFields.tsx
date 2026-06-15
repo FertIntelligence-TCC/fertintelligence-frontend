@@ -19,6 +19,20 @@ export default function BioFertilizerFormFields({ form, onChange, readOnly }: Pr
             </Box>
 
             <Box>
+                <FormSectionHeader title="Especificações Técnicas" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="Densidade (g/ml)" value={form.densidade} onChange={(v) => onChange("densidade", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Concentração em volume (g/L)" value={form.concentracaoVolume} onChange={(v) => onChange("concentracaoVolume", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Concentração em massa (g/kg)" value={form.concentracaoMassa} onChange={(v) => onChange("concentracaoMassa", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Proteínas (g/L)" value={form.proteinas} onChange={(v) => onChange("proteinas", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Aminoácidos (g/L)" value={form.aminoacidos} onChange={(v) => onChange("aminoacidos", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Amidos (g/L)" value={form.amidos} onChange={(v) => onChange("amidos", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Açúcares (g/L)" value={form.acucares} onChange={(v) => onChange("acucares", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Compostos diversos (g/L)" value={form.compostosDiversos} onChange={(v) => onChange("compostosDiversos", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
+
+            <Box>
                 <FormSectionHeader title="Macronutrientes Primários (%)" colorScheme={color} />
                 <Grid templateColumns="repeat(3, 1fr)" gap={3}>
                     <FertilizerInputField label="N" value={form.n} onChange={(v) => onChange("n", v)} readOnly={readOnly} colorScheme={color} />

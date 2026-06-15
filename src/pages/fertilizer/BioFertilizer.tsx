@@ -44,6 +44,14 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: BioFertilizerResponseDto): BioFertilizerFormState => ({
   nome: dto.nome_adubo,
+  densidade: String(dto.densidade_g_ml ?? ""),
+  concentracaoVolume: String(dto.concentracao_volume_g_l ?? ""),
+  concentracaoMassa: String(dto.concentracao_massa_g_kg ?? ""),
+  proteinas: String(dto.proteinas_g_l ?? ""),
+  aminoacidos: String(dto.aminoacidos_g_l ?? ""),
+  amidos: String(dto.amidos_g_l ?? ""),
+  acucares: String(dto.acucares_g_l ?? ""),
+  compostosDiversos: String(dto.compostos_diversos_g_l ?? ""),
   n: String(dto.n ?? 0),
   p2o5: String(dto.p2o5 ?? 0),
   k2o: String(dto.k2o ?? 0),
@@ -63,6 +71,14 @@ const mapResponseToForm = (dto: BioFertilizerResponseDto): BioFertilizerFormStat
 
 const mapFormToCreatePayload = (form: BioFertilizerFormState): BioFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
+    densidade_g_ml: num(form.densidade),
+    concentracao_volume_g_l: num(form.concentracaoVolume),
+    concentracao_massa_g_kg: num(form.concentracaoMassa),
+    proteinas_g_l: num(form.proteinas),
+    aminoacidos_g_l: num(form.aminoacidos),
+    amidos_g_l: num(form.amidos),
+    acucares_g_l: num(form.acucares),
+    compostos_diversos_g_l: num(form.compostosDiversos),
     n: num(form.n),
     p2o5: num(form.p2o5),
     k2o: num(form.k2o),
@@ -82,6 +98,14 @@ const mapFormToCreatePayload = (form: BioFertilizerFormState): BioFertilizerCrea
 
 const mapFormToUpdatePayload = (form: BioFertilizerFormState): BioFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
+    nova_densidade_g_ml: num(form.densidade),
+    nova_concentracao_volume_g_l: num(form.concentracaoVolume),
+    nova_concentracao_massa_g_kg: num(form.concentracaoMassa),
+    novas_proteinas_g_l: num(form.proteinas),
+    novos_aminoacidos_g_l: num(form.aminoacidos),
+    novos_amidos_g_l: num(form.amidos),
+    novos_acucares_g_l: num(form.acucares),
+    novos_compostos_diversos_g_l: num(form.compostosDiversos),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),

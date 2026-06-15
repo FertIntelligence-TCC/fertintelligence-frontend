@@ -1,6 +1,7 @@
 import { Text } from "@chakra-ui/react";
 import { BioFertilizerResponseDto } from "@/interfaces/Fertilizer";
 import FertilizerCardBase from "@/components/Fertilizers/Shared/FertilizerCardBase";
+import BioFertilizerTechnicalDetails from "@/components/Fertilizers/Shared/BioFertilizerTechnicalDetails";
 
 type Props = {
     item: BioFertilizerResponseDto;
@@ -22,6 +23,8 @@ export default function BioFertilizerCard(props: Props) {
             colorScheme="teal"
             {...props}
         >
+            <BioFertilizerTechnicalDetails item={item} />
+
             <Text fontSize="xs" color="gray.500" mt={1}>
                 Nutrientes Principais:
             </Text>
