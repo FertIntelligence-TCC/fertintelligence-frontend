@@ -227,12 +227,12 @@ export default function FoliarAnalysisInterpretationTable({ variant = "mine" }: 
             // Mapeia para o formato exato esperado pelo DTO do Backend
             const lineRequest = {
                 nome_cultura: linePayload.cultura,
-                teores_n: { menor: linePayload.n.min, maior: linePayload.n.max, unity: "dag_per_kg" },
-                teores_p: { menor: linePayload.p.min, maior: linePayload.p.max, unity: "dag_per_kg" },
-                teores_k: { menor: linePayload.k.min, maior: linePayload.k.max, unity: "dag_per_kg" },
-                teores_ca: { menor: linePayload.ca.min, maior: linePayload.ca.max, unity: "dag_per_kg" },
-                teores_mg: { menor: linePayload.mg.min, maior: linePayload.mg.max, unity: "dag_per_kg" },
-                teores_s: { menor: linePayload.s.min, maior: linePayload.s.max, unity: "dag_per_kg" },
+                teores_n: { menor: linePayload.n.min, maior: linePayload.n.max, unity: "g_per_kg" },
+                teores_p: { menor: linePayload.p.min, maior: linePayload.p.max, unity: "g_per_kg" },
+                teores_k: { menor: linePayload.k.min, maior: linePayload.k.max, unity: "g_per_kg" },
+                teores_ca: { menor: linePayload.ca.min, maior: linePayload.ca.max, unity: "g_per_kg" },
+                teores_mg: { menor: linePayload.mg.min, maior: linePayload.mg.max, unity: "g_per_kg" },
+                teores_s: { menor: linePayload.s.min, maior: linePayload.s.max, unity: "g_per_kg" },
                 
                 teores_b: { menor: linePayload.b.min, maior: linePayload.b.max, unity: "mg_per_kg" },
                 teores_cu: { menor: linePayload.cu.min, maior: linePayload.cu.max, unity: "mg_per_kg" },

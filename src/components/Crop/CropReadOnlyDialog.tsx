@@ -415,7 +415,7 @@ export const CropReadOnlyDialog = ({
                   <VStack align="stretch" gap={3}>
                     <Box>
                       <Text fontSize="sm" fontWeight="bold" color="gray.600">
-                        Macronutrientes
+                        Macronutrientes (g/kg)
                       </Text>
                       {renderNutrientGrid(
                         analysis.macronutrientes,

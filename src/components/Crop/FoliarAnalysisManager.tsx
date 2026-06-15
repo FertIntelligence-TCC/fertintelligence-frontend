@@ -119,8 +119,8 @@ export const FoliarAnalysisManager = ({ cropId }: FoliarAnalysisManagerProps) =>
                   <Table.Cell>
                     <HStack wrap="wrap" gap={1}>
                         {/* Exibe alguns badges se os valores existirem */}
-                        {item.macronutrientes?.n_content && <Badge size="xs" variant="outline">N: {item.macronutrientes.n_content}</Badge>}
-                        {item.macronutrientes?.k_content && <Badge size="xs" variant="outline">K: {item.macronutrientes.k_content}</Badge>}
+                        {item.macronutrientes?.n_content && <Badge size="xs" variant="outline">N: {item.macronutrientes.n_content} g/kg</Badge>}
+                        {item.macronutrientes?.k_content && <Badge size="xs" variant="outline">K: {item.macronutrientes.k_content} g/kg</Badge>}
                         
                         {/* Indicador se tem micronutrientes */}
                         {(item.micronutrientes?.b_content || item.micronutrientes?.zn_content) && 

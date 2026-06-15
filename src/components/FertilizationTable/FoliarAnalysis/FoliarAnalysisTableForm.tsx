@@ -168,7 +168,7 @@ export default function FoliarAnalysisTableForm({ form, setForm, readOnly }: Pro
                                 )}
                             </Table.ColumnHeader>
                             <Table.ColumnHeader rowSpan={2} minW="180px">Cultura</Table.ColumnHeader>
-                            <Table.ColumnHeader colSpan={6} textAlign="center" borderBottomWidth="1px">Macronutrientes ({formatUnidadeTeor("dag_per_kg")})</Table.ColumnHeader>
+                            <Table.ColumnHeader colSpan={6} textAlign="center" borderBottomWidth="1px">Macronutrientes ({formatUnidadeTeor("g_per_kg")})</Table.ColumnHeader>
                             <Table.ColumnHeader colSpan={6} textAlign="center" borderBottomWidth="1px">Micronutrientes ({formatUnidadeTeor("mg_per_kg")})</Table.ColumnHeader>
                         </Table.Row>
                         <Table.Row>

@@ -33,7 +33,7 @@ export type UnidadeTeor =
     | "percentage";
 
 export const UnidadeTeorLabels: Record<UnidadeTeor, string> = {
-    dag_per_kg: "dag/kg",
+    dag_per_kg: "g/kg",
     mg_per_kg: "mg/kg",
     g_per_kg: "g/kg",
     g_per_dm3: "g/dm³",
@@ -50,7 +50,7 @@ export const formatUnidadeTeor = (unity?: string | null): string => {
 
 export interface FoliarTableItemDto {
     cultura: CulturaEnum;
-    // Macros (dag/kg)
+    // Macros (g/kg)
     n: NutrientRange;
     p: NutrientRange;
     k: NutrientRange;
