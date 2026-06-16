@@ -69,7 +69,7 @@ const renderMineralPhysicalNatureDetails = (item: MineralFertilizerResponseDto) 
       </Text>
       {isLiquid && (
         <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={1}>
-          Densidade: {item.densidade ?? "-"} g/ml | Vol.: {item.concentracao_volume ?? "-"} g/L | Massa: {item.concentracao_massa ?? "-"} g/kg
+          Densidade: {item.densidade_g_ml ?? "-"} g/ml | Vol.: {item.concentracao_volume_g_l ?? "-"} g/L | Massa: {item.concentracao_massa_g_kg ?? "-"} g/kg
         </Text>
       )}
     </>
@@ -82,7 +82,7 @@ const renderChelatedTechnicalDetails = (item: ChelatedFertilizerResponseDto) => 
       Especificações Técnicas:
     </Text>
     <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={1}>
-      Densidade: {item.densidade ?? "-"} g/ml | Vol.: {item.concentracao_volume ?? "-"} g/L | Massa: {item.concentracao_massa ?? "-"} g/kg
+      Densidade: {item.densidade_g_ml ?? "-"} g/ml | Vol.: {item.concentracao_volume_g_l ?? "-"} g/L | Massa: {item.concentracao_massa_g_kg ?? "-"} g/kg
     </Text>
   </>
 );
@@ -124,17 +124,17 @@ const toMineralForm = (item: MineralFertilizerResponseDto): MineralFertilizerFor
   ...DEFAULT_MINERAL_FERTILIZER_FORM_STATE,
   ...toBaseNutrientForm(item),
   naturezaFisica: item.natureza_fisica ?? "SOLIDO",
-  densidade: String(item.densidade ?? ""),
-  concentracaoVolume: String(item.concentracao_volume ?? ""),
-  concentracaoMassa: String(item.concentracao_massa ?? ""),
+  densidade: String(item.densidade_g_ml ?? ""),
+  concentracaoVolume: String(item.concentracao_volume_g_l ?? ""),
+  concentracaoMassa: String(item.concentracao_massa_g_kg ?? ""),
 });
 
 const toChelatedForm = (item: ChelatedFertilizerResponseDto): ChelatedFertilizerFormState => ({
   ...DEFAULT_CHELATED_FERTILIZER_FORM_STATE,
   ...toBaseNutrientForm(item),
-  densidade: String(item.densidade ?? ""),
-  concentracaoVolume: String(item.concentracao_volume ?? ""),
-  concentracaoMassa: String(item.concentracao_massa ?? ""),
+  densidade: String(item.densidade_g_ml ?? ""),
+  concentracaoVolume: String(item.concentracao_volume_g_l ?? ""),
+  concentracaoMassa: String(item.concentracao_massa_g_kg ?? ""),
 });
 
 const toBioForm = (item: BioFertilizerResponseDto): BioFertilizerFormState =>

@@ -49,9 +49,9 @@ const mapResponseToForm = (dto: MineralFertilizerResponseDto): MineralFertilizer
   observacao: dto.observacao ?? "",
   fonte: dto.fonte ?? "",
   naturezaFisica: dto.natureza_fisica ?? "SOLIDO",
-  densidade: String(dto.densidade ?? ""),
-  concentracaoVolume: String(dto.concentracao_volume ?? ""),
-  concentracaoMassa: String(dto.concentracao_massa ?? ""),
+  densidade: String(dto.densidade_g_ml ?? ""),
+  concentracaoVolume: String(dto.concentracao_volume_g_l ?? ""),
+  concentracaoMassa: String(dto.concentracao_massa_g_kg ?? ""),
   n: String(dto.n ?? 0),
   p2o5: String(dto.p2o5 ?? 0),
   k2o: String(dto.k2o ?? 0),
@@ -72,24 +72,24 @@ const mapResponseToForm = (dto: MineralFertilizerResponseDto): MineralFertilizer
 const liquidCreateFields = (form: MineralFertilizerFormState) =>
   form.naturezaFisica === "LIQUIDO"
     ? {
-        densidade: num(form.densidade),
-        concentracao_volume: num(form.concentracaoVolume),
-        concentracao_massa: num(form.concentracaoMassa),
+        densidade_g_ml: num(form.densidade),
+        concentracao_volume_g_l: num(form.concentracaoVolume),
+        concentracao_massa_g_kg: num(form.concentracaoMassa),
       }
     : {};
 
 const liquidUpdateFields = (form: MineralFertilizerFormState) =>
   form.naturezaFisica === "LIQUIDO"
     ? {
-        nova_densidade: num(form.densidade),
-        nova_concentracao_volume: num(form.concentracaoVolume),
-        nova_concentracao_massa: num(form.concentracaoMassa),
+        nova_densidade_g_ml: num(form.densidade),
+        nova_concentracao_volume_g_l: num(form.concentracaoVolume),
+        nova_concentracao_massa_g_kg: num(form.concentracaoMassa),
       }
     : {};
 
 const mapFormToCreatePayload = (form: MineralFertilizerFormState): MineralFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
-    id_fotos: form.fotoIds,
+    ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
     natureza_fisica: form.naturezaFisica,
@@ -113,9 +113,9 @@ const mapFormToCreatePayload = (form: MineralFertilizerFormState): MineralFertil
 
 const mapFormToUpdatePayload = (form: MineralFertilizerFormState): MineralFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
-    novo_id_fotos: form.fotoIds,
-    nova_observacao: form.observacao,
-    nova_fonte: form.fonte,
+    novos_ids_fotos: form.fotoIds,
+    novo_observacao: form.observacao,
+    novo_fonte: form.fonte,
     nova_natureza_fisica: form.naturezaFisica,
     ...liquidUpdateFields(form),
     novo_n: num(form.n),

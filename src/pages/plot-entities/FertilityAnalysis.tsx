@@ -38,6 +38,14 @@ import { Camada } from "@/interfaces/LayerExtract";
 import { FertilityExtractFormData } from "@/interfaces/FertilityAnalysisFormTypes";
 import { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
 
+const calculatePstFallback = (sodio?: number | null, ctcPh7?: number | null): number => {
+    const na = Number(sodio ?? 0);
+    const ctc = Number(ctcPh7 ?? 0);
+    if (!Number.isFinite(na) || !Number.isFinite(ctc) || ctc === 0) return 0;
+    return Math.round((100 * na / ctc) * 10) / 10;
+};
+
+
 interface GroupedAnalysis {
     analysisId: number;
     year: number;
@@ -179,7 +187,7 @@ export const FertilityAnalysis = () => {
             ctcPh7: c.ctc_ph7,
             saturacaoBasesV: c.saturacao_bases_v,
             saturacaoAluminioM: c.saturacao_aluminio_m,
-            pst: c.pst ?? 0,
+            pst: c.pst ?? calculatePstFallback(c.sodio, c.ctc_ph7),
             fosforoMehlich1: c.fosforo_mehlich1,
             fosforoResina: c.fosforo_resina,
             enxofre: c.enxofre,

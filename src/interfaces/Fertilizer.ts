@@ -3,7 +3,7 @@
 export type FertilizerPhotoIds = string[];
 
 export interface FertilizerPhotoCarrier {
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     idfotos?: FertilizerPhotoIds;
     fotos?: FertilizerPhotoIds;
     fotoIds?: FertilizerPhotoIds;
@@ -11,7 +11,7 @@ export interface FertilizerPhotoCarrier {
 
 export const getFertilizerPhotoIds = (item?: FertilizerPhotoCarrier): FertilizerPhotoIds => {
     if (!item) return [];
-    const photoIds = item.id_fotos ?? item.idfotos ?? item.fotos ?? item.fotoIds ?? [];
+    const photoIds = item.ids_fotos ?? item.idfotos ?? item.fotos ?? item.fotoIds ?? [];
     return photoIds.filter(Boolean).slice(0, 5);
 };
 
@@ -37,7 +37,7 @@ export interface SimpleMineralFertilizerResponseDto {
     zn: number;
     indice_salino: number; // @JsonProperty("indice_salino")
     indice_acidez: number; // @JsonProperty("indice_acidez")
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -45,7 +45,7 @@ export interface SimpleMineralFertilizerResponseDto {
 // POST /register
 export interface SimpleMineralFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
@@ -68,9 +68,9 @@ export interface SimpleMineralFertilizerCreateRequestDto {
 // PUT /update (Com prefixo "novo_")
 export interface SimpleMineralFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_nome_adubo: string;
     novo_n: number;
     novo_p2o5: number;
@@ -157,7 +157,7 @@ export interface FormulatedMineralFertilizerResponseDto {
     mo: number;
     zn: number;
     indicatedFormulaNumber: number; // @JsonProperty("numero_formula_indicada")
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -165,7 +165,7 @@ export interface FormulatedMineralFertilizerResponseDto {
 // POST /register
 export interface FormulatedMineralFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     formulate?: FormulateDto;
@@ -188,9 +188,9 @@ export interface FormulatedMineralFertilizerCreateRequestDto {
 // PUT /update (com prefixo "novo_")
 export interface FormulatedMineralFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_formulate?: FormulateDto;
     novo_relation?: NPKRelationDto;
     novo_n: number;
@@ -288,14 +288,14 @@ export interface SimpleMineralFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
 
 export interface SimpleMineralFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
@@ -317,9 +317,9 @@ export interface SimpleMineralFertilizerCreateRequestDto {
 
 export interface SimpleMineralFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_nome_adubo: string;
     novo_n: number;
     novo_p2o5: number;
@@ -379,7 +379,7 @@ export interface FormulatedMineralFertilizerResponseDto {
     mo: number;
     zn: number;
     numero_formula_indicada: number; // CORRIGIDO: @JsonProperty("numero_formula_indicada")
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -388,7 +388,7 @@ export interface FormulatedMineralFertilizerResponseDto {
 export interface FormulatedMineralFertilizerCreateRequestDto {
     formula: FormulateDto;   // CORRIGIDO
     relacao: NPKRelationDto; // CORRIGIDO
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     n: number;
@@ -410,9 +410,9 @@ export interface FormulatedMineralFertilizerCreateRequestDto {
 export interface FormulatedMineralFertilizerPostRequestDto {
     nova_formula: FormulateDto;   // CORRIGIDO: prefixo "nova_"
     nova_relacao: NPKRelationDto; // CORRIGIDO: prefixo "nova_"
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -476,7 +476,7 @@ export interface OrganoMineralFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -484,7 +484,7 @@ export interface OrganoMineralFertilizerResponseDto {
 // POST /register
 export interface OrganoMineralFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
@@ -508,9 +508,9 @@ export interface OrganoMineralFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface OrganoMineralFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_nome_adubo: string;
     novo_c: number;
     novo_n: number;
@@ -586,7 +586,7 @@ export interface GreenFertilizerResponseDto {
     mn: number;
     mo: number;
     zn: number;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -594,7 +594,7 @@ export interface GreenFertilizerResponseDto {
 // POST /register
 export interface GreenFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
@@ -616,9 +616,9 @@ export interface GreenFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface GreenFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_nome_adubo: string;
     novo_c: number;
     novo_n: number;
@@ -676,6 +676,7 @@ export interface OrganicFertilizerResponseDto {
     publico?: boolean;
     nome_criador?: string;
     nome_adubo: string;
+    c: number;
     teor_umidade: number;
     teor_cinzas: number;
     n: number;
@@ -690,7 +691,7 @@ export interface OrganicFertilizerResponseDto {
     mn: number;
     mo: number;
     zn: number;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -698,10 +699,11 @@ export interface OrganicFertilizerResponseDto {
 // POST /register
 export interface OrganicFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
+    c: number;
     teor_umidade: number;
     teor_cinzas: number;
     n: number;
@@ -721,10 +723,11 @@ export interface OrganicFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface OrganicFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_nome_adubo: string;
+    novo_c: number;
     novo_teor_umidade: number;
     novo_teor_cinzas: number;
     novo_n: number;
@@ -748,6 +751,7 @@ export interface OrganicFertilizerFormState {
     observacao: string;
     fonte: string;
     nome: string;
+    c: string;
     teorUmidade: string;
     teorCinzas: string;
     n: string;
@@ -769,6 +773,7 @@ export const DEFAULT_ORGANIC_FERTILIZER_FORM_STATE: OrganicFertilizerFormState =
     fotoIds: [],
     observacao: "",
     fonte: "",
+    c: "",
     teorUmidade: "", teorCinzas: "",
     n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
@@ -787,9 +792,9 @@ export interface MineralFertilizerResponseDto {
     nome_criador?: string;
     nome_adubo: string;
     natureza_fisica?: FertilizerPhysicalNature;
-    densidade?: number;
-    concentracao_volume?: number;
-    concentracao_massa?: number;
+    densidade_g_ml?: number;
+    concentracao_volume_g_l?: number;
+    concentracao_massa_g_kg?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -804,7 +809,7 @@ export interface MineralFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -812,14 +817,14 @@ export interface MineralFertilizerResponseDto {
 // POST /register
 export interface MineralFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
     natureza_fisica?: FertilizerPhysicalNature;
-    densidade?: number;
-    concentracao_volume?: number;
-    concentracao_massa?: number;
+    densidade_g_ml?: number;
+    concentracao_volume_g_l?: number;
+    concentracao_massa_g_kg?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -839,14 +844,14 @@ export interface MineralFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface MineralFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_nome_adubo: string;
     nova_natureza_fisica?: FertilizerPhysicalNature;
-    nova_densidade?: number;
-    nova_concentracao_volume?: number;
-    nova_concentracao_massa?: number;
+    nova_densidade_g_ml?: number;
+    nova_concentracao_volume_g_l?: number;
+    nova_concentracao_massa_g_kg?: number;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -914,9 +919,9 @@ export interface ChelatedFertilizerResponseDto {
     publico?: boolean;
     nome_criador?: string;
     nome_adubo: string;
-    densidade?: number;
-    concentracao_volume?: number;
-    concentracao_massa?: number;
+    densidade_g_ml?: number;
+    concentracao_volume_g_l?: number;
+    concentracao_massa_g_kg?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -931,7 +936,7 @@ export interface ChelatedFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -939,13 +944,13 @@ export interface ChelatedFertilizerResponseDto {
 // POST /register
 export interface ChelatedFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
-    densidade?: number;
-    concentracao_volume?: number;
-    concentracao_massa?: number;
+    densidade_g_ml?: number;
+    concentracao_volume_g_l?: number;
+    concentracao_massa_g_kg?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -965,13 +970,13 @@ export interface ChelatedFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface ChelatedFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_nome_adubo: string;
-    nova_densidade?: number;
-    nova_concentracao_volume?: number;
-    nova_concentracao_massa?: number;
+    nova_densidade_g_ml?: number;
+    nova_concentracao_volume_g_l?: number;
+    nova_concentracao_massa_g_kg?: number;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -1059,7 +1064,7 @@ export interface BioFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
 }
@@ -1067,7 +1072,7 @@ export interface BioFertilizerResponseDto {
 // POST /register
 export interface BioFertilizerCreateRequestDto {
     publico?: boolean;
-    id_fotos?: FertilizerPhotoIds;
+    ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
@@ -1098,9 +1103,9 @@ export interface BioFertilizerCreateRequestDto {
 // PUT /update (prefixo "novo_")
 export interface BioFertilizerPostRequestDto {
     novo_publico?: boolean;
-    novo_id_fotos?: FertilizerPhotoIds;
-    nova_observacao?: string;
-    nova_fonte?: string;
+    novos_ids_fotos?: FertilizerPhotoIds;
+    novo_observacao?: string;
+    novo_fonte?: string;
     novo_nome_adubo: string;
     nova_densidade_g_ml?: number;
     nova_concentracao_volume_g_l?: number;

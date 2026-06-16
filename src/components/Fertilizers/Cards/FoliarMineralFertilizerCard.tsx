@@ -33,7 +33,7 @@ export default function FoliarMineralFertilizerCard(props: Props) {
 
             {isLiquid && (
                 <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={1}>
-                    Densidade: {item.densidade ?? "-"} g/ml | Vol.: {item.concentracao_volume ?? "-"} g/L | Massa: {item.concentracao_massa ?? "-"} g/kg
+                    Densidade: {item.densidade_g_ml ?? "-"} g/ml | Vol.: {item.concentracao_volume_g_l ?? "-"} g/L | Massa: {item.concentracao_massa_g_kg ?? "-"} g/kg
                 </Text>
             )}
 

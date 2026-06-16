@@ -75,7 +75,7 @@ const mapResponseToForm = (dto: BioFertilizerResponseDto): BioFertilizerFormStat
 
 const mapFormToCreatePayload = (form: BioFertilizerFormState): BioFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
-    id_fotos: form.fotoIds,
+    ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
     densidade_g_ml: num(form.densidade),
@@ -105,9 +105,9 @@ const mapFormToCreatePayload = (form: BioFertilizerFormState): BioFertilizerCrea
 
 const mapFormToUpdatePayload = (form: BioFertilizerFormState): BioFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
-    novo_id_fotos: form.fotoIds,
-    nova_observacao: form.observacao,
-    nova_fonte: form.fonte,
+    novos_ids_fotos: form.fotoIds,
+    novo_observacao: form.observacao,
+    novo_fonte: form.fonte,
     nova_densidade_g_ml: num(form.densidade),
     nova_concentracao_volume_g_l: num(form.concentracaoVolume),
     nova_concentracao_massa_g_kg: num(form.concentracaoMassa),

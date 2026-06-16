@@ -13,7 +13,7 @@ type Props = {
 
 export default function ChelatedFertilizerCard(props: Props) {
     const { item } = props;
-    const technicalSummary = `Densidade: ${item.densidade ?? "-"} g/ml | Vol.: ${item.concentracao_volume ?? "-"} g/L | Massa: ${item.concentracao_massa ?? "-"} g/kg`;
+    const technicalSummary = `Densidade: ${item.densidade_g_ml ?? "-"} g/ml | Vol.: ${item.concentracao_volume_g_l ?? "-"} g/L | Massa: ${item.concentracao_massa_g_kg ?? "-"} g/kg`;
 
     const getMicrosSummary = () => {
         const parts = [];

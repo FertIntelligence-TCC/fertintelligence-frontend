@@ -72,7 +72,7 @@ const num = (v: string) => (v ? parseFloat(v) : 0.0);
 // Frontend Form -> Backend CREATE Payload (SimpleMineralFertilizerCreateRequestDto)
 const mapFormToCreatePayload = (form: SimpleMineralFertilizerFormState): SimpleMineralFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
-    id_fotos: form.fotoIds,
+    ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
     n: num(form.n),
@@ -96,9 +96,9 @@ const mapFormToCreatePayload = (form: SimpleMineralFertilizerFormState): SimpleM
 // Conciliado com prefixos "novo_" definidos no Java
 const mapFormToUpdatePayload = (form: SimpleMineralFertilizerFormState): SimpleMineralFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
-    novo_id_fotos: form.fotoIds,
-    nova_observacao: form.observacao,
-    nova_fonte: form.fonte,
+    novos_ids_fotos: form.fotoIds,
+    novo_observacao: form.observacao,
+    novo_fonte: form.fonte,
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),

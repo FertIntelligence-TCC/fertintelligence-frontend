@@ -43,6 +43,7 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizerFormState => ({
   nome: dto.nome_adubo,
+  c: String(dto.c ?? 0),
   fotoIds: getFertilizerPhotoIds(dto),
   observacao: dto.observacao ?? "",
   fonte: dto.fonte ?? "",
@@ -65,7 +66,8 @@ const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizer
 
 const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
-    id_fotos: form.fotoIds,
+    c: num(form.c),
+    ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
     teor_umidade: num(form.teorUmidade),
@@ -87,9 +89,10 @@ const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertil
 
 const mapFormToUpdatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
-    novo_id_fotos: form.fotoIds,
-    nova_observacao: form.observacao,
-    nova_fonte: form.fonte,
+    novo_c: num(form.c),
+    novos_ids_fotos: form.fotoIds,
+    novo_observacao: form.observacao,
+    novo_fonte: form.fonte,
     novo_teor_umidade: num(form.teorUmidade),
     novo_teor_cinzas: num(form.teorCinzas),
     novo_n: num(form.n),

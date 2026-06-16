@@ -68,7 +68,7 @@ const mapResponseToForm = (dto: OrganoMineralFertilizerResponseDto): OrganoMiner
 
 const mapFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
-    id_fotos: form.fotoIds,
+    ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
     c: num(form.c),
@@ -91,9 +91,9 @@ const mapFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoM
 
 const mapFormToUpdatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
-    novo_id_fotos: form.fotoIds,
-    nova_observacao: form.observacao,
-    nova_fonte: form.fonte,
+    novos_ids_fotos: form.fotoIds,
+    novo_observacao: form.observacao,
+    novo_fonte: form.fonte,
     novo_c: num(form.c),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),

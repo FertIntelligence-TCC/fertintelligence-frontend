@@ -109,7 +109,7 @@ const calculateExchangeComplex = (extract: FertilityExtractFormData) => {
         ctcPh7,
         saturacaoBasesV: ctcPh7 > 0 ? roundCalculatedValue((100 * somaBases) / ctcPh7) : 0,
         saturacaoAluminioM: ctcEfetiva > 0 ? roundCalculatedValue((100 * aluminio) / ctcEfetiva) : 0,
-        pst: extract.databaseId !== undefined
+        pst: extract.pst !== undefined && extract.pst !== null
             ? roundPstValue(toSafeNumber(extract.pst))
             : ctcPh7 > 0 ? roundPstValue((100 * toSafeNumber(extract.sodio)) / ctcPh7) : 0,
     };

@@ -128,7 +128,7 @@ const mapResponseToForm = (dto: FormulatedMineralFertilizerResponseDto): Formula
 const mapFormToCreatePayload = (form: FormulatedFertilizerFormState): FormulatedMineralFertilizerCreateRequestDto => ({
     formula: { n: num(form.formulaN), p: num(form.formulaP), k: num(form.formulaK) }, // CORRIGIDO
     relacao: { n: num(form.relacaoN), p: num(form.relacaoP), k: num(form.relacaoK) }, // CORRIGIDO
-    id_fotos: form.fotoIds,
+    ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
     n: num(form.n),
@@ -151,9 +151,9 @@ const mapFormToCreatePayload = (form: FormulatedFertilizerFormState): Formulated
 const mapFormToUpdatePayload = (form: FormulatedFertilizerFormState): FormulatedMineralFertilizerPostRequestDto => ({
     nova_formula: { n: num(form.formulaN), p: num(form.formulaP), k: num(form.formulaK) }, // CORRIGIDO
     nova_relacao: { n: num(form.relacaoN), p: num(form.relacaoP), k: num(form.relacaoK) }, // CORRIGIDO
-    novo_id_fotos: form.fotoIds,
-    nova_observacao: form.observacao,
-    nova_fonte: form.fonte,
+    novos_ids_fotos: form.fotoIds,
+    novo_observacao: form.observacao,
+    novo_fonte: form.fonte,
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),
