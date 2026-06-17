@@ -25,7 +25,8 @@ import {
 } from "@/services/diverseContentRangeService";
 import {
   DiverseContentRangeCreateRequestDto,
-  DiverseContentRangePostRequestDto
+  DiverseContentRangePostRequestDto,
+  NutrientSuffix
 } from "@/interfaces/DiverseContentRange";
 
 interface Props {
@@ -36,7 +37,12 @@ interface Props {
 }
 
 // Configuração dos Nutrientes
-const NUTRIENTS = [
+type NutrientOption = {
+    label: string;
+    value: NutrientSuffix;
+};
+
+const NUTRIENTS: NutrientOption[] = [
     { label: "Al trocável (Al³+, cmolc/dm³)", value: "aluminio" },
     { label: "H+Al (cmolc/dm³)", value: "aluminio_mais_hidrogenio" },
     { label: "CTC (t) (cmolc/dm³)", value: "ctc_efetiva" },
@@ -47,8 +53,12 @@ const NUTRIENTS = [
     { label: "Matéria Orgânica (g/dm3)", value: "materia_organica" },
     { label: "Cálcio (cmolc/dm³)", value: "calcio" },
     { label: "Magnésio (cmolc/dm³)", value: "magnesio" },
+    { label: "Potássio (cmolc/dm³)", value: "potassio" },
+    { label: "Sódio (cmolc/dm³)", value: "sodio" },
+    { label: "Soma de Bases (cmolc/dm³)", value: "soma_bases" },
     { label: "Saturação por Alumínio - m (%)", value: "saturacao_aluminio" },
     { label: "Saturação por Bases - V (%)", value: "saturacao_bases" },
+    { label: "PST (%)", value: "pst" },
     { label: "Boro (mg/dm³)", value: "boro" },
     { label: "Cobre (mg/dm³)", value: "cobre" },
     { label: "Ferro (mg/dm³)", value: "ferro" },
@@ -60,6 +70,47 @@ const nutrientsCollection = createListCollection({
     items: NUTRIENTS,
 });
 
+const RANGE_PREFIXES = [
+    "menor_teor",
+    "teor_inicial_baixo",
+    "teor_final_baixo",
+    "teor_inicial_medio",
+    "teor_final_medio",
+    "teor_inicial_alto",
+    "teor_final_alto",
+    "maior_teor"
+];
+
+const READ_SUFFIX_ALIASES: Partial<Record<NutrientSuffix, string[]>> = {
+    aluminio_mais_hidrogenio: ["h_al", "hal", "aluminio_hidrogenio"],
+    ctc_ph7: ["ctc_ph_7", "ctc_ph_7_0", "ctc_pH7"],
+    ph_agua: ["ph_agua", "ph_h2o"]
+};
+
+const READ_PREFIX_ALIASES: Record<string, string[]> = {
+    menor_teor: ["menor_valor"],
+    teor_inicial_baixo: ["valor_inicial_baixo"],
+    teor_final_baixo: ["valor_final_baixo"],
+    teor_inicial_medio: ["valor_inicial_medio"],
+    teor_final_medio: ["valor_final_medio"],
+    teor_inicial_alto: ["valor_inicial_alto"],
+    teor_final_alto: ["valor_final_alto"],
+    maior_teor: ["maior_valor"],
+};
+
+const getRangeValue = (
+    data: Record<string, number>,
+    prefix: string,
+    suffix: NutrientSuffix
+) => {
+    const prefixes = [prefix, ...(READ_PREFIX_ALIASES[prefix] ?? [])];
+    const suffixes = [suffix, ...(READ_SUFFIX_ALIASES[suffix] ?? [])];
+    const key = prefixes
+        .flatMap(p => suffixes.map(s => `${p}_${s}`))
+        .find(k => data[k] !== undefined && data[k] !== null);
+    return key ? data[key] : "";
+};
+
 export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isReadOnly = false }: Props) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -69,7 +120,7 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
   const [form, setForm] = useState<Record<string, string>>({});
   
   // Nutriente selecionado atualmente
-  const [selectedNutrient, setSelectedNutrient] = useState<string>("carbono_organico");
+  const [selectedNutrient, setSelectedNutrient] = useState<NutrientSuffix>("carbono_organico");
 
   useEffect(() => {
     if (isOpen && tableId) {
@@ -92,14 +143,9 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
         const newForm: Record<string, string> = {};
         NUTRIENTS.forEach(n => {
             const suffix = n.value;
-            newForm[`menor_teor_${suffix}`] = String(data[`menor_teor_${suffix}`] ?? "");
-            newForm[`teor_inicial_baixo_${suffix}`] = String(data[`teor_inicial_baixo_${suffix}`] ?? "");
-            newForm[`teor_final_baixo_${suffix}`] = String(data[`teor_final_baixo_${suffix}`] ?? "");
-            newForm[`teor_inicial_medio_${suffix}`] = String(data[`teor_inicial_medio_${suffix}`] ?? "");
-            newForm[`teor_final_medio_${suffix}`] = String(data[`teor_final_medio_${suffix}`] ?? "");
-            newForm[`teor_inicial_alto_${suffix}`] = String(data[`teor_inicial_alto_${suffix}`] ?? "");
-            newForm[`teor_final_alto_${suffix}`] = String(data[`teor_final_alto_${suffix}`] ?? "");
-            newForm[`maior_teor_${suffix}`] = String(data[`maior_teor_${suffix}`] ?? "");
+            RANGE_PREFIXES.forEach(prefix => {
+                newForm[`${prefix}_${suffix}`] = String(getRangeValue(data, prefix, suffix));
+            });
         });
         setForm(newForm);
       } else {
@@ -141,16 +187,7 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
         // Garante que todos os campos de todos os nutrientes sejam enviados (mesmo que 0)
         NUTRIENTS.forEach(n => {
             const suffix = n.value;
-            const fields = [
-                 `menor_teor_${suffix}`,
-                 `teor_inicial_baixo_${suffix}`,
-                 `teor_final_baixo_${suffix}`,
-                 `teor_inicial_medio_${suffix}`,
-                 `teor_final_medio_${suffix}`,
-                 `teor_inicial_alto_${suffix}`,
-                 `teor_final_alto_${suffix}`,
-                 `maior_teor_${suffix}`
-            ];
+            const fields = RANGE_PREFIXES.map(prefix => `${prefix}_${suffix}`);
             fields.forEach(f => {
                 payload[f] = parse(form[f] || "0");
             });
@@ -226,7 +263,7 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
                     <SelectRoot 
                         collection={nutrientsCollection}
                         value={[selectedNutrient]}
-                        onValueChange={(e) => setSelectedNutrient(e.value[0])}
+                        onValueChange={(e) => setSelectedNutrient(e.value[0] as NutrientSuffix)}
                         size="sm"
                         mb={4}
                     >
