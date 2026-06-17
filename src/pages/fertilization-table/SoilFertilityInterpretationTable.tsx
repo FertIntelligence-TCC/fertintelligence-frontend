@@ -217,7 +217,7 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
             </Flex>
         </Flex>
 
-        <Accordion.Root collapsible defaultValue={[]}>
+        <Accordion.Root collapsible defaultValue={["list"]}>
           <Accordion.Item value="list">
             <Accordion.ItemTrigger>
               <Box flex="1" textAlign="left">

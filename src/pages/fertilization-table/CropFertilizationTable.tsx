@@ -787,15 +787,6 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
           >
             Voltar para o painel
           </Button>
-          <Accordion.Root collapsible defaultValue={[]}>
-            <Accordion.Item value="list">
-              <Accordion.ItemTrigger>
-                <Box flex="1" textAlign="left">
-                  <Heading size="md">Tabelas de Adubação</Heading>
-                </Box>
-              </Accordion.ItemTrigger>
-              <Accordion.ItemContent>
-                <Accordion.ItemBody>
           <Heading as="h1" size="lg" color="white">
             {canManage ? "Gerenciar Tabelas de Cultura" : "Tabelas Padrão de Cultura"}
           </Heading>
@@ -824,29 +815,38 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
               </Box>
           )}
 
-          <Box mt={2}>
-            {isLoading ? (
-              <Flex justify="center" minH="200px" align="center"><Spinner color="white" size="lg" /></Flex>
-            ) : isError ? (
-              <Text color="red.300">Erro ao carregar tabelas.</Text>
-            ) : tables.length === 0 ? (
-              <Text color="white">Nenhuma tabela cadastrada.</Text>
-            ) : (
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-                {tables.map((table: any) => (
-                  <TableCard
-                    key={table.id}
-                    table={table}
-                    isSelected={selectedTableId === table.id}
-                    onSelect={() => handleTableSelection(table.id)}
-                    onView={() => openView(table)}
-                    onEdit={canManage ? () => openEdit(table) : undefined}
-                    onDelete={canManage ? () => requestDelete(table) : undefined}
-                  />
-                ))}
-              </SimpleGrid>
-            )}
-          </Box>
+          <Accordion.Root collapsible defaultValue={["list"]}>
+            <Accordion.Item value="list">
+              <Accordion.ItemTrigger>
+                <Box flex="1" textAlign="left">
+                  <Heading size="md">Tabelas de Adubação</Heading>
+                </Box>
+              </Accordion.ItemTrigger>
+              <Accordion.ItemContent>
+                <Accordion.ItemBody>
+                  <Box mt={2}>
+                    {isLoading ? (
+                      <Flex justify="center" minH="200px" align="center"><Spinner color="white" size="lg" /></Flex>
+                    ) : isError ? (
+                      <Text color="red.300">Erro ao carregar tabelas.</Text>
+                    ) : tables.length === 0 ? (
+                      <Text color="white">Nenhuma tabela cadastrada.</Text>
+                    ) : (
+                      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
+                        {tables.map((table: any) => (
+                          <TableCard
+                            key={table.id}
+                            table={table}
+                            isSelected={selectedTableId === table.id}
+                            onSelect={() => handleTableSelection(table.id)}
+                            onView={() => openView(table)}
+                            onEdit={canManage ? () => openEdit(table) : undefined}
+                            onDelete={canManage ? () => requestDelete(table) : undefined}
+                          />
+                        ))}
+                      </SimpleGrid>
+                    )}
+                  </Box>
                 </Accordion.ItemBody>
               </Accordion.ItemContent>
             </Accordion.Item>
