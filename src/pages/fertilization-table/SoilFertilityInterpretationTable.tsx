@@ -10,6 +10,7 @@ import {
   Dialog,
   IconButton,
   SimpleGrid,
+  Accordion,
 } from "@chakra-ui/react";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -216,48 +217,59 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
             </Flex>
         </Flex>
 
-        <Box>
-            {isLoading ? (
-                <Flex justify="center" minH="200px" align="center">
-                    <Spinner color="green.500" size="xl" />
-                </Flex>
-            ) : isError ? (
-                <Flex justify="center" minH="200px" align="center" direction="column" gap={2}>
-                    <Text color="red.500" fontWeight="bold">Erro ao carregar dados.</Text>
-                    <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey })}>Tentar Novamente</Button>
-                </Flex>
-            ) : tables.length === 0 ? (
-                <Flex 
-                    justify="center" 
-                    align="center" 
-                    minH="300px" 
-                    borderWidth="2px" 
-                    borderStyle="dashed" 
-                    borderColor="gray.300" 
-                    borderRadius="lg"
-                    direction="column"
-                    gap={4}
-                    color="gray.500"
-                >
-                    <Text fontSize="lg">Nenhuma tabela de critérios encontrada.</Text>
-                    {canManage && <Button variant="ghost" colorPalette="green" onClick={() => handleOpen("create")}>Criar primeira tabela</Button>}
-                </Flex>
-            ) : (
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
-                    {tables.map((table: SoilFertilityTableResponseDto) => (
-                        <SoilFertilityTableCard
-                            key={table.id}
-                            item={table}
-                            isSelected={selectedId === table.id}
-                            onSelect={() => setSelectedId(selectedId === table.id ? null : table.id)}
-                            onView={() => handleOpen("view", table)}
-                            onEdit={canManage ? () => handleOpen("edit", table) : undefined}
-                            onDelete={canManage ? () => { setActiveItem(table); setIsDeleteOpen(true); } : undefined}
-                        />
-                    ))}
-                </SimpleGrid>
-            )}
-        </Box>
+        <Accordion.Root collapsible defaultValue={[]}>
+          <Accordion.Item value="list">
+            <Accordion.ItemTrigger>
+              <Box flex="1" textAlign="left">
+                <Heading size="md">Tabelas de Critérios</Heading>
+              </Box>
+            </Accordion.ItemTrigger>
+            <Accordion.ItemContent>
+              <Accordion.ItemBody>
+                {isLoading ? (
+                    <Flex justify="center" minH="200px" align="center">
+                        <Spinner color="green.500" size="xl" />
+                    </Flex>
+                ) : isError ? (
+                    <Flex justify="center" minH="200px" align="center" direction="column" gap={2}>
+                        <Text color="red.500" fontWeight="bold">Erro ao carregar dados.</Text>
+                        <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey })}>Tentar Novamente</Button>
+                    </Flex>
+                ) : tables.length === 0 ? (
+                    <Flex 
+                        justify="center" 
+                        align="center" 
+                        minH="300px" 
+                        borderWidth="2px" 
+                        borderStyle="dashed" 
+                        borderColor="gray.300" 
+                        borderRadius="lg"
+                        direction="column"
+                        gap={4}
+                        color="gray.500"
+                    >
+                        <Text fontSize="lg">Nenhuma tabela de critérios encontrada.</Text>
+                        {canManage && <Button variant="ghost" colorPalette="green" onClick={() => handleOpen("create")}>Criar primeira tabela</Button>}
+                    </Flex>
+                ) : (
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>
+                        {tables.map((table: SoilFertilityTableResponseDto) => (
+                            <SoilFertilityTableCard
+                                key={table.id}
+                                item={table}
+                                isSelected={selectedId === table.id}
+                                onSelect={() => setSelectedId(selectedId === table.id ? null : table.id)}
+                                onView={() => handleOpen("view", table)}
+                                onEdit={canManage ? () => handleOpen("edit", table) : undefined}
+                                onDelete={canManage ? () => { setActiveItem(table); setIsDeleteOpen(true); } : undefined}
+                            />
+                        ))}
+                    </SimpleGrid>
+                )}
+              </Accordion.ItemBody>
+            </Accordion.ItemContent>
+          </Accordion.Item>
+        </Accordion.Root>
       </Box>
 
       {/* --- Modal Principal --- */}

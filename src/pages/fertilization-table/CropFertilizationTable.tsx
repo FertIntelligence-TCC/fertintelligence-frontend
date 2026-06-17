@@ -12,6 +12,7 @@ import {
   SimpleGrid,
   HStack,
   Badge,
+  Accordion,
 } from "@chakra-ui/react";
 import { FiPlus, FiX, FiEye, FiEdit, FiTrash } from "react-icons/fi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -786,6 +787,15 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
           >
             Voltar para o painel
           </Button>
+          <Accordion.Root collapsible defaultValue={[]}>
+            <Accordion.Item value="list">
+              <Accordion.ItemTrigger>
+                <Box flex="1" textAlign="left">
+                  <Heading size="md">Tabelas de Adubação</Heading>
+                </Box>
+              </Accordion.ItemTrigger>
+              <Accordion.ItemContent>
+                <Accordion.ItemBody>
           <Heading as="h1" size="lg" color="white">
             {canManage ? "Gerenciar Tabelas de Cultura" : "Tabelas Padrão de Cultura"}
           </Heading>
@@ -837,6 +847,10 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
               </SimpleGrid>
             )}
           </Box>
+                </Accordion.ItemBody>
+              </Accordion.ItemContent>
+            </Accordion.Item>
+          </Accordion.Root>
         </Flex>
       </Box>
 
