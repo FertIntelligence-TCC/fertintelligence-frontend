@@ -433,77 +433,6 @@ const updateExistingContentRangesWithCoverages = async (
   });
 };
 
-const saveContentRangesWithCoverages = async (
-  tableId: number,
-  form: FertilizationTableFormState
-) => {
-  const num = (v: any) => (typeof v === "number" ? v : parseFloat(v || "0"));
-
-  const nitroRangePayload = {
-    nutriente: "NITROGENIO",
-    ordem_teor: 1,
-    menor_teor: null,
-    maior_teor: null,
-    aplicacao_recomendada_plantio: num(form.plantioN),
-  };
-  const createdNitroRange = await createContentRange(tableId, nitroRangePayload);
-
-  for (let i = 0; i < form.coberturasN.length; i++) {
-    await createCoverage(createdNitroRange.id, {
-      ordem_cobertura: i + 1,
-      aplicacao_recomendada_cobertura: num(form.coberturasN[i]),
-    });
-  }
-
-  let previousPLargest: number | null = null;
-
-  for (let i = 0; i < form.faixasP.length; i++) {
-    const row = form.faixasP[i];
-    const { smallest, largest } = parseLabel(row.label);
-    const isLastRange = i === form.faixasP.length - 1;
-    const rangePayload = {
-      nutriente: "FOSFORO",
-      ordem_teor: i + 1,
-      menor_teor: i === 0 ? smallest : previousPLargest,
-      maior_teor: isLastRange ? null : largest,
-      aplicacao_recomendada_plantio: num(row.plantio),
-    };
-    const createdRange = await createContentRange(tableId, rangePayload);
-    for (let j = 0; j < row.coberturas.length; j++) {
-      await createCoverage(createdRange.id, {
-        ordem_cobertura: j + 1,
-        aplicacao_recomendada_cobertura: num(row.coberturas[j]),
-      });
-    }
-
-    previousPLargest = largest;
-  }
-
-  let previousKLargest: number | null = null;
-
-  for (let i = 0; i < form.faixasK.length; i++) {
-    const row = form.faixasK[i];
-    const { smallest, largest } = parseLabel(row.label);
-    const isLastRange = i === form.faixasK.length - 1;
-    const rangePayload = {
-      nutriente: "POTASSIO",
-      ordem_teor: i + 1,
-      menor_teor: i === 0 ? smallest : previousKLargest,
-      maior_teor: isLastRange ? null : largest,
-      aplicacao_recomendada_plantio: num(row.plantio),
-    };
-    const createdRange = await createContentRange(tableId, rangePayload);
-    for (let j = 0; j < row.coberturas.length; j++) {
-      await createCoverage(createdRange.id, {
-        ordem_cobertura: j + 1,
-        aplicacao_recomendada_cobertura: num(row.coberturas[j]),
-      });
-    }
-
-    previousKLargest = largest;
-  }
-};
-
 type Mode = "create" | "edit" | "view";
 
 function TableCard(props: {
@@ -746,7 +675,7 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
     setIsOrchestrating(true);
     try {
       const newTable = await createCropFertilizationTable(payloadTable);
-      await saveContentRangesWithCoverages(newTable.id, form);
+      await updateExistingContentRangesWithCoverages(newTable.id, form);
 
       queryClient.invalidateQueries({ queryKey });
       setIsModalOpen(false);
