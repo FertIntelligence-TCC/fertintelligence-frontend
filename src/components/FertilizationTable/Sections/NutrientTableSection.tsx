@@ -114,7 +114,7 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
 
     return (
         <Box mt={4} borderTopWidth="2px" pt={4} _dark={{ borderColor: "gray.600" }}>
-            <Flex justify="space-between" align="center" mb={3}><Heading size="md" _dark={{ color: "white" }}>Tabela de Faixas de Teores</Heading></Flex>
+            <Flex justify="space-between" align="center" mb={3}><Heading size="md" _dark={{ color: "white" }}>Tabela de doses de N, P₂O₅ e K₂O</Heading></Flex>
             <Box overflowX="auto" borderWidth="1px" borderRadius="md" bg="white" _dark={{ bg: "gray.800", borderColor: "gray.600" }}>
                 <Table.Root size="sm" variant="outline">
                     <Table.Header>

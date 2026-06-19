@@ -50,8 +50,20 @@ interface CropFertilizationTableResponseDto {
   tipo_de_esterco: string;
   quantidade_de_esterco: number;
   sugestao_gessagem: number;
-  sugestao_micronutrientes: number;
-  sugestao_npk: number;
+  dose_minima_b: number;
+  dose_maxima_b: number;
+  dose_minima_cu: number;
+  dose_maxima_cu: number;
+  dose_minima_fe: number;
+  dose_maxima_fe: number;
+  dose_minima_ni: number;
+  dose_maxima_ni: number;
+  dose_minima_mn: number;
+  dose_maxima_mn: number;
+  dose_minima_mo: number;
+  dose_maxima_mo: number;
+  dose_minima_zn: number;
+  dose_maxima_zn: number;
   observacoes: string;
   fontes: string;
   tabela_publica?: boolean;
@@ -116,8 +128,15 @@ const mapHydratedDataToForm = (data: HydratedTableData): FertilizationTableFormS
     sugestaoEstercoTipo: data.tipo_de_esterco as any,
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
     sugestaoGessagem: String(data.sugestao_gessagem),
-    sugestaoMicronutrientes: String(data.sugestao_micronutrientes),
-    sugestaoNPK: String(data.sugestao_npk || ""),
+    dosesMicronutrientes: {
+      b: { min: String(data.dose_minima_b ?? ""), max: String(data.dose_maxima_b ?? "") },
+      cu: { min: String(data.dose_minima_cu ?? ""), max: String(data.dose_maxima_cu ?? "") },
+      fe: { min: String(data.dose_minima_fe ?? ""), max: String(data.dose_maxima_fe ?? "") },
+      ni: { min: String(data.dose_minima_ni ?? ""), max: String(data.dose_maxima_ni ?? "") },
+      mn: { min: String(data.dose_minima_mn ?? ""), max: String(data.dose_maxima_mn ?? "") },
+      mo: { min: String(data.dose_minima_mo ?? ""), max: String(data.dose_maxima_mo ?? "") },
+      zn: { min: String(data.dose_minima_zn ?? ""), max: String(data.dose_maxima_zn ?? "") },
+    },
     coberturaLabels: coberturaLabels.length > 0 ? coberturaLabels : ["1ª Cobertura"],
     plantioN,
     coberturasN: coberturasN.length > 0 ? coberturasN : [""],
