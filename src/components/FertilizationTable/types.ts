@@ -5,13 +5,13 @@
 export enum SpacingType {
     ENTRE_LINHAS = "BETWEEN_LINES_IN_METERS",
     ENTRE_PLANTAS_COVAS = "BETWEEN_PLANTS_OR_HOLES_IN_METERS",
-    PLANTAS_POR_METRO_LINEAR = "PLANTAS_PER_LINEAR_METER"
+    PLANTAS_POR_METRO_LINEAR = "PLANTS_PER_LINEAR_METER"
 }
 
 export const SpacingLabels: Record<SpacingType, string> = {
     [SpacingType.ENTRE_LINHAS]: "Entre Linhas (m)",
     [SpacingType.ENTRE_PLANTAS_COVAS]: "Entre Plantas/Covas (m)",
-    [SpacingType.PLANTAS_POR_METRO_LINEAR]: "Plantas por Metro Linear"
+    [SpacingType.PLANTAS_POR_METRO_LINEAR]: "Plantas por metro linear (m)"
 };
 
 export enum LimingCriteria {
@@ -165,8 +165,9 @@ export type FertilizationTableFormState = {
     espacamentoSugeridoMin: string;
     espacamentoSugeridoMax: string;
 
-    espacamentoUsadoTipo: SpacingType;
-    espacamentoUsadoValor: string;
+    espacamentoUsadoTipo: SpacingType | "";
+    espacamentoUsadoMin: string;
+    espacamentoUsadoMax: string;
 
     produtividadeRegional: string;
     produtividadeEsperada: string;
@@ -198,8 +199,9 @@ export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
     espacamentoSugeridoTipo: SpacingType.ENTRE_LINHAS,
     espacamentoSugeridoMin: "",
     espacamentoSugeridoMax: "",
-    espacamentoUsadoTipo: SpacingType.ENTRE_LINHAS,
-    espacamentoUsadoValor: "",
+    espacamentoUsadoTipo: "",
+    espacamentoUsadoMin: "",
+    espacamentoUsadoMax: "",
     produtividadeRegional: "",
     produtividadeEsperada: "",
     criterioCalagem: LimingCriteria.SATURACAO_POR_BASES,

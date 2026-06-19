@@ -3,7 +3,7 @@
 export enum SpacingType {
     ENTRE_LINHAS = "BETWEEN_LINES_IN_METERS",
     ENTRE_PLANTAS_COVAS = "BETWEEN_PLANTS_OR_HOLES_IN_METERS",
-    PLANTAS_POR_METRO_LINEAR = "PLANTAS_PER_LINEAR_METER"
+    PLANTAS_POR_METRO_LINEAR = "PLANTS_PER_LINEAR_METER"
 }
 
 export enum LimingCriteria {
@@ -85,7 +85,9 @@ export interface CropFertilizationTableResponseDto {
     valor_final: number;
     
     espacamento_usado: SpacingType;
-    valor_espacamento_usado: number;
+    valor_espacamento_usado?: number;
+    valor_inicial_espacamento_usado?: number;
+    valor_final_espacamento_usado?: number;
     
     produtividade_regional: number;
     produtividade_esperada: number;
@@ -145,7 +147,9 @@ export interface CropFertilizationTableCreateRequestDto {
     valor_final: number;
     
     espacamento_usado: SpacingType;
-    valor_espacamento_usado: number;
+    valor_espacamento_usado?: number;
+    valor_inicial_espacamento_usado?: number;
+    valor_final_espacamento_usado?: number;
     
     produtividade_regional: number;
     produtividade_esperada: number;

@@ -27,6 +27,7 @@ import {
   NutrientRangeRow,
   CropType,
   CropLabels,
+  SpacingType,
 } from "@/components/FertilizationTable/types";
 import {
   createCropFertilizationTable,
@@ -42,52 +43,25 @@ import { isSupremeUser } from "@/utils/isSupremeUser";
 import { createContentRange, fetchContentRangesByTable, updateContentRange, replaceContentRangesByNutrient } from "@/services/contentRangeService";
 import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage } from "@/services/coverageService";
 
-import { CropFertilizationTableCreateRequestDto, ContentRangeResponseDto, CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
+import { CropFertilizationTableCreateRequestDto, CropFertilizationTableResponseDto, ContentRangeResponseDto, CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
-
-// Interface local que reflete exatamente o que o Java envia (snake_case) para a tabela pai
-interface CropFertilizationTableResponseDto {
-  id: number;
-  id_criador: number;
-  nome_criador: string;
-  regioes_cultura: string;
-  nome_comum_cultura: string;
-  nome_cientifico_cultura: string;
-  cultivares: string;
-  espacamentos_sugeridos: string;
-  valor_inicial: number;
-  valor_final: number;
-  espacamento_usado: string;
-  valor_espacamento_usado: number;
-  produtividade_regional: number;
-  produtividade_esperada: number;
-  criterio_de_calagem: string;
-  tipo_de_esterco: string;
-  quantidade_de_esterco: number;
-  sugestao_gessagem: number;
-  dose_minima_b: number;
-  dose_maxima_b: number;
-  dose_minima_cu: number;
-  dose_maxima_cu: number;
-  dose_minima_fe: number;
-  dose_maxima_fe: number;
-  dose_minima_ni: number;
-  dose_maxima_ni: number;
-  dose_minima_mn: number;
-  dose_maxima_mn: number;
-  dose_minima_mo: number;
-  dose_maxima_mo: number;
-  dose_minima_zn: number;
-  dose_maxima_zn: number;
-  observacoes: string;
-  fontes: string;
-  tabela_publica?: boolean;
-}
 
 // Estrutura interna combinada (Pai + Filhos)
 interface HydratedTableData extends CropFertilizationTableResponseDto {
     rangesWithCoverages: (ContentRangeResponseDto & { coverages: CoverageResponseDto[] })[];
 }
+
+const normalizeSpacingType = (value: unknown): SpacingType | "" => {
+  if (value === "PLANTAS_PER_LINEAR_METER") return SpacingType.PLANTAS_POR_METRO_LINEAR;
+  if (Object.values(SpacingType).includes(value as SpacingType)) return value as SpacingType;
+  return "";
+};
+
+const getAlternativeSpacingMin = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado" | "valor_inicial_espacamento_usado">) =>
+  data.valor_inicial_espacamento_usado ?? data.valor_espacamento_usado ?? "";
+
+const getAlternativeSpacingMax = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado" | "valor_final_espacamento_usado">) =>
+  data.valor_final_espacamento_usado ?? data.valor_espacamento_usado ?? "";
 
 /**
  * --- Mappers: Hydrated Data -> Form State ---
@@ -169,12 +143,13 @@ const mapHydratedDataToForm = (
     regiao: data.regioes_cultura as any,
     cultivares: data.cultivares || "",
 
-    espacamentoSugeridoTipo: data.espacamentos_sugeridos as any,
+    espacamentoSugeridoTipo: SpacingType.ENTRE_LINHAS,
     espacamentoSugeridoMin: String(data.valor_inicial),
     espacamentoSugeridoMax: String(data.valor_final),
 
-    espacamentoUsadoTipo: data.espacamento_usado as any,
-    espacamentoUsadoValor: String(data.valor_espacamento_usado),
+    espacamentoUsadoTipo: normalizeSpacingType(data.espacamento_usado),
+    espacamentoUsadoMin: String(getAlternativeSpacingMin(data)),
+    espacamentoUsadoMax: String(getAlternativeSpacingMax(data)),
 
     produtividadeRegional: String(data.produtividade_regional),
     produtividadeEsperada: String(data.produtividade_esperada),
@@ -244,12 +219,14 @@ const mapFormToRequest = (
     cultivares: form.cultivares,
     regioes_cultura: form.regiao,
 
-    espacamentos_sugeridos: form.espacamentoSugeridoTipo,
+    espacamentos_sugeridos: SpacingType.ENTRE_LINHAS,
     valor_inicial: num(form.espacamentoSugeridoMin),
     valor_final: num(form.espacamentoSugeridoMax),
 
-    espacamento_usado: form.espacamentoUsadoTipo,
-    valor_espacamento_usado: num(form.espacamentoUsadoValor),
+    espacamento_usado: form.espacamentoUsadoTipo || SpacingType.ENTRE_PLANTAS_COVAS,
+    valor_espacamento_usado: num(form.espacamentoUsadoMin),
+    valor_inicial_espacamento_usado: num(form.espacamentoUsadoMin),
+    valor_final_espacamento_usado: num(form.espacamentoUsadoMax),
 
     produtividade_regional: num(form.produtividadeRegional),
     produtividade_esperada: num(form.produtividadeEsperada),

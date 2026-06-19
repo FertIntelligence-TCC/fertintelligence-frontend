@@ -8,17 +8,39 @@ type Props = {
     readOnly?: boolean;
 };
 
+const alternativeSpacingOptions = [
+    SpacingType.ENTRE_PLANTAS_COVAS,
+    SpacingType.PLANTAS_POR_METRO_LINEAR,
+];
+
+const parsePositiveNumber = (value: string) => {
+    if (value === "") return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+const formatConversionValue = (value: number) =>
+    value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export default function ParametersSection({ form, onFormChange, readOnly }: Props) {
+    const spacingMin = parsePositiveNumber(form.espacamentoUsadoMin);
+    const spacingMax = parsePositiveNumber(form.espacamentoUsadoMax);
+    const canShowConversion = Boolean(form.espacamentoUsadoTipo && spacingMin && spacingMax);
+    const conversionLabel =
+        form.espacamentoUsadoTipo === SpacingType.ENTRE_PLANTAS_COVAS
+            ? "Plantas por metro linear"
+            : "Entre Plantas/Covas (m)";
+    const conversionMin = spacingMin ? 1 / spacingMin : null;
+    const conversionMax = spacingMax ? 1 / spacingMax : null;
+
     return (
         <>
             <Heading size="sm" color="gray.600" _dark={{ color: "gray.300" }} borderBottomWidth="1px" pb={1} mt={2}>Parâmetros Técnicos</Heading>
             <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}>
                 <Box borderWidth="1px" p={3} borderRadius="md" bg="gray.50" _dark={{ bg: "gray.700", borderColor: "gray.600" }}>
                     <Text fontWeight="bold" mb={2} fontSize="xs" textTransform="uppercase" color="gray.500" _dark={{ color: "gray.400" }}>Espaçamento Sugerido</Text>
-                    <VStack gap={2}>
-                        <SelectElement {...selectFieldStyles} value={form.espacamentoSugeridoTipo} onChange={(e: any) => onFormChange("espacamentoSugeridoTipo", e.target.value)} disabled={readOnly}>
-                            {Object.values(SpacingType).map(key => <option key={key} value={key}>{SpacingLabels[key]}</option>)}
-                        </SelectElement>
+                    <VStack gap={2} align="stretch">
+                        <Text fontSize="sm" fontWeight="semibold" color="gray.700" _dark={{ color: "gray.200" }}>Entre linhas (m)</Text>
                         <HStack width="full">
                             <Input placeholder="Mín (m)" type="number" {...commonFieldStyles} value={form.espacamentoSugeridoMin} onChange={(e) => onFormChange("espacamentoSugeridoMin", e.target.value)} readOnly={readOnly} />
                             <Input placeholder="Máx (m)" type="number" {...commonFieldStyles} value={form.espacamentoSugeridoMax} onChange={(e) => onFormChange("espacamentoSugeridoMax", e.target.value)} readOnly={readOnly} />
@@ -26,12 +48,24 @@ export default function ParametersSection({ form, onFormChange, readOnly }: Prop
                     </VStack>
                 </Box>
                 <Box borderWidth="1px" p={3} borderRadius="md" bg="gray.50" _dark={{ bg: "gray.700", borderColor: "gray.600" }}>
-                    <Text fontWeight="bold" mb={2} fontSize="xs" textTransform="uppercase" color="gray.500" _dark={{ color: "gray.400" }}>Espaçamento Usado na Região</Text>
-                    <VStack gap={2}>
+                    <Text fontWeight="bold" mb={2} fontSize="xs" textTransform="uppercase" color="gray.500" _dark={{ color: "gray.400" }}>Espaçamento Sugerido</Text>
+                    <VStack gap={2} align="stretch">
                         <SelectElement {...selectFieldStyles} value={form.espacamentoUsadoTipo} onChange={(e: any) => onFormChange("espacamentoUsadoTipo", e.target.value)} disabled={readOnly}>
-                            {Object.values(SpacingType).map(key => <option key={key} value={key}>{SpacingLabels[key]}</option>)}
+                            <option value="">Selecione o tipo</option>
+                            {alternativeSpacingOptions.map(key => <option key={key} value={key}>{SpacingLabels[key]}</option>)}
                         </SelectElement>
-                        <Input placeholder="Valor (m)" type="number" {...commonFieldStyles} value={form.espacamentoUsadoValor} onChange={(e) => onFormChange("espacamentoUsadoValor", e.target.value)} readOnly={readOnly} />
+                        <HStack width="full">
+                            <Input placeholder="Mín" type="number" {...commonFieldStyles} value={form.espacamentoUsadoMin} onChange={(e) => onFormChange("espacamentoUsadoMin", e.target.value)} readOnly={readOnly} />
+                            <Input placeholder="Máx" type="number" {...commonFieldStyles} value={form.espacamentoUsadoMax} onChange={(e) => onFormChange("espacamentoUsadoMax", e.target.value)} readOnly={readOnly} />
+                        </HStack>
+                        {canShowConversion && conversionMin && conversionMax && (
+                            <Box width="full" bg="green.50" borderWidth="1px" borderColor="green.200" borderRadius="md" p={2} _dark={{ bg: "green.900", borderColor: "green.700" }}>
+                                <Text fontSize="xs" fontWeight="bold" color="green.700" _dark={{ color: "green.200" }}>Conversão:</Text>
+                                <Text fontSize="xs" color="green.700" _dark={{ color: "green.100" }}>
+                                    {conversionLabel}: mínimo {formatConversionValue(conversionMin)}; máximo {formatConversionValue(conversionMax)}
+                                </Text>
+                            </Box>
+                        )}
                     </VStack>
                 </Box>
             </Grid>
