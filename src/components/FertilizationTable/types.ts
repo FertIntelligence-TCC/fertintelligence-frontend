@@ -121,6 +121,37 @@ export interface NutrientRangeRow {
     coberturas: CoverageCell[];
 }
 
+export type MicronutrientDoseKey = "b" | "cu" | "fe" | "ni" | "mn" | "mo" | "zn";
+
+export type MicronutrientDoseRange = {
+    min: string;
+    max: string;
+};
+
+export type MicronutrientDoses = Record<MicronutrientDoseKey, MicronutrientDoseRange>;
+
+export const MICRONUTRIENT_DOSE_KEYS: MicronutrientDoseKey[] = ["b", "cu", "fe", "ni", "mn", "mo", "zn"];
+
+export const MICRONUTRIENT_DOSE_LABELS: Record<MicronutrientDoseKey, string> = {
+    b: "B",
+    cu: "Cu",
+    fe: "Fe",
+    ni: "Ni",
+    mn: "Mn",
+    mo: "Mo",
+    zn: "Zn",
+};
+
+export const createEmptyMicronutrientDoses = (): MicronutrientDoses => ({
+    b: { min: "", max: "" },
+    cu: { min: "", max: "" },
+    fe: { min: "", max: "" },
+    ni: { min: "", max: "" },
+    mn: { min: "", max: "" },
+    mo: { min: "", max: "" },
+    zn: { min: "", max: "" },
+});
+
 export type FertilizationTableFormState = {
     id?: number; // Opcional, existe apenas na edição
     
@@ -146,9 +177,7 @@ export type FertilizationTableFormState = {
     sugestaoEstercoQtd: string;
 
     sugestaoGessagem: string;
-    sugestaoMicronutrientes: string;
-    
-    sugestaoNPK: string;
+    dosesMicronutrientes: MicronutrientDoses;
 
     coberturaLabels: string[]; 
     plantioN: string;
@@ -177,8 +206,7 @@ export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
     sugestaoEstercoTipo: ManureType.BOVINO,
     sugestaoEstercoQtd: "",
     sugestaoGessagem: "",
-    sugestaoMicronutrientes: "",
-    sugestaoNPK: "",
+    dosesMicronutrientes: createEmptyMicronutrientDoses(),
     
     coberturaLabels: ["1ª Cobertura", "2ª Cobertura"], 
     plantioN: "",

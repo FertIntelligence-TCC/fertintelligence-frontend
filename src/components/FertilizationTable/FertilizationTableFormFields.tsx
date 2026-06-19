@@ -27,7 +27,7 @@ export default function FertilizationTableFormFields({ form, onFormChange, readO
             {/* 3. Recomendações Gerais */}
             <RecommendationsSection form={form} onFormChange={onFormChange} readOnly={readOnly} />
 
-            {/* 4. Tabela de Faixas de Teores (com lógica encapsulada) */}
+            {/* 4. Tabela de doses de N, P₂O₅ e K₂O (com lógica encapsulada) */}
             <NutrientTableSection form={form} onFormChange={onFormChange} readOnly={readOnly} />
 
             {/* 5. Compartilhamento */}
