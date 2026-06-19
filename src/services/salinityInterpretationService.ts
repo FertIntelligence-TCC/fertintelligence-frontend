@@ -5,11 +5,11 @@ import {
   SalinityInterpretationPostRequestDto
 } from "@/interfaces/SalinityInterpretation";
 
-const ENDPOINT = "/salinity-interpretation";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const getSalinityByTable = async (tableId: number): Promise<SalinityInterpretationResponseDto | null> => {
   try {
-    const { data } = await api.get(`${ENDPOINT}/get-by-table`, {
+    const { data } = await api.get(`${ENDPOINT.SALINITY_INTERPRETATION}/get-by-table`, {
       params: { tableId }
     });
     return data;
@@ -23,14 +23,14 @@ export const getSalinityByTable = async (tableId: number): Promise<SalinityInter
 };
 
 export const createSalinity = async (tableId: number, payload: SalinityInterpretationCreateRequestDto) => {
-  const { data } = await api.post(`${ENDPOINT}/register`, payload, {
+  const { data } = await api.post(`${ENDPOINT.SALINITY_INTERPRETATION}/register`, payload, {
     params: { tableId }
   });
   return data;
 };
 
 export const updateSalinity = async (criterionId: number, payload: SalinityInterpretationPostRequestDto) => {
-  const { data } = await api.put(`${ENDPOINT}/update`, payload, {
+  const { data } = await api.put(`${ENDPOINT.SALINITY_INTERPRETATION}/update`, payload, {
     params: { criterionId }
   });
   return data;

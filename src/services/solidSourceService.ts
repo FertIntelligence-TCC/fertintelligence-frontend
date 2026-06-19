@@ -1,17 +1,17 @@
 import { api } from "./axios";
-import { 
-  SolidSourceCreateRequestDto, 
-  SolidSourcePostRequestDto, 
-  SolidSourceResponseDto 
+import {
+  SolidSourceCreateRequestDto,
+  SolidSourcePostRequestDto,
+  SolidSourceResponseDto
 } from "@/interfaces/FoliarFertilization";
 
-const BASE_URL = "/foliar-fertilization/solid-source";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const createSolidSource = async (
   cropId: number,
   data: SolidSourceCreateRequestDto
 ): Promise<SolidSourceResponseDto> => {
-  const response = await api.post(`${BASE_URL}/register`, data, {
+  const response = await api.post(`${ENDPOINT.FOLIAR_FERTILIZATION_SOLID_SOURCE}/register`, data, {
     params: { cropId }
   });
   return response.data;
@@ -20,7 +20,7 @@ export const createSolidSource = async (
 export const getSolidSourcesByCrop = async (
   cropId: number
 ): Promise<SolidSourceResponseDto[]> => {
-  const response = await api.get(`${BASE_URL}/get-by-crop`, {
+  const response = await api.get(`${ENDPOINT.FOLIAR_FERTILIZATION_SOLID_SOURCE}/get-by-crop`, {
     params: { cropId }
   });
   return response.data;
@@ -29,7 +29,7 @@ export const getSolidSourcesByCrop = async (
 export const getSolidSourceById = async (
   solidSourceId: number
 ): Promise<SolidSourceResponseDto> => {
-  const response = await api.get(`${BASE_URL}/get`, {
+  const response = await api.get(`${ENDPOINT.FOLIAR_FERTILIZATION_SOLID_SOURCE}/get`, {
     params: { solidSourceId }
   });
   return response.data;
@@ -39,7 +39,7 @@ export const updateSolidSource = async (
   solidSourceId: number,
   data: SolidSourcePostRequestDto
 ): Promise<SolidSourceResponseDto> => {
-  const response = await api.put(`${BASE_URL}/update`, data, {
+  const response = await api.put(`${ENDPOINT.FOLIAR_FERTILIZATION_SOLID_SOURCE}/update`, data, {
     params: { solidSourceId }
   });
   return response.data;
@@ -48,7 +48,7 @@ export const updateSolidSource = async (
 export const deleteSolidSource = async (
   solidSourceId: number
 ): Promise<void> => {
-  await api.delete(`${BASE_URL}/delete`, {
+  await api.delete(`${ENDPOINT.FOLIAR_FERTILIZATION_SOLID_SOURCE}/delete`, {
     params: { solidSourceId }
   });
 };

@@ -1,55 +1,43 @@
-import { api } from "./axios"; 
+import { ENDPOINT } from "@/constants/Endpoint";
+import type {
+  CoverageCreateRequest,
+  CoverageResponseDto,
+  CoverageUpdateRequest,
+} from "@/interfaces/CropFertilizationTable";
 
-export interface CoverageCreateRequest {
-  ordem_cobertura: number;
-  aplicacao_recomendada_cobertura: number | null;
-}
-
-export interface CoverageUpdateRequest {
-  novo_ordem_cobertura: number;
-  novo_aplicacao_recomendada_cobertura: number | null;
-}
-
-export interface CoverageResponseDto {
-  id: number;
-  id_intervalo_teor: number;
-  ordem_cobertura: number;
-  aplicacao_recomendada_cobertura: number;
-}
+import { api } from "./axios";
 
 export const createCoverage = async (
   contentRangeId: number,
   payload: CoverageCreateRequest
 ): Promise<CoverageResponseDto> => {
   const response = await api.post<CoverageResponseDto>(
-    `/coverage/register`,
+    `${ENDPOINT.COVERAGE}/register`,
     payload,
     { params: { contentRangeId } }
   );
   return response.data;
 };
 
-// NOVA FUNÇÃO: Buscar todas as coberturas de uma faixa
 export const fetchCoveragesByRange = async (contentRangeId: number): Promise<CoverageResponseDto[]> => {
-    const response = await api.get<CoverageResponseDto[]>(`/coverage/get-by-range`, {
+    const response = await api.get<CoverageResponseDto[]>(`${ENDPOINT.COVERAGE}/get-by-range`, {
         params: { contentRangeId }
     });
     return response.data;
 };
 
 export const deleteCoverage = async (coverageId: number): Promise<void> => {
-    await api.delete(`/coverage/delete`, {
+    await api.delete(`${ENDPOINT.COVERAGE}/delete`, {
         params: { coverageId }
     });
 };
-
 
 export const updateCoverage = async (
   coverageId: number,
   payload: CoverageUpdateRequest
 ): Promise<CoverageResponseDto> => {
   const response = await api.put<CoverageResponseDto>(
-    `/coverage/update`,
+    `${ENDPOINT.COVERAGE}/update`,
     payload,
     { params: { coverageId } }
   );

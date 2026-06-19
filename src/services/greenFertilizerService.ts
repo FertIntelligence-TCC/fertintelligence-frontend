@@ -1,45 +1,45 @@
 import { api } from "./axios";
-import { 
-    GreenFertilizerResponseDto, 
+import {
+    GreenFertilizerResponseDto,
     GreenFertilizerCreateRequestDto,
-    GreenFertilizerPostRequestDto 
+    GreenFertilizerPostRequestDto
 } from "@/interfaces/Fertilizer";
 
+import { ENDPOINT } from "@/constants/Endpoint";
 // Ajuste o endpoint base conforme o seu Controller Java (@RequestMapping)
-const ENDPOINT = "/green-fertilizer"; 
 
 export const fetchGreenFertilizers = async (): Promise<GreenFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all`);
+    const { data } = await api.get(`${ENDPOINT.GREEN_FERTILIZER}/get-all`);
     return data;
 };
 
 export const fetchPublicGreenFertilizers = async (): Promise<GreenFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    const { data } = await api.get(`${ENDPOINT.GREEN_FERTILIZER}/get-all-public`);
     return data;
 };
 
 export const fetchDefaultGreenFertilizers = async (): Promise<GreenFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all-default`);
+    const { data } = await api.get(`${ENDPOINT.GREEN_FERTILIZER}/get-all-default`);
     return data;
 };
 
 export const createGreenFertilizer = async (payload: GreenFertilizerCreateRequestDto): Promise<GreenFertilizerResponseDto> => {
-    const { data } = await api.post(`${ENDPOINT}/register`, payload);
+    const { data } = await api.post(`${ENDPOINT.GREEN_FERTILIZER}/register`, payload);
     return data;
 };
 
 export const updateGreenFertilizer = async (
-    id: number, 
-    payload: GreenFertilizerPostRequestDto 
+    id: number,
+    payload: GreenFertilizerPostRequestDto
 ): Promise<GreenFertilizerResponseDto> => {
-    const { data } = await api.put(`${ENDPOINT}/update`, payload, { 
-        params: { greenFertilizerId: id } 
+    const { data } = await api.put(`${ENDPOINT.GREEN_FERTILIZER}/update`, payload, {
+        params: { greenFertilizerId: id }
     });
     return data;
 };
 
 export const deleteGreenFertilizer = async (id: number): Promise<void> => {
-    await api.delete(`${ENDPOINT}/delete`, { 
-        params: { greenFertilizerId: id } 
+    await api.delete(`${ENDPOINT.GREEN_FERTILIZER}/delete`, {
+        params: { greenFertilizerId: id }
     });
 };

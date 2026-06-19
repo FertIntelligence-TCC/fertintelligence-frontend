@@ -5,11 +5,11 @@ import {
   DiverseContentRangePostRequestDto
 } from "@/interfaces/DiverseContentRange";
 
-const ENDPOINT = "/diverse-content-range";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const getDiverseContentRangeByTable = async (tableId: number): Promise<DiverseContentRangeResponseDto | null> => {
   try {
-    const { data } = await api.get(`${ENDPOINT}/get-by-table`, {
+    const { data } = await api.get(`${ENDPOINT.DIVERSE_CONTENT_RANGE}/get-by-table`, {
       params: { tableId }
     });
     return data;
@@ -22,14 +22,14 @@ export const getDiverseContentRangeByTable = async (tableId: number): Promise<Di
 };
 
 export const createDiverseContentRange = async (tableId: number, payload: DiverseContentRangeCreateRequestDto) => {
-  const { data } = await api.post(`${ENDPOINT}/register`, payload, {
+  const { data } = await api.post(`${ENDPOINT.DIVERSE_CONTENT_RANGE}/register`, payload, {
     params: { tableId }
   });
   return data;
 };
 
 export const updateDiverseContentRange = async (criterionId: number, payload: DiverseContentRangePostRequestDto) => {
-  const { data } = await api.put(`${ENDPOINT}/update`, payload, {
+  const { data } = await api.put(`${ENDPOINT.DIVERSE_CONTENT_RANGE}/update`, payload, {
     params: { criterionId }
   });
   return data;

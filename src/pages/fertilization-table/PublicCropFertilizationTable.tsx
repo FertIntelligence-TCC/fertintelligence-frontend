@@ -28,8 +28,10 @@ import {
   NutrientRangeRow,
 } from "@/components/FertilizationTable/types";
 import { fetchPublicCropFertilizationTables } from "@/services/cropFertilizationTableService";
-import { fetchContentRangesByTable, ContentRangeResponseDto } from "@/services/contentRangeService";
-import { fetchCoveragesByRange, CoverageResponseDto } from "@/services/coverageService";
+import { fetchContentRangesByTable } from "@/services/contentRangeService";
+import type { ContentRangeResponseDto } from "@/interfaces/CropFertilizationTable";
+import { fetchCoveragesByRange } from "@/services/coverageService";
+import type { CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
 
 interface CropFertilizationTableResponseDto {

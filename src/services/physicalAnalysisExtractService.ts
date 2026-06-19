@@ -1,21 +1,21 @@
 import { api } from "./axios";
-import { 
-    PhysicalAnalysisExtractResponse, 
-    PhysicalAnalysisExtractCreatePayload, 
-    PhysicalAnalysisExtractUpdatePayload 
+import {
+    PhysicalAnalysisExtractResponse,
+    PhysicalAnalysisExtractCreatePayload,
+    PhysicalAnalysisExtractUpdatePayload
 } from "../interfaces/PhysicalAnalysisExtract";
 
-const ENDPOINT = "/physical-analysis-extract";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const physicalAnalysisExtractService = {
-    
+
     /**
      * Cria os dados de análise física.
      * Deve fornecer 'rangeExtractId' OU 'layerExtractId'. O outro deve ser undefined/null.
      */
     create: async (
         payload: PhysicalAnalysisExtractCreatePayload,
-        rangeExtractId?: number, 
+        rangeExtractId?: number,
         layerExtractId?: number
     ): Promise<PhysicalAnalysisExtractResponse> => {
         const params: any = {};
@@ -23,15 +23,15 @@ export const physicalAnalysisExtractService = {
         if (layerExtractId) params.layerExtractId = layerExtractId;
 
         const response = await api.post<PhysicalAnalysisExtractResponse>(
-            `${ENDPOINT}/register`, 
-            payload, 
+            `${ENDPOINT.PHYSICAL_ANALYSIS_EXTRACT}/register`,
+            payload,
             { params }
         );
         return response.data;
     },
 
     getById: async (physicalAnalysisExtractId: number): Promise<PhysicalAnalysisExtractResponse> => {
-        const response = await api.get<PhysicalAnalysisExtractResponse>(`${ENDPOINT}/get`, {
+        const response = await api.get<PhysicalAnalysisExtractResponse>(`${ENDPOINT.PHYSICAL_ANALYSIS_EXTRACT}/get`, {
             params: { physicalAnalysisExtractId }
         });
         return response.data;
@@ -39,7 +39,7 @@ export const physicalAnalysisExtractService = {
 
     // Busca dados físicos associados a um Extrato de Intervalo (Faixa)
     getByRangeExtractId: async (rangeExtractId: number): Promise<PhysicalAnalysisExtractResponse[]> => {
-        const response = await api.get<PhysicalAnalysisExtractResponse[]>(`${ENDPOINT}/get-by-range`, {
+        const response = await api.get<PhysicalAnalysisExtractResponse[]>(`${ENDPOINT.PHYSICAL_ANALYSIS_EXTRACT}/get-by-range`, {
             params: { rangeExtractId }
         });
         return response.data;
@@ -47,24 +47,24 @@ export const physicalAnalysisExtractService = {
 
     // Busca dados físicos associados a um Extrato de Camada
     getByLayerExtractId: async (layerExtractId: number): Promise<PhysicalAnalysisExtractResponse[]> => {
-        const response = await api.get<PhysicalAnalysisExtractResponse[]>(`${ENDPOINT}/get-by-layer`, {
+        const response = await api.get<PhysicalAnalysisExtractResponse[]>(`${ENDPOINT.PHYSICAL_ANALYSIS_EXTRACT}/get-by-layer`, {
             params: { layerExtractId }
         });
         return response.data;
     },
 
     update: async (
-        physicalAnalysisExtractId: number, 
+        physicalAnalysisExtractId: number,
         payload: PhysicalAnalysisExtractUpdatePayload
     ): Promise<PhysicalAnalysisExtractResponse> => {
-        const response = await api.put<PhysicalAnalysisExtractResponse>(`${ENDPOINT}/update`, payload, {
+        const response = await api.put<PhysicalAnalysisExtractResponse>(`${ENDPOINT.PHYSICAL_ANALYSIS_EXTRACT}/update`, payload, {
             params: { physicalAnalysisExtractId }
         });
         return response.data;
     },
 
     delete: async (physicalAnalysisExtractId: number): Promise<void> => {
-        await api.delete(`${ENDPOINT}/delete`, {
+        await api.delete(`${ENDPOINT.PHYSICAL_ANALYSIS_EXTRACT}/delete`, {
             params: { physicalAnalysisExtractId }
         });
     }

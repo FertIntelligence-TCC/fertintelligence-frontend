@@ -1,44 +1,44 @@
 import { api } from "./axios";
-import { 
-    OrganoMineralFertilizerResponseDto, 
+import {
+    OrganoMineralFertilizerResponseDto,
     OrganoMineralFertilizerCreateRequestDto,
-    OrganoMineralFertilizerPostRequestDto 
+    OrganoMineralFertilizerPostRequestDto
 } from "@/interfaces/Fertilizer";
 
-const ENDPOINT = "/organo-mineral-fertilizer"; // Ajuste conforme seu Controller Java
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const fetchOrganoMineralFertilizers = async (): Promise<OrganoMineralFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all`);
+    const { data } = await api.get(`${ENDPOINT.ORGANO_MINERAL_FERTILIZER}/get-all`);
     return data;
 };
 
 export const fetchPublicOrganoMineralFertilizers = async (): Promise<OrganoMineralFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    const { data } = await api.get(`${ENDPOINT.ORGANO_MINERAL_FERTILIZER}/get-all-public`);
     return data;
 };
 
 export const fetchDefaultOrganoMineralFertilizers = async (): Promise<OrganoMineralFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all-default`);
+    const { data } = await api.get(`${ENDPOINT.ORGANO_MINERAL_FERTILIZER}/get-all-default`);
     return data;
 };
 
 export const createOrganoMineralFertilizer = async (payload: OrganoMineralFertilizerCreateRequestDto): Promise<OrganoMineralFertilizerResponseDto> => {
-    const { data } = await api.post(`${ENDPOINT}/register`, payload);
+    const { data } = await api.post(`${ENDPOINT.ORGANO_MINERAL_FERTILIZER}/register`, payload);
     return data;
 };
 
 export const updateOrganoMineralFertilizer = async (
-    id: number, 
-    payload: OrganoMineralFertilizerPostRequestDto 
+    id: number,
+    payload: OrganoMineralFertilizerPostRequestDto
 ): Promise<OrganoMineralFertilizerResponseDto> => {
-    const { data } = await api.put(`${ENDPOINT}/update`, payload, { 
-        params: { organoMineralFertilizerId: id } 
+    const { data } = await api.put(`${ENDPOINT.ORGANO_MINERAL_FERTILIZER}/update`, payload, {
+        params: { organoMineralFertilizerId: id }
     });
     return data;
 };
 
 export const deleteOrganoMineralFertilizer = async (id: number): Promise<void> => {
-    await api.delete(`${ENDPOINT}/delete`, { 
-        params: { organoMineralFertilizerId: id } 
+    await api.delete(`${ENDPOINT.ORGANO_MINERAL_FERTILIZER}/delete`, {
+        params: { organoMineralFertilizerId: id }
     });
 };

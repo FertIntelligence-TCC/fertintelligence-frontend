@@ -1,45 +1,45 @@
 // src/services/simpleMineralFertilizerService.ts
 import { api } from "./axios";
-import { 
-    SimpleMineralFertilizerResponseDto, 
+import {
+    SimpleMineralFertilizerResponseDto,
     SimpleMineralFertilizerCreateRequestDto,
-    SimpleMineralFertilizerPostRequestDto 
+    SimpleMineralFertilizerPostRequestDto
 } from "@/interfaces/Fertilizer";
 
-const ENDPOINT = "/simple-mineral-fertilizer";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const fetchSimpleMineralFertilizers = async (): Promise<SimpleMineralFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all`);
+    const { data } = await api.get(`${ENDPOINT.SIMPLE_MINERAL_FERTILIZER}/get-all`);
     return data;
 };
 
 export const fetchPublicSimpleMineralFertilizers = async (): Promise<SimpleMineralFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    const { data } = await api.get(`${ENDPOINT.SIMPLE_MINERAL_FERTILIZER}/get-all-public`);
     return data;
 };
 
 export const fetchDefaultSimpleMineralFertilizers = async (): Promise<SimpleMineralFertilizerResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all-default`);
+    const { data } = await api.get(`${ENDPOINT.SIMPLE_MINERAL_FERTILIZER}/get-all-default`);
     return data;
 };
 
 export const createSimpleMineralFertilizer = async (payload: SimpleMineralFertilizerCreateRequestDto): Promise<SimpleMineralFertilizerResponseDto> => {
-    const { data } = await api.post(`${ENDPOINT}/register`, payload);
+    const { data } = await api.post(`${ENDPOINT.SIMPLE_MINERAL_FERTILIZER}/register`, payload);
     return data;
 };
 
 export const updateSimpleMineralFertilizer = async (
-    id: number, 
-    payload: SimpleMineralFertilizerPostRequestDto 
+    id: number,
+    payload: SimpleMineralFertilizerPostRequestDto
 ): Promise<SimpleMineralFertilizerResponseDto> => {
-    const { data } = await api.put(`${ENDPOINT}/update`, payload, { 
-        params: { simpleMineralFertilizerId: id } 
+    const { data } = await api.put(`${ENDPOINT.SIMPLE_MINERAL_FERTILIZER}/update`, payload, {
+        params: { simpleMineralFertilizerId: id }
     });
     return data;
 };
 
 export const deleteSimpleMineralFertilizer = async (id: number): Promise<void> => {
-    await api.delete(`${ENDPOINT}/delete`, { 
-        params: { simpleMineralFertilizerId: id } 
+    await api.delete(`${ENDPOINT.SIMPLE_MINERAL_FERTILIZER}/delete`, {
+        params: { simpleMineralFertilizerId: id }
     });
 };

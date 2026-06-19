@@ -1,13 +1,13 @@
 import { FertigramResponse } from "@/interfaces/Fertigram";
 import { api } from "./axios";
 
-const ENDPOINT = "/fertigram";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const generateFertigram = async (
   foliarAnalysisId: number,
   tableId: number
 ): Promise<FertigramResponse> => {
-  const { data } = await api.get<FertigramResponse>(`${ENDPOINT}/generate`, {
+  const { data } = await api.get<FertigramResponse>(`${ENDPOINT.FERTIGRAM}/generate`, {
     params: { foliarAnalysisId, tableId },
   });
 

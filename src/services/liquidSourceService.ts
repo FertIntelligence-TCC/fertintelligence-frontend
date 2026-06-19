@@ -1,17 +1,17 @@
 import { api } from "./axios";
-import { 
-  LiquidSourceCreateRequestDto, 
-  LiquidSourcePostRequestDto, 
-  LiquidSourceResponseDto 
+import {
+  LiquidSourceCreateRequestDto,
+  LiquidSourcePostRequestDto,
+  LiquidSourceResponseDto
 } from "@/interfaces/FoliarFertilization"; // Agrupado em um arquivo comum se preferir
 
-const BASE_URL = "/foliar-fertilization/liquid-source";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const createLiquidSource = async (
   cropId: number,
   data: LiquidSourceCreateRequestDto
 ): Promise<LiquidSourceResponseDto> => {
-  const response = await api.post(`${BASE_URL}/register`, data, {
+  const response = await api.post(`${ENDPOINT.FOLIAR_FERTILIZATION_LIQUID_SOURCE}/register`, data, {
     params: { cropId }
   });
   return response.data;
@@ -20,7 +20,7 @@ export const createLiquidSource = async (
 export const getLiquidSourcesByCrop = async (
   cropId: number
 ): Promise<LiquidSourceResponseDto[]> => {
-  const response = await api.get(`${BASE_URL}/get-by-crop`, {
+  const response = await api.get(`${ENDPOINT.FOLIAR_FERTILIZATION_LIQUID_SOURCE}/get-by-crop`, {
     params: { cropId }
   });
   return response.data;
@@ -29,7 +29,7 @@ export const getLiquidSourcesByCrop = async (
 export const getLiquidSourceById = async (
   liquidSourceId: number
 ): Promise<LiquidSourceResponseDto> => {
-  const response = await api.get(`${BASE_URL}/get`, {
+  const response = await api.get(`${ENDPOINT.FOLIAR_FERTILIZATION_LIQUID_SOURCE}/get`, {
     params: { liquidSourceId }
   });
   return response.data;
@@ -39,7 +39,7 @@ export const updateLiquidSource = async (
   liquidSourceId: number,
   data: LiquidSourcePostRequestDto
 ): Promise<LiquidSourceResponseDto> => {
-  const response = await api.put(`${BASE_URL}/update`, data, {
+  const response = await api.put(`${ENDPOINT.FOLIAR_FERTILIZATION_LIQUID_SOURCE}/update`, data, {
     params: { liquidSourceId }
   });
   return response.data;
@@ -48,7 +48,7 @@ export const updateLiquidSource = async (
 export const deleteLiquidSource = async (
   liquidSourceId: number
 ): Promise<void> => {
-  await api.delete(`${BASE_URL}/delete`, {
+  await api.delete(`${ENDPOINT.FOLIAR_FERTILIZATION_LIQUID_SOURCE}/delete`, {
     params: { liquidSourceId }
   });
 };

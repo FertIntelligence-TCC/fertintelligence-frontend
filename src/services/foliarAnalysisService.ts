@@ -1,17 +1,17 @@
 import { api } from "./axios";
-import { 
-  FoliarAnalysisCreateRequestDto, 
-  FoliarAnalysisPostRequestDto, 
-  FoliarAnalysisResponseDto 
+import {
+  FoliarAnalysisCreateRequestDto,
+  FoliarAnalysisPostRequestDto,
+  FoliarAnalysisResponseDto
 } from "@/interfaces/FoliarAnalysis";
 
-const BASE_URL = "/foliar-analysis";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const createFoliarAnalysis = async (
   cropId: number,
   data: FoliarAnalysisCreateRequestDto
 ): Promise<FoliarAnalysisResponseDto> => {
-  const response = await api.post(`${BASE_URL}/register`, data, {
+  const response = await api.post(`${ENDPOINT.FOLIAR_ANALYSIS}/register`, data, {
     params: { cropId }
   });
   return response.data;
@@ -20,7 +20,7 @@ export const createFoliarAnalysis = async (
 export const getFoliarAnalysisById = async (
   analysisId: number
 ): Promise<FoliarAnalysisResponseDto> => {
-  const response = await api.get(`${BASE_URL}/get`, {
+  const response = await api.get(`${ENDPOINT.FOLIAR_ANALYSIS}/get`, {
     params: { analysisId }
   });
   return response.data;
@@ -29,7 +29,7 @@ export const getFoliarAnalysisById = async (
 export const getFoliarAnalysesByCrop = async (
   cropId: number
 ): Promise<FoliarAnalysisResponseDto[]> => {
-  const response = await api.get(`${BASE_URL}/get-by-crop`, {
+  const response = await api.get(`${ENDPOINT.FOLIAR_ANALYSIS}/get-by-crop`, {
     params: { cropId }
   });
   return response.data;
@@ -39,7 +39,7 @@ export const updateFoliarAnalysis = async (
   analysisId: number,
   data: FoliarAnalysisPostRequestDto
 ): Promise<FoliarAnalysisResponseDto> => {
-  const response = await api.put(`${BASE_URL}/update`, data, {
+  const response = await api.put(`${ENDPOINT.FOLIAR_ANALYSIS}/update`, data, {
     params: { analysisId }
   });
   return response.data;
@@ -48,7 +48,7 @@ export const updateFoliarAnalysis = async (
 export const deleteFoliarAnalysis = async (
   analysisId: number
 ): Promise<void> => {
-  await api.delete(`${BASE_URL}/delete`, {
+  await api.delete(`${ENDPOINT.FOLIAR_ANALYSIS}/delete`, {
     params: { analysisId }
   });
 };

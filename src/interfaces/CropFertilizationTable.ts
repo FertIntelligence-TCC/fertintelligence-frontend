@@ -65,36 +65,36 @@ export interface ContentRangeResponseDto {
     menor_teor?: number | null;
     maior_teor?: number | null;
     aplicacao_recomendada_plantio?: number | null;
-    
+
     // Auxiliar para frontend (não vem do backend puro, mas usado na hidratação)
-    coverages?: CoverageResponseDto[]; 
+    coverages?: CoverageResponseDto[];
 }
 
 export interface CropFertilizationTableResponseDto {
     id: number;
     id_criador: number;
     nome_criador: string;
-    
+
     regioes_cultura: RegionType;
     nome_comum_cultura: CropType;
     nome_cientifico_cultura: string;
     cultivares: string;
-    
+
     espacamentos_sugeridos: SpacingType;
     valor_inicial: number;
     valor_final: number;
-    
+
     espacamento_usado: SpacingType;
     valor_espacamento_usado: number;
-    
+
     produtividade_regional: number;
     produtividade_esperada: number;
-    
+
     criterio_de_calagem: LimingCriteria;
-    
+
     tipo_de_esterco: ManureType;
     quantidade_de_esterco: number;
-    
+
     sugestao_gessagem: number;
     dose_minima_b: number;
     dose_maxima_b: number;
@@ -110,7 +110,7 @@ export interface CropFertilizationTableResponseDto {
     dose_maxima_mo: number;
     dose_minima_zn: number;
     dose_maxima_zn: number;
-    
+
     observacoes: string;
     fontes: string;
     tabela_publica?: boolean;
@@ -139,22 +139,22 @@ export interface CropFertilizationTableCreateRequestDto {
     nome_cientifico_cultura: string;
     cultivares: string;
     regioes_cultura: RegionType;
-    
+
     espacamentos_sugeridos: SpacingType;
     valor_inicial: number;
     valor_final: number;
-    
+
     espacamento_usado: SpacingType;
     valor_espacamento_usado: number;
-    
+
     produtividade_regional: number;
     produtividade_esperada: number;
-    
+
     criterio_de_calagem: LimingCriteria;
-    
+
     tipo_de_esterco: ManureType;
     quantidade_de_esterco: number;
-    
+
     sugestao_gessagem: number;
     dose_minima_b: number;
     dose_maxima_b: number;
@@ -170,8 +170,45 @@ export interface CropFertilizationTableCreateRequestDto {
     dose_maxima_mo: number;
     dose_minima_zn: number;
     dose_maxima_zn: number;
-    
+
     observacoes: string;
     fontes: string;
     tabela_publica?: boolean;
+}
+// --- Service-specific DTO aliases for content range and coverage endpoints ---
+
+export interface ContentRangeCreateRequest extends ContentRangeCreateRequestDto {}
+
+export interface ContentRangeUpdateRequest {
+  novo_nutriente: string;
+  novo_ordem_teor: number;
+  novo_menor_teor: number | null;
+  novo_maior_teor: number | null;
+  novo_aplicacao_recomendada_plantio: number | null;
+}
+
+export interface ContentRangeReplaceCoverageRequest {
+  id?: number;
+  ordem_cobertura: number;
+  aplicacao_recomendada_cobertura: number | null;
+}
+
+export interface ContentRangeReplaceItemRequest {
+  id?: number;
+  ordem_teor: number;
+  menor_teor: number | null;
+  maior_teor: number | null;
+  aplicacao_recomendada_plantio: number | null;
+  coberturas: ContentRangeReplaceCoverageRequest[];
+}
+
+export interface ContentRangeReplaceByNutrientRequest {
+  faixas: ContentRangeReplaceItemRequest[];
+}
+
+export interface CoverageCreateRequest extends CoverageCreateRequestDto {}
+
+export interface CoverageUpdateRequest {
+  novo_ordem_cobertura: number;
+  novo_aplicacao_recomendada_cobertura: number | null;
 }

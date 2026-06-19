@@ -7,7 +7,7 @@ import type {
   PermissionType,
 } from "@/interfaces/PlotAccessRequest";
 
-const BASE_URL = "/plot-access";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export async function requestPlotAccess(payload: {
   propertyId: number;
@@ -16,7 +16,7 @@ export async function requestPlotAccess(payload: {
 }): Promise<PlotAccessRequestResponseDto> {
   const { propertyId, plotId = null, permissionType = null } = payload;
 
-  const { data } = await api.post<PlotAccessRequestResponseDto>(`${BASE_URL}/request`, {
+  const { data } = await api.post<PlotAccessRequestResponseDto>(`${ENDPOINT.PLOT_ACCESS}/request`, {
     id_propriedade: propertyId,
     id_talhao: plotId,
     tipo_permissao: permissionType,
@@ -30,7 +30,7 @@ export async function getPlotAccessRequests(params: {
   status?: PlotAccessRequestStatus;
 }): Promise<PlotAccessRequestResponseDto[]> {
   const { data } = await api.get<PlotAccessRequestResponseDto[]>(
-    `${BASE_URL}/requests`,
+    `${ENDPOINT.PLOT_ACCESS}/requests`,
     { params }
   );
   return data;
@@ -43,7 +43,7 @@ export async function decidePlotAccessRequest(params: {
   const { requestId, approve } = params;
 
   const { data } = await api.post<PlotAccessRequestResponseDto>(
-    `${BASE_URL}/${requestId}/decision`,
+    `${ENDPOINT.PLOT_ACCESS}/${requestId}/decision`,
     { solicitacao_aprovada: approve }
   );
   return data;
@@ -53,7 +53,7 @@ export async function revokePlotAccessRequest(
   requestId: number
 ): Promise<PlotAccessRequestResponseDto> {
   const { data } = await api.delete<PlotAccessRequestResponseDto>(
-    `${BASE_URL}/${requestId}/revoke`
+    `${ENDPOINT.PLOT_ACCESS}/${requestId}/revoke`
   );
   return data;
 }

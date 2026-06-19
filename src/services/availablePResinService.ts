@@ -5,11 +5,11 @@ import {
   AvailablePResinPostRequestDto
 } from "@/interfaces/AvailablePResin";
 
-const ENDPOINT = "/available-p-anion-exchange-resin-extractor";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const getAvailablePResinByTable = async (tableId: number): Promise<AvailablePResinResponseDto | null> => {
   try {
-    const { data } = await api.get(`${ENDPOINT}/get-by-table`, {
+    const { data } = await api.get(`${ENDPOINT.AVAILABLE_P_RESIN}/get-by-table`, {
       params: { tableId }
     });
     return data;
@@ -22,14 +22,14 @@ export const getAvailablePResinByTable = async (tableId: number): Promise<Availa
 };
 
 export const createAvailablePResin = async (tableId: number, payload: AvailablePResinCreateRequestDto) => {
-  const { data } = await api.post(`${ENDPOINT}/register`, payload, {
+  const { data } = await api.post(`${ENDPOINT.AVAILABLE_P_RESIN}/register`, payload, {
     params: { tableId }
   });
   return data;
 };
 
 export const updateAvailablePResin = async (criterionId: number, payload: AvailablePResinPostRequestDto) => {
-  const { data } = await api.put(`${ENDPOINT}/update`, payload, {
+  const { data } = await api.put(`${ENDPOINT.AVAILABLE_P_RESIN}/update`, payload, {
     params: { criterionId }
   });
   return data;

@@ -1,21 +1,21 @@
 import { api } from "./axios";
-import { 
-    SaturationExtractAnalysisExtractResponse, 
-    SaturationExtractAnalysisExtractCreatePayload, 
-    SaturationExtractAnalysisExtractUpdatePayload 
+import {
+    SaturationExtractAnalysisExtractResponse,
+    SaturationExtractAnalysisExtractCreatePayload,
+    SaturationExtractAnalysisExtractUpdatePayload
 } from "../interfaces/SaturationExtractAnalysisExtract";
 
-const ENDPOINT = "/saturation-extract-analysis-extract";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export const saturationExtractAnalysisExtractService = {
-    
+
     /**
      * Cria os dados de análise de extrato de saturação.
      * Deve fornecer 'rangeExtractId' OU 'layerExtractId'.
      */
     create: async (
         payload: SaturationExtractAnalysisExtractCreatePayload,
-        rangeExtractId?: number, 
+        rangeExtractId?: number,
         layerExtractId?: number
     ): Promise<SaturationExtractAnalysisExtractResponse> => {
         const params: any = {};
@@ -23,15 +23,15 @@ export const saturationExtractAnalysisExtractService = {
         if (layerExtractId) params.layerExtractId = layerExtractId;
 
         const response = await api.post<SaturationExtractAnalysisExtractResponse>(
-            `${ENDPOINT}/register`, 
-            payload, 
+            `${ENDPOINT.SATURATION_EXTRACT_ANALYSIS_EXTRACT}/register`,
+            payload,
             { params }
         );
         return response.data;
     },
 
     getById: async (saturationExtractAnalysisExtractId: number): Promise<SaturationExtractAnalysisExtractResponse> => {
-        const response = await api.get<SaturationExtractAnalysisExtractResponse>(`${ENDPOINT}/get-extract`, {
+        const response = await api.get<SaturationExtractAnalysisExtractResponse>(`${ENDPOINT.SATURATION_EXTRACT_ANALYSIS_EXTRACT}/get-extract`, {
             params: { saturationExtractAnalysisExtractId }
         });
         return response.data;
@@ -39,7 +39,7 @@ export const saturationExtractAnalysisExtractService = {
 
     // Busca dados de saturação associados a um Extrato de Intervalo
     getByRangeExtractId: async (rangeExtractId: number): Promise<SaturationExtractAnalysisExtractResponse[]> => {
-        const response = await api.get<SaturationExtractAnalysisExtractResponse[]>(`${ENDPOINT}/get-by-range`, {
+        const response = await api.get<SaturationExtractAnalysisExtractResponse[]>(`${ENDPOINT.SATURATION_EXTRACT_ANALYSIS_EXTRACT}/get-by-range`, {
             params: { rangeExtractId }
         });
         return response.data;
@@ -47,24 +47,24 @@ export const saturationExtractAnalysisExtractService = {
 
     // Busca dados de saturação associados a um Extrato de Camada
     getByLayerExtractId: async (layerExtractId: number): Promise<SaturationExtractAnalysisExtractResponse[]> => {
-        const response = await api.get<SaturationExtractAnalysisExtractResponse[]>(`${ENDPOINT}/get-by-layer`, {
+        const response = await api.get<SaturationExtractAnalysisExtractResponse[]>(`${ENDPOINT.SATURATION_EXTRACT_ANALYSIS_EXTRACT}/get-by-layer`, {
             params: { layerExtractId }
         });
         return response.data;
     },
 
     update: async (
-        saturationExtractAnalysisExtractId: number, 
+        saturationExtractAnalysisExtractId: number,
         payload: SaturationExtractAnalysisExtractUpdatePayload
     ): Promise<SaturationExtractAnalysisExtractResponse> => {
-        const response = await api.put<SaturationExtractAnalysisExtractResponse>(`${ENDPOINT}/update`, payload, {
+        const response = await api.put<SaturationExtractAnalysisExtractResponse>(`${ENDPOINT.SATURATION_EXTRACT_ANALYSIS_EXTRACT}/update`, payload, {
             params: { saturationExtractAnalysisExtractId }
         });
         return response.data;
     },
 
     delete: async (saturationExtractAnalysisExtractId: number): Promise<void> => {
-        await api.delete(`${ENDPOINT}/delete`, {
+        await api.delete(`${ENDPOINT.SATURATION_EXTRACT_ANALYSIS_EXTRACT}/delete`, {
             params: { saturationExtractAnalysisExtractId }
         });
     }

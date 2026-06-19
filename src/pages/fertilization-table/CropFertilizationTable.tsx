@@ -39,8 +39,10 @@ import { useUserStore } from "@/stores/user/user.store";
 import { isSupremeUser } from "@/utils/isSupremeUser";
 
 // Services de orquestração e busca
-import { createContentRange, fetchContentRangesByTable, updateContentRange, replaceContentRangesByNutrient, ContentRangeResponseDto } from "@/services/contentRangeService";
-import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage, CoverageResponseDto } from "@/services/coverageService";
+import { createContentRange, fetchContentRangesByTable, updateContentRange, replaceContentRangesByNutrient } from "@/services/contentRangeService";
+import type { ContentRangeResponseDto } from "@/interfaces/CropFertilizationTable";
+import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage } from "@/services/coverageService";
+import type { CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
 
 import { CropFertilizationTableCreateRequestDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
@@ -106,7 +108,7 @@ const mapHydratedDataToForm = (
   // Filtrar e Mapear Ranges
   const processRanges = (nutrientKey: "FOSFORO" | "POTASSIO" | "NITROGENIO") => {
       const ranges = data.rangesWithCoverages.filter(r => r.nutriente === nutrientKey);
-      
+
       // Ordenar por ordem_teor
       ranges.sort((a, b) => a.ordem_teor - b.ordem_teor);
 
@@ -145,11 +147,11 @@ const mapHydratedDataToForm = (
 
   const faixasP = processRanges("FOSFORO");
   const faixasK = processRanges("POTASSIO");
-  
+
   // Nitrogênio geralmente é 1 range, pegamos suas coberturas
   const nitroRange = data.rangesWithCoverages.find(r => r.nutriente === "NITROGENIO");
   const plantioN = nitroRange ? String(nitroRange.aplicacao_recomendada_plantio) : "";
-  const coberturasN = nitroRange 
+  const coberturasN = nitroRange
     ? nitroRange.coverages.sort((a, b) => a.ordem_cobertura - b.ordem_cobertura).map(c => String(c.aplicacao_recomendada_cobertura))
     : [""];
 
@@ -159,7 +161,7 @@ const mapHydratedDataToForm = (
       ...faixasP.map(f => f.coberturas.length),
       ...faixasK.map(f => f.coberturas.length)
   );
-  
+
   const coberturaLabels = Array.from({ length: maxCoverages }, (_, i) => `${i + 1}ª Cobertura`);
 
   return {
@@ -501,7 +503,7 @@ function TableCard(props: {
           </Text>
         </Box>
       </Flex>
-      
+
       <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }} mt={1}>
         <Text as="span" fontWeight="semibold">Cultivares:</Text> {table.cultivares || "Não informado"}
       </Text>
@@ -588,7 +590,7 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
 
   const form = mode === "create" ? createForm : editForm;
   const setForm = mode === "create" ? setCreateForm : setEditForm;
-  const isReadOnly = mode === "view"; 
+  const isReadOnly = mode === "view";
 
   const modalTitle = useMemo(() => {
     if (mode === "create") return "Criar Tabela";
@@ -622,7 +624,7 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
       try {
           // 1. Buscar intervalos da tabela
           const ranges = await fetchContentRangesByTable(table.id);
-          
+
           // 2. Buscar coberturas para cada intervalo
           const rangesWithCoverages = await Promise.all(ranges.map(async (range) => {
               const coverages = await fetchCoveragesByRange(range.id);
@@ -631,11 +633,11 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
 
           // 3. Montar objeto completo
           const hydratedData: HydratedTableData = { ...table, rangesWithCoverages };
-          
+
           // 4. Mapear para o formulário
           const formData = mapHydratedDataToForm(hydratedData);
           setEditForm(formData);
-          
+
           // 5. Abrir Modal
           setIsModalOpen(true);
       } catch (error) {

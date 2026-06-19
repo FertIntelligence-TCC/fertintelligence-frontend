@@ -3,13 +3,13 @@ import { AxiosError } from "axios";
 
 import { api } from "./axios";
 
-const ENDPOINT = "/recommendation";
+import { ENDPOINT } from "@/constants/Endpoint";
 
 export async function generateRecommendation(
   payload: RecommendationCreatePayload,
 ): Promise<RecommendationResponse> {
   try {
-    const { data } = await api.post<RecommendationResponse>(`${ENDPOINT}/generate`, payload);
+    const { data } = await api.post<RecommendationResponse>(`${ENDPOINT.RECOMMENDATION}/generate`, payload);
     return data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message?: string }>;
@@ -25,54 +25,54 @@ export async function generateRecommendation(
     const legacyPayload = Object.fromEntries(
       Object.entries(payload).filter(([key]) => key !== "origem_adubos"),
     ) as Omit<RecommendationCreatePayload, "origem_adubos">;
-    const { data } = await api.post<RecommendationResponse>(`${ENDPOINT}/generate`, legacyPayload);
+    const { data } = await api.post<RecommendationResponse>(`${ENDPOINT.RECOMMENDATION}/generate`, legacyPayload);
     return data;
   }
 }
 
 export async function getRecommendation(id: number): Promise<RecommendationResponse> {
-  const { data } = await api.get<RecommendationResponse>(`${ENDPOINT}/get`, {
+  const { data } = await api.get<RecommendationResponse>(`${ENDPOINT.RECOMMENDATION}/get`, {
     params: { id },
   });
   return data;
 }
 
 export async function getMyRecommendations(): Promise<RecommendationResponse[]> {
-  const { data } = await api.get<RecommendationResponse[]>(`${ENDPOINT}/my`);
+  const { data } = await api.get<RecommendationResponse[]>(`${ENDPOINT.RECOMMENDATION}/my`);
   return data;
 }
 
 export async function getRecommendationsByProperty(
   propertyId: number,
 ): Promise<RecommendationResponse[]> {
-  const { data } = await api.get<RecommendationResponse[]>(`${ENDPOINT}/property`, {
+  const { data } = await api.get<RecommendationResponse[]>(`${ENDPOINT.RECOMMENDATION}/property`, {
     params: { propertyId },
   });
   return data;
 }
 
 export async function getRecommendationsByPlot(plotId: number): Promise<RecommendationResponse[]> {
-  const { data } = await api.get<RecommendationResponse[]>(`${ENDPOINT}/plot`, {
+  const { data } = await api.get<RecommendationResponse[]>(`${ENDPOINT.RECOMMENDATION}/plot`, {
     params: { plotId },
   });
   return data;
 }
 
 export async function preparePrintRecommendation(id: number): Promise<RecommendationResponse> {
-  const { data } = await api.get<RecommendationResponse>(`${ENDPOINT}/print`, {
+  const { data } = await api.get<RecommendationResponse>(`${ENDPOINT.RECOMMENDATION}/print`, {
     params: { id },
   });
   return data;
 }
 
 export async function deleteRecommendation(id: number): Promise<void> {
-  await api.delete(`${ENDPOINT}/delete`, {
+  await api.delete(`${ENDPOINT.RECOMMENDATION}/delete`, {
     params: { id },
   });
 }
 
 export async function improveRecommendationNarrative(id: number): Promise<RecommendationResponse> {
-  const { data } = await api.post<RecommendationResponse>(`${ENDPOINT}/improve-narrative`, undefined, {
+  const { data } = await api.post<RecommendationResponse>(`${ENDPOINT.RECOMMENDATION}/improve-narrative`, undefined, {
     params: { id },
   });
   return data;
