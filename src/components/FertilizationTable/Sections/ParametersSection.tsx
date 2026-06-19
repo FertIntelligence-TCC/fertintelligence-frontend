@@ -86,36 +86,52 @@ export default function ParametersSection({ form, onFormChange, readOnly, proper
                 <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Prod. Esperada (Kg/ha):</Text><Input type="number" {...commonFieldStyles} value={form.produtividadeEsperada} onChange={(e) => onFormChange("produtividadeEsperada", e.target.value)} readOnly={readOnly} /></Box>
             </HStack>
 
-            <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}>
-                <Box>
-                    <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Propriedade</Text>
-                    <SelectElement {...selectFieldStyles} value={form.propertyId} onChange={(e: any) => onFormChange("propertyId", e.target.value)} disabled={readOnly || loadingProperties}>
-                        <option value="">{loadingProperties ? "Carregando propriedades..." : "Selecione uma propriedade"}</option>
-                        {properties.map((property) => <option key={property.id} value={property.id}>{property.nome}</option>)}
-                    </SelectElement>
+            {readOnly ? (
+                <Box borderWidth="1px" borderRadius="md" p={3} bg="gray.50" _dark={{ bg: "gray.700", borderColor: "gray.600" }}>
+                    <Text fontWeight="bold" mb={2} fontSize="xs" textTransform="uppercase" color="gray.500" _dark={{ color: "gray.400" }}>Vínculos da tabela</Text>
+                    {form.showLinkedData ? (
+                        <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={3}>
+                            <Text fontSize="sm"><Text as="span" fontWeight="semibold">Propriedade:</Text> {form.linkedPropertyIdentification || "-"}</Text>
+                            <Text fontSize="sm"><Text as="span" fontWeight="semibold">Talhão:</Text> {form.linkedPlotIdentification || "-"}</Text>
+                            <Text fontSize="sm"><Text as="span" fontWeight="semibold">Análise física:</Text> {form.linkedPhysicalAnalysisIdentification || "-"}</Text>
+                            <Text fontSize="sm"><Text as="span" fontWeight="semibold">Análise de fertilidade:</Text> {form.linkedFertilityAnalysisIdentification || "-"}</Text>
+                        </Grid>
+                    ) : (
+                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.300" }}>Os vínculos originais desta tabela não estão disponíveis para visualização.</Text>
+                    )}
                 </Box>
-                <Box>
-                    <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Talhão</Text>
-                    <SelectElement {...selectFieldStyles} value={form.plotId} onChange={(e: any) => onFormChange("plotId", e.target.value)} disabled={readOnly || !form.propertyId || loadingPlots}>
-                        <option value="">{loadingPlots ? "Carregando talhões..." : "Selecione um talhão"}</option>
-                        {plots.map((plot) => <option key={plot.id} value={plot.id}>{plot.identificacao}</option>)}
-                    </SelectElement>
-                </Box>
-                <Box>
-                    <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Análise física</Text>
-                    <SelectElement {...selectFieldStyles} value={form.physicalAnalysisId} onChange={(e: any) => onFormChange("physicalAnalysisId", e.target.value)} disabled={readOnly || !form.plotId || loadingPhysicalAnalyses}>
-                        <option value="">{loadingPhysicalAnalyses ? "Carregando análises físicas..." : "Selecione uma análise física"}</option>
-                        {physicalAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
-                    </SelectElement>
-                </Box>
-                <Box>
-                    <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Análise de fertilidade</Text>
-                    <SelectElement {...selectFieldStyles} value={form.fertilityAnalysisId} onChange={(e: any) => onFormChange("fertilityAnalysisId", e.target.value)} disabled={readOnly || !form.plotId || loadingFertilityAnalyses}>
-                        <option value="">{loadingFertilityAnalyses ? "Carregando análises de fertilidade..." : "Selecione uma análise de fertilidade"}</option>
-                        {fertilityAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
-                    </SelectElement>
-                </Box>
-            </Grid>
+            ) : (
+                <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}>
+                    <Box>
+                        <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Propriedade</Text>
+                        <SelectElement {...selectFieldStyles} value={form.propertyId} onChange={(e: any) => onFormChange("propertyId", e.target.value)} disabled={loadingProperties}>
+                            <option value="">{loadingProperties ? "Carregando propriedades..." : "Selecione uma propriedade"}</option>
+                            {properties.map((property) => <option key={property.id} value={property.id}>{property.nome}</option>)}
+                        </SelectElement>
+                    </Box>
+                    <Box>
+                        <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Talhão</Text>
+                        <SelectElement {...selectFieldStyles} value={form.plotId} onChange={(e: any) => onFormChange("plotId", e.target.value)} disabled={!form.propertyId || loadingPlots}>
+                            <option value="">{loadingPlots ? "Carregando talhões..." : "Selecione um talhão"}</option>
+                            {plots.map((plot) => <option key={plot.id} value={plot.id}>{plot.identificacao}</option>)}
+                        </SelectElement>
+                    </Box>
+                    <Box>
+                        <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Análise física</Text>
+                        <SelectElement {...selectFieldStyles} value={form.physicalAnalysisId} onChange={(e: any) => onFormChange("physicalAnalysisId", e.target.value)} disabled={!form.plotId || loadingPhysicalAnalyses}>
+                            <option value="">{loadingPhysicalAnalyses ? "Carregando análises físicas..." : "Selecione uma análise física"}</option>
+                            {physicalAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
+                        </SelectElement>
+                    </Box>
+                    <Box>
+                        <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Análise de fertilidade</Text>
+                        <SelectElement {...selectFieldStyles} value={form.fertilityAnalysisId} onChange={(e: any) => onFormChange("fertilityAnalysisId", e.target.value)} disabled={!form.plotId || loadingFertilityAnalyses}>
+                            <option value="">{loadingFertilityAnalyses ? "Carregando análises de fertilidade..." : "Selecione uma análise de fertilidade"}</option>
+                            {fertilityAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
+                        </SelectElement>
+                    </Box>
+                </Grid>
+            )}
 
             <Box>
                 <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Critério de calagem indicado</Text>
