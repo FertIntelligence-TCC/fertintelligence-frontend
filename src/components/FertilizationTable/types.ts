@@ -172,7 +172,13 @@ export type FertilizationTableFormState = {
     produtividadeRegional: string;
     produtividadeEsperada: string;
 
-    criterioCalagem: LimingCriteria;
+    criterioCalagem: LimingCriteria | "";
+    criterioCalagemIndicado: string;
+
+    propertyId: string;
+    plotId: string;
+    physicalAnalysisId: string;
+    fertilityAnalysisId: string;
     
     sugestaoEstercoTipo: ManureType;
     sugestaoEstercoQtd: string;
@@ -204,7 +210,12 @@ export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
     espacamentoUsadoMax: "",
     produtividadeRegional: "",
     produtividadeEsperada: "",
-    criterioCalagem: LimingCriteria.SATURACAO_POR_BASES,
+    criterioCalagem: "",
+    criterioCalagemIndicado: "Não é possível definir um critério de calagem",
+    propertyId: "",
+    plotId: "",
+    physicalAnalysisId: "",
+    fertilityAnalysisId: "",
     sugestaoEstercoTipo: ManureType.BOVINO,
     sugestaoEstercoQtd: "",
     sugestaoGessagem: "",

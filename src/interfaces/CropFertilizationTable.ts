@@ -92,7 +92,17 @@ export interface CropFertilizationTableResponseDto {
     produtividade_regional: number;
     produtividade_esperada: number;
     
-    criterio_de_calagem: LimingCriteria;
+    criterio_de_calagem?: LimingCriteria | string | null;
+    criterio_de_calagem_indicado?: string | null;
+    criterio_calagem_indicado?: string | null;
+    propertyId?: number | null;
+    plotId?: number | null;
+    physicalAnalysisId?: number | null;
+    fertilityAnalysisId?: number | null;
+    id_propriedade?: number | null;
+    id_talhao?: number | null;
+    id_analise_fisica?: number | null;
+    id_analise_fertilidade?: number | null;
     
     tipo_de_esterco: ManureType;
     quantidade_de_esterco: number;
@@ -154,7 +164,11 @@ export interface CropFertilizationTableCreateRequestDto {
     produtividade_regional: number;
     produtividade_esperada: number;
     
-    criterio_de_calagem: LimingCriteria;
+    criterio_de_calagem?: LimingCriteria | string | null;
+    propertyId?: number | null;
+    plotId?: number | null;
+    physicalAnalysisId?: number | null;
+    fertilityAnalysisId?: number | null;
     
     tipo_de_esterco: ManureType;
     quantidade_de_esterco: number;

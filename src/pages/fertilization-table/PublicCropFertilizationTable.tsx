@@ -34,6 +34,21 @@ import { fetchCoveragesByRange } from "@/services/coverageService";
 import type { CropFertilizationTableResponseDto, ContentRangeResponseDto, CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
 
+
+const LIMING_UNDEFINED_LABEL = "Não é possível definir um critério de calagem";
+const getLimingCriterionLabel = (value: unknown) => {
+  if (!value) return LIMING_UNDEFINED_LABEL;
+  const text = String(value);
+  const labels: Record<string, string> = {
+    SATURACAO_POR_BASES_TROCAVEIS: "SATURAÇÃO POR BASES TROCÁVEIS",
+    NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL: "Neutralização do Al trocável",
+    NEUTRALIZACAO_ALUMINIO_TROCAVEL: "Neutralização do Al trocável",
+    ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO: "Elevação dos teores de Ca + Mg",
+    ELEVACAO__DO_TEOR_DE_CALCIO_MAIS_MAGNESIO: "Elevação dos teores de Ca + Mg",
+  };
+  return labels[text] ?? text;
+};
+
 interface HydratedTableData extends CropFertilizationTableResponseDto {
   rangesWithCoverages: (ContentRangeResponseDto & { coverages: CoverageResponseDto[] })[];
 }
@@ -102,7 +117,12 @@ const mapHydratedDataToForm = (data: HydratedTableData): FertilizationTableFormS
     espacamentoUsadoMax: String(getAlternativeSpacingMax(data)),
     produtividadeRegional: String(data.produtividade_regional),
     produtividadeEsperada: String(data.produtividade_esperada),
-    criterioCalagem: data.criterio_de_calagem as any,
+    criterioCalagem: (data.criterio_de_calagem ?? "") as any,
+    criterioCalagemIndicado: getLimingCriterionLabel(data.criterio_de_calagem_indicado ?? data.criterio_calagem_indicado ?? data.criterio_de_calagem),
+    propertyId: String(data.propertyId ?? data.id_propriedade ?? ""),
+    plotId: String(data.plotId ?? data.id_talhao ?? ""),
+    physicalAnalysisId: String(data.physicalAnalysisId ?? data.id_analise_fisica ?? ""),
+    fertilityAnalysisId: String(data.fertilityAnalysisId ?? data.id_analise_fertilidade ?? ""),
     sugestaoEstercoTipo: data.tipo_de_esterco as any,
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
     sugestaoGessagem: String(data.sugestao_gessagem),
