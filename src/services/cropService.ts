@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import { 
   CropCreateRequestDto, 
@@ -5,13 +6,12 @@ import {
   CropResponseDto 
 } from "@/interfaces/Crop";
 
-const BASE_URL = "/crop";
 
 export const createCrop = async (
   folderId: number,
   data: CropCreateRequestDto
 ): Promise<CropResponseDto> => {
-  const response = await api.post(`${BASE_URL}/register`, data, {
+  const response = await api.post(ENDPOINT.CREATE_CROP, data, {
     params: { folderId }
   });
   return response.data;
@@ -20,7 +20,7 @@ export const createCrop = async (
 export const getCropById = async (
   cropId: number
 ): Promise<CropResponseDto> => {
-  const response = await api.get(`${BASE_URL}/get`, {
+  const response = await api.get(ENDPOINT.GET_CROP, {
     params: { cropId }
   });
   return response.data;
@@ -29,7 +29,7 @@ export const getCropById = async (
 export const getCropsByFolder = async (
   folderId: number
 ): Promise<CropResponseDto[]> => {
-  const response = await api.get(`${BASE_URL}/get-by-folder`, {
+  const response = await api.get(ENDPOINT.GET_CROP_BY_FOLDER, {
     params: { folderId }
   });
   return response.data;
@@ -39,7 +39,7 @@ export const updateCrop = async (
   cropId: number,
   data: CropPostRequestDto
 ): Promise<CropResponseDto> => {
-  const response = await api.put(`${BASE_URL}/update`, data, {
+  const response = await api.put(ENDPOINT.UPDATE_CROP, data, {
     params: { cropId }
   });
   return response.data;
@@ -48,7 +48,7 @@ export const updateCrop = async (
 export const deleteCrop = async (
   cropId: number
 ): Promise<void> => {
-  await api.delete(`${BASE_URL}/delete`, {
+  await api.delete(ENDPOINT.DELETE_CROP, {
     params: { cropId }
   });
 };

@@ -175,3 +175,48 @@ export interface CropFertilizationTableCreateRequestDto {
     fontes: string;
     tabela_publica?: boolean;
 }
+
+export interface ContentRangeCreateRequest {
+  nutriente: string;
+  ordem_teor: number;
+  menor_teor: number | null;
+  maior_teor: number | null;
+  aplicacao_recomendada_plantio: number | null;
+}
+
+export interface ContentRangeUpdateRequest {
+  novo_nutriente: string;
+  novo_ordem_teor: number;
+  novo_menor_teor: number | null;
+  novo_maior_teor: number | null;
+  novo_aplicacao_recomendada_plantio: number | null;
+}
+
+export interface ContentRangeReplaceCoverageRequest {
+  id?: number;
+  ordem_cobertura: number;
+  aplicacao_recomendada_cobertura: number | null;
+}
+
+export interface ContentRangeReplaceItemRequest {
+  id?: number;
+  ordem_teor: number;
+  menor_teor: number | null;
+  maior_teor: number | null;
+  aplicacao_recomendada_plantio: number | null;
+  coberturas: ContentRangeReplaceCoverageRequest[];
+}
+
+export interface ContentRangeReplaceByNutrientRequest {
+  faixas: ContentRangeReplaceItemRequest[];
+}
+
+export interface CoverageCreateRequest {
+  ordem_cobertura: number;
+  aplicacao_recomendada_cobertura: number | null;
+}
+
+export interface CoverageUpdateRequest {
+  novo_ordem_cobertura: number;
+  novo_aplicacao_recomendada_cobertura: number | null;
+}

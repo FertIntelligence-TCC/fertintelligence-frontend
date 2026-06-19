@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import { 
   FoliarAnalysisCreateRequestDto, 
@@ -5,13 +6,12 @@ import {
   FoliarAnalysisResponseDto 
 } from "@/interfaces/FoliarAnalysis";
 
-const BASE_URL = "/foliar-analysis";
 
 export const createFoliarAnalysis = async (
   cropId: number,
   data: FoliarAnalysisCreateRequestDto
 ): Promise<FoliarAnalysisResponseDto> => {
-  const response = await api.post(`${BASE_URL}/register`, data, {
+  const response = await api.post(ENDPOINT.CREATE_FOLIAR_ANALYSIS, data, {
     params: { cropId }
   });
   return response.data;
@@ -20,7 +20,7 @@ export const createFoliarAnalysis = async (
 export const getFoliarAnalysisById = async (
   analysisId: number
 ): Promise<FoliarAnalysisResponseDto> => {
-  const response = await api.get(`${BASE_URL}/get`, {
+  const response = await api.get(ENDPOINT.GET_FOLIAR_ANALYSIS, {
     params: { analysisId }
   });
   return response.data;
@@ -29,7 +29,7 @@ export const getFoliarAnalysisById = async (
 export const getFoliarAnalysesByCrop = async (
   cropId: number
 ): Promise<FoliarAnalysisResponseDto[]> => {
-  const response = await api.get(`${BASE_URL}/get-by-crop`, {
+  const response = await api.get(ENDPOINT.GET_BY_CROP_FOLIAR_ANALYSIS, {
     params: { cropId }
   });
   return response.data;
@@ -39,7 +39,7 @@ export const updateFoliarAnalysis = async (
   analysisId: number,
   data: FoliarAnalysisPostRequestDto
 ): Promise<FoliarAnalysisResponseDto> => {
-  const response = await api.put(`${BASE_URL}/update`, data, {
+  const response = await api.put(ENDPOINT.UPDATE_FOLIAR_ANALYSIS, data, {
     params: { analysisId }
   });
   return response.data;
@@ -48,7 +48,7 @@ export const updateFoliarAnalysis = async (
 export const deleteFoliarAnalysis = async (
   analysisId: number
 ): Promise<void> => {
-  await api.delete(`${BASE_URL}/delete`, {
+  await api.delete(ENDPOINT.DELETE_FOLIAR_ANALYSIS, {
     params: { analysisId }
   });
 };

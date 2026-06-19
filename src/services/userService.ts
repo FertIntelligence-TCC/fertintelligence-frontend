@@ -12,7 +12,7 @@ import {
 export const authenticateUser = async (credentials: SignInPayload) => {
   try {
     const { data } = await axiosInstace.post<string>(
-      `/${ENDPOINT.SIGN_IN}`,
+      ENDPOINT.SIGN_IN,
       credentials,
       { withCredentials: true }
     );
@@ -31,7 +31,7 @@ export const authenticateUser = async (credentials: SignInPayload) => {
 export const createUser = async (body: SignUpPayload) => {
   try {
     const { data } = await axiosInstace.post<string>(
-      `/${ENDPOINT.CREATE_NEW_USER}`, // user/register
+      ENDPOINT.CREATE_NEW_USER, // user/register
       body
     );
     return data;
@@ -47,7 +47,7 @@ export const createUser = async (body: SignUpPayload) => {
 export const getUser = async () => {
   // Usa a nova interface UserResponse
   const { data } = await axiosInstace.get<UserResponse>(
-    `/${ENDPOINT.GET_USER}`
+    ENDPOINT.GET_USER
   );
 
   return data;
@@ -56,7 +56,7 @@ export const getUser = async () => {
 export const getUserId = async () => {
   // Usa a nova interface UserResponse
   const { data } = await axiosInstace.get<UserResponse>(
-    `/${ENDPOINT.GET_USER}`
+    ENDPOINT.GET_USER
   );
 
   return data.id;
@@ -64,7 +64,7 @@ export const getUserId = async () => {
 
 export const updateUser = async (body: UpdateUserPayload) => {
   const { data } = await axiosInstace.put<string>(
-    `/${ENDPOINT.UPDATE_USER}`,
+    ENDPOINT.UPDATE_USER,
     body
   );
 
@@ -73,7 +73,7 @@ export const updateUser = async (body: UpdateUserPayload) => {
 
 export const deleteUser = async () => {
   const { data } = await axiosInstace.delete<string>(
-    `/${ENDPOINT.DELETE_USER}`
+    ENDPOINT.DELETE_USER
   );
 
   return data;

@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import { 
   AnnualCropFolderCreateRequestDto, 
@@ -5,13 +6,12 @@ import {
   AnnualCropFolderResponseDto 
 } from "@/interfaces/AnnualCropFolder";
 
-const BASE_URL = "/annual-crop-folder";
 
 export const createAnnualCropFolder = async (
   plotId: number, 
   data: AnnualCropFolderCreateRequestDto
 ): Promise<AnnualCropFolderResponseDto> => {
-  const response = await api.post(`${BASE_URL}/register`, data, {
+  const response = await api.post(ENDPOINT.CREATE_ANNUAL_CROP_FOLDER, data, {
     params: { plotId }
   });
   return response.data;
@@ -20,7 +20,7 @@ export const createAnnualCropFolder = async (
 export const getAllAnnualCropFoldersByPlot = async (
   plotId: number
 ): Promise<AnnualCropFolderResponseDto[]> => {
-  const response = await api.get(`${BASE_URL}/get-by-plot`, {
+  const response = await api.get(ENDPOINT.GET_BY_PLOT_ANNUAL_CROP_FOLDER, {
     params: { plotId }
   });
   return response.data;
@@ -30,7 +30,7 @@ export const updateAnnualCropFolder = async (
   annualCropFolderId: number,
   data: AnnualCropFolderPostRequestDto
 ): Promise<AnnualCropFolderResponseDto> => {
-  const response = await api.put(`${BASE_URL}/update`, data, {
+  const response = await api.put(ENDPOINT.UPDATE_ANNUAL_CROP_FOLDER, data, {
     params: { annualCropFolderId }
   });
   return response.data;
@@ -39,7 +39,7 @@ export const updateAnnualCropFolder = async (
 export const deleteAnnualCropFolder = async (
   annualCropFolderId: number
 ): Promise<void> => {
-  await api.delete(`${BASE_URL}/delete`, {
+  await api.delete(ENDPOINT.DELETE_ANNUAL_CROP_FOLDER, {
     params: { annualCropFolderId }
   });
 };

@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import {
   KExchangeableContentResponseDto,
@@ -5,11 +6,10 @@ import {
   KExchangeableContentPostRequestDto
 } from "@/interfaces/KExchangeableContent";
 
-const ENDPOINT = "/k-exchangeable-content";
 
 export const getKExchangeableContentByTable = async (tableId: number): Promise<KExchangeableContentResponseDto | null> => {
   try {
-    const { data } = await api.get(`${ENDPOINT}/get-by-table`, {
+    const { data } = await api.get(ENDPOINT.GET_BY_TABLE_K_EXCHANGEABLE_CONTENT, {
       params: { tableId }
     });
     return data;
@@ -22,14 +22,14 @@ export const getKExchangeableContentByTable = async (tableId: number): Promise<K
 };
 
 export const createKExchangeableContent = async (tableId: number, payload: KExchangeableContentCreateRequestDto) => {
-  const { data } = await api.post(`${ENDPOINT}/register`, payload, {
+  const { data } = await api.post(ENDPOINT.CREATE_K_EXCHANGEABLE_CONTENT, payload, {
     params: { tableId }
   });
   return data;
 };
 
 export const updateKExchangeableContent = async (criterionId: number, payload: KExchangeableContentPostRequestDto) => {
-  const { data } = await api.put(`${ENDPOINT}/update`, payload, {
+  const { data } = await api.put(ENDPOINT.UPDATE_K_EXCHANGEABLE_CONTENT, payload, {
     params: { criterionId }
   });
   return data;

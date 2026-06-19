@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import { 
     SaturationExtractAnalysisExtractResponse, 
@@ -5,7 +6,6 @@ import {
     SaturationExtractAnalysisExtractUpdatePayload 
 } from "../interfaces/SaturationExtractAnalysisExtract";
 
-const ENDPOINT = "/saturation-extract-analysis-extract";
 
 export const saturationExtractAnalysisExtractService = {
     
@@ -23,7 +23,7 @@ export const saturationExtractAnalysisExtractService = {
         if (layerExtractId) params.layerExtractId = layerExtractId;
 
         const response = await api.post<SaturationExtractAnalysisExtractResponse>(
-            `${ENDPOINT}/register`, 
+            ENDPOINT.CREATE_SATURATION_EXTRACT_ANALYSIS_EXTRACT, 
             payload, 
             { params }
         );
@@ -31,7 +31,7 @@ export const saturationExtractAnalysisExtractService = {
     },
 
     getById: async (saturationExtractAnalysisExtractId: number): Promise<SaturationExtractAnalysisExtractResponse> => {
-        const response = await api.get<SaturationExtractAnalysisExtractResponse>(`${ENDPOINT}/get-extract`, {
+        const response = await api.get<SaturationExtractAnalysisExtractResponse>(ENDPOINT.GET_EXTRACT_SATURATION_EXTRACT_ANALYSIS_EXTRACT, {
             params: { saturationExtractAnalysisExtractId }
         });
         return response.data;
@@ -39,7 +39,7 @@ export const saturationExtractAnalysisExtractService = {
 
     // Busca dados de saturação associados a um Extrato de Intervalo
     getByRangeExtractId: async (rangeExtractId: number): Promise<SaturationExtractAnalysisExtractResponse[]> => {
-        const response = await api.get<SaturationExtractAnalysisExtractResponse[]>(`${ENDPOINT}/get-by-range`, {
+        const response = await api.get<SaturationExtractAnalysisExtractResponse[]>(ENDPOINT.GET_BY_RANGE_SATURATION_EXTRACT_ANALYSIS_EXTRACT, {
             params: { rangeExtractId }
         });
         return response.data;
@@ -47,7 +47,7 @@ export const saturationExtractAnalysisExtractService = {
 
     // Busca dados de saturação associados a um Extrato de Camada
     getByLayerExtractId: async (layerExtractId: number): Promise<SaturationExtractAnalysisExtractResponse[]> => {
-        const response = await api.get<SaturationExtractAnalysisExtractResponse[]>(`${ENDPOINT}/get-by-layer`, {
+        const response = await api.get<SaturationExtractAnalysisExtractResponse[]>(ENDPOINT.GET_BY_LAYER_SATURATION_EXTRACT_ANALYSIS_EXTRACT, {
             params: { layerExtractId }
         });
         return response.data;
@@ -57,14 +57,14 @@ export const saturationExtractAnalysisExtractService = {
         saturationExtractAnalysisExtractId: number, 
         payload: SaturationExtractAnalysisExtractUpdatePayload
     ): Promise<SaturationExtractAnalysisExtractResponse> => {
-        const response = await api.put<SaturationExtractAnalysisExtractResponse>(`${ENDPOINT}/update`, payload, {
+        const response = await api.put<SaturationExtractAnalysisExtractResponse>(ENDPOINT.UPDATE_SATURATION_EXTRACT_ANALYSIS_EXTRACT, payload, {
             params: { saturationExtractAnalysisExtractId }
         });
         return response.data;
     },
 
     delete: async (saturationExtractAnalysisExtractId: number): Promise<void> => {
-        await api.delete(`${ENDPOINT}/delete`, {
+        await api.delete(ENDPOINT.DELETE_SATURATION_EXTRACT_ANALYSIS_EXTRACT, {
             params: { saturationExtractAnalysisExtractId }
         });
     }

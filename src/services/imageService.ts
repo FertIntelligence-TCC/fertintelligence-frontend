@@ -1,5 +1,6 @@
 import { ENDPOINT } from "@/constants/Endpoint";
 import { axiosImageManager } from "./axios";
+import type { MongoImageResponse } from "@/interfaces/Image";
 
 export const getImageFromMongoDB = async (id: string) => {
   try {
@@ -15,9 +16,6 @@ export const getImageFromMongoDB = async (id: string) => {
   }
 };
 
-type MongoImageResponse = {
-  _id?: string;
-};
 
 export const uploadImageMongoDB = async (img: string): Promise<MongoImageResponse> => {
   try {

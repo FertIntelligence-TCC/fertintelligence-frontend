@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import { 
   SolidSourceCreateRequestDto, 
@@ -5,13 +6,12 @@ import {
   SolidSourceResponseDto 
 } from "@/interfaces/FoliarFertilization";
 
-const BASE_URL = "/foliar-fertilization/solid-source";
 
 export const createSolidSource = async (
   cropId: number,
   data: SolidSourceCreateRequestDto
 ): Promise<SolidSourceResponseDto> => {
-  const response = await api.post(`${BASE_URL}/register`, data, {
+  const response = await api.post(ENDPOINT.CREATE_FOLIAR_FERTILIZATION_SOLID_SOURCE, data, {
     params: { cropId }
   });
   return response.data;
@@ -20,7 +20,7 @@ export const createSolidSource = async (
 export const getSolidSourcesByCrop = async (
   cropId: number
 ): Promise<SolidSourceResponseDto[]> => {
-  const response = await api.get(`${BASE_URL}/get-by-crop`, {
+  const response = await api.get(ENDPOINT.GET_BY_CROP_FOLIAR_FERTILIZATION_SOLID_SOURCE, {
     params: { cropId }
   });
   return response.data;
@@ -29,7 +29,7 @@ export const getSolidSourcesByCrop = async (
 export const getSolidSourceById = async (
   solidSourceId: number
 ): Promise<SolidSourceResponseDto> => {
-  const response = await api.get(`${BASE_URL}/get`, {
+  const response = await api.get(ENDPOINT.GET_FOLIAR_FERTILIZATION_SOLID_SOURCE, {
     params: { solidSourceId }
   });
   return response.data;
@@ -39,7 +39,7 @@ export const updateSolidSource = async (
   solidSourceId: number,
   data: SolidSourcePostRequestDto
 ): Promise<SolidSourceResponseDto> => {
-  const response = await api.put(`${BASE_URL}/update`, data, {
+  const response = await api.put(ENDPOINT.UPDATE_FOLIAR_FERTILIZATION_SOLID_SOURCE, data, {
     params: { solidSourceId }
   });
   return response.data;
@@ -48,7 +48,7 @@ export const updateSolidSource = async (
 export const deleteSolidSource = async (
   solidSourceId: number
 ): Promise<void> => {
-  await api.delete(`${BASE_URL}/delete`, {
+  await api.delete(ENDPOINT.DELETE_FOLIAR_FERTILIZATION_SOLID_SOURCE, {
     params: { solidSourceId }
   });
 };

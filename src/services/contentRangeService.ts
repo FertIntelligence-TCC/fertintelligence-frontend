@@ -1,39 +1,13 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
-
-// Interface para o Payload de Criação
-export interface ContentRangeCreateRequest {
-  nutriente: string;
-  ordem_teor: number;
-  menor_teor: number | null;
-  maior_teor: number | null;
-  aplicacao_recomendada_plantio: number | null;
-}
-
-export interface ContentRangeUpdateRequest {
-  novo_nutriente: string;
-  novo_ordem_teor: number;
-  novo_menor_teor: number | null;
-  novo_maior_teor: number | null;
-  novo_aplicacao_recomendada_plantio: number | null;
-}
-
-// Interface de Resposta (snake_case do Java)
-export interface ContentRangeResponseDto {
-    id: number;
-    id_tabela: number;
-    nutriente: string;
-    ordem_teor: number;
-    menor_teor?: number;
-    maior_teor?: number;
-    aplicacao_recomendada_plantio?: number;
-}
+import type { ContentRangeCreateRequest, ContentRangeUpdateRequest, ContentRangeResponseDto, ContentRangeReplaceByNutrientRequest } from "@/interfaces/CropFertilizationTable";
 
 export const createContentRange = async (
   tableId: number,
   payload: ContentRangeCreateRequest
 ): Promise<ContentRangeResponseDto> => {
   const response = await api.post<ContentRangeResponseDto>(
-    `/content-range/register`,
+    ENDPOINT.CREATE_CONTENT_RANGE,
     payload,
     { params: { tableId } }
   );
@@ -42,14 +16,14 @@ export const createContentRange = async (
 
 // NOVA FUNÇÃO: Buscar todas as faixas de uma tabela
 export const fetchContentRangesByTable = async (tableId: number): Promise<ContentRangeResponseDto[]> => {
-    const response = await api.get<ContentRangeResponseDto[]>(`/content-range/get-by-table`, {
+    const response = await api.get<ContentRangeResponseDto[]>(ENDPOINT.GET_CONTENT_RANGE_BY_TABLE, {
         params: { tableId }
     });
     return response.data;
 };
 
 export const deleteContentRange = async (contentRangeId: number): Promise<void> => {
-    await api.delete(`/content-range/delete`, {
+    await api.delete(ENDPOINT.DELETE_CONTENT_RANGE, {
         params: { contentRangeId }
     });
 };
@@ -60,31 +34,12 @@ export const updateContentRange = async (
   payload: ContentRangeUpdateRequest
 ): Promise<ContentRangeResponseDto> => {
   const response = await api.put<ContentRangeResponseDto>(
-    `/content-range/update`,
+    ENDPOINT.UPDATE_CONTENT_RANGE,
     payload,
     { params: { contentRangeId } }
   );
   return response.data;
 };
-
-export interface ContentRangeReplaceCoverageRequest {
-  id?: number;
-  ordem_cobertura: number;
-  aplicacao_recomendada_cobertura: number | null;
-}
-
-export interface ContentRangeReplaceItemRequest {
-  id?: number;
-  ordem_teor: number;
-  menor_teor: number | null;
-  maior_teor: number | null;
-  aplicacao_recomendada_plantio: number | null;
-  coberturas: ContentRangeReplaceCoverageRequest[];
-}
-
-export interface ContentRangeReplaceByNutrientRequest {
-  faixas: ContentRangeReplaceItemRequest[];
-}
 
 export const replaceContentRangesByNutrient = async (
   tableId: number,
@@ -92,7 +47,7 @@ export const replaceContentRangesByNutrient = async (
   payload: ContentRangeReplaceByNutrientRequest
 ): Promise<ContentRangeResponseDto[]> => {
   const response = await api.put<ContentRangeResponseDto[]>(
-    `/content-range/replace-by-nutrient`,
+    ENDPOINT.REPLACE_BY_NUTRIENT_CONTENT_RANGE,
     payload,
     { params: { tableId, nutrient } }
   );

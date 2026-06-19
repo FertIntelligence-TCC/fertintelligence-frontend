@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import { 
     SoilAnalysisResponse, 
@@ -5,38 +6,37 @@ import {
     SoilAnalysisUpdatePayload 
 } from "../interfaces/SoilAnalysis";
 
-const ENDPOINT = "/soil-analysis";
 
 export const soilAnalysisService = {
     
     create: async (payload: SoilAnalysisCreatePayload): Promise<SoilAnalysisResponse> => {
-        const response = await api.post<SoilAnalysisResponse>(`${ENDPOINT}/register`, payload);
+        const response = await api.post<SoilAnalysisResponse>(ENDPOINT.CREATE_SOIL_ANALYSIS, payload);
         return response.data;
     },
 
     getById: async (analysisId: number): Promise<SoilAnalysisResponse> => {
-        const response = await api.get<SoilAnalysisResponse>(`${ENDPOINT}/get-soil-analysis`, {
+        const response = await api.get<SoilAnalysisResponse>(ENDPOINT.GET_SOIL_ANALYSIS_SOIL_ANALYSIS, {
             params: { analysisId }
         });
         return response.data;
     },
 
     getByPlotId: async (plotId: number | string): Promise<SoilAnalysisResponse[]> => {
-        const response = await api.get<SoilAnalysisResponse[]>(`${ENDPOINT}/get-by-plot`, {
+        const response = await api.get<SoilAnalysisResponse[]>(ENDPOINT.GET_BY_PLOT_SOIL_ANALYSIS, {
             params: { plotId }
         });
         return response.data;
     },
 
     update: async (analysisId: number, payload: SoilAnalysisUpdatePayload): Promise<SoilAnalysisResponse> => {
-        const response = await api.put<SoilAnalysisResponse>(`${ENDPOINT}/update`, payload, {
+        const response = await api.put<SoilAnalysisResponse>(ENDPOINT.UPDATE_SOIL_ANALYSIS, payload, {
             params: { analysisId }
         });
         return response.data;
     },
 
     delete: async (analysisId: number): Promise<void> => {
-        await api.delete(`${ENDPOINT}/delete`, {
+        await api.delete(ENDPOINT.DELETE_SOIL_ANALYSIS, {
             params: { analysisId }
         });
     }

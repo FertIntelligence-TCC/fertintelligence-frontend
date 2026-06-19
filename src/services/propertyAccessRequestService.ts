@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from './axios';
 import { 
   PropertyAccessRequestCreate, 
@@ -6,7 +7,6 @@ import {
 } from '../interfaces/PropertyAccessRequest';
 import { PropertyResponse } from '../interfaces/Property';
 
-const BASE_URL = '/property-access';
 
 export const propertyAccessRequestService = {
   
@@ -15,7 +15,7 @@ export const propertyAccessRequestService = {
    * Corresponde a: POST /property-access/request
    */
   createRequest: async (data: PropertyAccessRequestCreate): Promise<PropertyAccessRequestResponse> => {
-    const response = await api.post<PropertyAccessRequestResponse>(`${BASE_URL}/request`, data);
+    const response = await api.post<PropertyAccessRequestResponse>(ENDPOINT.CREATE_PROPERTY_ACCESS_REQUEST, data);
     return response.data;
   },
 
@@ -24,7 +24,7 @@ export const propertyAccessRequestService = {
    * Corresponde a: GET /property-access/requests?propertyId={propertyId}
    */
   getRequestsByProperty: async (propertyId: number): Promise<PropertyAccessRequestResponse[]> => {
-    const response = await api.get<PropertyAccessRequestResponse[]>(`${BASE_URL}/requests`, {
+    const response = await api.get<PropertyAccessRequestResponse[]>(ENDPOINT.GET_REQUESTS_FOR_PROPERTY, {
       params: { propertyId }
     });
     return response.data;
@@ -35,7 +35,7 @@ export const propertyAccessRequestService = {
    * Corresponde a: POST /property-access/{requestId}/decision
    */
   decideRequest: async (requestId: number, data: PropertyAccessRequestDecision): Promise<PropertyAccessRequestResponse> => {
-    const response = await api.post<PropertyAccessRequestResponse>(`${BASE_URL}/${requestId}/decision`, data);
+    const response = await api.post<PropertyAccessRequestResponse>(ENDPOINT.DECIDE_PROPERTY_ACCESS_REQUEST.replace("{requestId}", String(requestId)), data);
     return response.data;
   },
 
@@ -44,7 +44,7 @@ export const propertyAccessRequestService = {
    * Corresponde a: GET /property-access/my-approved-properties
    */
   getMyApprovedProperties: async (): Promise<PropertyResponse[]> => {
-    const response = await api.get<PropertyResponse[]>(`${BASE_URL}/my-approved-properties`);
+    const response = await api.get<PropertyResponse[]>(ENDPOINT.GET_APPROVED_REQUESTS_BY_USER);
     return response.data;
   },
 
@@ -53,7 +53,7 @@ export const propertyAccessRequestService = {
    * Corresponde a: DELETE /property-access/leave?propertyId={propertyId}
    */
   leaveProperty: async (propertyId: number): Promise<void> => {
-    await api.delete(`${BASE_URL}/leave`, {
+    await api.delete(ENDPOINT.LEAVE_PROPERTY_ACCESS_REQUEST, {
       params: { propertyId },
     });
   }

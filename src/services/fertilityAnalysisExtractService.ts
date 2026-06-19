@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import { 
     FertilityAnalysisExtractResponse, 
@@ -5,7 +6,6 @@ import {
     FertilityAnalysisExtractUpdatePayload 
 } from "../interfaces/FertilityAnalysisExtract";
 
-const ENDPOINT = "/fertility-analysis-extract";
 
 export const fertilityAnalysisExtractService = {
     
@@ -23,7 +23,7 @@ export const fertilityAnalysisExtractService = {
         if (layerExtractId) params.layerExtractId = layerExtractId;
 
         const response = await api.post<FertilityAnalysisExtractResponse>(
-            `${ENDPOINT}/register`, 
+            ENDPOINT.CREATE_FERTILITY_ANALYSIS_EXTRACT, 
             payload, 
             { params }
         );
@@ -31,7 +31,7 @@ export const fertilityAnalysisExtractService = {
     },
 
     getById: async (fertilityAnalysisExtractId: number): Promise<FertilityAnalysisExtractResponse> => {
-        const response = await api.get<FertilityAnalysisExtractResponse>(`${ENDPOINT}/get-extract`, {
+        const response = await api.get<FertilityAnalysisExtractResponse>(ENDPOINT.GET_EXTRACT_FERTILITY_ANALYSIS_EXTRACT, {
             params: { fertilityAnalysisExtractId }
         });
         return response.data;
@@ -39,7 +39,7 @@ export const fertilityAnalysisExtractService = {
 
     // Busca dados químicos associados a um Extrato de Intervalo
     getByRangeExtractId: async (rangeExtractId: number): Promise<FertilityAnalysisExtractResponse[]> => {
-        const response = await api.get<FertilityAnalysisExtractResponse[]>(`${ENDPOINT}/get-by-range`, {
+        const response = await api.get<FertilityAnalysisExtractResponse[]>(ENDPOINT.GET_BY_RANGE_FERTILITY_ANALYSIS_EXTRACT, {
             params: { rangeExtractId }
         });
         return response.data;
@@ -47,7 +47,7 @@ export const fertilityAnalysisExtractService = {
 
     // Busca dados químicos associados a um Extrato de Camada
     getByLayerExtractId: async (layerExtractId: number): Promise<FertilityAnalysisExtractResponse[]> => {
-        const response = await api.get<FertilityAnalysisExtractResponse[]>(`${ENDPOINT}/get-by-layer`, {
+        const response = await api.get<FertilityAnalysisExtractResponse[]>(ENDPOINT.GET_BY_LAYER_FERTILITY_ANALYSIS_EXTRACT, {
             params: { layerExtractId }
         });
         return response.data;
@@ -57,14 +57,14 @@ export const fertilityAnalysisExtractService = {
         fertilityAnalysisExtractId: number, 
         payload: FertilityAnalysisExtractUpdatePayload
     ): Promise<FertilityAnalysisExtractResponse> => {
-        const response = await api.put<FertilityAnalysisExtractResponse>(`${ENDPOINT}/update`, payload, {
+        const response = await api.put<FertilityAnalysisExtractResponse>(ENDPOINT.UPDATE_FERTILITY_ANALYSIS_EXTRACT, payload, {
             params: { fertilityAnalysisExtractId }
         });
         return response.data;
     },
 
     delete: async (fertilityAnalysisExtractId: number): Promise<void> => {
-        await api.delete(`${ENDPOINT}/delete`, {
+        await api.delete(ENDPOINT.DELETE_FERTILITY_ANALYSIS_EXTRACT, {
             params: { fertilityAnalysisExtractId }
         });
     }

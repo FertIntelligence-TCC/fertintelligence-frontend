@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import {
   AvailableSResponseDto,
@@ -5,11 +6,10 @@ import {
   AvailableSPostRequestDto
 } from "@/interfaces/AvailableS";
 
-const ENDPOINT = "/available-s";
 
 export const getAvailableSByTable = async (tableId: number): Promise<AvailableSResponseDto | null> => {
   try {
-    const { data } = await api.get(`${ENDPOINT}/get-by-table`, {
+    const { data } = await api.get(ENDPOINT.GET_BY_TABLE_AVAILABLE_S, {
       params: { tableId }
     });
     return data;
@@ -22,14 +22,14 @@ export const getAvailableSByTable = async (tableId: number): Promise<AvailableSR
 };
 
 export const createAvailableS = async (tableId: number, payload: AvailableSCreateRequestDto) => {
-  const { data } = await api.post(`${ENDPOINT}/register`, payload, {
+  const { data } = await api.post(ENDPOINT.CREATE_AVAILABLE_S, payload, {
     params: { tableId }
   });
   return data;
 };
 
 export const updateAvailableS = async (criterionId: number, payload: AvailableSPostRequestDto) => {
-  const { data } = await api.put(`${ENDPOINT}/update`, payload, {
+  const { data } = await api.put(ENDPOINT.UPDATE_AVAILABLE_S, payload, {
     params: { criterionId }
   });
   return data;
