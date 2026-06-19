@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios";
 import {
   CropDeficiencyToxicityCreateRequestDto,
@@ -5,21 +6,20 @@ import {
   CropDeficiencyToxicityResponseDto,
 } from "@/interfaces/CropDeficiencyToxicity";
 
-const BASE_URL = "/crop-deficiency-toxicity";
 
 export const createCropDeficiencyToxicity = async (
   cropId: number,
   data: CropDeficiencyToxicityCreateRequestDto,
 ): Promise<CropDeficiencyToxicityResponseDto> => {
   console.debug("POST /crop-deficiency-toxicity/register payload", data);
-  const response = await api.post(`${BASE_URL}/register`, data, { params: { cropId } });
+  const response = await api.post(ENDPOINT.CREATE_CROP_DEFICIENCY_TOXICITY, data, { params: { cropId } });
   return response.data;
 };
 
 export const getCropDeficiencyToxicitiesByCrop = async (
   cropId: number,
 ): Promise<CropDeficiencyToxicityResponseDto[]> => {
-  const response = await api.get(`${BASE_URL}/get-by-crop`, { params: { cropId } });
+  const response = await api.get(ENDPOINT.GET_BY_CROP_CROP_DEFICIENCY_TOXICITY, { params: { cropId } });
   return response.data;
 };
 
@@ -28,7 +28,7 @@ export const updateCropDeficiencyToxicity = async (
   data: CropDeficiencyToxicityPostRequestDto,
 ): Promise<CropDeficiencyToxicityResponseDto> => {
   console.debug("PUT /crop-deficiency-toxicity/update payload", data);
-  const response = await api.put(`${BASE_URL}/update`, data, {
+  const response = await api.put(ENDPOINT.UPDATE_CROP_DEFICIENCY_TOXICITY, data, {
     params: { deficiencyToxicityId },
   });
   return response.data;
@@ -37,5 +37,5 @@ export const updateCropDeficiencyToxicity = async (
 export const deleteCropDeficiencyToxicity = async (
   deficiencyToxicityId: number,
 ): Promise<void> => {
-  await api.delete(`${BASE_URL}/delete`, { params: { deficiencyToxicityId } });
+  await api.delete(ENDPOINT.DELETE_CROP_DEFICIENCY_TOXICITY, { params: { deficiencyToxicityId } });
 };

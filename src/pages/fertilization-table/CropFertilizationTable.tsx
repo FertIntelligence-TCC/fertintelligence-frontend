@@ -39,10 +39,10 @@ import { useUserStore } from "@/stores/user/user.store";
 import { isSupremeUser } from "@/utils/isSupremeUser";
 
 // Services de orquestração e busca
-import { createContentRange, fetchContentRangesByTable, updateContentRange, replaceContentRangesByNutrient, ContentRangeResponseDto } from "@/services/contentRangeService";
-import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage, CoverageResponseDto } from "@/services/coverageService";
+import { createContentRange, fetchContentRangesByTable, updateContentRange, replaceContentRangesByNutrient } from "@/services/contentRangeService";
+import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage } from "@/services/coverageService";
 
-import { CropFertilizationTableCreateRequestDto } from "@/interfaces/CropFertilizationTable";
+import { CropFertilizationTableCreateRequestDto, ContentRangeResponseDto, CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
 
 // Interface local que reflete exatamente o que o Java envia (snake_case) para a tabela pai

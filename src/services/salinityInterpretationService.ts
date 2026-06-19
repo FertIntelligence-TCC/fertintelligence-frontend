@@ -1,3 +1,4 @@
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios"; // Sua instância configurada do axios
 import {
   SalinityInterpretationResponseDto,
@@ -5,11 +6,10 @@ import {
   SalinityInterpretationPostRequestDto
 } from "@/interfaces/SalinityInterpretation";
 
-const ENDPOINT = "/salinity-interpretation";
 
 export const getSalinityByTable = async (tableId: number): Promise<SalinityInterpretationResponseDto | null> => {
   try {
-    const { data } = await api.get(`${ENDPOINT}/get-by-table`, {
+    const { data } = await api.get(ENDPOINT.GET_BY_TABLE_SALINITY_INTERPRETATION, {
       params: { tableId }
     });
     return data;
@@ -23,14 +23,14 @@ export const getSalinityByTable = async (tableId: number): Promise<SalinityInter
 };
 
 export const createSalinity = async (tableId: number, payload: SalinityInterpretationCreateRequestDto) => {
-  const { data } = await api.post(`${ENDPOINT}/register`, payload, {
+  const { data } = await api.post(ENDPOINT.CREATE_SALINITY_INTERPRETATION, payload, {
     params: { tableId }
   });
   return data;
 };
 
 export const updateSalinity = async (criterionId: number, payload: SalinityInterpretationPostRequestDto) => {
-  const { data } = await api.put(`${ENDPOINT}/update`, payload, {
+  const { data } = await api.put(ENDPOINT.UPDATE_SALINITY_INTERPRETATION, payload, {
     params: { criterionId }
   });
   return data;

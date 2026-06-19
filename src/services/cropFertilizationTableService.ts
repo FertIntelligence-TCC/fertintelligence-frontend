@@ -1,16 +1,16 @@
 // src/services/cropFertilizationTableService.ts
+import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios"; // Assumindo que você já tem uma instância axios configurada
 import { CropFertilizationTableCreateRequestDto, CropFertilizationTableResponseDto } from "../interfaces/CropFertilizationTable";
 
-const ENDPOINT = "/crop-fertilization-table"; 
 
 export const fetchCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all`, { params: { grupo: "MINHAS" } }); 
+    const { data } = await api.get(ENDPOINT.GET_CROP_FERTILIZATION_TABLE_ALL, { params: { grupo: "MINHAS" } }); 
     return data;
 };
 
 export const createCropFertilizationTable = async (payload: CropFertilizationTableCreateRequestDto): Promise<CropFertilizationTableResponseDto> => {
-    const { data } = await api.post(`${ENDPOINT}/register`, payload);
+    const { data } = await api.post(ENDPOINT.CREATE_CROP_FERTILIZATION_TABLE, payload);
     return data;
 };
 
@@ -56,22 +56,22 @@ export const updateCropFertilizationTable = async ({
     id: number;
     payload: CropFertilizationTableCreateRequestDto;
 }): Promise<CropFertilizationTableResponseDto> => {
-    const { data } = await api.put(`${ENDPOINT}/update`, toUpdatePayload(payload), {
+    const { data } = await api.put(ENDPOINT.UPDATE_CROP_FERTILIZATION_TABLE, toUpdatePayload(payload), {
         params: { tableId: id },
     });
     return data;
 };
 
 export const deleteCropFertilizationTable = async (id: number): Promise<void> => {
-    await api.delete(`${ENDPOINT}/delete`, { params: { tableId: id } });
+    await api.delete(ENDPOINT.DELETE_CROP_FERTILIZATION_TABLE, { params: { tableId: id } });
 };
 
 export const fetchPublicCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all-public`);
+    const { data } = await api.get(ENDPOINT.GET_CROP_FERTILIZATION_TABLE_ALL_PUBLIC);
     return data;
 };
 
 export const fetchDefaultCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
-    const { data } = await api.get(`${ENDPOINT}/get-all-default`);
+    const { data } = await api.get(ENDPOINT.GET_CROP_FERTILIZATION_TABLE_ALL_DEFAULT);
     return data;
 };
