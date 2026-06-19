@@ -107,6 +107,7 @@ export const ENDPOINT = {
   GET_CROP_FERTILIZATION_TABLE_ALL_PUBLIC: "crop-fertilization-table/get-all-public",
   CREATE_CROP_FERTILIZATION_TABLE: "crop-fertilization-table/register",
   UPDATE_CROP_FERTILIZATION_TABLE: "crop-fertilization-table/update",
+  CALCULATE_CROP_FERTILIZATION_TABLE_TEMPORARY_LIMING_CRITERION: "crop-fertilization-table/calculate-temporary-liming-criterion",
 
   // --- Crop Foliar Analysis Interpretation Table Endpoints ---
   DELETE_CROP_FOLIAR_ANALYSIS_INTERPRETATION_TABLE_LINE: "crop-foliar-analysis-interpretation-table-line/delete",

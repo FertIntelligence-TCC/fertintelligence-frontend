@@ -1,7 +1,7 @@
 // src/services/cropFertilizationTableService.ts
 import { ENDPOINT } from "@/constants/Endpoint";
 import { api } from "./axios"; // Assumindo que você já tem uma instância axios configurada
-import { CropFertilizationTableCreateRequestDto, CropFertilizationTableResponseDto } from "../interfaces/CropFertilizationTable";
+import { CropFertilizationTableCreateRequestDto, CropFertilizationTableResponseDto, CropFertilizationTemporaryLimingCriterionRequest, CropFertilizationTemporaryLimingCriterionResponse } from "../interfaces/CropFertilizationTable";
 
 
 export const fetchCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
@@ -78,5 +78,11 @@ export const fetchPublicCropFertilizationTables = async (): Promise<CropFertiliz
 
 export const fetchDefaultCropFertilizationTables = async (): Promise<CropFertilizationTableResponseDto[]> => {
     const { data } = await api.get(ENDPOINT.GET_CROP_FERTILIZATION_TABLE_ALL_DEFAULT);
+    return data;
+};
+
+
+export const calculateTemporaryLimingCriterion = async (payload: CropFertilizationTemporaryLimingCriterionRequest): Promise<CropFertilizationTemporaryLimingCriterionResponse> => {
+    const { data } = await api.post(ENDPOINT.CALCULATE_CROP_FERTILIZATION_TABLE_TEMPORARY_LIMING_CRITERION, payload);
     return data;
 };

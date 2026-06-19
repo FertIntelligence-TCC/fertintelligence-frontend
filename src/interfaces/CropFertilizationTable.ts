@@ -103,6 +103,16 @@ export interface CropFertilizationTableResponseDto {
     id_talhao?: number | null;
     id_analise_fisica?: number | null;
     id_analise_fertilidade?: number | null;
+    pode_visualizar_vinculos?: boolean | null;
+    canViewLinkedData?: boolean | null;
+    nome_propriedade?: string | null;
+    propertyName?: string | null;
+    identificacao_talhao?: string | null;
+    plotIdentification?: string | null;
+    identificacao_analise_fisica?: string | null;
+    physicalAnalysisIdentification?: string | null;
+    identificacao_analise_fertilidade?: string | null;
+    fertilityAnalysisIdentification?: string | null;
     
     tipo_de_esterco: ManureType;
     quantidade_de_esterco: number;
@@ -237,4 +247,20 @@ export interface CoverageCreateRequest {
 export interface CoverageUpdateRequest {
   novo_ordem_cobertura: number;
   novo_aplicacao_recomendada_cobertura: number | null;
+}
+
+
+export interface CropFertilizationTemporaryLimingCriterionRequest {
+    cropFertilizationTableId: number;
+    propertyId: number;
+    plotId: number;
+    physicalAnalysisId?: number | null;
+    fertilityAnalysisId: number;
+}
+
+export interface CropFertilizationTemporaryLimingCriterionResponse {
+    criterio_de_calagem_indicado?: string | null;
+    criterio_calagem_indicado?: string | null;
+    criterio_de_calagem?: string | null;
+    criterioCalagemIndicado?: string | null;
 }

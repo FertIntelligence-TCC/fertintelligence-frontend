@@ -179,6 +179,11 @@ export type FertilizationTableFormState = {
     plotId: string;
     physicalAnalysisId: string;
     fertilityAnalysisId: string;
+    linkedPropertyIdentification?: string;
+    linkedPlotIdentification?: string;
+    linkedPhysicalAnalysisIdentification?: string;
+    linkedFertilityAnalysisIdentification?: string;
+    showLinkedData?: boolean;
     
     sugestaoEstercoTipo: ManureType;
     sugestaoEstercoQtd: string;
@@ -216,6 +221,11 @@ export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
     plotId: "",
     physicalAnalysisId: "",
     fertilityAnalysisId: "",
+    linkedPropertyIdentification: "",
+    linkedPlotIdentification: "",
+    linkedPhysicalAnalysisIdentification: "",
+    linkedFertilityAnalysisIdentification: "",
+    showLinkedData: false,
     sugestaoEstercoTipo: ManureType.BOVINO,
     sugestaoEstercoQtd: "",
     sugestaoGessagem: "",

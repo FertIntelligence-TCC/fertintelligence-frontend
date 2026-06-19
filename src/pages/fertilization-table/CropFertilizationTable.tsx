@@ -21,6 +21,7 @@ import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertilizationTableFormFields from "@/components/FertilizationTable/FertilizationTableFormFields";
+import TemporaryLimingCriterionSection from "@/components/FertilizationTable/TemporaryLimingCriterionSection";
 import {
   DEFAULT_TABLE_STATE,
   FertilizationTableFormState,
@@ -86,6 +87,16 @@ const getAlternativeSpacingMin = (data: Pick<CropFertilizationTableResponseDto, 
 
 const getAlternativeSpacingMax = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado" | "valor_final_espacamento_usado">) =>
   data.valor_final_espacamento_usado ?? data.valor_espacamento_usado ?? "";
+
+const canShowLinkedData = (data: CropFertilizationTableResponseDto) =>
+  data.pode_visualizar_vinculos ?? data.canViewLinkedData ?? Boolean(data.nome_propriedade ?? data.propertyName ?? data.identificacao_talhao ?? data.plotIdentification ?? data.identificacao_analise_fisica ?? data.physicalAnalysisIdentification ?? data.identificacao_analise_fertilidade ?? data.fertilityAnalysisIdentification);
+
+const formatAnalysisIdentification = (value: unknown) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  const analysis = value as { ano_analise?: number; laboratorio_responsavel?: string; id?: number };
+  return [analysis.ano_analise, analysis.laboratorio_responsavel].filter(Boolean).join(" - ") || (analysis.id ? `Análise #${analysis.id}` : "");
+};
 
 /**
  * --- Mappers: Hydrated Data -> Form State ---
@@ -184,6 +195,11 @@ const mapHydratedDataToForm = (
     plotId: String(data.plotId ?? data.id_talhao ?? ""),
     physicalAnalysisId: String(data.physicalAnalysisId ?? data.id_analise_fisica ?? ""),
     fertilityAnalysisId: String(data.fertilityAnalysisId ?? data.id_analise_fertilidade ?? ""),
+    linkedPropertyIdentification: canShowLinkedData(data) ? String(data.nome_propriedade ?? data.propertyName ?? "") : "",
+    linkedPlotIdentification: canShowLinkedData(data) ? String(data.identificacao_talhao ?? data.plotIdentification ?? "") : "",
+    linkedPhysicalAnalysisIdentification: canShowLinkedData(data) ? formatAnalysisIdentification(data.identificacao_analise_fisica ?? data.physicalAnalysisIdentification) : "",
+    linkedFertilityAnalysisIdentification: canShowLinkedData(data) ? formatAnalysisIdentification(data.identificacao_analise_fertilidade ?? data.fertilityAnalysisIdentification) : "",
+    showLinkedData: canShowLinkedData(data),
 
     sugestaoEstercoTipo: data.tipo_de_esterco as any,
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
@@ -910,6 +926,9 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
                 loadingPhysicalAnalyses={loadingPhysicalAnalyses}
                 loadingFertilityAnalyses={loadingFertilityAnalyses}
               />
+              {isReadOnly && activeTable && user?.id !== activeTable.id_criador && (
+                <TemporaryLimingCriterionSection key={activeTable.id} tableId={activeTable.id} />
+              )}
             </Dialog.Body>
 
             <Dialog.Footer borderTopWidth="1px" _dark={{ borderColor: "gray.700" }}>

@@ -20,6 +20,7 @@ import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertilizationTableFormFields from "@/components/FertilizationTable/FertilizationTableFormFields";
+import TemporaryLimingCriterionSection from "@/components/FertilizationTable/TemporaryLimingCriterionSection";
 import {
   DEFAULT_TABLE_STATE,
   CropLabels,
@@ -33,6 +34,7 @@ import { fetchContentRangesByTable } from "@/services/contentRangeService";
 import { fetchCoveragesByRange } from "@/services/coverageService";
 import type { CropFertilizationTableResponseDto, ContentRangeResponseDto, CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
+import { useUserStore } from "@/stores/user/user.store";
 
 
 const LIMING_UNDEFINED_LABEL = "Não é possível definir um critério de calagem";
@@ -64,6 +66,16 @@ const getAlternativeSpacingMin = (data: Pick<CropFertilizationTableResponseDto, 
 
 const getAlternativeSpacingMax = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado" | "valor_final_espacamento_usado">) =>
   data.valor_final_espacamento_usado ?? data.valor_espacamento_usado ?? "";
+
+const canShowLinkedData = (data: CropFertilizationTableResponseDto) =>
+  data.pode_visualizar_vinculos ?? data.canViewLinkedData ?? Boolean(data.nome_propriedade ?? data.propertyName ?? data.identificacao_talhao ?? data.plotIdentification ?? data.identificacao_analise_fisica ?? data.physicalAnalysisIdentification ?? data.identificacao_analise_fertilidade ?? data.fertilityAnalysisIdentification);
+
+const formatAnalysisIdentification = (value: unknown) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  const analysis = value as { ano_analise?: number; laboratorio_responsavel?: string; id?: number };
+  return [analysis.ano_analise, analysis.laboratorio_responsavel].filter(Boolean).join(" - ") || (analysis.id ? `Análise #${analysis.id}` : "");
+};
 
 const mapHydratedDataToForm = (data: HydratedTableData): FertilizationTableFormState => {
   const makeRowId = (fallback?: unknown) => String(fallback ?? Math.random());
@@ -123,6 +135,11 @@ const mapHydratedDataToForm = (data: HydratedTableData): FertilizationTableFormS
     plotId: String(data.plotId ?? data.id_talhao ?? ""),
     physicalAnalysisId: String(data.physicalAnalysisId ?? data.id_analise_fisica ?? ""),
     fertilityAnalysisId: String(data.fertilityAnalysisId ?? data.id_analise_fertilidade ?? ""),
+    linkedPropertyIdentification: canShowLinkedData(data) ? String(data.nome_propriedade ?? data.propertyName ?? "") : "",
+    linkedPlotIdentification: canShowLinkedData(data) ? String(data.identificacao_talhao ?? data.plotIdentification ?? "") : "",
+    linkedPhysicalAnalysisIdentification: canShowLinkedData(data) ? formatAnalysisIdentification(data.identificacao_analise_fisica ?? data.physicalAnalysisIdentification) : "",
+    linkedFertilityAnalysisIdentification: canShowLinkedData(data) ? formatAnalysisIdentification(data.identificacao_analise_fertilidade ?? data.fertilityAnalysisIdentification) : "",
+    showLinkedData: canShowLinkedData(data),
     sugestaoEstercoTipo: data.tipo_de_esterco as any,
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
     sugestaoGessagem: String(data.sugestao_gessagem),
@@ -218,10 +235,12 @@ function PublicTableCard({
 
 export default function PublicCropFertilizationTable() {
   const navigate = useNavigate();
+  const user = useUserStore((state) => state.user);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [viewForm, setViewForm] = useState<FertilizationTableFormState>(DEFAULT_TABLE_STATE);
+  const [activeTable, setActiveTable] = useState<CropFertilizationTableResponseDto | null>(null);
   const { data = [], isLoading } = useQuery({ queryKey: ["crop-fertilization-tables-public"], queryFn: fetchPublicCropFertilizationTables });
 
   const fetchAndHydrateTable = async (table: CropFertilizationTableResponseDto) => {
@@ -236,6 +255,7 @@ export default function PublicCropFertilizationTable() {
       );
 
       const formData = mapHydratedDataToForm({ ...table, rangesWithCoverages });
+      setActiveTable(table);
       setViewForm(formData);
       setIsModalOpen(true);
     } catch (error) {
@@ -275,7 +295,7 @@ export default function PublicCropFertilizationTable() {
         )}
       </Box>
 
-      <Dialog.Root open={isModalOpen} onOpenChange={(e) => setIsModalOpen(e.open)} size="xl" scrollBehavior="inside" motionPreset="slide-in-bottom">
+      <Dialog.Root open={isModalOpen} onOpenChange={(e) => { setIsModalOpen(e.open); if (!e.open) setActiveTable(null); }} size="xl" scrollBehavior="inside" motionPreset="slide-in-bottom">
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content bg="white" _dark={{ bg: "gray.800" }} maxW="4xl">
@@ -283,7 +303,7 @@ export default function PublicCropFertilizationTable() {
               <Flex justify="space-between" align="center">
                 <Dialog.Title>Visualizar Tabela Pública</Dialog.Title>
                 <Dialog.CloseTrigger asChild>
-                  <IconButton size="sm" variant="ghost" aria-label="Fechar" onClick={() => setIsModalOpen(false)}>
+                  <IconButton size="sm" variant="ghost" aria-label="Fechar" onClick={() => { setIsModalOpen(false); setActiveTable(null); }}>
                     <FiX />
                   </IconButton>
                 </Dialog.CloseTrigger>
@@ -291,9 +311,12 @@ export default function PublicCropFertilizationTable() {
             </Dialog.Header>
             <Dialog.Body py={6}>
               <FertilizationTableFormFields form={viewForm} onFormChange={() => undefined} readOnly />
+              {activeTable && user?.id !== activeTable.id_criador && (
+                <TemporaryLimingCriterionSection key={activeTable.id} tableId={activeTable.id} />
+              )}
             </Dialog.Body>
             <Dialog.Footer borderTopWidth="1px" _dark={{ borderColor: "gray.700" }}>
-              <Button colorPalette="blue" onClick={() => setIsModalOpen(false)}>Fechar</Button>
+              <Button colorPalette="blue" onClick={() => { setIsModalOpen(false); setActiveTable(null); }}>Fechar</Button>
             </Dialog.Footer>
           </Dialog.Content>
         </Dialog.Positioner>
