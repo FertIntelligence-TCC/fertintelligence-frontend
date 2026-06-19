@@ -1,4 +1,4 @@
-import { useMemo, useState, Dispatch, SetStateAction } from "react";
+import { useEffect, useMemo, useState, Dispatch, SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -45,8 +45,32 @@ import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage }
 
 import { CropFertilizationTableCreateRequestDto, CropFertilizationTableResponseDto, ContentRangeResponseDto, CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
+import { fetchManageableProperties } from "@/services/propertyService";
+import { getPlotsByProperty } from "@/services/plotService";
+import { soilAnalysisService } from "@/services/soilAnalysisService";
+import type { PropertyResponse } from "@/interfaces/Property";
+import type { PlotResponse } from "@/interfaces/Plot";
+import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 
 // Estrutura interna combinada (Pai + Filhos)
+
+const LIMING_UNDEFINED_LABEL = "Não é possível definir um critério de calagem";
+
+const getLimingCriterionLabel = (value: unknown) => {
+  if (!value) return LIMING_UNDEFINED_LABEL;
+  const text = String(value);
+  const labels: Record<string, string> = {
+    SATURACAO_POR_BASES_TROCAVEIS: "SATURAÇÃO POR BASES TROCÁVEIS",
+    NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL: "Neutralização do Al trocável",
+    NEUTRALIZACAO_ALUMINIO_TROCAVEL: "Neutralização do Al trocável",
+    ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO: "Elevação dos teores de Ca + Mg",
+    ELEVACAO__DO_TEOR_DE_CALCIO_MAIS_MAGNESIO: "Elevação dos teores de Ca + Mg",
+  };
+  return labels[text] ?? text;
+};
+
+const optionalId = (value: string) => (value ? Number(value) : null);
+
 interface HydratedTableData extends CropFertilizationTableResponseDto {
     rangesWithCoverages: (ContentRangeResponseDto & { coverages: CoverageResponseDto[] })[];
 }
@@ -154,7 +178,12 @@ const mapHydratedDataToForm = (
     produtividadeRegional: String(data.produtividade_regional),
     produtividadeEsperada: String(data.produtividade_esperada),
 
-    criterioCalagem: data.criterio_de_calagem as any,
+    criterioCalagem: (data.criterio_de_calagem ?? "") as any,
+    criterioCalagemIndicado: getLimingCriterionLabel(data.criterio_de_calagem_indicado ?? data.criterio_calagem_indicado ?? data.criterio_de_calagem),
+    propertyId: String(data.propertyId ?? data.id_propriedade ?? ""),
+    plotId: String(data.plotId ?? data.id_talhao ?? ""),
+    physicalAnalysisId: String(data.physicalAnalysisId ?? data.id_analise_fisica ?? ""),
+    fertilityAnalysisId: String(data.fertilityAnalysisId ?? data.id_analise_fertilidade ?? ""),
 
     sugestaoEstercoTipo: data.tipo_de_esterco as any,
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
@@ -195,16 +224,6 @@ const SCIENTIFIC_NAME_BY_CROP: Record<string, string> = {
   SOJA: "Glycine_max",
 };
 
-const normalizeLimingCriteriaForBackend = (value: unknown) => {
-  if (value === "NEUTRALIZACAO_ALUMINIO_TROCAVEL") {
-    return "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL";
-  }
-  if (value === "ELEVACAO__DO_TEOR_DE_CALCIO_MAIS_MAGNESIO") {
-    return "ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO";
-  }
-  return value;
-};
-
 const mapFormToRequest = (
   form: FertilizationTableFormState
 ): CropFertilizationTableCreateRequestDto => {
@@ -231,7 +250,10 @@ const mapFormToRequest = (
     produtividade_regional: num(form.produtividadeRegional),
     produtividade_esperada: num(form.produtividadeEsperada),
 
-    criterio_de_calagem: normalizeLimingCriteriaForBackend(form.criterioCalagem),
+    propertyId: optionalId(form.propertyId),
+    plotId: optionalId(form.plotId),
+    physicalAnalysisId: optionalId(form.physicalAnalysisId),
+    fertilityAnalysisId: optionalId(form.fertilityAnalysisId),
 
     tipo_de_esterco: form.sugestaoEstercoTipo,
     quantidade_de_esterco: num(form.sugestaoEstercoQtd),
@@ -562,6 +584,14 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
   const [editForm, setEditForm] = useState<FertilizationTableFormState>(DEFAULT_TABLE_STATE);
 
   const [isOrchestrating, setIsOrchestrating] = useState(false);
+  const [properties, setProperties] = useState<PropertyResponse[]>([]);
+  const [plots, setPlots] = useState<PlotResponse[]>([]);
+  const [physicalAnalyses, setPhysicalAnalyses] = useState<SoilAnalysisResponse[]>([]);
+  const [fertilityAnalyses, setFertilityAnalyses] = useState<SoilAnalysisResponse[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState(false);
+  const [loadingPlots, setLoadingPlots] = useState(false);
+  const [loadingPhysicalAnalyses, setLoadingPhysicalAnalyses] = useState(false);
+  const [loadingFertilityAnalyses, setLoadingFertilityAnalyses] = useState(false);
 
   const form = mode === "create" ? createForm : editForm;
   const setForm = mode === "create" ? setCreateForm : setEditForm;
@@ -572,6 +602,56 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
     if (mode === "edit") return "Editar Tabela";
     return "Visualizar Tabela";
   }, [mode]);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    setLoadingProperties(true);
+    fetchManageableProperties()
+      .then(setProperties)
+      .catch((error) => {
+        console.error(error);
+        toaster.create({ title: "Falha ao carregar propriedades.", type: "error" });
+      })
+      .finally(() => setLoadingProperties(false));
+  }, [isModalOpen]);
+
+  useEffect(() => {
+    if (!isModalOpen || !form.propertyId) {
+      setPlots([]);
+      return;
+    }
+    setLoadingPlots(true);
+    getPlotsByProperty(Number(form.propertyId))
+      .then(setPlots)
+      .catch((error) => {
+        console.error(error);
+        toaster.create({ title: "Falha ao carregar talhões.", type: "error" });
+      })
+      .finally(() => setLoadingPlots(false));
+  }, [isModalOpen, form.propertyId]);
+
+  useEffect(() => {
+    if (!isModalOpen || !form.plotId) {
+      setPhysicalAnalyses([]);
+      setFertilityAnalyses([]);
+      return;
+    }
+    setLoadingPhysicalAnalyses(true);
+    setLoadingFertilityAnalyses(true);
+    soilAnalysisService.getByPlotId(form.plotId)
+      .then((data) => {
+        setPhysicalAnalyses(data);
+        setFertilityAnalyses(data);
+      })
+      .catch((error) => {
+        console.error(error);
+        toaster.create({ title: "Falha ao carregar análises do talhão.", type: "error" });
+      })
+      .finally(() => {
+        setLoadingPhysicalAnalyses(false);
+        setLoadingFertilityAnalyses(false);
+      });
+  }, [isModalOpen, form.plotId]);
 
   const {
     data: tables = [],
@@ -705,7 +785,18 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
   const handleFormChange =
     (setter: Dispatch<SetStateAction<FertilizationTableFormState>>) =>
     (field: keyof FertilizationTableFormState, value: any) => {
-      setter((prev) => ({ ...prev, [field]: value }));
+      setter((prev) => {
+        if (field === "propertyId") {
+          return { ...prev, propertyId: value, plotId: "", physicalAnalysisId: "", fertilityAnalysisId: "", criterioCalagemIndicado: LIMING_UNDEFINED_LABEL };
+        }
+        if (field === "plotId") {
+          return { ...prev, plotId: value, physicalAnalysisId: "", fertilityAnalysisId: "", criterioCalagemIndicado: LIMING_UNDEFINED_LABEL };
+        }
+        if (field === "fertilityAnalysisId") {
+          return { ...prev, fertilityAnalysisId: value, criterioCalagemIndicado: value ? "SATURAÇÃO POR BASES TROCÁVEIS" : LIMING_UNDEFINED_LABEL };
+        }
+        return { ...prev, [field]: value };
+      });
     };
 
   return (
@@ -810,6 +901,14 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
                 form={form}
                 onFormChange={handleFormChange(setForm)}
                 readOnly={isReadOnly}
+                properties={properties}
+                plots={plots}
+                physicalAnalyses={physicalAnalyses}
+                fertilityAnalyses={fertilityAnalyses}
+                loadingProperties={loadingProperties}
+                loadingPlots={loadingPlots}
+                loadingPhysicalAnalyses={loadingPhysicalAnalyses}
+                loadingFertilityAnalyses={loadingFertilityAnalyses}
               />
             </Dialog.Body>
 

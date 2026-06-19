@@ -1,11 +1,22 @@
 import { Box, Grid, Text, Input, Heading, VStack, HStack } from "@chakra-ui/react";
-import { FertilizationTableFormState, SpacingType, SpacingLabels, LimingCriteria, LimingLabels } from "../types";
+import { FertilizationTableFormState, SpacingType, SpacingLabels } from "../types";
+import type { PropertyResponse } from "@/interfaces/Property";
+import type { PlotResponse } from "@/interfaces/Plot";
+import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import { SelectElement, selectFieldStyles, commonFieldStyles } from "../styles";
 
 type Props = {
     form: FertilizationTableFormState;
     onFormChange: (field: keyof FertilizationTableFormState, value: any) => void;
     readOnly?: boolean;
+    properties?: PropertyResponse[];
+    plots?: PlotResponse[];
+    physicalAnalyses?: SoilAnalysisResponse[];
+    fertilityAnalyses?: SoilAnalysisResponse[];
+    loadingProperties?: boolean;
+    loadingPlots?: boolean;
+    loadingPhysicalAnalyses?: boolean;
+    loadingFertilityAnalyses?: boolean;
 };
 
 const alternativeSpacingOptions = [
@@ -22,7 +33,7 @@ const parsePositiveNumber = (value: string) => {
 const formatConversionValue = (value: number) =>
     value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function ParametersSection({ form, onFormChange, readOnly }: Props) {
+export default function ParametersSection({ form, onFormChange, readOnly, properties = [], plots = [], physicalAnalyses = [], fertilityAnalyses = [], loadingProperties = false, loadingPlots = false, loadingPhysicalAnalyses = false, loadingFertilityAnalyses = false }: Props) {
     const spacingMin = parsePositiveNumber(form.espacamentoUsadoMin);
     const spacingMax = parsePositiveNumber(form.espacamentoUsadoMax);
     const canShowConversion = Boolean(form.espacamentoUsadoTipo && spacingMin && spacingMax);
@@ -75,11 +86,40 @@ export default function ParametersSection({ form, onFormChange, readOnly }: Prop
                 <Box flex={1}><Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Prod. Esperada (Kg/ha):</Text><Input type="number" {...commonFieldStyles} value={form.produtividadeEsperada} onChange={(e) => onFormChange("produtividadeEsperada", e.target.value)} readOnly={readOnly} /></Box>
             </HStack>
 
+            <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}>
+                <Box>
+                    <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Propriedade</Text>
+                    <SelectElement {...selectFieldStyles} value={form.propertyId} onChange={(e: any) => onFormChange("propertyId", e.target.value)} disabled={readOnly || loadingProperties}>
+                        <option value="">{loadingProperties ? "Carregando propriedades..." : "Selecione uma propriedade"}</option>
+                        {properties.map((property) => <option key={property.id} value={property.id}>{property.nome}</option>)}
+                    </SelectElement>
+                </Box>
+                <Box>
+                    <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Talhão</Text>
+                    <SelectElement {...selectFieldStyles} value={form.plotId} onChange={(e: any) => onFormChange("plotId", e.target.value)} disabled={readOnly || !form.propertyId || loadingPlots}>
+                        <option value="">{loadingPlots ? "Carregando talhões..." : "Selecione um talhão"}</option>
+                        {plots.map((plot) => <option key={plot.id} value={plot.id}>{plot.identificacao}</option>)}
+                    </SelectElement>
+                </Box>
+                <Box>
+                    <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Análise física</Text>
+                    <SelectElement {...selectFieldStyles} value={form.physicalAnalysisId} onChange={(e: any) => onFormChange("physicalAnalysisId", e.target.value)} disabled={readOnly || !form.plotId || loadingPhysicalAnalyses}>
+                        <option value="">{loadingPhysicalAnalyses ? "Carregando análises físicas..." : "Selecione uma análise física"}</option>
+                        {physicalAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
+                    </SelectElement>
+                </Box>
+                <Box>
+                    <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Análise de fertilidade</Text>
+                    <SelectElement {...selectFieldStyles} value={form.fertilityAnalysisId} onChange={(e: any) => onFormChange("fertilityAnalysisId", e.target.value)} disabled={readOnly || !form.plotId || loadingFertilityAnalyses}>
+                        <option value="">{loadingFertilityAnalyses ? "Carregando análises de fertilidade..." : "Selecione uma análise de fertilidade"}</option>
+                        {fertilityAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
+                    </SelectElement>
+                </Box>
+            </Grid>
+
             <Box>
-                <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Critério de Calagem:</Text>
-                <SelectElement {...selectFieldStyles} value={form.criterioCalagem} onChange={(e: any) => onFormChange("criterioCalagem", e.target.value)} disabled={readOnly}>
-                    {Object.values(LimingCriteria).map(key => <option key={key} value={key}>{LimingLabels[key]}</option>)}
-                </SelectElement>
+                <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Critério de calagem indicado</Text>
+                <Input {...commonFieldStyles} value={form.criterioCalagemIndicado || "Não é possível definir um critério de calagem"} readOnly />
             </Box>
         </>
     );
