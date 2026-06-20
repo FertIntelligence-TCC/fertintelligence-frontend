@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { Box, Button, Grid, Text } from "@chakra-ui/react";
 
-import { fetchManageableProperties } from "@/services/propertyService";
+import { fetchManageableProperties, fetchMyProperties } from "@/services/propertyService";
+import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
 import { getPlotsByProperty } from "@/services/plotService";
 import { soilAnalysisService } from "@/services/soilAnalysisService";
 import { calculateTemporaryLimingCriterion } from "@/services/cropFertilizationTableService";
+import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
+import { useUserStore } from "@/stores/user/user.store";
 import { toaster } from "@/components/ui/toaster";
 import { SelectElement, selectFieldStyles } from "./styles";
 
@@ -31,6 +34,7 @@ type Props = {
 };
 
 export default function TemporaryLimingCriterionSection({ tableId }: Props) {
+  const user = useUserStore((s) => s.user);
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
   const [analyses, setAnalyses] = useState<SoilAnalysisResponse[]>([]);
@@ -45,15 +49,29 @@ export default function TemporaryLimingCriterionSection({ tableId }: Props) {
   const [calculating, setCalculating] = useState(false);
 
   useEffect(() => {
+    const loadAccessibleProperties = () => {
+      const roleMode = getAuthorizationRoleMode(user?.cargo);
+
+      if (roleMode === "SUPREME" || roleMode === "MANAGER") {
+        return fetchManageableProperties();
+      }
+
+      if (roleMode === "OWNER") {
+        return fetchMyProperties();
+      }
+
+      return propertyAccessRequestService.getMyApprovedProperties();
+    };
+
     setLoadingProperties(true);
-    fetchManageableProperties()
+    loadAccessibleProperties()
       .then(setProperties)
       .catch((error) => {
         console.error(error);
         toaster.create({ title: "Falha ao carregar propriedades acessíveis.", type: "error" });
       })
       .finally(() => setLoadingProperties(false));
-  }, []);
+  }, [user?.cargo]);
 
   useEffect(() => {
     setPlotId("");
