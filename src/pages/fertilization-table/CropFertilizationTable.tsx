@@ -21,6 +21,7 @@ import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import FertilizationTableFormFields from "@/components/FertilizationTable/FertilizationTableFormFields";
+import type { AnalysisExtractOption } from "@/components/FertilizationTable/Sections/ParametersSection";
 import TemporaryLimingCriterionSection from "@/components/FertilizationTable/TemporaryLimingCriterionSection";
 import {
   DEFAULT_TABLE_STATE,
@@ -53,11 +54,53 @@ import { soilAnalysisService } from "@/services/soilAnalysisService";
 import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { PlotResponse } from "@/interfaces/Plot";
-import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
+import { TipoExtrato, type SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
+import { rangeExtractService } from "@/services/rangeExtractService";
+import { layerExtractService } from "@/services/layerExtractService";
+import { physicalAnalysisExtractService } from "@/services/physicalAnalysisExtractService";
+import { fertilityAnalysisExtractService } from "@/services/fertilityAnalysisExtractService";
+import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
+import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
 
 // Estrutura interna combinada (Pai + Filhos)
 
 const LIMING_UNDEFINED_LABEL = "Não é possível definir um critério de calagem";
+
+const formatExtractPosition = (extract: {
+  profundidade_inicial?: number;
+  profundidade_final?: number;
+  camada?: string;
+  subcamada?: number;
+}) => {
+  const depth =
+    extract.profundidade_inicial !== undefined && extract.profundidade_final !== undefined
+      ? `${extract.profundidade_inicial}-${extract.profundidade_final} cm`
+      : undefined;
+  const layer = extract.camada ? `Camada ${extract.camada}${extract.subcamada ? `.${extract.subcamada}` : ""}` : undefined;
+  return [layer, depth].filter(Boolean).join(" • ");
+};
+
+const getAnalysisLabelPrefix = (analysis: SoilAnalysisResponse) =>
+  `Análise ${analysis.ano_analise} • ${analysis.laboratorio_responsavel}`;
+
+const mapPhysicalAnalysisOption = (
+  extract: PhysicalAnalysisExtractResponse,
+  analysis: SoilAnalysisResponse,
+): AnalysisExtractOption => ({
+  id: extract.id,
+  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+});
+
+const mapFertilityAnalysisOption = (
+  extract: FertilityAnalysisExtractResponse,
+  analysis: SoilAnalysisResponse,
+): AnalysisExtractOption => ({
+  id: extract.id,
+  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+});
+
+const isSelectedExtractAvailable = (value: string, options: AnalysisExtractOption[]) =>
+  Boolean(value) && options.some((option) => String(option.id) === value);
 
 const getLimingCriterionLabel = (value: unknown) => {
   if (!value) return LIMING_UNDEFINED_LABEL;
@@ -243,7 +286,9 @@ const SCIENTIFIC_NAME_BY_CROP: Record<string, string> = {
 };
 
 const mapFormToRequest = (
-  form: FertilizationTableFormState
+  form: FertilizationTableFormState,
+  physicalAnalysisOptions: AnalysisExtractOption[],
+  fertilityAnalysisOptions: AnalysisExtractOption[]
 ): CropFertilizationTableCreateRequestDto => {
   const num = (v: unknown) => {
     const n = typeof v === "number" ? v : parseFloat(String(v));
@@ -271,8 +316,8 @@ const mapFormToRequest = (
     criterio_de_calagem: form.criterioCalagem || null,
     propertyId: optionalId(form.propertyId),
     plotId: optionalId(form.plotId),
-    physicalAnalysisId: optionalId(form.physicalAnalysisId),
-    fertilityAnalysisId: optionalId(form.fertilityAnalysisId),
+    physicalAnalysisId: isSelectedExtractAvailable(form.physicalAnalysisId, physicalAnalysisOptions) ? optionalId(form.physicalAnalysisId) : null,
+    fertilityAnalysisId: isSelectedExtractAvailable(form.fertilityAnalysisId, fertilityAnalysisOptions) ? optionalId(form.fertilityAnalysisId) : null,
 
     tipo_de_esterco: form.sugestaoEstercoTipo,
     quantidade_de_esterco: num(form.sugestaoEstercoQtd),
@@ -605,8 +650,8 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
   const [isOrchestrating, setIsOrchestrating] = useState(false);
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
-  const [physicalAnalyses, setPhysicalAnalyses] = useState<SoilAnalysisResponse[]>([]);
-  const [fertilityAnalyses, setFertilityAnalyses] = useState<SoilAnalysisResponse[]>([]);
+  const [physicalAnalyses, setPhysicalAnalyses] = useState<AnalysisExtractOption[]>([]);
+  const [fertilityAnalyses, setFertilityAnalyses] = useState<AnalysisExtractOption[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(false);
   const [loadingPlots, setLoadingPlots] = useState(false);
   const [loadingPhysicalAnalyses, setLoadingPhysicalAnalyses] = useState(false);
@@ -670,21 +715,58 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
       setFertilityAnalyses([]);
       return;
     }
+    let isCurrent = true;
     setLoadingPhysicalAnalyses(true);
     setLoadingFertilityAnalyses(true);
-    soilAnalysisService.getByPlotId(form.plotId)
-      .then((data) => {
-        setPhysicalAnalyses(data);
-        setFertilityAnalyses(data);
-      })
-      .catch((error) => {
+
+    const loadAnalysisExtracts = async () => {
+      try {
+        const soilAnalyses = await soilAnalysisService.getByPlotId(form.plotId);
+        const physicalOptions: AnalysisExtractOption[] = [];
+        const fertilityOptions: AnalysisExtractOption[] = [];
+
+        for (const analysis of soilAnalyses ?? []) {
+          const isLayerAnalysis = analysis.tipo_extrato === TipoExtrato.CAMADAS;
+          const containers = isLayerAnalysis
+            ? await layerExtractService.getByAnalysisId(analysis.id)
+            : await rangeExtractService.getByAnalysisId(analysis.id);
+
+          if (!isCurrent) return;
+
+          for (const container of containers ?? []) {
+            const containerId = container.id;
+            const [physicalExtracts, fertilityExtracts] = await Promise.all([
+              isLayerAnalysis
+                ? physicalAnalysisExtractService.getByLayerExtractId(containerId)
+                : physicalAnalysisExtractService.getByRangeExtractId(containerId),
+              isLayerAnalysis
+                ? fertilityAnalysisExtractService.getByLayerExtractId(containerId)
+                : fertilityAnalysisExtractService.getByRangeExtractId(containerId),
+            ]);
+
+            physicalOptions.push(...(physicalExtracts ?? []).map((extract) => mapPhysicalAnalysisOption(extract, analysis)));
+            fertilityOptions.push(...(fertilityExtracts ?? []).map((extract) => mapFertilityAnalysisOption(extract, analysis)));
+          }
+        }
+
+        if (!isCurrent) return;
+
+        setPhysicalAnalyses(physicalOptions);
+        setFertilityAnalyses(fertilityOptions);
+      } catch (error) {
         console.error(error);
-        toaster.create({ title: "Falha ao carregar análises do talhão.", type: "error" });
-      })
-      .finally(() => {
-        setLoadingPhysicalAnalyses(false);
-        setLoadingFertilityAnalyses(false);
-      });
+        if (isCurrent) toaster.create({ title: "Falha ao carregar extratos de análise do talhão.", type: "error" });
+      } finally {
+        if (isCurrent) {
+          setLoadingPhysicalAnalyses(false);
+          setLoadingFertilityAnalyses(false);
+        }
+      }
+    };
+
+    void loadAnalysisExtracts();
+
+    return () => { isCurrent = false; };
   }, [isModalOpen, form.plotId]);
 
   const {
@@ -771,7 +853,7 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
       return;
     }
 
-    const payloadTable = mapFormToRequest(form);
+    const payloadTable = mapFormToRequest(form, physicalAnalyses, fertilityAnalyses);
 
     if (mode === "edit") {
       if (!activeTable) return;

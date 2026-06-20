@@ -2,8 +2,12 @@ import { Box, Grid, Text, Input, Heading, VStack, HStack } from "@chakra-ui/reac
 import { FertilizationTableFormState, SpacingType, SpacingLabels } from "../types";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { PlotResponse } from "@/interfaces/Plot";
-import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import { SelectElement, selectFieldStyles, commonFieldStyles } from "../styles";
+
+export type AnalysisExtractOption = {
+    id: number;
+    label: string;
+};
 
 type Props = {
     form: FertilizationTableFormState;
@@ -11,8 +15,8 @@ type Props = {
     readOnly?: boolean;
     properties?: PropertyResponse[];
     plots?: PlotResponse[];
-    physicalAnalyses?: SoilAnalysisResponse[];
-    fertilityAnalyses?: SoilAnalysisResponse[];
+    physicalAnalyses?: AnalysisExtractOption[];
+    fertilityAnalyses?: AnalysisExtractOption[];
     loadingProperties?: boolean;
     loadingPlots?: boolean;
     loadingPhysicalAnalyses?: boolean;
@@ -120,14 +124,14 @@ export default function ParametersSection({ form, onFormChange, readOnly, proper
                         <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Análise física</Text>
                         <SelectElement {...selectFieldStyles} value={form.physicalAnalysisId} onChange={(e: any) => onFormChange("physicalAnalysisId", e.target.value)} disabled={!form.plotId || loadingPhysicalAnalyses}>
                             <option value="">{loadingPhysicalAnalyses ? "Carregando análises físicas..." : "Selecione uma análise física"}</option>
-                            {physicalAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
+                            {physicalAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}
                         </SelectElement>
                     </Box>
                     <Box>
                         <Text fontWeight="semibold" fontSize="sm" _dark={{ color: "gray.300" }}>Análise de fertilidade</Text>
                         <SelectElement {...selectFieldStyles} value={form.fertilityAnalysisId} onChange={(e: any) => onFormChange("fertilityAnalysisId", e.target.value)} disabled={!form.plotId || loadingFertilityAnalyses}>
                             <option value="">{loadingFertilityAnalyses ? "Carregando análises de fertilidade..." : "Selecione uma análise de fertilidade"}</option>
-                            {fertilityAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
+                            {fertilityAnalyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}
                         </SelectElement>
                     </Box>
                 </Grid>
