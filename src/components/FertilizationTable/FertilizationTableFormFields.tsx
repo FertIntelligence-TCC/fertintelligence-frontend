@@ -2,12 +2,11 @@ import { VStack, Box, Text, HStack, Button, Textarea } from "@chakra-ui/react";
 import { FertilizationTableFormState } from "./types";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { PlotResponse } from "@/interfaces/Plot";
-import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import { commonFieldStyles } from "./styles";
 
 // Importando as novas seções
 import IdentificationSection from "./Sections/IdentificationSection";
-import ParametersSection from "./Sections/ParametersSection";
+import ParametersSection, { type AnalysisExtractOption } from "./Sections/ParametersSection";
 import RecommendationsSection from "./Sections/RecommendationsSection";
 import NutrientTableSection from "./Sections/NutrientTableSection";
 
@@ -17,8 +16,8 @@ type Props = {
     readOnly?: boolean;
     properties?: PropertyResponse[];
     plots?: PlotResponse[];
-    physicalAnalyses?: SoilAnalysisResponse[];
-    fertilityAnalyses?: SoilAnalysisResponse[];
+    physicalAnalyses?: AnalysisExtractOption[];
+    fertilityAnalyses?: AnalysisExtractOption[];
     loadingProperties?: boolean;
     loadingPlots?: boolean;
     loadingPhysicalAnalyses?: boolean;
