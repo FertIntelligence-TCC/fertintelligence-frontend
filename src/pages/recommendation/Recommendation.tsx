@@ -142,13 +142,6 @@ const tableGroupOptions: { value: TableSource; label: string }[] = [
   { value: "DEFAULT", label: "Padrão" },
 ];
 
-const limingCriteriaOptions: RecommendationLimingCriteria[] = [
-  "SATURACAO_POR_BASES_TROCAVEIS",
-  "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL",
-  "ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO",
-  "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL_MAIS_ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO",
-];
-
 const canPrintRecommendation = (cargo?: string) => {
   const roleMode = getAuthorizationRoleMode(cargo);
   return roleMode === "SUPREME" || roleMode === "RESIDENT" || roleMode === "CONSULTANT";
@@ -307,7 +300,6 @@ export default function Recommendation() {
   const [cropFertilizationTableId, setCropFertilizationTableId] = useState("");
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
-  const [limingCriteria, setLimingCriteria] = useState("");
   const [fertilizerSourceOption, setFertilizerSourceOption] = useState<FertilizerSourceOption>("BOTH");
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
@@ -620,7 +612,7 @@ export default function Recommendation() {
   }, [annualCropFolderId]);
 
   const handleGenerate = async () => {
-    if (!recommendationType || !selectedPropertyId || !selectedPlotId || !physicalAnalysisExtractId || !soilFertilityAnalysisId || !saturationExtractAnalysisExtractId || !annualCropFolderId || !cropId || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !limingCriteria || !fertilizerSourceOption) {
+    if (!recommendationType || !selectedPropertyId || !selectedPlotId || !physicalAnalysisExtractId || !soilFertilityAnalysisId || !saturationExtractAnalysisExtractId || !annualCropFolderId || !cropId || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !fertilizerSourceOption) {
       toaster.create({ title: "Campos obrigatórios", description: "Preencha todos os campos necessários antes de gerar a recomendação.", type: "warning" });
       return;
     }
@@ -639,7 +631,7 @@ export default function Recommendation() {
         id_tabela_adubacao_cultura: Number(cropFertilizationTableId),
         id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
         id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
-        criterio_calagem: limingCriteria as RecommendationLimingCriteria,
+        criterio_calagem: null,
         origem_adubos: fertilizerSourceOption,
       });
       setSelectedRecommendation(result);
@@ -854,7 +846,7 @@ export default function Recommendation() {
                 onGroupChange: setCropFoliarAnalysisInterpretationTableGroup,
                 onTableChange: setCropFoliarAnalysisInterpretationTableId,
               })}
-              <NativeSelect value={limingCriteria} onChange={(e) => setLimingCriteria(e.target.value)}><option value="">Critério de calagem</option>{limingCriteriaOptions.map((c) => <option key={c} value={c}>{c}</option>)}</NativeSelect>
+              <NativeSelect value="" disabled aria-label="Critério de calagem"><option value="">Critério de calagem</option></NativeSelect>
               <Box>
                 <Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
                 <NativeSelect value={fertilizerSourceOption} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>

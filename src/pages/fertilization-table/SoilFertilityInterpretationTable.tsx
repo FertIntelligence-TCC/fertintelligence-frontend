@@ -148,8 +148,8 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
                 novo_nome_criterios: form.nome,
                 nova_regiao: form.regiao as RegionEnum,
                 nova_descricao_criterios: form.descricao,
-                novas_observacoes: form.observacoes,
-                novas_fontes: form.fontes,
+                novo_observacoes: form.observacoes,
+                novo_fontes: form.fontes,
                 tabela_publica: form.tabelaPublica
             };
             await updateSoilFertilityTable(activeItem.id, payload);
