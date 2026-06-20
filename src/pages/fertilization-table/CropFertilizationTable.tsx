@@ -143,12 +143,12 @@ const mapHydratedDataToForm = (
               contentRangeId: r.id,
               label,
               operatorType,
-              plantio: String(r.aplicacao_recomendada_plantio || ""),
+              plantio: r.aplicacao_recomendada_plantio == null ? "" : String(r.aplicacao_recomendada_plantio),
               coberturas: r.coverages
                 .sort((a, b) => a.ordem_cobertura - b.ordem_cobertura)
                 .map(c => ({
                   coverageId: c.id,
-                  value: String(c.aplicacao_recomendada_cobertura)
+                  value: c.aplicacao_recomendada_cobertura == null ? "" : String(c.aplicacao_recomendada_cobertura)
                 }))
           } as NutrientRangeRow;
       });
@@ -159,9 +159,9 @@ const mapHydratedDataToForm = (
   
   // Nitrogênio geralmente é 1 range, pegamos suas coberturas
   const nitroRange = data.rangesWithCoverages.find(r => r.nutriente === "NITROGENIO");
-  const plantioN = nitroRange ? String(nitroRange.aplicacao_recomendada_plantio) : "";
+  const plantioN = nitroRange?.aplicacao_recomendada_plantio == null ? "" : String(nitroRange.aplicacao_recomendada_plantio);
   const coberturasN = nitroRange 
-    ? nitroRange.coverages.sort((a, b) => a.ordem_cobertura - b.ordem_cobertura).map(c => String(c.aplicacao_recomendada_cobertura))
+    ? nitroRange.coverages.sort((a, b) => a.ordem_cobertura - b.ordem_cobertura).map(c => c.aplicacao_recomendada_cobertura == null ? "" : String(c.aplicacao_recomendada_cobertura))
     : [""];
 
   // Calcular labels de colunas de cobertura baseado no máximo encontrado
@@ -268,6 +268,7 @@ const mapFormToRequest = (
     produtividade_regional: num(form.produtividadeRegional),
     produtividade_esperada: num(form.produtividadeEsperada),
 
+    criterio_de_calagem: form.criterioCalagem || null,
     propertyId: optionalId(form.propertyId),
     plotId: optionalId(form.plotId),
     physicalAnalysisId: optionalId(form.physicalAnalysisId),
