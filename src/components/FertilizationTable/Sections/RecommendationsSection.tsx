@@ -1,4 +1,4 @@
-import { Box, Input, Text, Heading, HStack, SimpleGrid, Textarea } from "@chakra-ui/react";
+import { Box, Input, Text, Heading, HStack, SimpleGrid } from "@chakra-ui/react";
 import {
     FertilizationTableFormState,
     ManureType,
@@ -46,13 +46,13 @@ export default function RecommendationsSection({ form, onFormChange, readOnly }:
 
             <Box>
                 <Text fontWeight="semibold" fontSize="sm" mb={1} _dark={{ color: "gray.300" }}>Sugestão de adubação com micronutrientes:</Text>
-                <Textarea
+                <Input
+                    type="number"
                     {...commonFieldStyles}
                     value={form.sugestaoAdubacaoComMicronutrientes}
                     onChange={(e) => onFormChange("sugestaoAdubacaoComMicronutrientes", e.target.value)}
                     readOnly={readOnly}
-                    rows={3}
-                    placeholder="Descreva a recomendação geral de adubação com micronutrientes"
+                    placeholder="0.0"
                 />
             </Box>
 
