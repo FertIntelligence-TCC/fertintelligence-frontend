@@ -31,8 +31,8 @@ export interface SoilFertilityTablePostRequestDto {
     novo_nome_criterios?: string;
     nova_descricao_criterios?: string;
     nova_regiao?: RegionEnum;
-    novas_observacoes?: string;
-    novas_fontes?: string;
+    novo_observacoes?: string;
+    novo_fontes?: string;
     tabela_publica?: boolean;
 }
 

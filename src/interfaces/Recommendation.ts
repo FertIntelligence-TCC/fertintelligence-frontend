@@ -23,7 +23,7 @@ export interface RecommendationCreatePayload {
   id_tabela_adubacao_cultura: number;
   id_tabela_interpretacao_fertilidade_solo: number;
   id_tabela_interpretacao_analise_foliar: number;
-  criterio_calagem: RecommendationLimingCriteria;
+  criterio_calagem?: RecommendationLimingCriteria | null;
   origem_adubos: FertilizerSourceOption;
 }
 
@@ -48,10 +48,10 @@ export interface RecommendationResponse {
   tipo_recomendacao?: RecommendationType;
   cultura?: string;
   ano_safra?: number;
-  criterio_calagem?: RecommendationLimingCriteria;
+  criterio_calagem?: RecommendationLimingCriteria | null;
   tipoRecomendacao?: RecommendationType;
   anoSafra?: number;
-  criterioCalagem?: RecommendationLimingCriteria;
+  criterioCalagem?: RecommendationLimingCriteria | null;
 
   origem_adubos?: FertilizerSourceOption;
   origemAdubos?: FertilizerSourceOption;
