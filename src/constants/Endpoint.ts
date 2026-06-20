@@ -80,6 +80,11 @@ export const ENDPOINT = {
   CREATE_CHELATED_FERTILIZER: "chelated-fertilizer/register",
   UPDATE_CHELATED_FERTILIZER: "chelated-fertilizer/update",
   
+  // --- Exchangeable Sodium Endpoints ---
+  GET_BY_TABLE_EXCHANGEABLE_SODIUM: "exchangeable-sodium/get-by-table",
+  CREATE_EXCHANGEABLE_SODIUM: "exchangeable-sodium/register",
+  UPDATE_EXCHANGEABLE_SODIUM: "exchangeable-sodium/update",
+
   // --- Content Range Endpoints ---
   DELETE_CONTENT_RANGE: "content-range/delete",
   GET_CONTENT_RANGE_BY_TABLE: "content-range/get-by-table",

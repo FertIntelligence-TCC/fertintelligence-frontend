@@ -27,7 +27,8 @@ import AvailablePMehlich1Modal from "./AvailablePMehlich1Modal";
 import AvailablePResinModal from "./AvailablePResinModal";
 import AvailableSModal from "./AvailableSModal";
 import KExchangeableContentModal from "./KExchangeableContentModal";
-import DiverseContentRangeModal from "./DiverseContentRangeModal"; // <--- Novo Import
+import DiverseContentRangeModal from "./DiverseContentRangeModal";
+import ExchangeableSodiumModal from "./ExchangeableSodiumModal";
 
 type Props = {
     form: SoilFertilityFormState;
@@ -45,7 +46,8 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
     const [isPResinOpen, setIsPResinOpen] = useState(false);
     const [isAvailableSOpen, setIsAvailableSOpen] = useState(false);
     const [isKExchangeableOpen, setIsKExchangeableOpen] = useState(false);
-    const [isDiverseContentOpen, setIsDiverseContentOpen] = useState(false); // <--- Novo Estado
+    const [isDiverseContentOpen, setIsDiverseContentOpen] = useState(false);
+    const [isExchangeableSodiumOpen, setIsExchangeableSodiumOpen] = useState(false);
 
     const regioesCollection = createListCollection({
         items: Object.keys(RegionEnum).map((k) => ({ label: k.replace(/_/g, ' '), value: k })),
@@ -57,7 +59,8 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
         "Fósforo disponível, extrator resina de troca aniônica",
         "S disponível",
         "Teores trocáveis de Potássio",
-        "Teores de Nutrientes Diversos"
+        "Teores de Nutrientes Diversos",
+        "Sódio Trocável (cmolc/dm3)"
     ];
 
     return (
@@ -199,6 +202,7 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                                     
                                     // Nova lógica para Nutrientes Diversos
                                     else if (tableName === "Teores de Nutrientes Diversos") setIsDiverseContentOpen(true);
+                                    else if (tableName === "Sódio Trocável (cmolc/dm3)") setIsExchangeableSodiumOpen(true);
                                     
                                     else {
                                         if (!readOnly) console.log(`Configurar ${tableName} (Em breve)`);
@@ -262,6 +266,13 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                     <DiverseContentRangeModal
                         isOpen={isDiverseContentOpen}
                         onClose={() => setIsDiverseContentOpen(false)}
+                        tableId={tableId}
+                        isReadOnly={readOnly}
+                    />
+
+                    <ExchangeableSodiumModal
+                        isOpen={isExchangeableSodiumOpen}
+                        onClose={() => setIsExchangeableSodiumOpen(false)}
                         tableId={tableId}
                         isReadOnly={readOnly}
                     />

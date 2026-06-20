@@ -54,7 +54,6 @@ const NUTRIENTS: NutrientOption[] = [
     { label: "Cálcio (cmolc/dm³)", value: "calcio" },
     { label: "Magnésio (cmolc/dm³)", value: "magnesio" },
     { label: "Potássio (cmolc/dm³)", value: "potassio" },
-    { label: "Sódio (cmolc/dm³)", value: "sodio" },
     { label: "Soma de Bases (cmolc/dm³)", value: "soma_bases" },
     { label: "Saturação por Alumínio - m (%)", value: "saturacao_aluminio" },
     { label: "Saturação por Bases - V (%)", value: "saturacao_bases" },
