@@ -143,7 +143,7 @@ const mapHydratedDataToForm = (data: HydratedTableData): FertilizationTableFormS
     sugestaoEstercoTipo: data.tipo_de_esterco as any,
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
     sugestaoGessagem: String(data.sugestao_gessagem),
-    sugestaoAdubacaoComMicronutrientes: data.sugestao_de_adubacao_com_micronutrientes || "",
+    sugestaoAdubacaoComMicronutrientes: String(data.sugestao_de_adubacao_com_micronutrientes ?? ""),
     dosesMicronutrientes: {
       b: { min: String(data.dose_minima_b ?? ""), max: String(data.dose_maxima_b ?? "") },
       cu: { min: String(data.dose_minima_cu ?? ""), max: String(data.dose_maxima_cu ?? "") },
