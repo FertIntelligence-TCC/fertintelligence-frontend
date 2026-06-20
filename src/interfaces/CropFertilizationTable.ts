@@ -118,6 +118,7 @@ export interface CropFertilizationTableResponseDto {
     quantidade_de_esterco: number;
     
     sugestao_gessagem: number;
+    sugestao_de_adubacao_com_micronutrientes: string;
     dose_minima_b: number;
     dose_maxima_b: number;
     dose_minima_cu: number;
@@ -184,6 +185,7 @@ export interface CropFertilizationTableCreateRequestDto {
     quantidade_de_esterco: number;
     
     sugestao_gessagem: number;
+    sugestao_de_adubacao_com_micronutrientes: string;
     dose_minima_b: number;
     dose_maxima_b: number;
     dose_minima_cu: number;
