@@ -5,11 +5,17 @@ import { fetchManageableProperties, fetchMyProperties } from "@/services/propert
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
 import { getPlotsByProperty } from "@/services/plotService";
 import { soilAnalysisService } from "@/services/soilAnalysisService";
+import { rangeExtractService } from "@/services/rangeExtractService";
+import { layerExtractService } from "@/services/layerExtractService";
+import { physicalAnalysisExtractService } from "@/services/physicalAnalysisExtractService";
+import { fertilityAnalysisExtractService } from "@/services/fertilityAnalysisExtractService";
 import { calculateTemporaryLimingCriterion } from "@/services/cropFertilizationTableService";
 import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { PlotResponse } from "@/interfaces/Plot";
-import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
+import { TipoExtrato, type SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
+import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
+import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
 import { useUserStore } from "@/stores/user/user.store";
 import { toaster } from "@/components/ui/toaster";
 import { SelectElement, selectFieldStyles } from "./styles";
@@ -33,11 +39,50 @@ type Props = {
   tableId: number;
 };
 
+type AnalysisExtractOption = {
+  id: number;
+  label: string;
+};
+
+const formatExtractPosition = (extract: {
+  profundidade_inicial?: number;
+  profundidade_final?: number;
+  camada?: string;
+  subcamada?: number;
+}) => {
+  const depth =
+    extract.profundidade_inicial !== undefined && extract.profundidade_final !== undefined
+      ? `${extract.profundidade_inicial}-${extract.profundidade_final} cm`
+      : undefined;
+  const layer = extract.camada ? `Camada ${extract.camada}${extract.subcamada ? `.${extract.subcamada}` : ""}` : undefined;
+  return [layer, depth].filter(Boolean).join(" • ");
+};
+
+const getAnalysisLabelPrefix = (analysis: SoilAnalysisResponse) =>
+  `Análise ${analysis.ano_analise} • ${analysis.laboratorio_responsavel}`;
+
+const mapPhysicalAnalysisOption = (
+  extract: PhysicalAnalysisExtractResponse,
+  analysis: SoilAnalysisResponse,
+): AnalysisExtractOption => ({
+  id: extract.id,
+  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+});
+
+const mapFertilityAnalysisOption = (
+  extract: FertilityAnalysisExtractResponse,
+  analysis: SoilAnalysisResponse,
+): AnalysisExtractOption => ({
+  id: extract.id,
+  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+});
+
 export default function TemporaryLimingCriterionSection({ tableId }: Props) {
   const user = useUserStore((s) => s.user);
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
-  const [analyses, setAnalyses] = useState<SoilAnalysisResponse[]>([]);
+  const [physicalAnalysisOptions, setPhysicalAnalysisOptions] = useState<AnalysisExtractOption[]>([]);
+  const [fertilityAnalysisOptions, setFertilityAnalysisOptions] = useState<AnalysisExtractOption[]>([]);
   const [propertyId, setPropertyId] = useState("");
   const [plotId, setPlotId] = useState("");
   const [physicalAnalysisId, setPhysicalAnalysisId] = useState("");
@@ -79,7 +124,8 @@ export default function TemporaryLimingCriterionSection({ tableId }: Props) {
     setFertilityAnalysisId("");
     setCriterion("");
     setPlots([]);
-    setAnalyses([]);
+    setPhysicalAnalysisOptions([]);
+    setFertilityAnalysisOptions([]);
 
     if (!propertyId) return;
 
@@ -94,22 +140,80 @@ export default function TemporaryLimingCriterionSection({ tableId }: Props) {
   }, [propertyId]);
 
   useEffect(() => {
+    let isCurrent = true;
+
     setPhysicalAnalysisId("");
     setFertilityAnalysisId("");
     setCriterion("");
-    setAnalyses([]);
+    setPhysicalAnalysisOptions([]);
+    setFertilityAnalysisOptions([]);
 
-    if (!plotId) return;
+    if (!plotId) return () => { isCurrent = false; };
 
     setLoadingAnalyses(true);
-    soilAnalysisService.getByPlotId(plotId)
-      .then(setAnalyses)
-      .catch((error) => {
+
+    const loadAnalysisExtracts = async () => {
+      try {
+        const soilAnalyses = await soilAnalysisService.getByPlotId(plotId);
+
+        if (!isCurrent) return;
+
+        const physicalOptions: AnalysisExtractOption[] = [];
+        const fertilityOptions: AnalysisExtractOption[] = [];
+
+        for (const analysis of soilAnalyses ?? []) {
+          const isLayerAnalysis = analysis.tipo_extrato === TipoExtrato.CAMADAS;
+          const containers = isLayerAnalysis
+            ? await layerExtractService.getByAnalysisId(analysis.id)
+            : await rangeExtractService.getByAnalysisId(analysis.id);
+
+          if (!isCurrent) return;
+
+          for (const container of containers ?? []) {
+            const containerId = container.id;
+            const [physicalExtracts, fertilityExtracts] = await Promise.all([
+              isLayerAnalysis
+                ? physicalAnalysisExtractService.getByLayerExtractId(containerId)
+                : physicalAnalysisExtractService.getByRangeExtractId(containerId),
+              isLayerAnalysis
+                ? fertilityAnalysisExtractService.getByLayerExtractId(containerId)
+                : fertilityAnalysisExtractService.getByRangeExtractId(containerId),
+            ]);
+
+            physicalOptions.push(...(physicalExtracts ?? []).map((extract) => mapPhysicalAnalysisOption(extract, analysis)));
+            fertilityOptions.push(...(fertilityExtracts ?? []).map((extract) => mapFertilityAnalysisOption(extract, analysis)));
+          }
+        }
+
+        if (!isCurrent) return;
+
+        setPhysicalAnalysisOptions(physicalOptions);
+        setFertilityAnalysisOptions(fertilityOptions);
+      } catch (error) {
         console.error(error);
-        toaster.create({ title: "Falha ao carregar análises do talhão.", type: "error" });
-      })
-      .finally(() => setLoadingAnalyses(false));
+        if (isCurrent) {
+          toaster.create({ title: "Falha ao carregar análises do talhão.", type: "error" });
+        }
+      } finally {
+        if (isCurrent) setLoadingAnalyses(false);
+      }
+    };
+
+    void loadAnalysisExtracts();
+
+    return () => { isCurrent = false; };
   }, [plotId]);
+
+  const physicalAnalysisPlaceholder = !plotId
+    ? "Selecione um talhão para ver análises físicas"
+    : physicalAnalysisOptions.length
+      ? "Selecione uma análise física"
+      : "Nenhuma análise física encontrada";
+  const fertilityAnalysisPlaceholder = !plotId
+    ? "Selecione um talhão para ver análises de fertilidade"
+    : fertilityAnalysisOptions.length
+      ? "Selecione uma análise de fertilidade"
+      : "Nenhuma análise de fertilidade encontrada";
 
   const canCalculate = Boolean(propertyId && plotId && fertilityAnalysisId);
 
@@ -157,16 +261,16 @@ export default function TemporaryLimingCriterionSection({ tableId }: Props) {
         </Box>
         <Box>
           <Text fontWeight="semibold" fontSize="sm">Análise física</Text>
-          <SelectElement {...selectFieldStyles} value={physicalAnalysisId} onChange={(e: any) => { setPhysicalAnalysisId(e.target.value); setCriterion(""); }} disabled={!plotId || loadingAnalyses}>
-            <option value="">{loadingAnalyses ? "Carregando análises físicas..." : "Selecione uma análise física"}</option>
-            {analyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
+          <SelectElement {...selectFieldStyles} value={physicalAnalysisId} onChange={(e: any) => { setPhysicalAnalysisId(e.target.value); setCriterion(""); }} disabled={!plotId || loadingAnalyses || physicalAnalysisOptions.length === 0}>
+            <option value="">{loadingAnalyses ? "Carregando análises físicas..." : physicalAnalysisPlaceholder}</option>
+            {physicalAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}
           </SelectElement>
         </Box>
         <Box>
           <Text fontWeight="semibold" fontSize="sm">Análise de fertilidade</Text>
-          <SelectElement {...selectFieldStyles} value={fertilityAnalysisId} onChange={(e: any) => { setFertilityAnalysisId(e.target.value); setCriterion(""); }} disabled={!plotId || loadingAnalyses}>
-            <option value="">{loadingAnalyses ? "Carregando análises de fertilidade..." : "Selecione uma análise de fertilidade"}</option>
-            {analyses.map((analysis) => <option key={analysis.id} value={analysis.id}>{`${analysis.ano_analise} - ${analysis.laboratorio_responsavel}`}</option>)}
+          <SelectElement {...selectFieldStyles} value={fertilityAnalysisId} onChange={(e: any) => { setFertilityAnalysisId(e.target.value); setCriterion(""); }} disabled={!plotId || loadingAnalyses || fertilityAnalysisOptions.length === 0}>
+            <option value="">{loadingAnalyses ? "Carregando análises de fertilidade..." : fertilityAnalysisPlaceholder}</option>
+            {fertilityAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}
           </SelectElement>
         </Box>
       </Grid>
