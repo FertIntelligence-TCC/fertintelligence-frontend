@@ -28,6 +28,7 @@ const toUpdatePayload = (payload: CropFertilizationTableCreateRequestDto) => ({
     novo_valor_final_espacamento_usado: payload.valor_final_espacamento_usado,
     novo_produtividade_regional: payload.produtividade_regional,
     novo_produtividade_esperada: payload.produtividade_esperada,
+    novo_criterio_de_calagem: payload.criterio_de_calagem,
     propertyId: payload.propertyId,
     plotId: payload.plotId,
     physicalAnalysisId: payload.physicalAnalysisId,
