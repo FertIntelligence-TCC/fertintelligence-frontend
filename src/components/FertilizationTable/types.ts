@@ -189,6 +189,7 @@ export type FertilizationTableFormState = {
     sugestaoEstercoQtd: string;
 
     sugestaoGessagem: string;
+    sugestaoAdubacaoComMicronutrientes: string;
     dosesMicronutrientes: MicronutrientDoses;
 
     coberturaLabels: string[]; 
@@ -229,6 +230,7 @@ export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
     sugestaoEstercoTipo: ManureType.BOVINO,
     sugestaoEstercoQtd: "",
     sugestaoGessagem: "",
+    sugestaoAdubacaoComMicronutrientes: "",
     dosesMicronutrientes: createEmptyMicronutrientDoses(),
     
     coberturaLabels: ["1ª Cobertura", "2ª Cobertura"], 

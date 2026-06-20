@@ -36,6 +36,7 @@ const toUpdatePayload = (payload: CropFertilizationTableCreateRequestDto) => ({
     novo_tipo_de_esterco: payload.tipo_de_esterco,
     novo_quantidade_de_esterco: payload.quantidade_de_esterco,
     novo_sugestao_gessagem: payload.sugestao_gessagem,
+    novo_sugestao_de_adubacao_com_micronutrientes: payload.sugestao_de_adubacao_com_micronutrientes,
     novo_dose_minima_b: payload.dose_minima_b,
     novo_dose_maxima_b: payload.dose_maxima_b,
     novo_dose_minima_cu: payload.dose_minima_cu,

@@ -66,6 +66,26 @@ import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAna
 
 const LIMING_UNDEFINED_LABEL = "Não é possível definir um critério de calagem";
 
+const buildMicronutrientSuggestion = (doses: FertilizationTableFormState["dosesMicronutrientes"]) => {
+  const labels: Record<keyof FertilizationTableFormState["dosesMicronutrientes"], string> = {
+    b: "B",
+    cu: "Cu",
+    fe: "Fe",
+    ni: "Ni",
+    mn: "Mn",
+    mo: "Mo",
+    zn: "Zn",
+  };
+
+  return Object.entries(doses)
+    .map(([key, range]) => {
+      const min = range.min === "" ? "0" : range.min;
+      const max = range.max === "" ? "0" : range.max;
+      return `${labels[key as keyof typeof labels]}: ${min}-${max} g/ha`;
+    })
+    .join("; ");
+};
+
 const formatExtractPosition = (extract: {
   profundidade_inicial?: number;
   profundidade_final?: number;
@@ -250,6 +270,7 @@ const mapHydratedDataToForm = (
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
 
     sugestaoGessagem: String(data.sugestao_gessagem),
+    sugestaoAdubacaoComMicronutrientes: data.sugestao_de_adubacao_com_micronutrientes || "",
     dosesMicronutrientes: {
       b: { min: String(data.dose_minima_b ?? ""), max: String(data.dose_maxima_b ?? "") },
       cu: { min: String(data.dose_minima_cu ?? ""), max: String(data.dose_maxima_cu ?? "") },
@@ -323,6 +344,8 @@ const mapFormToRequest = (
     quantidade_de_esterco: num(form.sugestaoEstercoQtd),
 
     sugestao_gessagem: num(form.sugestaoGessagem),
+    sugestao_de_adubacao_com_micronutrientes:
+      form.sugestaoAdubacaoComMicronutrientes.trim() || buildMicronutrientSuggestion(form.dosesMicronutrientes),
     dose_minima_b: num(form.dosesMicronutrientes.b.min),
     dose_maxima_b: num(form.dosesMicronutrientes.b.max),
     dose_minima_cu: num(form.dosesMicronutrientes.cu.min),
