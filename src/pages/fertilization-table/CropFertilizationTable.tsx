@@ -46,9 +46,11 @@ import { createCoverage, fetchCoveragesByRange, updateCoverage, deleteCoverage }
 
 import { CropFertilizationTableCreateRequestDto, CropFertilizationTableResponseDto, ContentRangeResponseDto, CoverageResponseDto } from "@/interfaces/CropFertilizationTable";
 import { toaster } from "@/components/ui/toaster";
-import { fetchManageableProperties } from "@/services/propertyService";
+import { fetchManageableProperties, fetchMyProperties } from "@/services/propertyService";
+import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
 import { getPlotsByProperty } from "@/services/plotService";
 import { soilAnalysisService } from "@/services/soilAnalysisService";
+import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
@@ -621,15 +623,30 @@ export default function CropFertilizationTable({ variant = "mine" }: Props) {
 
   useEffect(() => {
     if (!isModalOpen) return;
+
+    const loadAccessibleProperties = () => {
+      const roleMode = getAuthorizationRoleMode(user?.cargo);
+
+      if (roleMode === "SUPREME" || roleMode === "MANAGER") {
+        return fetchManageableProperties();
+      }
+
+      if (roleMode === "OWNER") {
+        return fetchMyProperties();
+      }
+
+      return propertyAccessRequestService.getMyApprovedProperties();
+    };
+
     setLoadingProperties(true);
-    fetchManageableProperties()
+    loadAccessibleProperties()
       .then(setProperties)
       .catch((error) => {
         console.error(error);
         toaster.create({ title: "Falha ao carregar propriedades.", type: "error" });
       })
       .finally(() => setLoadingProperties(false));
-  }, [isModalOpen]);
+  }, [isModalOpen, user?.cargo]);
 
   useEffect(() => {
     if (!isModalOpen || !form.propertyId) {
