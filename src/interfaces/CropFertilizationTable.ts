@@ -86,8 +86,7 @@ export interface CropFertilizationTableResponseDto {
     
     espacamento_usado: SpacingType;
     valor_espacamento_usado?: number;
-    valor_inicial_espacamento_usado?: number;
-    valor_final_espacamento_usado?: number;
+    valor_maximo_espacamento_usado?: number;
     
     produtividade_regional: number;
     produtividade_esperada: number;
@@ -169,8 +168,7 @@ export interface CropFertilizationTableCreateRequestDto {
     
     espacamento_usado: SpacingType;
     valor_espacamento_usado?: number;
-    valor_inicial_espacamento_usado?: number;
-    valor_final_espacamento_usado?: number;
+    valor_maximo_espacamento_usado?: number;
     
     produtividade_regional: number;
     produtividade_esperada: number;

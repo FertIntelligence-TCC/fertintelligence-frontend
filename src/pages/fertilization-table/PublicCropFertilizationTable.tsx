@@ -61,11 +61,11 @@ const normalizeSpacingType = (value: unknown): SpacingType | "" => {
   return "";
 };
 
-const getAlternativeSpacingMin = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado" | "valor_inicial_espacamento_usado">) =>
-  data.valor_inicial_espacamento_usado ?? data.valor_espacamento_usado ?? "";
+const getAlternativeSpacingMin = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado">) =>
+  data.valor_espacamento_usado ?? "";
 
-const getAlternativeSpacingMax = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado" | "valor_final_espacamento_usado">) =>
-  data.valor_final_espacamento_usado ?? data.valor_espacamento_usado ?? "";
+const getAlternativeSpacingMax = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado" | "valor_maximo_espacamento_usado">) =>
+  data.valor_maximo_espacamento_usado ?? data.valor_espacamento_usado ?? "";
 
 const canShowLinkedData = (data: CropFertilizationTableResponseDto) =>
   data.pode_visualizar_vinculos ?? data.canViewLinkedData ?? Boolean(data.nome_propriedade ?? data.propertyName ?? data.identificacao_talhao ?? data.plotIdentification ?? data.identificacao_analise_fisica ?? data.physicalAnalysisIdentification ?? data.identificacao_analise_fertilidade ?? data.fertilityAnalysisIdentification);
