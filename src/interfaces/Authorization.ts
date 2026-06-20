@@ -32,6 +32,7 @@ export const normalizeCargo = (value?: string) =>
   (value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/^ROLE[_\s-]*/i, "")
     .replace(/[\s_-]+/g, "")
     .toUpperCase();
 
