@@ -28,7 +28,6 @@ import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import { toaster } from "@/components/ui/toaster";
-import { Cargo } from "@/interfaces/User";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
@@ -47,7 +46,7 @@ import {
 import { getPlotsByProperty } from "@/services/plotService";
 import { fetchManageableProperties, fetchMyProperties } from "@/services/propertyService";
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
-import { isSupremeUserCargo } from "@/interfaces/Authorization";
+import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import { getAllAnnualCropFoldersByPlot } from "@/services/annualCropFolderService";
 import { getCropsByFolder } from "@/services/cropService";
 import { soilAnalysisService } from "@/services/soilAnalysisService";
@@ -150,8 +149,10 @@ const limingCriteriaOptions: RecommendationLimingCriteria[] = [
   "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL_MAIS_ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO",
 ];
 
-const canPrintRecommendation = (cargo?: string) =>
-  isSupremeUserCargo(cargo) || cargo === "AGRONOMO_RESIDENTE" || cargo === "AGRONOMO_CONSULTOR";
+const canPrintRecommendation = (cargo?: string) => {
+  const roleMode = getAuthorizationRoleMode(cargo);
+  return roleMode === "SUPREME" || roleMode === "RESIDENT" || roleMode === "CONSULTANT";
+};
 
 const normalizeLimingCriteria = (criteria?: string | null): RecommendationLimingCriteria | undefined => {
   if (!criteria) return undefined;
@@ -368,10 +369,10 @@ export default function Recommendation() {
     const loadProperties = async () => {
       setLoadingProperties(true);
       try {
-        const isSupreme = isSupremeUserCargo(user?.cargo) || user?.cargo === "USUARIO_SUPREMO";
-        const data = isSupreme
+        const roleMode = getAuthorizationRoleMode(user?.cargo);
+        const data = roleMode === "SUPREME" || roleMode === "MANAGER"
           ? await fetchManageableProperties()
-          : user?.cargo === Cargo.PROPRIETARIO
+          : roleMode === "OWNER"
             ? await fetchMyProperties()
             : await propertyAccessRequestService.getMyApprovedProperties();
         setProperties(data ?? []);
