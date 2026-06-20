@@ -232,7 +232,13 @@ export default function TemporaryLimingCriterionSection({ tableId }: Props) {
         physicalAnalysisId: physicalAnalysisId ? Number(physicalAnalysisId) : null,
         fertilityAnalysisId: Number(fertilityAnalysisId),
       });
-      setCriterion(getLimingCriterionLabel(response.criterio_de_calagem_indicado ?? response.criterio_calagem_indicado ?? response.criterioCalagemIndicado ?? response.criterio_de_calagem));
+      setCriterion(getLimingCriterionLabel(
+        response.indicatedLimingCriterion ??
+        response.criterio_de_calagem_indicado ??
+        response.criterio_calagem_indicado ??
+        response.criterioCalagemIndicado ??
+        response.criterio_de_calagem
+      ));
     } catch (error) {
       console.error(error);
       toaster.create({ title: "Falha ao calcular critério de calagem.", type: "error" });

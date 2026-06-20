@@ -259,6 +259,7 @@ export interface CropFertilizationTemporaryLimingCriterionRequest {
 }
 
 export interface CropFertilizationTemporaryLimingCriterionResponse {
+    indicatedLimingCriterion?: string | null;
     criterio_de_calagem_indicado?: string | null;
     criterio_calagem_indicado?: string | null;
     criterio_de_calagem?: string | null;
