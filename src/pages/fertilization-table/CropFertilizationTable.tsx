@@ -99,9 +99,6 @@ const mapFertilityAnalysisOption = (
   label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
 });
 
-const isSelectedExtractAvailable = (value: string, options: AnalysisExtractOption[]) =>
-  Boolean(value) && options.some((option) => String(option.id) === value);
-
 const getLimingCriterionLabel = (value: unknown) => {
   if (!value) return LIMING_UNDEFINED_LABEL;
   const text = String(value);
@@ -246,8 +243,8 @@ const mapHydratedDataToForm = (
     criterioCalagemIndicado: getLimingCriterionLabel(data.criterio_de_calagem_indicado ?? data.criterio_calagem_indicado ?? data.criterio_de_calagem),
     propertyId: String(data.propertyId ?? data.id_propriedade ?? ""),
     plotId: String(data.plotId ?? data.id_talhao ?? ""),
-    physicalAnalysisId: String(data.physicalAnalysisId ?? data.id_analise_fisica ?? ""),
-    fertilityAnalysisId: String(data.fertilityAnalysisId ?? data.id_analise_fertilidade ?? ""),
+    physicalAnalysisId: String(data.id_analise_fisica ?? data.physicalAnalysisId ?? data.soilPhysicalAnalysisId ?? data.physicalAnalysisExtractId ?? data.id_extrato_analise_fisica ?? ""),
+    fertilityAnalysisId: String(data.id_analise_fertilidade ?? data.fertilityAnalysisId ?? data.soilFertilityAnalysisId ?? data.fertilityAnalysisExtractId ?? data.id_extrato_analise_fertilidade ?? ""),
     linkedPropertyIdentification: canShowLinkedData(data) ? String(data.nome_propriedade ?? data.propertyName ?? "") : "",
     linkedPlotIdentification: canShowLinkedData(data) ? String(data.identificacao_talhao ?? data.plotIdentification ?? "") : "",
     linkedPhysicalAnalysisIdentification: canShowLinkedData(data) ? formatAnalysisIdentification(data.identificacao_analise_fisica ?? data.physicalAnalysisIdentification) : "",
@@ -296,8 +293,8 @@ const SCIENTIFIC_NAME_BY_CROP: Record<string, string> = {
 
 const mapFormToRequest = (
   form: FertilizationTableFormState,
-  physicalAnalysisOptions: AnalysisExtractOption[],
-  fertilityAnalysisOptions: AnalysisExtractOption[]
+  _physicalAnalysisOptions: AnalysisExtractOption[],
+  _fertilityAnalysisOptions: AnalysisExtractOption[]
 ): CropFertilizationTableCreateRequestDto => {
   const num = (v: unknown) => {
     const n = typeof v === "number" ? v : parseFloat(String(v));
@@ -324,8 +321,10 @@ const mapFormToRequest = (
     criterio_de_calagem: form.criterioCalagem || null,
     propertyId: optionalId(form.propertyId),
     plotId: optionalId(form.plotId),
-    physicalAnalysisId: isSelectedExtractAvailable(form.physicalAnalysisId, physicalAnalysisOptions) ? optionalId(form.physicalAnalysisId) : null,
-    fertilityAnalysisId: isSelectedExtractAvailable(form.fertilityAnalysisId, fertilityAnalysisOptions) ? optionalId(form.fertilityAnalysisId) : null,
+    physicalAnalysisId: optionalId(form.physicalAnalysisId),
+    fertilityAnalysisId: optionalId(form.fertilityAnalysisId),
+    id_analise_fisica: optionalId(form.physicalAnalysisId),
+    id_analise_fertilidade: optionalId(form.fertilityAnalysisId),
 
     tipo_de_esterco: form.sugestaoEstercoTipo,
     quantidade_de_esterco: num(form.sugestaoEstercoQtd),

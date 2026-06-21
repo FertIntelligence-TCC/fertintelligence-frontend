@@ -9,8 +9,18 @@ export const fetchCropFertilizationTables = async (): Promise<CropFertilizationT
     return data;
 };
 
+const toCreatePayload = (payload: CropFertilizationTableCreateRequestDto) => {
+    const { physicalAnalysisId, fertilityAnalysisId, ...rest } = payload;
+
+    return {
+        ...rest,
+        id_analise_fisica: physicalAnalysisId ?? payload.id_analise_fisica ?? null,
+        id_analise_fertilidade: fertilityAnalysisId ?? payload.id_analise_fertilidade ?? null,
+    };
+};
+
 export const createCropFertilizationTable = async (payload: CropFertilizationTableCreateRequestDto): Promise<CropFertilizationTableResponseDto> => {
-    const { data } = await api.post(ENDPOINT.CREATE_CROP_FERTILIZATION_TABLE, payload);
+    const { data } = await api.post(ENDPOINT.CREATE_CROP_FERTILIZATION_TABLE, toCreatePayload(payload));
     return data;
 };
 
@@ -30,8 +40,8 @@ const toUpdatePayload = (payload: CropFertilizationTableCreateRequestDto) => ({
     novo_criterio_de_calagem: payload.criterio_de_calagem,
     propertyId: payload.propertyId,
     plotId: payload.plotId,
-    physicalAnalysisId: payload.physicalAnalysisId,
-    fertilityAnalysisId: payload.fertilityAnalysisId,
+    id_analise_fisica: payload.physicalAnalysisId ?? payload.id_analise_fisica ?? null,
+    id_analise_fertilidade: payload.fertilityAnalysisId ?? payload.id_analise_fertilidade ?? null,
     novo_tipo_de_esterco: payload.tipo_de_esterco,
     novo_quantidade_de_esterco: payload.quantidade_de_esterco,
     novo_sugestao_gessagem: payload.sugestao_gessagem,

@@ -98,10 +98,16 @@ export interface CropFertilizationTableResponseDto {
     plotId?: number | null;
     physicalAnalysisId?: number | null;
     fertilityAnalysisId?: number | null;
+    soilPhysicalAnalysisId?: number | null;
+    soilFertilityAnalysisId?: number | null;
+    physicalAnalysisExtractId?: number | null;
+    fertilityAnalysisExtractId?: number | null;
     id_propriedade?: number | null;
     id_talhao?: number | null;
     id_analise_fisica?: number | null;
     id_analise_fertilidade?: number | null;
+    id_extrato_analise_fisica?: number | null;
+    id_extrato_analise_fertilidade?: number | null;
     pode_visualizar_vinculos?: boolean | null;
     canViewLinkedData?: boolean | null;
     nome_propriedade?: string | null;
@@ -178,6 +184,8 @@ export interface CropFertilizationTableCreateRequestDto {
     plotId?: number | null;
     physicalAnalysisId?: number | null;
     fertilityAnalysisId?: number | null;
+    id_analise_fisica?: number | null;
+    id_analise_fertilidade?: number | null;
     
     tipo_de_esterco: ManureType;
     quantidade_de_esterco: number;
