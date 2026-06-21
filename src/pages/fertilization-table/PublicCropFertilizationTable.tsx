@@ -55,10 +55,18 @@ interface HydratedTableData extends CropFertilizationTableResponseDto {
   rangesWithCoverages: (ContentRangeResponseDto & { coverages: CoverageResponseDto[] })[];
 }
 
-const normalizeSpacingType = (value: unknown): SpacingType | "" => {
-  if (value === "PLANTAS_PER_LINEAR_METER") return SpacingType.PLANTAS_POR_METRO_LINEAR;
-  if (Object.values(SpacingType).includes(value as SpacingType)) return value as SpacingType;
-  return "";
+const normalizeSpacingType = (value: unknown): SpacingType => {
+  const normalized = String(value ?? "").trim();
+  const aliases: Record<string, SpacingType> = {
+    PLANTAS_PER_LINEAR_METER: SpacingType.PLANTAS_POR_METRO_LINEAR,
+    PLANTAS_POR_METRO_LINEAR: SpacingType.PLANTAS_POR_METRO_LINEAR,
+    PLANTS_PER_LINEAR_METER: SpacingType.PLANTAS_POR_METRO_LINEAR,
+    ENTRE_PLANTAS_COVAS: SpacingType.ENTRE_PLANTAS_COVAS,
+    BETWEEN_PLANTS_OR_HOLES_IN_METERS: SpacingType.ENTRE_PLANTAS_COVAS,
+  };
+
+  if (Object.values(SpacingType).includes(normalized as SpacingType)) return normalized as SpacingType;
+  return aliases[normalized] ?? SpacingType.ENTRE_PLANTAS_COVAS;
 };
 
 const getAlternativeSpacingMin = (data: Pick<CropFertilizationTableResponseDto, "valor_espacamento_usado">) =>

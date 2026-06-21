@@ -165,7 +165,7 @@ export type FertilizationTableFormState = {
     espacamentoSugeridoMin: string;
     espacamentoSugeridoMax: string;
 
-    espacamentoUsadoTipo: SpacingType | "";
+    espacamentoUsadoTipo: SpacingType;
     espacamentoUsadoMin: string;
     espacamentoUsadoMax: string;
 
@@ -211,7 +211,7 @@ export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
     espacamentoSugeridoTipo: SpacingType.ENTRE_LINHAS,
     espacamentoSugeridoMin: "",
     espacamentoSugeridoMax: "",
-    espacamentoUsadoTipo: "",
+    espacamentoUsadoTipo: SpacingType.ENTRE_PLANTAS_COVAS,
     espacamentoUsadoMin: "",
     espacamentoUsadoMax: "",
     produtividadeRegional: "",
