@@ -45,8 +45,8 @@ export default function ParametersSection({ form, onFormChange, readOnly, proper
         form.espacamentoUsadoTipo === SpacingType.ENTRE_PLANTAS_COVAS
             ? "Plantas por metro linear"
             : "Entre Plantas/Covas (m)";
-    const conversionMin = spacingMin ? 1 / spacingMin : null;
-    const conversionMax = spacingMax ? 1 / spacingMax : null;
+    const conversionMin = spacingMax ? 1 / spacingMax : null;
+    const conversionMax = spacingMin ? 1 / spacingMin : null;
 
     return (
         <>
@@ -66,7 +66,6 @@ export default function ParametersSection({ form, onFormChange, readOnly, proper
                     <Text fontWeight="bold" mb={2} fontSize="xs" textTransform="uppercase" color="gray.500" _dark={{ color: "gray.400" }}>Espaçamento Sugerido</Text>
                     <VStack gap={2} align="stretch">
                         <SelectElement {...selectFieldStyles} value={form.espacamentoUsadoTipo} onChange={(e: any) => onFormChange("espacamentoUsadoTipo", e.target.value)} disabled={readOnly}>
-                            <option value="">Selecione o tipo</option>
                             {alternativeSpacingOptions.map(key => <option key={key} value={key}>{SpacingLabels[key]}</option>)}
                         </SelectElement>
                         <HStack width="full">
