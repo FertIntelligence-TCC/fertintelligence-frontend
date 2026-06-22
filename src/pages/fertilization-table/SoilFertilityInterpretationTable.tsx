@@ -65,9 +65,9 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
   const user = useUserStore((s) => s.user);
   const isDefaultView = variant === "default";
   const isSupreme = isSupremeUser(user);
-  // Se for visualização padrão (default) e o usuário NÃO for supremo, usa tabelas padrão.
-  // Se for visualização 'mine' ou o usuário for supremo, usa tabelas pessoais.
-  const usesDefaultTables = isDefaultView && !isSupreme;
+  // A rota de tabelas padrão deve sempre consultar o endpoint default,
+  // inclusive para o USUARIO_SUPREMO, mantendo o mesmo comportamento das demais tabelas.
+  const usesDefaultTables = isDefaultView;
   const canManage = !isDefaultView || isSupreme;
   const queryKey = usesDefaultTables ? ["soil-fertility-tables-default"] : ["soil-fertility-tables"];
   const queryFn = usesDefaultTables ? fetchDefaultSoilFertilityTables : fetchSoilFertilityTables;
