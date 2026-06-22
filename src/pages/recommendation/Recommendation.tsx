@@ -38,6 +38,7 @@ import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/Satu
 import { TipoExtrato, type SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import {
   type RecommendationLimingCriteria,
+  type RecommendationTableGroup,
   type FertilizerSourceOption,
   type RecommendationResponse,
   type RecommendationType,
@@ -631,6 +632,9 @@ export default function Recommendation() {
         id_tabela_adubacao_cultura: Number(cropFertilizationTableId),
         id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
         id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
+        cropFertilizationTableGroup: cropFertilizationTableGroup as RecommendationTableGroup,
+        soilFertilityInterpretationCriteriaTableGroup: soilFertilityInterpretationTableGroup as RecommendationTableGroup,
+        cropFoliarAnalysisInterpretationTableGroup: cropFoliarAnalysisInterpretationTableGroup as RecommendationTableGroup,
         criterio_calagem: null,
         origem_adubos: fertilizerSourceOption,
       });

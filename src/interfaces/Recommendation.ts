@@ -4,6 +4,7 @@ export type RecommendationType =
   | "BOTH";
 
 export type FertilizerSourceOption = "PRIVATE" | "PUBLIC" | "DEFAULT" | "BOTH";
+export type RecommendationTableGroup = "PRIVATE" | "PUBLIC" | "DEFAULT";
 
 export type RecommendationLimingCriteria =
   | "SATURACAO_POR_BASES_TROCAVEIS"
@@ -23,6 +24,9 @@ export interface RecommendationCreatePayload {
   id_tabela_adubacao_cultura: number;
   id_tabela_interpretacao_fertilidade_solo: number;
   id_tabela_interpretacao_analise_foliar: number;
+  cropFertilizationTableGroup: RecommendationTableGroup;
+  soilFertilityInterpretationCriteriaTableGroup: RecommendationTableGroup;
+  cropFoliarAnalysisInterpretationTableGroup: RecommendationTableGroup;
   criterio_calagem?: RecommendationLimingCriteria | null;
   origem_adubos: FertilizerSourceOption;
 }
