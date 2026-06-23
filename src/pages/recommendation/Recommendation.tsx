@@ -104,9 +104,10 @@ type TableOption = {
   source: TableSource;
 };
 
-type AnalysisExtractOption = {
+type AnalysisExtractOption<TExtract = unknown> = {
   id: number;
   label: string;
+  extract: TExtract;
 };
 
 type RawTable = {
@@ -122,6 +123,76 @@ type RawTable = {
   public_table?: boolean;
   publicTable?: boolean;
   public?: boolean;
+};
+
+
+const LIMING_UNDEFINED_LABEL = "Não é possível definir um critério de calagem";
+const BASE_SATURATION_LABEL = "SATURAÇÃO POR BASES TROCÁVEIS";
+const ALUMINUM_NEUTRALIZATION_LABEL = "Neutralização do Al trocável";
+const CALCIUM_MAGNESIUM_LABEL = "Elevação dos teores de Ca + Mg";
+const PRNT_WARNING = "Se o calcário comprado tiver PRNT diferente de 100%, corrija o valor de NC multiplicando-o pela expressão 100/PRNT.";
+
+type LimingCriterionPreview = {
+  criterionLabel: string;
+  limingNeed: number | null;
+  warning?: string;
+};
+
+const toNullableNumber = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === "") return null;
+  const normalized = typeof value === "string" ? value.trim().replace(",", ".") : value;
+  const parsed = typeof normalized === "number" ? normalized : Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const calculateBaseSaturationLiming = (fertilityExtract?: FertilityAnalysisExtractResponse | null): LimingCriterionPreview => {
+  const ctcPh7 = toNullableNumber(fertilityExtract?.ctc_ph7);
+  const baseSaturation = toNullableNumber(fertilityExtract?.saturacao_bases_v);
+
+  if (ctcPh7 === null || baseSaturation === null) {
+    return { criterionLabel: LIMING_UNDEFINED_LABEL, limingNeed: null };
+  }
+
+  return {
+    criterionLabel: BASE_SATURATION_LABEL,
+    limingNeed: Math.max(0, (ctcPh7 * (70 - baseSaturation)) / 100),
+    warning: PRNT_WARNING,
+  };
+};
+
+const calculateClientLimingCriterion = ({
+  physicalExtract,
+  fertilityExtract,
+}: {
+  physicalExtract?: PhysicalAnalysisExtractResponse | null;
+  fertilityExtract?: FertilityAnalysisExtractResponse | null;
+}): LimingCriterionPreview => {
+  if (!fertilityExtract) {
+    return { criterionLabel: LIMING_UNDEFINED_LABEL, limingNeed: null };
+  }
+
+  const clayContent = toNullableNumber(physicalExtract?.teor_argila);
+  if (!physicalExtract || clayContent === null) {
+    return calculateBaseSaturationLiming(fertilityExtract);
+  }
+
+  const aluminum = toNullableNumber(fertilityExtract.aluminio);
+  const calcium = toNullableNumber(fertilityExtract.calcio);
+  const magnesium = toNullableNumber(fertilityExtract.magnesio);
+
+  if (aluminum === null || calcium === null || magnesium === null) {
+    return calculateBaseSaturationLiming(fertilityExtract);
+  }
+
+  const factor = clayContent < 150 ? 1.5 : clayContent <= 350 ? 2 : 2.5;
+  const aluminumNeed = Math.max(0, factor * aluminum);
+  const calciumMagnesiumNeed = Math.max(0, factor * (2 - (calcium + magnesium)));
+
+  if (aluminumNeed >= calciumMagnesiumNeed) {
+    return { criterionLabel: ALUMINUM_NEUTRALIZATION_LABEL, limingNeed: aluminumNeed };
+  }
+
+  return { criterionLabel: CALCIUM_MAGNESIUM_LABEL, limingNeed: calciumMagnesiumNeed };
 };
 
 const recommendationTypeOptions: { value: RecommendationType; label: string }[] = [
@@ -191,25 +262,28 @@ const getAnalysisLabelPrefix = (analysis: SoilAnalysisResponse) =>
 const mapPhysicalAnalysisOption = (
   extract: PhysicalAnalysisExtractResponse,
   analysis: SoilAnalysisResponse,
-): AnalysisExtractOption => ({
+): AnalysisExtractOption<PhysicalAnalysisExtractResponse> => ({
   id: extract.id,
   label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+  extract,
 });
 
 const mapFertilityAnalysisOption = (
   extract: FertilityAnalysisExtractResponse,
   analysis: SoilAnalysisResponse,
-): AnalysisExtractOption => ({
+): AnalysisExtractOption<FertilityAnalysisExtractResponse> => ({
   id: extract.id,
   label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+  extract,
 });
 
 const mapSaturationAnalysisOption = (
   extract: SaturationExtractAnalysisExtractResponse,
   analysis: SoilAnalysisResponse,
-): AnalysisExtractOption => ({
+): AnalysisExtractOption<SaturationExtractAnalysisExtractResponse> => ({
   id: extract.id,
   label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
+  extract,
 });
 
 const getFolderLabel = (folder: AnnualCropFolderResponseDto) =>
@@ -305,9 +379,9 @@ export default function Recommendation() {
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
-  const [physicalAnalysisOptions, setPhysicalAnalysisOptions] = useState<AnalysisExtractOption[]>([]);
-  const [soilFertilityAnalysisOptions, setSoilFertilityAnalysisOptions] = useState<AnalysisExtractOption[]>([]);
-  const [saturationExtractAnalysisOptions, setSaturationExtractAnalysisOptions] = useState<AnalysisExtractOption[]>([]);
+  const [physicalAnalysisOptions, setPhysicalAnalysisOptions] = useState<AnalysisExtractOption<PhysicalAnalysisExtractResponse>[]>([]);
+  const [soilFertilityAnalysisOptions, setSoilFertilityAnalysisOptions] = useState<AnalysisExtractOption<FertilityAnalysisExtractResponse>[]>([]);
+  const [saturationExtractAnalysisOptions, setSaturationExtractAnalysisOptions] = useState<AnalysisExtractOption<SaturationExtractAnalysisExtractResponse>[]>([]);
   const [annualCropFolders, setAnnualCropFolders] = useState<AnnualCropFolderResponseDto[]>([]);
   const [crops, setCrops] = useState<CropResponseDto[]>([]);
   const [cropFertilizationTables, setCropFertilizationTables] = useState<TableOption[]>([]);
@@ -343,6 +417,21 @@ export default function Recommendation() {
   const filteredFoliarInterpretationTables = useMemo(
     () => filterTablesByGroup(foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup),
     [foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup],
+  );
+  const selectedPhysicalAnalysisExtract = useMemo(
+    () => physicalAnalysisOptions.find((analysis) => String(analysis.id) === physicalAnalysisExtractId)?.extract ?? null,
+    [physicalAnalysisOptions, physicalAnalysisExtractId],
+  );
+  const selectedSoilFertilityAnalysisExtract = useMemo(
+    () => soilFertilityAnalysisOptions.find((analysis) => String(analysis.id) === soilFertilityAnalysisId)?.extract ?? null,
+    [soilFertilityAnalysisOptions, soilFertilityAnalysisId],
+  );
+  const limingCriterionPreview = useMemo(
+    () => calculateClientLimingCriterion({
+      physicalExtract: selectedPhysicalAnalysisExtract,
+      fertilityExtract: selectedSoilFertilityAnalysisExtract,
+    }),
+    [selectedPhysicalAnalysisExtract, selectedSoilFertilityAnalysisExtract, selectedPropertyId, selectedPlotId],
   );
 
   const loadHistory = async () => {
@@ -531,9 +620,9 @@ export default function Recommendation() {
 
         if (!isCurrent) return;
 
-        const physicalOptions: AnalysisExtractOption[] = [];
-        const fertilityOptions: AnalysisExtractOption[] = [];
-        const saturationOptions: AnalysisExtractOption[] = [];
+        const physicalOptions: AnalysisExtractOption<PhysicalAnalysisExtractResponse>[] = [];
+        const fertilityOptions: AnalysisExtractOption<FertilityAnalysisExtractResponse>[] = [];
+        const saturationOptions: AnalysisExtractOption<SaturationExtractAnalysisExtractResponse>[] = [];
 
         for (const analysis of soilAnalyses ?? []) {
           const isLayerAnalysis = analysis.tipo_extrato === TipoExtrato.CAMADAS;
@@ -850,7 +939,27 @@ export default function Recommendation() {
                 onGroupChange: setCropFoliarAnalysisInterpretationTableGroup,
                 onTableChange: setCropFoliarAnalysisInterpretationTableId,
               })}
-              <NativeSelect value="" disabled aria-label="Critério de calagem"><option value="">Critério de calagem</option></NativeSelect>
+              <Box>
+                <SimpleGrid columns={{ base: 1, sm: limingCriterionPreview.limingNeed === null ? 1 : 2 }} gap={2}>
+                  <Box>
+                    <Text fontSize="sm" mb={1}>Critério de calagem</Text>
+                    <Box borderWidth="1px" borderRadius="md" px={3} py={2} minH={10} bg="bg.panel" color="fg.muted" aria-label="Critério de calagem">
+                      {limingCriterionPreview.criterionLabel}
+                    </Box>
+                  </Box>
+                  {limingCriterionPreview.limingNeed !== null ? (
+                    <Box>
+                      <Text fontSize="sm" mb={1}>Necessidade calagem (t/ha)</Text>
+                      <Box borderWidth="1px" borderRadius="md" px={3} py={2} minH={10} bg="bg.panel" color="fg.muted" aria-label="Necessidade calagem (t/ha)">
+                        {limingCriterionPreview.limingNeed.toFixed(2)}
+                      </Box>
+                    </Box>
+                  ) : null}
+                </SimpleGrid>
+                {limingCriterionPreview.warning ? (
+                  <Text mt={2} fontSize="xs" color="fg.muted">{limingCriterionPreview.warning}</Text>
+                ) : null}
+              </Box>
               <Box>
                 <Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
                 <NativeSelect value={fertilizerSourceOption} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
