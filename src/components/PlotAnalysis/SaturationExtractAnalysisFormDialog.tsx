@@ -83,6 +83,19 @@ const camadaCollection = createListCollection({
     items: Object.values(Camada).map((c) => ({ label: c, value: c })),
 });
 
+const formatDecimalDisplay = (value?: number | null) => {
+    const numericValue = Number(value ?? 0);
+    return Number.isFinite(numericValue) ? numericValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00";
+};
+
+const parseDecimalInput = (value: string) => {
+    const normalizedValue = value.replace(",", ".");
+    const numericValue = parseFloat(normalizedValue);
+    return Number.isFinite(numericValue) ? numericValue : 0;
+};
+
+const roundDecimalValue = (value: number) => Number(value.toFixed(2));
+
 interface Props {
     isOpen: boolean;
     onClose: () => void;
@@ -112,11 +125,13 @@ export const SaturationExtractAnalysisFormDialog = ({
     const [itemsToDelete, setItemsToDelete] = useState<ItemToDelete[]>([]); 
     
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [numericDrafts, setNumericDrafts] = useState<Record<string, string>>({});
 
     // Efeito de Inicialização
     useEffect(() => {
         if (isOpen) {
             setItemsToDelete([]); // Limpa lista de exclusão
+            setNumericDrafts({});
 
             if (initialData) {
                 // --- MODO EDIÇÃO / VISUALIZAÇÃO ---
@@ -184,6 +199,37 @@ export const SaturationExtractAnalysisFormDialog = ({
         } else {
             setExtracts(updated);
         }
+    };
+
+    const NumericField = ({ extract, field, label }: { extract: SaturationExtractFormData, field: keyof SaturationExtractFormData, label: string }) => {
+        const draftKey = `${extract.tempId}:${String(field)}`;
+        const rawValue = extract[field];
+        const numericValue = typeof rawValue === "number" ? rawValue : parseDecimalInput(String(rawValue ?? 0));
+        const displayValue = numericDrafts[draftKey] ?? formatDecimalDisplay(numericValue);
+
+        return (
+            <Field
+                label={label}
+                type="text"
+                inputMode="decimal"
+                value={displayValue}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    setNumericDrafts((prev) => ({ ...prev, [draftKey]: value }));
+                    handleChangeExtract(extract.tempId, field, parseDecimalInput(value));
+                }}
+                onBlur={() => {
+                    const roundedValue = roundDecimalValue(parseDecimalInput(numericDrafts[draftKey] ?? String(numericValue)));
+                    handleChangeExtract(extract.tempId, field, roundedValue);
+                    setNumericDrafts((prev) => {
+                        const next = { ...prev };
+                        delete next[draftKey];
+                        return next;
+                    });
+                }}
+                readOnly={isReadOnly}
+            />
+        );
     };
 
     const recalculateSubLayers = (list: SaturationExtractFormData[]) => {
@@ -291,7 +337,6 @@ export const SaturationExtractAnalysisFormDialog = ({
                     teor_ca: ext.teorCa,
                     teor_mg: ext.teorMg,
                     residuos_suspensao: ext.residuosSuspensao,
-                    dureza_caco3: ext.durezaCaCO3,
                     dureza_total_caco3: ext.durezaTotalCaCO3,
                     ras: ext.ras
                 };
@@ -468,40 +513,39 @@ export const SaturationExtractAnalysisFormDialog = ({
                                                         </SelectRoot>
                                                     </Box>
                                                 )}
-                                                <Box gridColumn="span 2"><Field label="Prof. Inicial (cm)" type="number" value={ext.profundidadeInicial} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeInicial', parseFloat(e.target.value))} readOnly={isReadOnly} /></Box>
-                                                <Box gridColumn="span 2"><Field label="Prof. Final (cm)" type="number" value={ext.profundidadeFinal} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeFinal', parseFloat(e.target.value))} readOnly={isReadOnly} /></Box>
+                                                <Box gridColumn="span 2"><NumericField label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
+                                                <Box gridColumn="span 2"><NumericField label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
                                             </Grid>
 
                                             <SectionHeader title="Físico-Química e Resíduos" colorPalette="blue" />
                                             <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                                                <Field label="pH" type="number" value={ext.ph} onChange={e => handleChangeExtract(ext.tempId, 'ph', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="CE (dS/m)" type="number" value={ext.ce} onChange={e => handleChangeExtract(ext.tempId, 'ce', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Resíduos Susp. (mg/L)" type="number" value={ext.residuosSuspensao} onChange={e => handleChangeExtract(ext.tempId, 'residuosSuspensao', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField label="pH" extract={ext} field="ph" />
+                                                <NumericField label="CE (dS/m)" extract={ext} field="ce" />
+                                                <NumericField label="Resíduos Susp. (mg/L)" extract={ext} field="residuosSuspensao" />
                                             </Grid>
 
                                             <SectionHeader title="Cátions Solúveis" colorPalette="orange" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Ca2+ (mg/L)" type="number" value={ext.teorCa} onChange={e => handleChangeExtract(ext.tempId, 'teorCa', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Mg2+ (mg/L)" type="number" value={ext.teorMg} onChange={e => handleChangeExtract(ext.tempId, 'teorMg', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Na+ (mg/L)" type="number" value={ext.teorNa} onChange={e => handleChangeExtract(ext.tempId, 'teorNa', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="K+ (mg/L)" type="number" value={ext.teorK} onChange={e => handleChangeExtract(ext.tempId, 'teorK', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField label="Ca2+ (mg/L)" extract={ext} field="teorCa" />
+                                                <NumericField label="Mg2+ (mg/L)" extract={ext} field="teorMg" />
+                                                <NumericField label="Na+ (mg/L)" extract={ext} field="teorNa" />
+                                                <NumericField label="K+ (mg/L)" extract={ext} field="teorK" />
                                             </Grid>
 
                                             <SectionHeader title="Ânions Solúveis" colorPalette="teal" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
-                                                <Field label="CO3 2- (mg/L)" type="number" value={ext.teorCO3} onChange={e => handleChangeExtract(ext.tempId, 'teorCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="HCO3 - (mg/L)" type="number" value={ext.teorHCO3} onChange={e => handleChangeExtract(ext.tempId, 'teorHCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="NO3 - (mg/L)" type="number" value={ext.teorNO3} onChange={e => handleChangeExtract(ext.tempId, 'teorNO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="H2PO4 - (mg/L)" type="number" value={ext.teorH2PO4} onChange={e => handleChangeExtract(ext.tempId, 'teorH2PO4', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="SO4 2- (mg/L)" type="number" value={ext.teorSO4} onChange={e => handleChangeExtract(ext.tempId, 'teorSO4', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Cl - (mg/L)" type="number" value={ext.teorCl ?? 0} onChange={e => handleChangeExtract(ext.tempId, 'teorCl', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField label="CO3 2- (mg/L)" extract={ext} field="teorCO3" />
+                                                <NumericField label="HCO3 - (mg/L)" extract={ext} field="teorHCO3" />
+                                                <NumericField label="NO3 - (mg/L)" extract={ext} field="teorNO3" />
+                                                <NumericField label="H2PO4 - (mg/L)" extract={ext} field="teorH2PO4" />
+                                                <NumericField label="SO4 2- (mg/L)" extract={ext} field="teorSO4" />
+                                                <NumericField label="Cl - (mg/L)" extract={ext} field="teorCl" />
                                             </Grid>
 
                                             <SectionHeader title="Dureza e Indicadores" colorPalette="pink" />
-                                            <Grid templateColumns="repeat(3, 1fr)" gap={4}>
-                                                <Field label="Dureza CaCO3 (mg/L)" type="number" value={ext.durezaCaCO3} onChange={e => handleChangeExtract(ext.tempId, 'durezaCaCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Dureza Total (mg/L)" type="number" value={ext.durezaTotalCaCO3} onChange={e => handleChangeExtract(ext.tempId, 'durezaTotalCaCO3', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="RAS" type="number" value={ext.ras} onChange={e => handleChangeExtract(ext.tempId, 'ras', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                            <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                                                <NumericField label="Dureza Total (mg/L)" extract={ext} field="durezaTotalCaCO3" />
+                                                <NumericField label="RAS ((mmolc)**0.5)" extract={ext} field="ras" />
                                             </Grid>
                                         </Box>
                                     ))}

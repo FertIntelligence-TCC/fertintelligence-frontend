@@ -46,6 +46,11 @@ interface GroupedAnalysis {
     extracts: SaturationExtractFormData[];
 }
 
+const formatDecimalDisplay = (value?: number | null) => {
+    const numericValue = Number(value ?? 0);
+    return Number.isFinite(numericValue) ? numericValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00";
+};
+
 export const SaturationExtractAnalysis = () => {
     const { plotId } = useParams();
     const navigate = useNavigate();
@@ -177,7 +182,7 @@ export const SaturationExtractAnalysis = () => {
             teorCa: r.teor_ca,
             teorMg: r.teor_mg,
             residuosSuspensao: r.residuos_suspensao,
-            durezaCaCO3: r.dureza_caco3,
+            durezaCaCO3: r.dureza_caco3 ?? 0,
             durezaTotalCaCO3: r.dureza_total_caco3,
             ras: r.ras
         };
@@ -284,15 +289,15 @@ export const SaturationExtractAnalysis = () => {
                                                     <Text fontWeight="bold" color="gray.700" _dark={{ color: "gray.200" }}>
                                                         {group.type === TipoExtrato.CAMADAS 
                                                             ? `Camada ${ext.camada}${ext.subcamada ? ext.subcamada : ''}`
-                                                            : `Prof. ${ext.profundidadeInicial} - ${ext.profundidadeFinal} cm`
+                                                            : `Prof. ${formatDecimalDisplay(ext.profundidadeInicial)} - ${formatDecimalDisplay(ext.profundidadeFinal)} cm`
                                                         }
                                                     </Text>
                                                 </Flex>
                                                 
                                                 <Grid templateColumns="repeat(2, 1fr)" gapX={4} gapY={1} fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }}>
-                                                    <Text>pH: <b>{ext.ph}</b></Text>
-                                                    <Text>CE: <b>{ext.ce}</b> dS/m</Text>
-                                                    <Text>RAS: <b>{ext.ras}</b></Text>
+                                                    <Text>pH: <b>{formatDecimalDisplay(ext.ph)}</b></Text>
+                                                    <Text>CE: <b>{formatDecimalDisplay(ext.ce)}</b> dS/m</Text>
+                                                    <Text>RAS: <b>{formatDecimalDisplay(ext.ras)}</b> (mmolc)**0.5</Text>
                                                 </Grid>
                                             </Box>
                                         ))}

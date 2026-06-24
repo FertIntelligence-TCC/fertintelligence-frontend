@@ -179,7 +179,7 @@ const mapSaturationToFormData = (
     teorCa: data.teor_ca,
     teorMg: data.teor_mg,
     residuosSuspensao: data.residuos_suspensao,
-    durezaCaCO3: data.dureza_caco3,
+    durezaCaCO3: data.dureza_caco3 ?? 0,
     durezaTotalCaCO3: data.dureza_total_caco3,
     ras: data.ras,
 });

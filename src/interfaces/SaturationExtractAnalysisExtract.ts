@@ -31,7 +31,7 @@ export interface SaturationExtractAnalysisExtractResponse {
     
     // Outros
     residuos_suspensao: number;
-    dureza_caco3: number;
+    dureza_caco3?: number;
     dureza_total_caco3: number;
     ras: number; // Razão de Adsorção de Sódio
 }
@@ -50,7 +50,6 @@ export interface SaturationExtractAnalysisExtractCreatePayload {
     teor_ca?: number;
     teor_mg?: number;
     residuos_suspensao?: number;
-    dureza_caco3?: number;
     dureza_total_caco3?: number;
     ras?: number;
 }
@@ -74,7 +73,6 @@ export interface SaturationExtractAnalysisExtractUpdatePayload {
     // Atenção: no DTO Java está "novos_residuos_suspensao" (plural)
     novos_residuos_suspensao?: number;
     
-    nova_dureza_caco3?: number;
     nova_dureza_total_caco3?: number;
     novo_ras?: number;
 }
