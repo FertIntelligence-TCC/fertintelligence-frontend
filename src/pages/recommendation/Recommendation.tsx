@@ -203,10 +203,10 @@ const recommendationTypeOptions: { value: RecommendationType; label: string }[] 
 ];
 
 const fertilizerOriginOptions: { value: FertilizerSourceOption; label: string }[] = [
-  { value: "PRIVATE", label: "Privados" },
-  { value: "PUBLIC", label: "Públicos" },
   { value: "DEFAULT", label: "Padrão" },
-  { value: "BOTH", label: "Ambos" },
+  { value: "PUBLIC", label: "Público" },
+  { value: "PRIVATE", label: "Privado" },
+  { value: "ALL", label: "Todos" },
 ];
 
 const tableGroupOptions: { value: TableSource; label: string }[] = [
@@ -217,13 +217,19 @@ const tableGroupOptions: { value: TableSource; label: string }[] = [
 
 const recommendationTypeValues = recommendationTypeOptions.map((option) => option.value);
 const fertilizerSourceValues = fertilizerOriginOptions.map((option) => option.value);
+const legacyFertilizerSourceValues: FertilizerSourceOption[] = ["BOTH", "AMBAS"];
 const tableGroupValues = tableGroupOptions.map((option) => option.value);
 
 const isRecommendationType = (value: string): value is RecommendationType =>
   recommendationTypeValues.includes(value as RecommendationType);
 
 const isFertilizerSourceOption = (value: string): value is FertilizerSourceOption =>
-  fertilizerSourceValues.includes(value as FertilizerSourceOption);
+  fertilizerSourceValues.includes(value as FertilizerSourceOption) ||
+  legacyFertilizerSourceValues.includes(value as FertilizerSourceOption);
+
+const normalizeFertilizerSourceOption = (
+  value: FertilizerSourceOption,
+): FertilizerSourceOption => (legacyFertilizerSourceValues.includes(value) ? "ALL" : value);
 
 const isRecommendationTableGroup = (value: TableGroupValue): value is RecommendationTableGroup =>
   tableGroupValues.includes(value as TableSource);
@@ -389,7 +395,7 @@ export default function Recommendation() {
   const [cropFertilizationTableId, setCropFertilizationTableId] = useState("");
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
-  const [fertilizerSourceOption, setFertilizerSourceOption] = useState<FertilizerSourceOption>("BOTH");
+  const [fertilizerSourceOption, setFertilizerSourceOption] = useState<FertilizerSourceOption>("ALL");
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
@@ -754,7 +760,7 @@ export default function Recommendation() {
         soilFertilityInterpretationCriteriaTableGroup: soilFertilityInterpretationTableGroup,
         cropFoliarAnalysisInterpretationTableGroup: cropFoliarAnalysisInterpretationTableGroup,
         criterio_calagem: null,
-        origem_adubos: fertilizerSourceOption,
+        origem_adubos: normalizeFertilizerSourceOption(fertilizerSourceOption),
       };
       const result = await generateRecommendation(payload);
       setSelectedRecommendation(result);
@@ -996,7 +1002,7 @@ export default function Recommendation() {
               </Box>
               <Box>
                 <Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
-                <NativeSelect value={fertilizerSourceOption} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
+                <NativeSelect value={normalizeFertilizerSourceOption(fertilizerSourceOption)} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
               </Box>
               <Button colorPalette="blue" onClick={handleGenerate} loading={generating}>Gerar Recomendação</Button>
             </VStack>

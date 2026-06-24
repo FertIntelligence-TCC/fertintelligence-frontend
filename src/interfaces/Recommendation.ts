@@ -3,7 +3,7 @@ export type RecommendationType =
   | "FERTILIZATION"
   | "BOTH";
 
-export type FertilizerSourceOption = "PRIVATE" | "PUBLIC" | "DEFAULT" | "BOTH";
+export type FertilizerSourceOption = "PRIVATE" | "PUBLIC" | "DEFAULT" | "ALL" | "BOTH" | "AMBAS";
 export type RecommendationTableGroup = "PRIVATE" | "PUBLIC" | "DEFAULT";
 
 export type RecommendationLimingCriteria =
