@@ -172,7 +172,7 @@ return (
 
       <Dialog.Header>
         <Dialog.Title>
-          Teores Trocáveis de Potássio (K) - mg/dm³
+          Teores Trocáveis de Potássio (K) - mmolc/dm³
         </Dialog.Title>
       </Dialog.Header>
 

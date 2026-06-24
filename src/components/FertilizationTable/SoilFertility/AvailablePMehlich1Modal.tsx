@@ -196,22 +196,22 @@ export default function AvailablePMehlich1Modal({ isOpen, onClose, tableId, isRe
                     </Tabs.List>
 
                     <Tabs.Content value="arenoso">
-                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} mb={2}>Teor de Argila &lt; 15%</Text>
+                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} mb={2}>Teor de Argila &lt; 150 g/dm³</Text>
                         {renderTextureInputs("_solo_arenoso")}
                     </Tabs.Content>
                     
                     <Tabs.Content value="medio">
-                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} mb={2}>Teor de Argila 15% - 35%</Text>
+                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} mb={2}>Teor de Argila 150 g/dm³ - 350 g/dm³</Text>
                         {renderTextureInputs("_solo_arenoso_argiloso")}
                     </Tabs.Content>
 
                     <Tabs.Content value="argiloso">
-                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} mb={2}>Teor de Argila 35.1% - 60%</Text>
+                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} mb={2}>Teor de Argila 351 g/dm³ - 600 g/dm³</Text>
                         {renderTextureInputs("_solo_argiloso")}
                     </Tabs.Content>
 
                     <Tabs.Content value="muito_argiloso">
-                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} mb={2}>Teor de Argila &gt; 60%</Text>
+                        <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }} mb={2}>Teor de Argila &gt; 600 g/dm³</Text>
                         {renderTextureInputs("_solo_muito_argiloso")}
                     </Tabs.Content>
                 </Tabs.Root>

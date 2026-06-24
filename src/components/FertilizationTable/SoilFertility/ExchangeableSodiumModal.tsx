@@ -19,10 +19,10 @@ interface Props {
 }
 
 const CTC_SECTIONS = [
-  { value: "ctc_menor_4_3", tab: "CTC < 4,3", description: "CTC (T) < 4,3 mmolc/dm³" },
-  { value: "ctc_4_3_a_8_6", tab: "4,3 a 8,6", description: "CTC (T) de 4,3 a 8,6 mmolc/dm³" },
-  { value: "ctc_8_7_a_15_0", tab: "8,7 a 15,0", description: "CTC (T) de 8,7 a 15,0 mmolc/dm³" },
-  { value: "ctc_maior_15", tab: "CTC > 15", description: "CTC (T) > 15 mmolc/dm³" },
+  { value: "ctc_menor_4_3", tab: "CTC < 43", description: "CTC (T) < 43 mmolc/dm³" },
+  { value: "ctc_4_3_a_8_6", tab: "43 a 86", description: "CTC (T) de 43 a 86 mmolc/dm³" },
+  { value: "ctc_8_7_a_15_0", tab: "87 a 150", description: "CTC (T) de 87 a 150 mmolc/dm³" },
+  { value: "ctc_maior_15", tab: "CTC > 150", description: "CTC (T) > 150 mmolc/dm³" },
 ] as const;
 
 const FIELD_PREFIXES = [

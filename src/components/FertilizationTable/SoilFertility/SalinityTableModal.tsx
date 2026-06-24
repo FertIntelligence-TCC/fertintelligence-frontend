@@ -204,13 +204,13 @@ export default function SalinityTableModal({ isOpen, onClose, tableId, isReadOnl
                   { label: "Maior CE (dS/m)", key: "normal_soil_highest_ce" },
                   { label: "Maior PST (%)", key: "normal_soil_highest_pst" },
                   { label: "Maior pH", key: "normal_soil_highest_ph" },
-                  { label: "Maior RAS", key: "normal_soil_highest_ras" },
+                  { label: "Maior RAS (mmolc)**0.5", key: "normal_soil_highest_ras" },
                 ])}
                 {renderGroup("Solo Salino", [
                   { label: "Menor CE (dS/m)", key: "saline_soil_lowest_ce" },
                   { label: "Maior PST (%)", key: "saline_soil_highest_pst" },
                   { label: "Maior pH", key: "saline_soil_highest_ph" },
-                  { label: "Maior RAS", key: "saline_soil_highest_ras" },
+                  { label: "Maior RAS (mmolc)**0.5", key: "saline_soil_highest_ras" },
                 ])}
                 {renderGroup("Solo Salino-Sódico", [
                   { label: "Menor CE (dS/m)", key: "sodic_saline_soil_highest_ce" },

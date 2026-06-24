@@ -56,9 +56,9 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
     const auxiliaryTables = [
         "Salinidade",
         "Fósforo disponível, extrator Mehlich-1",
-        "Fósforo disponível, extrator resina de troca aniônica",
+        "Fósforo Disponível (Extrator Resina) - mg/dm³",
         "S disponível",
-        "Teores trocáveis de Potássio",
+        "Teores Trocáveis de Potássio (K) - mmolc/dm³",
         "Teores de Nutrientes Diversos",
         "Sódio Trocável (mmolc/dm³)"
     ];
@@ -196,9 +196,9 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                                 onClick={() => {
                                     if (tableName === "Salinidade") setIsSalinityOpen(true);
                                     else if (tableName === "Fósforo disponível, extrator Mehlich-1") setIsPMehlich1Open(true);
-                                    else if (tableName === "Fósforo disponível, extrator resina de troca aniônica") setIsPResinOpen(true);
+                                    else if (tableName === "Fósforo Disponível (Extrator Resina) - mg/dm³") setIsPResinOpen(true);
                                     else if (tableName === "S disponível") setIsAvailableSOpen(true);
-                                    else if (tableName === "Teores trocáveis de Potássio") setIsKExchangeableOpen(true);
+                                    else if (tableName === "Teores Trocáveis de Potássio (K) - mmolc/dm³") setIsKExchangeableOpen(true);
                                     
                                     // Nova lógica para Nutrientes Diversos
                                     else if (tableName === "Teores de Nutrientes Diversos") setIsDiverseContentOpen(true);

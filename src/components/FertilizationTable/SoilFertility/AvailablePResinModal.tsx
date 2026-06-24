@@ -49,12 +49,13 @@ const FIELDS = [
   { label: "Muito Alto", key: "muito_alto" }
 ] as const;
 
+const UNIT = "mg/dm³";
+
 export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadOnly = false }: Props) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [existingId, setExistingId] = useState<number | null>(null);
   const [form, setForm] = useState(INITIAL_STATE);
-  const [unit, setUnit] = useState("g/dm3");
 
   useEffect(() => {
     if (isOpen && tableId) {
@@ -62,7 +63,6 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
     } else {
       setForm(INITIAL_STATE);
       setExistingId(null);
-      setUnit("g/dm3");
     }
   }, [isOpen, tableId]);
 
@@ -72,7 +72,6 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
       const data = await getAvailablePResinByTable(tableId!);
       if (data) {
         setExistingId(data.id);
-        setUnit(data.unidade || "g/dm3");
 
         const newForm = { ...INITIAL_STATE };
         FIELDS.forEach((field) => {
@@ -82,7 +81,6 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
       } else {
         setExistingId(null);
         setForm(INITIAL_STATE);
-        setUnit("g/dm3");
       }
     } catch (error) {
       console.error(error);
@@ -133,7 +131,7 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
       {FIELDS.map((field) => (
         <Field.Root key={field.key}>
           <Field.Label fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
-            {field.label} ({unit})
+            {field.label} ({UNIT})
           </Field.Label>
           <Input
             size="sm"
@@ -157,7 +155,7 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
       <Dialog.Positioner>
         <Dialog.Content bg="white" _dark={{ bg: "gray.800" }} maxW="800px">
           <Dialog.Header>
-            <Dialog.Title>Fósforo Disponível (Extrator Resina) - {unit}</Dialog.Title>
+            <Dialog.Title>Fósforo Disponível (Extrator Resina) - {UNIT}</Dialog.Title>
           </Dialog.Header>
           <Dialog.Body>
             {loading ? (
@@ -170,7 +168,7 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
 
                 <Box borderWidth="1px" p={4} borderRadius="md" _dark={{ borderColor: "gray.600" }}>
                   <Text fontWeight="bold" color="green.600" _dark={{ color: "green.300" }} fontSize="sm">
-                    Unidade: {unit}
+                    Unidade: {UNIT}
                   </Text>
                   {renderInputs()}
                 </Box>
