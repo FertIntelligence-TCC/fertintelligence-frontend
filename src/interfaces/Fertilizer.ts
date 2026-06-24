@@ -17,7 +17,7 @@ export const getFertilizerPhotoIds = (item?: FertilizerPhotoCarrier): Fertilizer
 
 export const calculateOrganicCarbon = (organicMatter: string | number): number => {
     const value = typeof organicMatter === "number" ? organicMatter : parseFloat(organicMatter);
-    return Number.isFinite(value) ? value / 1.724 : 0;
+    return Number.isFinite(value) ? Number((value / 1.724).toFixed(1)) : 0;
 };
 
 export const formatOrganicCarbon = (organicMatter: string | number): string =>

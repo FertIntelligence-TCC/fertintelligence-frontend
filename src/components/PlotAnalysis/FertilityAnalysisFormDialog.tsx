@@ -528,17 +528,17 @@ export const FertilityAnalysisFormDialog = ({
 
                                             <SectionHeader title="Micronutrientes e Outros" colorPalette="green" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="P (Meh) (mg/dm3)" type="number" value={ext.fosforoMehlich1} onChange={e => handleChangeExtract(ext.tempId, 'fosforoMehlich1', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="P (Res) (mg/dm3)" type="number" value={ext.fosforoResina} onChange={e => handleChangeExtract(ext.tempId, 'fosforoResina', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="S (mg/dm3)" type="number" value={ext.enxofre} onChange={e => handleChangeExtract(ext.tempId, 'enxofre', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Matéria Orgânica (g/dm3)" type="number" value={ext.materiaOrganica} onChange={e => handleChangeExtract(ext.tempId, 'materiaOrganica', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="P (Meh) (mg/dm³)" type="number" value={ext.fosforoMehlich1} onChange={e => handleChangeExtract(ext.tempId, 'fosforoMehlich1', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="P (Res) (mg/dm³)" type="number" value={ext.fosforoResina} onChange={e => handleChangeExtract(ext.tempId, 'fosforoResina', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="S (mg/dm³)" type="number" value={ext.enxofre} onChange={e => handleChangeExtract(ext.tempId, 'enxofre', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Matéria Orgânica (g/dm³)" type="number" value={ext.materiaOrganica} onChange={e => handleChangeExtract(ext.tempId, 'materiaOrganica', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
                                             <Grid templateColumns="repeat(5, 1fr)" gap={4}>
-                                                <Field label="Boro (mg/dm3)" type="number" value={ext.boro} onChange={e => handleChangeExtract(ext.tempId, 'boro', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Cobre (mg/dm3)" type="number" value={ext.cobre} onChange={e => handleChangeExtract(ext.tempId, 'cobre', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Ferro (mg/dm3)" type="number" value={ext.ferro} onChange={e => handleChangeExtract(ext.tempId, 'ferro', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Manganês (mg/dm3)" type="number" value={ext.manganes} onChange={e => handleChangeExtract(ext.tempId, 'manganes', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Zinco (mg/dm3)" type="number" value={ext.zinco} onChange={e => handleChangeExtract(ext.tempId, 'zinco', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Boro (mg/dm³)" type="number" value={ext.boro} onChange={e => handleChangeExtract(ext.tempId, 'boro', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Cobre (mg/dm³)" type="number" value={ext.cobre} onChange={e => handleChangeExtract(ext.tempId, 'cobre', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Ferro (mg/dm³)" type="number" value={ext.ferro} onChange={e => handleChangeExtract(ext.tempId, 'ferro', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Manganês (mg/dm³)" type="number" value={ext.manganes} onChange={e => handleChangeExtract(ext.tempId, 'manganes', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Zinco (mg/dm³)" type="number" value={ext.zinco} onChange={e => handleChangeExtract(ext.tempId, 'zinco', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
                                         </Box>
                                         );
