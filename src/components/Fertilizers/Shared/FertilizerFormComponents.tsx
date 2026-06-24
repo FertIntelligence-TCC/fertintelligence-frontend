@@ -115,7 +115,7 @@ export const PublicVisibilitySelector = ({
 }: PublicVisibilitySelectorProps) => (
     <Box>
         <Text fontSize="sm" fontWeight="semibold" mb={2} color="gray.700" _dark={{ color: "gray.300" }}>
-            Tornar esse adubo público?
+            {readOnly ? "Visibilidade pública" : "Tornar esse adubo público?"}
         </Text>
         <HStack gap={3}>
             <Button
