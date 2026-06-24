@@ -390,7 +390,7 @@ export const FertilityAnalysisFormDialog = ({
                 }
             }
             
-            toaster.create({ title: "Análise Química salva!", type: "success" });
+            toaster.create({ title: "Análise de Fertilidade salva!", type: "success" });
             onSuccess(); 
             onClose();
 
@@ -504,23 +504,23 @@ export const FertilityAnalysisFormDialog = ({
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
                                                 <Field label="pH H₂O" type="number" value={ext.phAgua} onChange={e => handleChangeExtract(ext.tempId, 'phAgua', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="pH CaCl₂" type="number" value={ext.phCacl2} onChange={e => handleChangeExtract(ext.tempId, 'phCacl2', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Al3+ (Cmolc/dm3)" type="number" value={ext.aluminio} onChange={e => handleChangeExtract(ext.tempId, 'aluminio', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="H+Al (Cmolc/dm3)" type="number" value={ext.aluminioMaisHidrogenio} onChange={e => handleChangeExtract(ext.tempId, 'aluminioMaisHidrogenio', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Al3+ (mmolc/dm³)" type="number" value={ext.aluminio} onChange={e => handleChangeExtract(ext.tempId, 'aluminio', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="H+Al (mmolc/dm³)" type="number" value={ext.aluminioMaisHidrogenio} onChange={e => handleChangeExtract(ext.tempId, 'aluminioMaisHidrogenio', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
 
                                             <SectionHeader title="Bases Trocáveis" colorPalette="blue" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Ca2+ (Cmolc/dm3)" type="number" value={ext.calcio} onChange={e => handleChangeExtract(ext.tempId, 'calcio', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Mg2+ (Cmolc/dm3)" type="number" value={ext.magnesio} onChange={e => handleChangeExtract(ext.tempId, 'magnesio', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="K+ (Cmolc/dm3)" type="number" value={ext.potassio} onChange={e => handleChangeExtract(ext.tempId, 'potassio', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Na+ (Cmolc/dm3)" type="number" value={ext.sodio} onChange={e => handleChangeExtract(ext.tempId, 'sodio', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Ca2+ (mmolc/dm³)" type="number" value={ext.calcio} onChange={e => handleChangeExtract(ext.tempId, 'calcio', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Mg2+ (mmolc/dm³)" type="number" value={ext.magnesio} onChange={e => handleChangeExtract(ext.tempId, 'magnesio', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="K+ (mmolc/dm³)" type="number" value={ext.potassio} onChange={e => handleChangeExtract(ext.tempId, 'potassio', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Na+ (mmolc/dm³)" type="number" value={ext.sodio} onChange={e => handleChangeExtract(ext.tempId, 'sodio', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
 
                                             <SectionHeader title="Complexo de Troca" colorPalette="purple" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
-                                                <Field label="SB (Cmolc/dm³)" type="number" value={exchangeComplex.somaBases} readOnly />
-                                                <Field label="CTC(t) (Cmolc/dm³)" type="number" value={exchangeComplex.ctcEfetiva} readOnly />
-                                                <Field label="CTC(T) (Cmolc/dm³)" type="number" value={exchangeComplex.ctcPh7} readOnly />
+                                                <Field label="SB (mmolc/dm³)" type="number" value={exchangeComplex.somaBases} readOnly />
+                                                <Field label="CTC(t) (mmolc/dm³)" type="number" value={exchangeComplex.ctcEfetiva} readOnly />
+                                                <Field label="CTC(T) (mmolc/dm³)" type="number" value={exchangeComplex.ctcPh7} readOnly />
                                                 <Field label="V%" type="number" value={exchangeComplex.saturacaoBasesV} readOnly />
                                                 <Field label="m%" type="number" value={exchangeComplex.saturacaoAluminioM} readOnly />
                                                 <Field label="PST (%)" type="number" value={formatPstValue(exchangeComplex.pst)} readOnly />

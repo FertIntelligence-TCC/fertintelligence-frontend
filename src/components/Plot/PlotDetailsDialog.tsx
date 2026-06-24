@@ -297,7 +297,7 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
                     <Text fontSize="sm" fontWeight="bold" color="gray.700">Visualizar Dados</Text>
                     <VStack gap={3} width="100%">
                         <Button variant="outline" width="100%" colorScheme="green" onClick={() => handleOpenList("PHYSICAL")} loading={isLoadingDetails && activeListType === "PHYSICAL"}>Análises Físicas</Button>
-                        <Button variant="outline" width="100%" colorScheme="teal" onClick={() => handleOpenList("CHEMICAL")} loading={isLoadingDetails && activeListType === "CHEMICAL"}>Análises Químicas</Button>
+                        <Button variant="outline" width="100%" colorScheme="teal" onClick={() => handleOpenList("CHEMICAL")} loading={isLoadingDetails && activeListType === "CHEMICAL"}>Análises de Fertilidade</Button>
                         <Button variant="outline" width="100%" colorScheme="purple" onClick={() => handleOpenList("SATURATION")} loading={isLoadingDetails && activeListType === "SATURATION"}>Análises de Extrato de Saturação</Button>
                         
                         {/* Todos os usuários podem VISUALIZAR as pastas de culturas */}
@@ -308,7 +308,7 @@ export default function PlotDetailsDialog({ isOpen, onClose, plot }: Props) {
             </DialogContainer>
 
             {activeListType === "PHYSICAL" && <AnalysisListDialog isOpen={true} onClose={handleCloseList} title="Análises Físicas" plotId={plot.id} analysisType="PHYSICAL" onSelectAnalysis={handleSelectAnalysis} />}
-            {activeListType === "CHEMICAL" && <AnalysisListDialog isOpen={true} onClose={handleCloseList} title="Análises Químicas" plotId={plot.id} analysisType="CHEMICAL" onSelectAnalysis={handleSelectAnalysis} />}
+            {activeListType === "CHEMICAL" && <AnalysisListDialog isOpen={true} onClose={handleCloseList} title="Análises de Fertilidade" plotId={plot.id} analysisType="CHEMICAL" onSelectAnalysis={handleSelectAnalysis} />}
             {activeListType === "SATURATION" && <AnalysisListDialog isOpen={true} onClose={handleCloseList} title="Análises de Extrato de Saturação" plotId={plot.id} analysisType="SATURATION" onSelectAnalysis={handleSelectAnalysis} />}
 
             <AnnualCropFolderListDialog isOpen={isAnnualCropFoldersOpen} onClose={handleCloseAnnualCropFolders} plotId={plot.id} onSelectFolder={handleSelectFolder} />

@@ -60,7 +60,7 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
         "S disponível",
         "Teores trocáveis de Potássio",
         "Teores de Nutrientes Diversos",
-        "Sódio Trocável (cmolc/dm3)"
+        "Sódio Trocável (mmolc/dm³)"
     ];
 
     return (
@@ -202,7 +202,7 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                                     
                                     // Nova lógica para Nutrientes Diversos
                                     else if (tableName === "Teores de Nutrientes Diversos") setIsDiverseContentOpen(true);
-                                    else if (tableName === "Sódio Trocável (cmolc/dm3)") setIsExchangeableSodiumOpen(true);
+                                    else if (tableName === "Sódio Trocável (mmolc/dm³)") setIsExchangeableSodiumOpen(true);
                                     
                                     else {
                                         if (!readOnly) console.log(`Configurar ${tableName} (Em breve)`);

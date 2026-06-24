@@ -215,7 +215,7 @@ export const FertilityAnalysis = () => {
     };
 
     const handleDelete = async (analysisId: number) => {
-        if (!confirm("Tem certeza? Isso apagará a análise e todos os seus dados químicos.")) return;
+        if (!confirm("Tem certeza? Isso apagará a análise de fertilidade e todos os seus dados.")) return;
         try {
             await soilAnalysisService.delete(analysisId);
             toaster.create({ title: "Análise excluída", type: "success" });
@@ -249,7 +249,7 @@ export const FertilityAnalysis = () => {
                         Análises de Fertilidade: {isLoadingPlot ? <Spinner size="xs" ml={2}/> : plotIdentification}
                     </Heading>
                     <Button colorPalette="teal" onClick={handleAddNew} disabled={isLoadingPlot}>
-                        + Adicionar Análise Química
+                        + Adicionar Análise de Fertilidade
                     </Button>
                 </Flex>
 
@@ -318,7 +318,7 @@ export const FertilityAnalysis = () => {
                                             </Box>
                                         ))}
                                         {group.extracts.length === 0 && (
-                                            <Text fontStyle="italic" color="gray.400" fontSize="sm">Sem dados químicos cadastrados.</Text>
+                                            <Text fontStyle="italic" color="gray.400" fontSize="sm">Sem dados de fertilidade cadastrados.</Text>
                                         )}
                                     </Stack>
                                 </Box>
