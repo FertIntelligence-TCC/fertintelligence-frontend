@@ -40,6 +40,7 @@ import {
   type RecommendationLimingCriteria,
   type RecommendationTableGroup,
   type FertilizerSourceOption,
+  type RecommendationCreatePayload,
   type RecommendationResponse,
   type RecommendationType,
   getRecommendationReportText,
@@ -213,6 +214,19 @@ const tableGroupOptions: { value: TableSource; label: string }[] = [
   { value: "PUBLIC", label: "Públicas" },
   { value: "DEFAULT", label: "Padrão" },
 ];
+
+const recommendationTypeValues = recommendationTypeOptions.map((option) => option.value);
+const fertilizerSourceValues = fertilizerOriginOptions.map((option) => option.value);
+const tableGroupValues = tableGroupOptions.map((option) => option.value);
+
+const isRecommendationType = (value: string): value is RecommendationType =>
+  recommendationTypeValues.includes(value as RecommendationType);
+
+const isFertilizerSourceOption = (value: string): value is FertilizerSourceOption =>
+  fertilizerSourceValues.includes(value as FertilizerSourceOption);
+
+const isRecommendationTableGroup = (value: TableGroupValue): value is RecommendationTableGroup =>
+  tableGroupValues.includes(value as TableSource);
 
 const canPrintRecommendation = (cargo?: string) => {
   const roleMode = getAuthorizationRoleMode(cargo);
@@ -707,10 +721,25 @@ export default function Recommendation() {
       return;
     }
 
+    if (
+      !isRecommendationType(recommendationType) ||
+      !isRecommendationTableGroup(cropFertilizationTableGroup) ||
+      !isRecommendationTableGroup(soilFertilityInterpretationTableGroup) ||
+      !isRecommendationTableGroup(cropFoliarAnalysisInterpretationTableGroup) ||
+      !isFertilizerSourceOption(fertilizerSourceOption)
+    ) {
+      toaster.create({
+        title: "Parâmetros inválidos",
+        description: "Revise tipo de recomendação, grupos de tabelas e origem dos adubos antes de gerar.",
+        type: "warning",
+      });
+      return;
+    }
+
     setGenerating(true);
     try {
-      const result = await generateRecommendation({
-        tipo_recomendacao: recommendationType as RecommendationType,
+      const payload: RecommendationCreatePayload = {
+        tipo_recomendacao: recommendationType,
         id_propriedade: Number(selectedPropertyId),
         id_talhao: Number(selectedPlotId),
         id_extrato_analise_fisica: Number(physicalAnalysisExtractId),
@@ -721,19 +750,24 @@ export default function Recommendation() {
         id_tabela_adubacao_cultura: Number(cropFertilizationTableId),
         id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
         id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
-        cropFertilizationTableGroup: cropFertilizationTableGroup as RecommendationTableGroup,
-        soilFertilityInterpretationCriteriaTableGroup: soilFertilityInterpretationTableGroup as RecommendationTableGroup,
-        cropFoliarAnalysisInterpretationTableGroup: cropFoliarAnalysisInterpretationTableGroup as RecommendationTableGroup,
+        cropFertilizationTableGroup,
+        soilFertilityInterpretationCriteriaTableGroup: soilFertilityInterpretationTableGroup,
+        cropFoliarAnalysisInterpretationTableGroup: cropFoliarAnalysisInterpretationTableGroup,
         criterio_calagem: null,
         origem_adubos: fertilizerSourceOption,
-      });
+      };
+      const result = await generateRecommendation(payload);
       setSelectedRecommendation(result);
       toaster.create({ title: "Recomendação gerada com sucesso.", type: "success" });
       await loadHistory();
     } catch (error) {
       const axiosError = error as AxiosError;
       console.error("Erro ao gerar recomendação:", axiosError.response?.data || error);
-      toaster.create({ title: "Falha ao gerar recomendação.", type: "error" });
+      toaster.create({
+        title: "Falha ao gerar recomendação.",
+        description: "O endpoint recommendation/generate recusou o payload atual. Confira se as tabelas escolhidas pertencem aos grupos informados.",
+        type: "error",
+      });
     } finally { setGenerating(false); }
   };
 
@@ -949,8 +983,8 @@ export default function Recommendation() {
                   </Box>
                   {limingCriterionPreview.limingNeed !== null ? (
                     <Box>
-                      <Text fontSize="sm" mb={1}>Necessidade calagem (t/ha)</Text>
-                      <Box borderWidth="1px" borderRadius="md" px={3} py={2} minH={10} bg="bg.panel" color="fg.muted" aria-label="Necessidade calagem (t/ha)">
+                      <Text fontSize="sm" mb={1}>Necessidade de calagem estimada (t/ha, PRNT 100%)</Text>
+                      <Box borderWidth="1px" borderRadius="md" px={3} py={2} minH={10} bg="bg.panel" color="fg.muted" aria-label="Necessidade de calagem estimada (t/ha, PRNT 100%)">
                         {limingCriterionPreview.limingNeed.toFixed(2)}
                       </Box>
                     </Box>

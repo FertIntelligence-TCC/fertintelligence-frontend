@@ -1,6 +1,5 @@
 import { ENDPOINT } from "@/constants/Endpoint";
 import { RecommendationCreatePayload, RecommendationResponse } from "@/interfaces/Recommendation";
-import { AxiosError } from "axios";
 
 import { api } from "./axios";
 
@@ -8,26 +7,8 @@ import { api } from "./axios";
 export async function generateRecommendation(
   payload: RecommendationCreatePayload,
 ): Promise<RecommendationResponse> {
-  try {
-    const { data } = await api.post<RecommendationResponse>(ENDPOINT.GENERATE_RECOMMENDATION, payload);
-    return data;
-  } catch (error) {
-    const axiosError = error as AxiosError<{ message?: string }>;
-    const message = String(axiosError.response?.data?.message ?? "").toLowerCase();
-    const shouldRetryWithoutFertilizerSource =
-      axiosError.response?.status === 400 &&
-      (message.includes("origem_adubos") || message.includes("origem adubos"));
-
-    if (!shouldRetryWithoutFertilizerSource) {
-      throw error;
-    }
-
-    const legacyPayload = Object.fromEntries(
-      Object.entries(payload).filter(([key]) => key !== "origem_adubos"),
-    ) as Omit<RecommendationCreatePayload, "origem_adubos">;
-    const { data } = await api.post<RecommendationResponse>(ENDPOINT.GENERATE_RECOMMENDATION, legacyPayload);
-    return data;
-  }
+  const { data } = await api.post<RecommendationResponse>(ENDPOINT.GENERATE_RECOMMENDATION, payload);
+  return data;
 }
 
 export async function getRecommendation(id: number): Promise<RecommendationResponse> {
