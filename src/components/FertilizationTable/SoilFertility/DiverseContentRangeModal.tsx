@@ -80,6 +80,20 @@ const RANGE_PREFIXES = [
     "maior_teor"
 ];
 
+const NUTRIENTS_WITHOUT_EXTREME_RANGES: NutrientSuffix[] = [
+    "boro",
+    "cobre",
+    "ferro",
+    "manganes",
+    "zinco",
+];
+
+const EXTREME_RANGE_PREFIXES = ["menor_teor", "maior_teor"];
+
+const shouldHideRangeField = (suffix: NutrientSuffix, prefix: string) =>
+    NUTRIENTS_WITHOUT_EXTREME_RANGES.includes(suffix) &&
+    EXTREME_RANGE_PREFIXES.includes(prefix);
+
 const READ_SUFFIX_ALIASES: Partial<Record<NutrientSuffix, string[]>> = {
     aluminio_mais_hidrogenio: ["h_al", "hal", "aluminio_hidrogenio"],
     ctc_ph7: ["ctc_ph_7", "ctc_ph_7_0", "ctc_pH7"],
@@ -174,6 +188,10 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
         // UPDATE (Prefixo "novo_")
         const payload: any = {};
         Object.keys(form).forEach(key => {
+            const matchingHiddenField = NUTRIENTS_WITHOUT_EXTREME_RANGES.some(suffix =>
+                EXTREME_RANGE_PREFIXES.some(prefix => key === `${prefix}_${suffix}`)
+            );
+            if (matchingHiddenField) return;
             payload[`novo_${key}`] = parse(form[key]);
         });
         await updateDiverseContentRange(existingId, payload as DiverseContentRangePostRequestDto);
@@ -186,7 +204,9 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
         // Garante que todos os campos de todos os nutrientes sejam enviados (mesmo que 0)
         NUTRIENTS.forEach(n => {
             const suffix = n.value;
-            const fields = RANGE_PREFIXES.map(prefix => `${prefix}_${suffix}`);
+            const fields = RANGE_PREFIXES
+                .filter(prefix => !shouldHideRangeField(suffix, prefix))
+                .map(prefix => `${prefix}_${suffix}`);
             fields.forEach(f => {
                 payload[f] = parse(form[f] || "0");
             });
@@ -216,7 +236,10 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
           { label: "Alto (Menor Teor)", key: `teor_inicial_alto_${suffix}` },
           { label: "Alto (Maior Teor)", key: `teor_final_alto_${suffix}` },
           { label: "Muito Alto (Maior que)", key: `maior_teor_${suffix}` },
-      ];
+      ].filter(({ key }) => {
+          const prefix = key.replace(`_${suffix}`, "");
+          return !shouldHideRangeField(suffix, prefix);
+      });
 
       return (
           <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap={4} mt={4}>
