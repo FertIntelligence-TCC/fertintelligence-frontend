@@ -445,7 +445,7 @@ export default function Recommendation() {
       physicalExtract: selectedPhysicalAnalysisExtract,
       fertilityExtract: selectedSoilFertilityAnalysisExtract,
     }),
-    [selectedPhysicalAnalysisExtract, selectedSoilFertilityAnalysisExtract, selectedPropertyId, selectedPlotId],
+    [selectedPhysicalAnalysisExtract, selectedSoilFertilityAnalysisExtract],
   );
 
   const loadHistory = async () => {

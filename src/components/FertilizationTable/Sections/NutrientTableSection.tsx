@@ -91,7 +91,11 @@ export default function NutrientTableSection({ form, onFormChange, readOnly }: P
             id: Math.random().toString(36).substr(2, 9),
             label, operatorType: operator, plantio: "", coberturas: Array.from({ length: form.coberturaLabels.length }, () => ({ value: "" }))
         };
-        nutrient === "P" ? onFormChange("faixasP", [...form.faixasP, newRow]) : onFormChange("faixasK", [...form.faixasK, newRow]);
+        if (nutrient === "P") {
+            onFormChange("faixasP", [...form.faixasP, newRow]);
+            return;
+        }
+        onFormChange("faixasK", [...form.faixasK, newRow]);
     };
 
     const removeLastRangeRow = (nutrient: "P" | "K") => {

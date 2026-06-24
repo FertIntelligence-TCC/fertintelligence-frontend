@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
     Box,
@@ -93,12 +93,46 @@ export const PhysicalAnalysis = () => {
         }
     }, [plotId, location.state]);
 
-    // Efeito 2: Carregar as análises
-    useEffect(() => {
-        if (plotId) fetchData();
-    }, [plotId]);
+    const mapBackendToFormData = useCallback((
+        p: PhysicalAnalysisExtractResponse, 
+        rangeId?: number, 
+        layerId?: number,
+        initial?: number,
+        final?: number,
+        camada?: Camada,
+        subcamada?: number
+    ): PhysicalExtractFormData => {
+        return {
+            tempId: p.id.toString(),
+            databaseId: p.id,
+            containerId: rangeId || layerId,
+            profundidadeInicial: initial || 0,
+            profundidadeFinal: final || 0,
+            camada: camada,
+            subcamada: subcamada,
+            teorAreia: p.teor_areia,
+            teorSilte: p.teor_silte,
+            teorArgila: p.teor_argila,
+            densidadeAparente: p.densidade_aparente,
+            densidadeReal: p.densidade_real,
+            porosidadeTotal: p.porosidade_total,
+            microporosidade: p.microporosidade,
+            umidadeCapacidadeCampo: p.umidade_capacidade_campo,
+            umidadePontoMurchaPermanente: p.umidade_ponto_murcha_permanente,
+            aguaDisponivel: p.agua_disponivel,
+            resistenciaPenetracao: p.resistencia_penetracao,
+            percAgregados6_0mm: p.perc_agregados_6_0mm,
+            percAgregados4_1a6_0mm: p.perc_agregados_4_1_a_6_0mm,
+            percAgregados2_1a4_0mm: p.perc_agregados_2_1_a_4_0mm,
+            percAgregados1_0a2_0mm: p.perc_agregados_1_0_a_2_0mm || 0,
+            percAgregados0_5a1_0mm: p.perc_agregados_0_5_a_1_0mm || 0,
+            percAgregados0_25a0_5mm: p.perc_agregados_0_25_a_0_5mm || 0,
+            percAgregadosMenor0_25mm: p.perc_agregados_menor_0_25mm || 0,
+            dmAgregados: p.dm_agregados || 0
+        };
+    }, []);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!plotId) return;
         setIsLoading(true);
         try {
@@ -150,46 +184,12 @@ export const PhysicalAnalysis = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [mapBackendToFormData, plotId]);
 
-    const mapBackendToFormData = (
-        p: PhysicalAnalysisExtractResponse, 
-        rangeId?: number, 
-        layerId?: number,
-        initial?: number,
-        final?: number,
-        camada?: Camada,
-        subcamada?: number
-    ): PhysicalExtractFormData => {
-        return {
-            tempId: p.id.toString(),
-            databaseId: p.id,
-            containerId: rangeId || layerId,
-            profundidadeInicial: initial || 0,
-            profundidadeFinal: final || 0,
-            camada: camada,
-            subcamada: subcamada,
-            teorAreia: p.teor_areia,
-            teorSilte: p.teor_silte,
-            teorArgila: p.teor_argila,
-            densidadeAparente: p.densidade_aparente,
-            densidadeReal: p.densidade_real,
-            porosidadeTotal: p.porosidade_total,
-            microporosidade: p.microporosidade,
-            umidadeCapacidadeCampo: p.umidade_capacidade_campo,
-            umidadePontoMurchaPermanente: p.umidade_ponto_murcha_permanente,
-            aguaDisponivel: p.agua_disponivel,
-            resistenciaPenetracao: p.resistencia_penetracao,
-            percAgregados6_0mm: p.perc_agregados_6_0mm,
-            percAgregados4_1a6_0mm: p.perc_agregados_4_1_a_6_0mm,
-            percAgregados2_1a4_0mm: p.perc_agregados_2_1_a_4_0mm,
-            percAgregados1_0a2_0mm: p.perc_agregados_1_0_a_2_0mm || 0,
-            percAgregados0_5a1_0mm: p.perc_agregados_0_5_a_1_0mm || 0,
-            percAgregados0_25a0_5mm: p.perc_agregados_0_25_a_0_5mm || 0,
-            percAgregadosMenor0_25mm: p.perc_agregados_menor_0_25mm || 0,
-            dmAgregados: p.dm_agregados || 0
-        };
-    };
+    // Efeito 2: Carregar as análises
+    useEffect(() => {
+        if (plotId) fetchData();
+    }, [fetchData, plotId]);
 
     const handleAddNew = () => {
         if (isLoadingPlot) {

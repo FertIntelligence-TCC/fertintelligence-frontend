@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
     Box,
@@ -99,11 +99,50 @@ export const FertilityAnalysis = () => {
         }
     }, [plotId, location.state]);
 
-    useEffect(() => {
-        if (plotId) fetchData();
-    }, [plotId]);
+    const mapBackendToFormData = useCallback((
+        c: FertilityAnalysisExtractResponse, 
+        rangeId?: number, 
+        layerId?: number,
+        initial?: number,
+        final?: number,
+        camada?: Camada,
+        subcamada?: number
+    ): FertilityExtractFormData => {
+        return {
+            tempId: c.id.toString(),
+            databaseId: c.id,
+            containerId: rangeId || layerId,
+            profundidadeInicial: initial || 0,
+            profundidadeFinal: final || 0,
+            camada: camada,
+            subcamada: subcamada,
+            phAgua: c.ph_agua,
+            phCacl2: c.ph_cacl2,
+            calcio: c.calcio,
+            magnesio: c.magnesio,
+            potassio: c.potassio,
+            sodio: c.sodio,
+            aluminio: c.aluminio,
+            aluminioMaisHidrogenio: c.aluminio_mais_hidrogenio,
+            somaBases: c.soma_bases,
+            ctcEfetiva: c.ctc_efetiva,
+            ctcPh7: c.ctc_ph7,
+            saturacaoBasesV: c.saturacao_bases_v,
+            saturacaoAluminioM: c.saturacao_aluminio_m,
+            pst: c.pst ?? calculatePstFallback(c.sodio, c.ctc_ph7),
+            fosforoMehlich1: c.fosforo_mehlich1,
+            fosforoResina: c.fosforo_resina,
+            enxofre: c.enxofre,
+            materiaOrganica: c.materia_organica,
+            boro: c.boro,
+            cobre: c.cobre,
+            ferro: c.ferro,
+            manganes: c.manganes,
+            zinco: c.zinco
+        };
+    }, []);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!plotId) return;
         setIsLoading(true);
         try {
@@ -155,50 +194,11 @@ export const FertilityAnalysis = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [mapBackendToFormData, plotId]);
 
-    const mapBackendToFormData = (
-        c: FertilityAnalysisExtractResponse, 
-        rangeId?: number, 
-        layerId?: number,
-        initial?: number,
-        final?: number,
-        camada?: Camada,
-        subcamada?: number
-    ): FertilityExtractFormData => {
-        return {
-            tempId: c.id.toString(),
-            databaseId: c.id,
-            containerId: rangeId || layerId,
-            profundidadeInicial: initial || 0,
-            profundidadeFinal: final || 0,
-            camada: camada,
-            subcamada: subcamada,
-            phAgua: c.ph_agua,
-            phCacl2: c.ph_cacl2,
-            calcio: c.calcio,
-            magnesio: c.magnesio,
-            potassio: c.potassio,
-            sodio: c.sodio,
-            aluminio: c.aluminio,
-            aluminioMaisHidrogenio: c.aluminio_mais_hidrogenio,
-            somaBases: c.soma_bases,
-            ctcEfetiva: c.ctc_efetiva,
-            ctcPh7: c.ctc_ph7,
-            saturacaoBasesV: c.saturacao_bases_v,
-            saturacaoAluminioM: c.saturacao_aluminio_m,
-            pst: c.pst ?? calculatePstFallback(c.sodio, c.ctc_ph7),
-            fosforoMehlich1: c.fosforo_mehlich1,
-            fosforoResina: c.fosforo_resina,
-            enxofre: c.enxofre,
-            materiaOrganica: c.materia_organica,
-            boro: c.boro,
-            cobre: c.cobre,
-            ferro: c.ferro,
-            manganes: c.manganes,
-            zinco: c.zinco
-        };
-    };
+    useEffect(() => {
+        if (plotId) fetchData();
+    }, [fetchData, plotId]);
 
     const handleAddNew = () => {
         if (isLoadingPlot) {

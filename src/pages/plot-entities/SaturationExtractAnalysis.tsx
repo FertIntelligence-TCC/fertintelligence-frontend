@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
     Box,
@@ -94,11 +94,43 @@ export const SaturationExtractAnalysis = () => {
         }
     }, [plotId, location.state]);
 
-    useEffect(() => {
-        if (plotId) fetchData();
-    }, [plotId]);
+    const mapBackendToFormData = useCallback((
+        r: SaturationExtractAnalysisExtractResponse, 
+        rangeId?: number, 
+        layerId?: number,
+        initial?: number,
+        final?: number,
+        camada?: Camada,
+        subcamada?: number
+    ): SaturationExtractFormData => {
+        return {
+            tempId: r.id.toString(),
+            databaseId: r.id,
+            containerId: rangeId || layerId,
+            profundidadeInicial: initial || 0,
+            profundidadeFinal: final || 0,
+            camada: camada,
+            subcamada: subcamada,
+            ph: r.ph,
+            ce: r.ce,
+            teorCO3: r.teor_co3,
+            teorHCO3: r.teor_hco3,
+            teorNO3: r.teor_no3,
+            teorH2PO4: r.teor_h2po4,
+            teorSO4: r.teor_so4,
+            teorCl: r.teor_cl ?? 0,
+            teorNa: r.teor_na,
+            teorK: r.teor_k,
+            teorCa: r.teor_ca,
+            teorMg: r.teor_mg,
+            residuosSuspensao: r.residuos_suspensao,
+            durezaCaCO3: r.dureza_caco3 ?? 0,
+            durezaTotalCaCO3: r.dureza_total_caco3,
+            ras: r.ras
+        };
+    }, []);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!plotId) return;
         setIsLoading(true);
         try {
@@ -150,43 +182,11 @@ export const SaturationExtractAnalysis = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [mapBackendToFormData, plotId]);
 
-    const mapBackendToFormData = (
-        r: SaturationExtractAnalysisExtractResponse, 
-        rangeId?: number, 
-        layerId?: number,
-        initial?: number,
-        final?: number,
-        camada?: Camada,
-        subcamada?: number
-    ): SaturationExtractFormData => {
-        return {
-            tempId: r.id.toString(),
-            databaseId: r.id,
-            containerId: rangeId || layerId,
-            profundidadeInicial: initial || 0,
-            profundidadeFinal: final || 0,
-            camada: camada,
-            subcamada: subcamada,
-            ph: r.ph,
-            ce: r.ce,
-            teorCO3: r.teor_co3,
-            teorHCO3: r.teor_hco3,
-            teorNO3: r.teor_no3,
-            teorH2PO4: r.teor_h2po4,
-            teorSO4: r.teor_so4,
-            teorCl: r.teor_cl ?? 0,
-            teorNa: r.teor_na,
-            teorK: r.teor_k,
-            teorCa: r.teor_ca,
-            teorMg: r.teor_mg,
-            residuosSuspensao: r.residuos_suspensao,
-            durezaCaCO3: r.dureza_caco3 ?? 0,
-            durezaTotalCaCO3: r.dureza_total_caco3,
-            ras: r.ras
-        };
-    };
+    useEffect(() => {
+        if (plotId) fetchData();
+    }, [fetchData, plotId]);
 
     const handleAddNew = () => {
         if (isLoadingPlot) {
