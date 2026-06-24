@@ -55,7 +55,6 @@ export default function LoginPage() {
         });
         setUser(data);
       } catch (error) {
-        console.log(error);
         sessionStorage.removeItem("fertintelligenceToken");
         setServerError("Sessão expirada. Faça login novamente.");
       }
@@ -92,9 +91,8 @@ export default function LoginPage() {
       }
     },
   
-    onError: (error) => {
+    onError: () => {
       alert("Entradas inválidas ou usuário inexistente.");
-      console.log("Erro na autenticação:", error);
     },
   });  
 
@@ -106,7 +104,7 @@ export default function LoginPage() {
       };
       sendSignInForm.mutate(payload);
     } else {
-      console.log("Campos inválidos no login");
+      setServerError("Informe usuário e senha para continuar.");
     }
   };
 

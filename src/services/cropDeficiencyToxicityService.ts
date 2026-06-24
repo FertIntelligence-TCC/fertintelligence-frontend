@@ -11,7 +11,6 @@ export const createCropDeficiencyToxicity = async (
   cropId: number,
   data: CropDeficiencyToxicityCreateRequestDto,
 ): Promise<CropDeficiencyToxicityResponseDto> => {
-  console.debug("POST /crop-deficiency-toxicity/register payload", data);
   const response = await api.post(ENDPOINT.CREATE_CROP_DEFICIENCY_TOXICITY, data, { params: { cropId } });
   return response.data;
 };
@@ -27,7 +26,6 @@ export const updateCropDeficiencyToxicity = async (
   deficiencyToxicityId: number,
   data: CropDeficiencyToxicityPostRequestDto,
 ): Promise<CropDeficiencyToxicityResponseDto> => {
-  console.debug("PUT /crop-deficiency-toxicity/update payload", data);
   const response = await api.put(ENDPOINT.UPDATE_CROP_DEFICIENCY_TOXICITY, data, {
     params: { deficiencyToxicityId },
   });

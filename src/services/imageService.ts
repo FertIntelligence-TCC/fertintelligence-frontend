@@ -38,9 +38,6 @@ export const uploadImageMongoDB = async (img: string): Promise<MongoImageRespons
 
 export const updateImageMongoDB = async (img: string, id: string) => {
   try {
-    console.log(img)
-    console.log("BASEURL:", axiosImageManager.defaults.baseURL);
-    console.log("CALL URL:", `/${ENDPOINT.UPDATE_IMAGE_MONGO}/${id}`);
     const { data } = await axiosImageManager.patch(`/${ENDPOINT.UPDATE_IMAGE_MONGO}/${id}`,
         {image: img},
         {
@@ -49,7 +46,6 @@ export const updateImageMongoDB = async (img: string, id: string) => {
             },
         }
     );
-    console.log(data.data)
     return data.data;
   } catch (error) {
     console.error("Erro ao buscar imagem:", error);
