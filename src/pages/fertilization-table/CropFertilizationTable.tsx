@@ -170,7 +170,7 @@ const mapHydratedDataToForm = (
       ranges.sort((a, b) => a.ordem_teor - b.ordem_teor);
 
       return ranges.map(r => {
-          const nutrientLabel = nutrientKey === "FOSFORO" ? "P2O5" : "K2O";
+          const nutrientLabel = nutrientKey === "FOSFORO" ? "P" : "K";
 
           let label = "";
           let operatorType: "less" | "between" | "more" = "between";
