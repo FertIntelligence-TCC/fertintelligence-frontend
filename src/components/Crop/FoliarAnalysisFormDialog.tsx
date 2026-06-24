@@ -34,6 +34,7 @@ interface FoliarAnalysisFormDialogProps {
   open: boolean;
   onOpenChange: (details: { open: boolean }) => void;
   cropId: number;
+  plantingYearLimit?: number;
   selectedAnalysis?: FoliarAnalysisResponseDto | null;
   onSuccess: () => void;
 }
@@ -55,6 +56,7 @@ export const FoliarAnalysisFormDialog = ({
   open,
   onOpenChange,
   cropId,
+  plantingYearLimit,
   selectedAnalysis,
   onSuccess,
 }: FoliarAnalysisFormDialogProps) => {
@@ -83,6 +85,17 @@ export const FoliarAnalysisFormDialog = ({
   const [v, setV] = useState("");
   const [co, setCo] = useState("");
   const [se, setSe] = useState("");
+
+  const isCollectionYearAfterPlanting =
+    !!dataColeta &&
+    !!plantingYearLimit &&
+    new Date(`${dataColeta}T00:00:00`).getFullYear() > plantingYearLimit;
+
+  const collectionDateError = isCollectionYearAfterPlanting
+    ? `A data de coleta não pode ter ano posterior ao plantio (${plantingYearLimit}).`
+    : undefined;
+
+  const maxCollectionDate = plantingYearLimit ? `${plantingYearLimit}-12-31` : undefined;
 
   useEffect(() => {
     if (open) {
@@ -127,6 +140,15 @@ export const FoliarAnalysisFormDialog = ({
   const handleSubmit = async () => {
     if (!dataColeta) {
       toaster.create({ title: "Informe a data da coleta", type: "error" });
+      return;
+    }
+
+    if (isCollectionYearAfterPlanting) {
+      toaster.create({
+        title: "Data de coleta inválida",
+        description: collectionDateError,
+        type: "error",
+      });
       return;
     }
 
@@ -207,8 +229,19 @@ export const FoliarAnalysisFormDialog = ({
         <DialogBody>
           <VStack gap={5} align="stretch">
             <SimpleGrid columns={2} gap={4}>
-              <Field label="Data da Coleta" required>
-                <Input type="date" value={dataColeta} onChange={e => setDataColeta(e.target.value)} />
+              <Field
+                label="Data da Coleta"
+                required
+                invalid={isCollectionYearAfterPlanting}
+                errorText={collectionDateError}
+                helperText={plantingYearLimit ? `Ano limite: ${plantingYearLimit}.` : "Ano de plantio não disponível para limitar a coleta."}
+              >
+                <Input
+                  type="date"
+                  value={dataColeta}
+                  max={maxCollectionDate}
+                  onChange={e => setDataColeta(e.target.value)}
+                />
               </Field>
               <Field label="Laboratório">
                 <Input value={laboratorio} onChange={e => setLaboratorio(e.target.value)} placeholder="Opcional" />

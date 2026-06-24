@@ -29,9 +29,10 @@ import { FoliarAnalysisFormDialog } from "./FoliarAnalysisFormDialog";
 
 interface FoliarAnalysisManagerProps {
   cropId: number;
+  plantingYearLimit?: number;
 }
 
-export const FoliarAnalysisManager = ({ cropId }: FoliarAnalysisManagerProps) => {
+export const FoliarAnalysisManager = ({ cropId, plantingYearLimit }: FoliarAnalysisManagerProps) => {
   const [data, setData] = useState<FoliarAnalysisResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -85,13 +86,22 @@ export const FoliarAnalysisManager = ({ cropId }: FoliarAnalysisManagerProps) =>
     return `${d.day.toString().padStart(2,'0')}/${d.month.toString().padStart(2,'0')}/${d.year}`;
   };
 
+  const hasFoliarAnalysis = data.length > 0;
+
   return (
     <VStack align="stretch" gap={4}>
-      <HStack justify="space-between">
-        <Text fontWeight="bold">Histórico de Análises Foliares</Text>
-        <Button size="sm" onClick={() => { setSelectedItem(null); setIsFormOpen(true); }}>
-          + Nova Análise
-        </Button>
+      <HStack justify="space-between" align="start" gap={4}>
+        <Box>
+          <Text fontWeight="bold">Histórico de Análises Foliares</Text>
+          <Text fontSize="sm" color="fg.muted">
+            A cultura só pode ter uma análise foliar.
+          </Text>
+        </Box>
+        {!isLoading && !hasFoliarAnalysis && (
+          <Button size="sm" onClick={() => { setSelectedItem(null); setIsFormOpen(true); }}>
+            + Nova Análise
+          </Button>
+        )}
       </HStack>
 
       {isLoading ? (
@@ -150,6 +160,7 @@ export const FoliarAnalysisManager = ({ cropId }: FoliarAnalysisManagerProps) =>
         open={isFormOpen} 
         onOpenChange={(e) => setIsFormOpen(e.open)} 
         cropId={cropId}
+        plantingYearLimit={plantingYearLimit}
         selectedAnalysis={selectedItem}
         onSuccess={fetchData}
       />

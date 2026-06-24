@@ -460,7 +460,12 @@ export const CropFormDialog = ({
             </Tabs.Content>
 
             <Tabs.Content value="foliar-analysis">
-              {currentCrop && <FoliarAnalysisManager cropId={currentCrop.id} />}
+              {currentCrop && (
+                <FoliarAnalysisManager
+                  cropId={currentCrop.id}
+                  plantingYearLimit={currentCrop.data_plantio?.year}
+                />
+              )}
             </Tabs.Content>
 
             {/* ABA 4: ADUBAÇÃO FOLIAR (INTEGRADA) */}
