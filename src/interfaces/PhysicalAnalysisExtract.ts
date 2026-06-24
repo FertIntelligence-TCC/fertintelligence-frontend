@@ -50,6 +50,11 @@ export interface PhysicalAnalysisExtractCreatePayload {
     perc_agregados_6_0mm: number;
     perc_agregados_4_1_a_6_0mm: number;
     perc_agregados_2_1_a_4_0mm: number;
+    perc_agregados_1_0_a_2_0mm?: number;
+    perc_agregados_0_5_a_1_0mm?: number;
+    perc_agregados_0_25_a_0_5mm?: number;
+    perc_agregados_menor_0_25mm?: number;
+    dm_agregados?: number;
 }
 
 export interface PhysicalAnalysisExtractUpdatePayload {
@@ -67,4 +72,9 @@ export interface PhysicalAnalysisExtractUpdatePayload {
     novo_perc_agregados_6_0mm?: number;
     novo_perc_agregados_4_1_a_6_0mm?: number;
     novo_perc_agregados_2_1_a_4_0mm?: number;
+    novo_perc_agregados_1_0_a_2_0mm?: number;
+    novo_perc_agregados_0_5_a_1_0mm?: number;
+    novo_perc_agregados_0_25_a_0_5mm?: number;
+    novo_perc_agregados_menor_0_25mm?: number;
+    novo_dm_agregados?: number;
 }
