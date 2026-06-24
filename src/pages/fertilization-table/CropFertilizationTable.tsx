@@ -254,18 +254,6 @@ const mapHydratedDataToForm = (
     sugestaoEstercoTipo: data.tipo_de_esterco as any,
     sugestaoEstercoQtd: String(data.quantidade_de_esterco),
 
-    sugestaoGessagem: String(data.sugestao_gessagem),
-    sugestaoAdubacaoComMicronutrientes: String(data.sugestao_de_adubacao_com_micronutrientes ?? ""),
-    dosesMicronutrientes: {
-      b: { min: String(data.dose_minima_b ?? ""), max: String(data.dose_maxima_b ?? "") },
-      cu: { min: String(data.dose_minima_cu ?? ""), max: String(data.dose_maxima_cu ?? "") },
-      fe: { min: String(data.dose_minima_fe ?? ""), max: String(data.dose_maxima_fe ?? "") },
-      ni: { min: String(data.dose_minima_ni ?? ""), max: String(data.dose_maxima_ni ?? "") },
-      mn: { min: String(data.dose_minima_mn ?? ""), max: String(data.dose_maxima_mn ?? "") },
-      mo: { min: String(data.dose_minima_mo ?? ""), max: String(data.dose_maxima_mo ?? "") },
-      zn: { min: String(data.dose_minima_zn ?? ""), max: String(data.dose_maxima_zn ?? "") },
-    },
-
     coberturaLabels: coberturaLabels.length > 0 ? coberturaLabels : ["1ª Cobertura"],
     plantioN,
     coberturasN: coberturasN.length > 0 ? coberturasN : [""],
@@ -328,23 +316,6 @@ const mapFormToRequest = (
 
     tipo_de_esterco: form.sugestaoEstercoTipo,
     quantidade_de_esterco: num(form.sugestaoEstercoQtd),
-
-    sugestao_gessagem: num(form.sugestaoGessagem),
-    sugestao_de_adubacao_com_micronutrientes: num(form.sugestaoAdubacaoComMicronutrientes),
-    dose_minima_b: num(form.dosesMicronutrientes.b.min),
-    dose_maxima_b: num(form.dosesMicronutrientes.b.max),
-    dose_minima_cu: num(form.dosesMicronutrientes.cu.min),
-    dose_maxima_cu: num(form.dosesMicronutrientes.cu.max),
-    dose_minima_fe: num(form.dosesMicronutrientes.fe.min),
-    dose_maxima_fe: num(form.dosesMicronutrientes.fe.max),
-    dose_minima_ni: num(form.dosesMicronutrientes.ni.min),
-    dose_maxima_ni: num(form.dosesMicronutrientes.ni.max),
-    dose_minima_mn: num(form.dosesMicronutrientes.mn.min),
-    dose_maxima_mn: num(form.dosesMicronutrientes.mn.max),
-    dose_minima_mo: num(form.dosesMicronutrientes.mo.min),
-    dose_maxima_mo: num(form.dosesMicronutrientes.mo.max),
-    dose_minima_zn: num(form.dosesMicronutrientes.zn.min),
-    dose_maxima_zn: num(form.dosesMicronutrientes.zn.max),
 
     observacoes: form.observacoes,
     fontes: form.fontes,

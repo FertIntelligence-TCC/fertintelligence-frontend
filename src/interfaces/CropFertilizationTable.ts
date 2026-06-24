@@ -122,23 +122,6 @@ export interface CropFertilizationTableResponseDto {
     tipo_de_esterco: ManureType;
     quantidade_de_esterco: number;
     
-    sugestao_gessagem: number;
-    sugestao_de_adubacao_com_micronutrientes: number;
-    dose_minima_b: number;
-    dose_maxima_b: number;
-    dose_minima_cu: number;
-    dose_maxima_cu: number;
-    dose_minima_fe: number;
-    dose_maxima_fe: number;
-    dose_minima_ni: number;
-    dose_maxima_ni: number;
-    dose_minima_mn: number;
-    dose_maxima_mn: number;
-    dose_minima_mo: number;
-    dose_maxima_mo: number;
-    dose_minima_zn: number;
-    dose_maxima_zn: number;
-    
     observacoes: string;
     fontes: string;
     tabela_publica?: boolean;
@@ -189,23 +172,6 @@ export interface CropFertilizationTableCreateRequestDto {
     
     tipo_de_esterco: ManureType;
     quantidade_de_esterco: number;
-    
-    sugestao_gessagem: number;
-    sugestao_de_adubacao_com_micronutrientes: number;
-    dose_minima_b: number;
-    dose_maxima_b: number;
-    dose_minima_cu: number;
-    dose_maxima_cu: number;
-    dose_minima_fe: number;
-    dose_maxima_fe: number;
-    dose_minima_ni: number;
-    dose_maxima_ni: number;
-    dose_minima_mn: number;
-    dose_maxima_mn: number;
-    dose_minima_mo: number;
-    dose_maxima_mo: number;
-    dose_minima_zn: number;
-    dose_maxima_zn: number;
     
     observacoes: string;
     fontes: string;
