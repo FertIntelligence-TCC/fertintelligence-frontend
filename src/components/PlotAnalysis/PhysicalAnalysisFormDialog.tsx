@@ -528,17 +528,17 @@ export const PhysicalAnalysisFormDialog = ({
                                                 <Box gridColumn="span 2"><Field label="Prof. Final (cm)" type="number" value={ext.profundidadeFinal} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeFinal', parseFloat(e.target.value))} readOnly={isReadOnly} /></Box>
                                             </Grid>
 
-                                            <SectionHeader title="Granulometria (g/kg)" colorPalette="blue" />
+                                            <SectionHeader title="Granulometria (g/dm³)" colorPalette="blue" />
                                             <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                                                <Field label="Areia" type="number" value={ext.teorAreia} onChange={e => handleChangeExtract(ext.tempId, 'teorAreia', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Silte" type="number" value={ext.teorSilte} onChange={e => handleChangeExtract(ext.tempId, 'teorSilte', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Argila" type="number" value={ext.teorArgila} onChange={e => handleChangeExtract(ext.tempId, 'teorArgila', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Areia (g/dm³)" type="number" value={ext.teorAreia} onChange={e => handleChangeExtract(ext.tempId, 'teorAreia', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Silte (g/dm³)" type="number" value={ext.teorSilte} onChange={e => handleChangeExtract(ext.tempId, 'teorSilte', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Argila (g/dm³)" type="number" value={ext.teorArgila} onChange={e => handleChangeExtract(ext.tempId, 'teorArgila', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
 
                                             <SectionHeader title="Física do Solo" colorPalette="orange" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Dens. Aparente" type="number" value={ext.densidadeAparente} onChange={e => handleChangeExtract(ext.tempId, 'densidadeAparente', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Dens. Real" type="number" value={ext.densidadeReal} onChange={e => handleChangeExtract(ext.tempId, 'densidadeReal', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Dens. Aparente (g/dm³)" type="number" value={ext.densidadeAparente} onChange={e => handleChangeExtract(ext.tempId, 'densidadeAparente', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Dens. Real (g/dm³)" type="number" value={ext.densidadeReal} onChange={e => handleChangeExtract(ext.tempId, 'densidadeReal', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="Poros. Total (%)" type="number" value={ext.porosidadeTotal} readOnly />
                                                 <Field label="Microporos. (%)" type="number" value={ext.microporosidade} onChange={e => handleChangeExtract(ext.tempId, 'microporosidade', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
@@ -553,7 +553,7 @@ export const PhysicalAnalysisFormDialog = ({
 
                                             <SectionHeader title="Agregados (%)" colorPalette="green" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-                                                <Field label="DM (mm)" type="number" value={ext.dmAgregados} onChange={e => handleChangeExtract(ext.tempId, 'dmAgregados', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="DMP (mm)" type="number" value={ext.dmAgregados} onChange={e => handleChangeExtract(ext.tempId, 'dmAgregados', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="> 6.0mm" type="number" value={ext.percAgregados6_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados6_0mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="4-6mm" type="number" value={ext.percAgregados4_1a6_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados4_1a6_0mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                                 <Field label="2-4mm" type="number" value={ext.percAgregados2_1a4_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados2_1a4_0mm', parseFloat(e.target.value))} readOnly={isReadOnly} />

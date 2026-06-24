@@ -297,9 +297,9 @@ export const PhysicalAnalysis = () => {
                                                     </Text>
                                                 </Flex>
                                                 <HStack color="gray.500" _dark={{ color: "gray.400" }} fontSize="xs" gap={3}>
-                                                    <Text>Areia: <b>{ext.teorAreia}</b></Text>
-                                                    <Text>Silte: <b>{ext.teorSilte}</b></Text>
-                                                    <Text>Argila: <b>{ext.teorArgila}</b></Text>
+                                                    <Text>Areia: <b>{ext.teorAreia}</b> g/dm³</Text>
+                                                    <Text>Silte: <b>{ext.teorSilte}</b> g/dm³</Text>
+                                                    <Text>Argila: <b>{ext.teorArgila}</b> g/dm³</Text>
                                                 </HStack>
                                             </Box>
                                         ))}

@@ -44,5 +44,5 @@ export interface PhysicalExtractFormData {
     percAgregados0_5a1_0mm: number;
     percAgregados0_25a0_5mm: number;
     percAgregadosMenor0_25mm: number;
-    dmAgregados: number; // Diâmetro Médio
+    dmAgregados: number; // DMP (Diâmetro Médio Ponderado)
 }
