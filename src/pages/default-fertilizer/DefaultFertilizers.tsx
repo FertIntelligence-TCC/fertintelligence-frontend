@@ -194,6 +194,10 @@ const toGreenForm = (item: GreenFertilizerResponseDto): GreenFertilizerFormState
   mn: String(item.mn ?? 0),
   mo: String(item.mo ?? 0),
   zn: String(item.zn ?? 0),
+  produtividadeEsperada: String(item.produtividade_esperada ?? 0),
+  taxaMineralizacaoAno1: String(item.taxa_mineralizacao_ano_1 ?? 0),
+  taxaMineralizacaoAno2: String(item.taxa_mineralizacao_ano_2 ?? 0),
+  taxaMineralizacaoAno3: String(item.taxa_mineralizacao_ano_3 ?? 0),
   publico: publicValue(item.publico),
 });
 

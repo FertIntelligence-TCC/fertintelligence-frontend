@@ -29,6 +29,18 @@ export default function GreenFertilizerFormFields({ form, onChange, readOnly }: 
                         <ReadOnlyDisplay value={cnRatio} />
                     </Box>
                 </Grid>
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3} mt={3}>
+                    <FertilizerInputField label="Produtividade Esperada (kg/ha)" value={form.produtividadeEsperada} onChange={(v) => onChange("produtividadeEsperada", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
+
+            <Box>
+                <FormSectionHeader title="Taxa de Mineralização (%)" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="1° ano (%)" value={form.taxaMineralizacaoAno1} onChange={(v) => onChange("taxaMineralizacaoAno1", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="2° ano (%)" value={form.taxaMineralizacaoAno2} onChange={(v) => onChange("taxaMineralizacaoAno2", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="3° ano (%)" value={form.taxaMineralizacaoAno3} onChange={(v) => onChange("taxaMineralizacaoAno3", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
             </Box>
 
             <FertilizerPhotosSection

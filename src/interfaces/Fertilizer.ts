@@ -586,6 +586,10 @@ export interface GreenFertilizerResponseDto {
     mn: number;
     mo: number;
     zn: number;
+    produtividade_esperada: number;
+    taxa_mineralizacao_ano_1: number;
+    taxa_mineralizacao_ano_2: number;
+    taxa_mineralizacao_ano_3: number;
     ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
@@ -611,6 +615,10 @@ export interface GreenFertilizerCreateRequestDto {
     mn: number;
     mo: number;
     zn: number;
+    produtividade_esperada: number;
+    taxa_mineralizacao_ano_1: number;
+    taxa_mineralizacao_ano_2: number;
+    taxa_mineralizacao_ano_3: number;
 }
 
 // PUT /update (prefixo "novo_")
@@ -633,6 +641,10 @@ export interface GreenFertilizerPostRequestDto {
     novo_mn: number;
     novo_mo: number;
     novo_zn: number;
+    novo_produtividade_esperada: number;
+    novo_taxa_mineralizacao_ano_1: number;
+    novo_taxa_mineralizacao_ano_2: number;
+    novo_taxa_mineralizacao_ano_3: number;
 }
 
 // Estado do Formulário (Strings para inputs controlados)
@@ -655,6 +667,10 @@ export interface GreenFertilizerFormState {
     mn: string;
     mo: string;
     zn: string;
+    produtividadeEsperada: string;
+    taxaMineralizacaoAno1: string;
+    taxaMineralizacaoAno2: string;
+    taxaMineralizacaoAno3: string;
 }
 
 export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
@@ -665,6 +681,10 @@ export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
     c: "", n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
+    produtividadeEsperada: "",
+    taxaMineralizacaoAno1: "",
+    taxaMineralizacaoAno2: "",
+    taxaMineralizacaoAno3: "",
     publico: "nao"
 };
 

@@ -30,6 +30,9 @@ export default function GreenFertilizerCard(props: Props) {
                 N: {item.n}% | C: {item.c}%
             </Text>
             <Text fontSize="xs" color="gray.500" mt={1}>
+                Prod. esperada: <Text as="span" fontWeight="bold" color="green.600">{item.produtividade_esperada ?? 0} kg/ha</Text>
+            </Text>
+            <Text fontSize="xs" color="gray.500" mt={1}>
                 Relação C/N: <Text as="span" fontWeight="bold" color="green.600">{cnRatio}</Text>
             </Text>
         </FertilizerCardBase>
