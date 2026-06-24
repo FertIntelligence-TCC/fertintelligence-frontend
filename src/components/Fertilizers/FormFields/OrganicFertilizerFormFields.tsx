@@ -1,5 +1,5 @@
 import { Box, Grid, VStack } from "@chakra-ui/react";
-import { OrganicFertilizerFormState } from "@/interfaces/Fertilizer";
+import { formatOrganicCarbon, OrganicFertilizerFormState } from "@/interfaces/Fertilizer";
 import { FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 
 type Props = {
@@ -10,15 +10,32 @@ type Props = {
 
 export default function OrganicFertilizerFormFields({ form, onChange, readOnly }: Props) {
     const color = "green";
+    const organicCarbon = formatOrganicCarbon(form.teorMateriaOrganica);
 
     return (
         <VStack gap={5} align="stretch" py={2}>
             <Box>
-                <FormSectionHeader title="Identificação e Composição Física (%)" colorScheme={color} />
-                <Grid templateColumns={{ base: "1fr", md: "2fr 1fr 1fr" }} gap={3}>
+                <FormSectionHeader title="Identificação" colorScheme={color} />
+                <Grid templateColumns="1fr" gap={3}>
                     <FertilizerInputField label="Nome do Adubo *" type="text" value={form.nome} onChange={(v) => onChange("nome", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Teor de Carbono Orgânico (%)" value={organicCarbon} readOnly colorScheme={color} isCalc />
+                </Grid>
+            </Box>
+
+            <Box>
+                <FormSectionHeader title="Taxa de Mineralização (%)" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="1° ano (%)" value={form.taxaMineralizacaoAno1} onChange={(v) => onChange("taxaMineralizacaoAno1", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="2° ano (%)" value={form.taxaMineralizacaoAno2} onChange={(v) => onChange("taxaMineralizacaoAno2", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="3° ano (%)" value={form.taxaMineralizacaoAno3} onChange={(v) => onChange("taxaMineralizacaoAno3", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
+
+            <Box>
+                <FormSectionHeader title="Composição Física (%)" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3}>
                     <FertilizerInputField label="Teor de Umidade (%) *" value={form.teorUmidade} onChange={(v) => onChange("teorUmidade", v)} readOnly={readOnly} colorScheme={color} />
-                    <FertilizerInputField label="Teor de Cinzas (%) *" value={form.teorCinzas} onChange={(v) => onChange("teorCinzas", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Teor de Matéria Orgânica (%) *" value={form.teorMateriaOrganica} onChange={(v) => onChange("teorMateriaOrganica", v)} readOnly={readOnly} colorScheme={color} />
                 </Grid>
             </Box>
 

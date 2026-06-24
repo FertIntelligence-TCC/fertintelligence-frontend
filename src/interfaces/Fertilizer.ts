@@ -15,6 +15,20 @@ export const getFertilizerPhotoIds = (item?: FertilizerPhotoCarrier): Fertilizer
     return photoIds.filter(Boolean).slice(0, 5);
 };
 
+export const calculateOrganicCarbon = (organicMatter: string | number): number => {
+    const value = typeof organicMatter === "number" ? organicMatter : parseFloat(organicMatter);
+    return Number.isFinite(value) ? value / 1.724 : 0;
+};
+
+export const formatOrganicCarbon = (organicMatter: string | number): string =>
+    calculateOrganicCarbon(organicMatter).toFixed(1).replace(".", ",");
+
+export const getOrganicMatterContent = (item: {
+    teor_materia_organica?: number | null;
+    teor_cinzas?: number | null;
+    c?: number | null;
+}): number => item.teor_materia_organica ?? item.teor_cinzas ?? ((item.c ?? 0) * 1.724);
+
 // --- ADUBOS MINERAIS SIMPLES ---
 
 // GET /get-all
@@ -698,7 +712,11 @@ export interface OrganicFertilizerResponseDto {
     nome_adubo: string;
     c: number;
     teor_umidade: number;
-    teor_cinzas: number;
+    teor_materia_organica?: number;
+    teor_cinzas?: number;
+    taxa_mineralizacao_ano_1?: number;
+    taxa_mineralizacao_ano_2?: number;
+    taxa_mineralizacao_ano_3?: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -725,7 +743,10 @@ export interface OrganicFertilizerCreateRequestDto {
     nome_adubo: string;
     c: number;
     teor_umidade: number;
-    teor_cinzas: number;
+    teor_materia_organica: number;
+    taxa_mineralizacao_ano_1: number;
+    taxa_mineralizacao_ano_2: number;
+    taxa_mineralizacao_ano_3: number;
     n: number;
     p2o5: number;
     k2o: number;
@@ -749,7 +770,10 @@ export interface OrganicFertilizerPostRequestDto {
     novo_nome_adubo: string;
     novo_c: number;
     novo_teor_umidade: number;
-    novo_teor_cinzas: number;
+    novo_teor_materia_organica: number;
+    novo_taxa_mineralizacao_ano_1: number;
+    novo_taxa_mineralizacao_ano_2: number;
+    novo_taxa_mineralizacao_ano_3: number;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -773,7 +797,10 @@ export interface OrganicFertilizerFormState {
     nome: string;
     c: string;
     teorUmidade: string;
-    teorCinzas: string;
+    teorMateriaOrganica: string;
+    taxaMineralizacaoAno1: string;
+    taxaMineralizacaoAno2: string;
+    taxaMineralizacaoAno3: string;
     n: string;
     p2o5: string;
     k2o: string;
@@ -794,7 +821,10 @@ export const DEFAULT_ORGANIC_FERTILIZER_FORM_STATE: OrganicFertilizerFormState =
     observacao: "",
     fonte: "",
     c: "",
-    teorUmidade: "", teorCinzas: "",
+    teorUmidade: "", teorMateriaOrganica: "",
+    taxaMineralizacaoAno1: "",
+    taxaMineralizacaoAno2: "",
+    taxaMineralizacaoAno3: "",
     n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",

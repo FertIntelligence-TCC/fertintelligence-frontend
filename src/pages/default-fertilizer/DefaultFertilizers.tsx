@@ -35,6 +35,7 @@ import {
   SimpleMineralFertilizerFormState,
   SimpleMineralFertilizerResponseDto,
   getFertilizerPhotoIds,
+  getOrganicMatterContent,
 } from "@/interfaces/Fertilizer";
 import { fetchDefaultBioFertilizers } from "@/services/bioFertilizerService";
 import { fetchDefaultChelatedFertilizers } from "@/services/chelatedFertilizerService";
@@ -208,7 +209,10 @@ const toOrganicForm = (item: OrganicFertilizerResponseDto): OrganicFertilizerFor
   observacao: item.observacao ?? "",
   fonte: item.fonte ?? "",
   teorUmidade: String(item.teor_umidade ?? 0),
-  teorCinzas: String(item.teor_cinzas ?? 0),
+  teorMateriaOrganica: String(getOrganicMatterContent(item)),
+  taxaMineralizacaoAno1: String(item.taxa_mineralizacao_ano_1 ?? 0),
+  taxaMineralizacaoAno2: String(item.taxa_mineralizacao_ano_2 ?? 0),
+  taxaMineralizacaoAno3: String(item.taxa_mineralizacao_ano_3 ?? 0),
   n: String(item.n ?? 0),
   p2o5: String(item.p2o5 ?? 0),
   k2o: String(item.k2o ?? 0),

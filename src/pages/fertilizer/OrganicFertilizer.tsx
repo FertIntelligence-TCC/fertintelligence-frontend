@@ -25,7 +25,9 @@ import {
     DEFAULT_ORGANIC_FERTILIZER_FORM_STATE,
     OrganicFertilizerCreateRequestDto,
     OrganicFertilizerPostRequestDto,
-    getFertilizerPhotoIds
+    calculateOrganicCarbon,
+    getFertilizerPhotoIds,
+    getOrganicMatterContent
 } from "@/interfaces/Fertilizer";
 
 import {
@@ -43,12 +45,15 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
 const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizerFormState => ({
   nome: dto.nome_adubo,
-  c: String(dto.c ?? 0),
+  c: String(calculateOrganicCarbon(getOrganicMatterContent(dto))),
   fotoIds: getFertilizerPhotoIds(dto),
   observacao: dto.observacao ?? "",
   fonte: dto.fonte ?? "",
   teorUmidade: String(dto.teor_umidade ?? 0),
-  teorCinzas: String(dto.teor_cinzas ?? 0),
+  teorMateriaOrganica: String(getOrganicMatterContent(dto)),
+  taxaMineralizacaoAno1: String(dto.taxa_mineralizacao_ano_1 ?? 0),
+  taxaMineralizacaoAno2: String(dto.taxa_mineralizacao_ano_2 ?? 0),
+  taxaMineralizacaoAno3: String(dto.taxa_mineralizacao_ano_3 ?? 0),
   n: String(dto.n ?? 0),
   p2o5: String(dto.p2o5 ?? 0),
   k2o: String(dto.k2o ?? 0),
@@ -66,12 +71,15 @@ const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizer
 
 const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
-    c: num(form.c),
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
     teor_umidade: num(form.teorUmidade),
-    teor_cinzas: num(form.teorCinzas),
+    teor_materia_organica: num(form.teorMateriaOrganica),
+    c: calculateOrganicCarbon(form.teorMateriaOrganica),
+    taxa_mineralizacao_ano_1: num(form.taxaMineralizacaoAno1),
+    taxa_mineralizacao_ano_2: num(form.taxaMineralizacaoAno2),
+    taxa_mineralizacao_ano_3: num(form.taxaMineralizacaoAno3),
     n: num(form.n),
     p2o5: num(form.p2o5),
     k2o: num(form.k2o),
@@ -89,12 +97,15 @@ const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertil
 
 const mapFormToUpdatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
-    novo_c: num(form.c),
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
     novo_fonte: form.fonte,
     novo_teor_umidade: num(form.teorUmidade),
-    novo_teor_cinzas: num(form.teorCinzas),
+    novo_teor_materia_organica: num(form.teorMateriaOrganica),
+    novo_c: calculateOrganicCarbon(form.teorMateriaOrganica),
+    novo_taxa_mineralizacao_ano_1: num(form.taxaMineralizacaoAno1),
+    novo_taxa_mineralizacao_ano_2: num(form.taxaMineralizacaoAno2),
+    novo_taxa_mineralizacao_ano_3: num(form.taxaMineralizacaoAno3),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),
