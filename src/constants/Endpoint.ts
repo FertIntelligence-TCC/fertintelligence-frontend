@@ -69,6 +69,11 @@ export const ENDPOINT = {
   CREATE_SULFUR_DOSE: "sulfur-dose/register",
   UPDATE_SULFUR_DOSE: "sulfur-dose/update",
 
+  // --- Micronutrient Dose Endpoints ---
+  GET_BY_TABLE_MICRONUTRIENT_DOSE: "micronutrient-dose/get-by-table",
+  CREATE_MICRONUTRIENT_DOSE: "micronutrient-dose/register",
+  UPDATE_MICRONUTRIENT_DOSE: "micronutrient-dose/update",
+
   // --- Bio Fertilizer Endpoints ---
   DELETE_BIO_FERTILIZER: "bio-fertilizer/delete",
   GET_ALL_BIO_FERTILIZER: "bio-fertilizer/get-all",
