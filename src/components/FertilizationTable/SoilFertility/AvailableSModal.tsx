@@ -208,7 +208,7 @@ export default function AvailableSModal({ isOpen, onClose, tableId, isReadOnly =
 
                 <Grid templateColumns={{ base: "1fr" }} gap={4} mt={6}>
                   <Field.Root>
-                    <Field.Label>Fonte da Literatura</Field.Label>
+                    <Field.Label>Fontes</Field.Label>
                     <Input
                       value={form.fonte_literatura}
                       onChange={(e) => handleChange("fonte_literatura", e.target.value)}

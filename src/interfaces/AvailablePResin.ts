@@ -10,6 +10,8 @@ export interface AvailablePResinResponseDto {
     alto_menor: number;
     alto_maior: number;
     muito_alto: number;
+    observacoes?: string | null;
+    fontes?: string | null;
 }
 
 export type AvailablePResinCreateRequestDto = Omit<AvailablePResinResponseDto, 'id' | 'id_tabela' | 'unidade'>;
@@ -23,4 +25,6 @@ export interface AvailablePResinPostRequestDto {
     novo_alto_menor?: number;
     novo_alto_maior?: number;
     novo_muito_alto?: number;
+    novo_observacoes?: string;
+    novo_fontes?: string;
 }

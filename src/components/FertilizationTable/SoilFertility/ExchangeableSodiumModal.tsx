@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, Button, Input, Text, Grid, Box, Spinner, Field, Tabs } from "@chakra-ui/react";
+import { Dialog, Button, Input, Text, Grid, Box, Spinner, Field, Tabs, Textarea } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
 import {
   createExchangeableSodium,
@@ -36,12 +36,18 @@ const FIELD_PREFIXES = [
   "maior_teor",
 ] as const;
 
-const INITIAL_STATE = CTC_SECTIONS.reduce<Record<string, string>>((acc, section) => {
+const NUMERIC_INITIAL_STATE = CTC_SECTIONS.reduce<Record<string, string>>((acc, section) => {
   FIELD_PREFIXES.forEach((prefix) => {
     acc[`${prefix}_sodio_${section.value}`] = "";
   });
   return acc;
 }, {});
+
+const INITIAL_STATE = {
+  ...NUMERIC_INITIAL_STATE,
+  observacoes: "",
+  fontes: ""
+};
 
 export default function ExchangeableSodiumModal({ isOpen, onClose, tableId, isReadOnly = false }: Props) {
   const [loading, setLoading] = useState(false);
@@ -95,17 +101,21 @@ export default function ExchangeableSodiumModal({ isOpen, onClose, tableId, isRe
     setSaving(true);
     try {
       if (existingId) {
-        const payload: Record<string, number> = {};
-        Object.keys(form).forEach((key) => {
+        const payload: Record<string, number | string> = {};
+        Object.keys(NUMERIC_INITIAL_STATE).forEach((key) => {
           payload[`novo_${key}`] = parse(form[key]);
         });
+        payload.novo_observacoes = form.observacoes;
+        payload.novo_fontes = form.fontes;
         await updateExchangeableSodium(existingId, payload as ExchangeableSodiumPostRequestDto);
         toaster.create({ title: "Sódio trocável atualizado!", type: "success" });
       } else {
-        const payload: Record<string, number> = {};
-        Object.keys(INITIAL_STATE).forEach((key) => {
+        const payload: Record<string, number | string> = {};
+        Object.keys(NUMERIC_INITIAL_STATE).forEach((key) => {
           payload[key] = parse(form[key] || "0");
         });
+        payload.observacoes = form.observacoes;
+        payload.fontes = form.fontes;
         await createExchangeableSodium(tableId!, payload as ExchangeableSodiumCreateRequestDto);
         toaster.create({ title: "Sódio trocável configurado!", type: "success" });
         onClose();
@@ -166,6 +176,7 @@ export default function ExchangeableSodiumModal({ isOpen, onClose, tableId, isRe
             {loading ? (
               <Box textAlign="center" py={10}><Spinner size="xl" color="green.500" /></Box>
             ) : (
+              <>
               <Tabs.Root defaultValue={CTC_SECTIONS[0].value} variant="enclosed">
                 <Tabs.List>
                   {CTC_SECTIONS.map((section) => (
@@ -181,6 +192,33 @@ export default function ExchangeableSodiumModal({ isOpen, onClose, tableId, isRe
                   </Tabs.Content>
                 ))}
               </Tabs.Root>
+
+              <Grid templateColumns={{ base: "1fr" }} gap={4} mt={6}>
+                <Field.Root>
+                  <Field.Label>Observações</Field.Label>
+                  <Textarea
+                    value={form.observacoes}
+                    onChange={(event) => handleChange("observacoes", event.target.value)}
+                    readOnly={isReadOnly}
+                    minH="100px"
+                    bg="white"
+                    _dark={{ bg: "gray.700" }}
+                  />
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>Fontes</Field.Label>
+                  <Textarea
+                    value={form.fontes}
+                    onChange={(event) => handleChange("fontes", event.target.value)}
+                    readOnly={isReadOnly}
+                    minH="100px"
+                    bg="white"
+                    _dark={{ bg: "gray.700" }}
+                  />
+                </Field.Root>
+              </Grid>
+              </>
             )}
           </Dialog.Body>
           <Dialog.Footer>

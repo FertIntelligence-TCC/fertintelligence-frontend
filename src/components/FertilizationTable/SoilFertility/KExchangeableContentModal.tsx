@@ -6,7 +6,8 @@ Input,
 Grid,
 Box,
 Spinner,
-Field
+Field,
+Textarea
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
 import {
@@ -34,8 +35,12 @@ teor_inicial_medio_k: "",
 teor_final_medio_k: "",
 teor_inicial_alto_k: "",
 teor_final_alto_k: "",
-maior_teor_k: ""
+maior_teor_k: "",
+observacoes: "",
+fontes: ""
 };
+
+const TEXT_FIELDS = ["observacoes", "fontes"];
 
 export default function KExchangeableContentModal({
 isOpen,
@@ -72,7 +77,7 @@ try {
 
     Object.keys(INITIAL_STATE).forEach(key => {
       // @ts-ignore
-      newForm[key] = data[key] !== null ? String(data[key]) : "";
+      newForm[key] = data[key] !== null && data[key] !== undefined ? String(data[key]) : "";
     });
 
     setForm(newForm);
@@ -105,7 +110,7 @@ try {
     const payload: any = {};
 
     Object.keys(form).forEach(key => {
-      payload[`novo_${key}`] = parse((form as any)[key]);
+      payload[`novo_${key}`] = TEXT_FIELDS.includes(key) ? (form as any)[key] : parse((form as any)[key]);
     });
 
     await updateKExchangeableContent(
@@ -121,7 +126,7 @@ try {
     const payload: any = {};
 
     Object.keys(form).forEach(key => {
-      payload[key] = parse((form as any)[key]);
+      payload[key] = TEXT_FIELDS.includes(key) ? (form as any)[key] : parse((form as any)[key]);
     });
 
     await createKExchangeableContent(
@@ -183,6 +188,7 @@ return (
             <Spinner size="xl" />
           </Box>
         ) : (
+          <>
           <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap={4}>
 
             {fields.map(([label, key]) => (
@@ -200,6 +206,33 @@ return (
             ))}
 
           </Grid>
+
+          <Grid templateColumns={{ base: "1fr" }} gap={4} mt={6}>
+            <Field.Root>
+              <Field.Label>Observações</Field.Label>
+              <Textarea
+                value={form.observacoes}
+                onChange={(e) => handleChange("observacoes", e.target.value)}
+                readOnly={isReadOnly}
+                minH="100px"
+                bg="white"
+                _dark={{ bg: "gray.700" }}
+              />
+            </Field.Root>
+
+            <Field.Root>
+              <Field.Label>Fontes</Field.Label>
+              <Textarea
+                value={form.fontes}
+                onChange={(e) => handleChange("fontes", e.target.value)}
+                readOnly={isReadOnly}
+                minH="100px"
+                bg="white"
+                _dark={{ bg: "gray.700" }}
+              />
+            </Field.Root>
+          </Grid>
+          </>
         )}
 
       </Dialog.Body>

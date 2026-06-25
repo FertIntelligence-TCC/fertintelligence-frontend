@@ -22,6 +22,9 @@ export interface SalinityInterpretationResponseDto {
   sodic_soil_lowest_pst: number;
   sodic_soil_lowest_ph: number;
   sodic_soil_lowest_ras: number;
+
+  observacoes?: string | null;
+  fontes?: string | null;
 }
 
 // DTO para Criação (POST) - Chaves em Português conforme seu Java
@@ -45,6 +48,9 @@ export interface SalinityInterpretationCreateRequestDto {
   menor_pst_solo_sodico: number;
   menor_ph_solo_sodico: number;
   menor_ras_solo_sodico: number;
+
+  observacoes?: string;
+  fontes?: string;
 }
 
 // DTO para Atualização (PUT) - Chaves com prefixo "novo_"
@@ -68,4 +74,7 @@ export interface SalinityInterpretationPostRequestDto {
   novo_menor_pst_solo_sodico?: number;
   novo_menor_ph_solo_sodico?: number;
   novo_menor_ras_solo_sodico?: number;
+
+  novo_observacoes?: string;
+  novo_fontes?: string;
 }

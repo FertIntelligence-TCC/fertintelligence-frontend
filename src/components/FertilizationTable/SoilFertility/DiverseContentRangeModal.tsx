@@ -8,6 +8,7 @@ import {
   Spinner,
   Field,
   Text,
+  Textarea,
   createListCollection
 } from "@chakra-ui/react";
 import { 
@@ -26,6 +27,7 @@ import {
 import {
   DiverseContentRangeCreateRequestDto,
   DiverseContentRangePostRequestDto,
+  DiverseContentRangeResponseDto,
   NutrientSuffix
 } from "@/interfaces/DiverseContentRange";
 
@@ -89,6 +91,7 @@ const NUTRIENTS_WITHOUT_EXTREME_RANGES: NutrientSuffix[] = [
 ];
 
 const EXTREME_RANGE_PREFIXES = ["menor_teor", "maior_teor"];
+const TEXT_FIELDS = ["observacoes", "fontes"];
 
 const shouldHideRangeField = (suffix: NutrientSuffix, prefix: string) =>
     NUTRIENTS_WITHOUT_EXTREME_RANGES.includes(suffix) &&
@@ -112,7 +115,7 @@ const READ_PREFIX_ALIASES: Record<string, string[]> = {
 };
 
 const getRangeValue = (
-    data: Record<string, number>,
+    data: DiverseContentRangeResponseDto,
     prefix: string,
     suffix: NutrientSuffix
 ) => {
@@ -121,7 +124,8 @@ const getRangeValue = (
     const key = prefixes
         .flatMap(p => suffixes.map(s => `${p}_${s}`))
         .find(k => data[k] !== undefined && data[k] !== null);
-    return key ? data[key] : "";
+    const value = key ? data[key] : "";
+    return typeof value === "number" ? value : "";
 };
 
 export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isReadOnly = false }: Props) {
@@ -160,6 +164,8 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
                 newForm[`${prefix}_${suffix}`] = String(getRangeValue(data, prefix, suffix));
             });
         });
+        newForm.observacoes = data.observacoes ?? "";
+        newForm.fontes = data.fontes ?? "";
         setForm(newForm);
       } else {
         setExistingId(null);
@@ -188,12 +194,15 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
         // UPDATE (Prefixo "novo_")
         const payload: any = {};
         Object.keys(form).forEach(key => {
+            if (TEXT_FIELDS.includes(key)) return;
             const matchingHiddenField = NUTRIENTS_WITHOUT_EXTREME_RANGES.some(suffix =>
                 EXTREME_RANGE_PREFIXES.some(prefix => key === `${prefix}_${suffix}`)
             );
             if (matchingHiddenField) return;
             payload[`novo_${key}`] = parse(form[key]);
         });
+        payload.novo_observacoes = form.observacoes ?? "";
+        payload.novo_fontes = form.fontes ?? "";
         await updateDiverseContentRange(existingId, payload as DiverseContentRangePostRequestDto);
         toaster.create({ title: "Nutrientes atualizados!", type: "success" });
 
@@ -211,6 +220,8 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
                 payload[f] = parse(form[f] || "0");
             });
         });
+        payload.observacoes = form.observacoes ?? "";
+        payload.fontes = form.fontes ?? "";
 
         await createDiverseContentRange(tableId!, payload as DiverseContentRangeCreateRequestDto);
         toaster.create({ title: "Nutrientes configurados!", type: "success" });
@@ -307,6 +318,32 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
                         </Text>
                         {renderInputs()}
                     </Box>
+
+                    <Grid templateColumns={{ base: "1fr" }} gap={4} mt={6}>
+                        <Field.Root>
+                            <Field.Label>Observações</Field.Label>
+                            <Textarea
+                                value={form.observacoes || ""}
+                                onChange={(e) => handleChange("observacoes", e.target.value)}
+                                readOnly={isReadOnly}
+                                minH="100px"
+                                bg="white"
+                                _dark={{ bg: "gray.700" }}
+                            />
+                        </Field.Root>
+
+                        <Field.Root>
+                            <Field.Label>Fontes</Field.Label>
+                            <Textarea
+                                value={form.fontes || ""}
+                                onChange={(e) => handleChange("fontes", e.target.value)}
+                                readOnly={isReadOnly}
+                                minH="100px"
+                                bg="white"
+                                _dark={{ bg: "gray.700" }}
+                            />
+                        </Field.Root>
+                    </Grid>
                 </Box>
             )}
           </Dialog.Body>

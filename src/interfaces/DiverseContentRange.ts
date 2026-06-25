@@ -2,7 +2,9 @@
 export interface DiverseContentRangeResponseDto {
     id: number;
     id_tabela: number;
-    [key: string]: number; // Assinatura de índice para acesso dinâmico seguro
+    observacoes?: string | null;
+    fontes?: string | null;
+    [key: string]: number | string | null | undefined; // Assinatura de índice para acesso dinâmico seguro
 }
 
 // Lista de Sufixos (usada para tipagem e iteração)
@@ -15,10 +17,10 @@ export type NutrientSuffix =
 
 // DTO para Criação (POST) - Chaves em Português
 export interface DiverseContentRangeCreateRequestDto {
-    [key: string]: number;
+    [key: string]: number | string;
 }
 
 // DTO para Atualização (PUT) - Chaves com prefixo "novo_"
 export interface DiverseContentRangePostRequestDto {
-    [key: string]: number;
+    [key: string]: number | string;
 }

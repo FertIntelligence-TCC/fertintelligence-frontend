@@ -42,6 +42,9 @@ export interface AvailablePMehlich1ResponseDto {
     teor_inicial_alto_fosforo_solo_muito_argiloso: number;
     teor_final_alto_fosforo_solo_muito_argiloso: number;
     maior_teor_fosforo_solo_muito_argiloso: number;
+
+    observacoes?: string | null;
+    fontes?: string | null;
 }
 
 // DTO para Criação (POST) - Igual ao Response mas sem ID
@@ -88,4 +91,7 @@ export interface AvailablePMehlich1PostRequestDto {
     novo_teor_inicial_alto_fosforo_solo_muito_argiloso?: number;
     novo_teor_final_alto_fosforo_solo_muito_argiloso?: number;
     novo_maior_teor_fosforo_solo_muito_argiloso?: number;
+
+    novo_observacoes?: string;
+    novo_fontes?: string;
 }

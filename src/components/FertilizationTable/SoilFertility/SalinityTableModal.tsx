@@ -8,7 +8,8 @@ import {
   Box,
   VStack,
   Spinner,
-  Field
+  Field,
+  Textarea
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
 import {
@@ -38,7 +39,12 @@ const INITIAL_STATE = {
   sodic_saline_soil_highest_ce: "", sodic_saline_soil_lowest_pst: "", sodic_saline_soil_lowest_ph: "", sodic_saline_soil_lowest_ras: "",
   // Sódico
   sodic_soil_highest_ce: "", sodic_soil_lowest_pst: "", sodic_soil_lowest_ph: "", sodic_soil_lowest_ras: "",
+  observacoes: "",
+  fontes: ""
 };
+
+type SalinityFormKey = keyof typeof INITIAL_STATE;
+type NumericSalinityField = Exclude<SalinityFormKey, "observacoes" | "fontes">;
 
 export default function SalinityTableModal({ isOpen, onClose, tableId, isReadOnly = false }: Props) {
   const [loading, setLoading] = useState(false);
@@ -82,7 +88,7 @@ export default function SalinityTableModal({ isOpen, onClose, tableId, isReadOnl
     }
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: SalinityFormKey, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -117,6 +123,8 @@ export default function SalinityTableModal({ isOpen, onClose, tableId, isReadOnl
           novo_menor_pst_solo_sodico: parse(form.sodic_soil_lowest_pst),
           novo_menor_ph_solo_sodico: parse(form.sodic_soil_lowest_ph),
           novo_menor_ras_solo_sodico: parse(form.sodic_soil_lowest_ras),
+          novo_observacoes: form.observacoes,
+          novo_fontes: form.fontes,
         };
         await updateSalinity(existingId, payload);
         toaster.create({ title: "Salinidade atualizada com sucesso!", type: "success" });
@@ -143,6 +151,8 @@ export default function SalinityTableModal({ isOpen, onClose, tableId, isReadOnl
           menor_pst_solo_sodico: parse(form.sodic_soil_lowest_pst),
           menor_ph_solo_sodico: parse(form.sodic_soil_lowest_ph),
           menor_ras_solo_sodico: parse(form.sodic_soil_lowest_ras),
+          observacoes: form.observacoes,
+          fontes: form.fontes,
         };
         
         await createSalinity(tableId!, payload);
@@ -158,7 +168,7 @@ export default function SalinityTableModal({ isOpen, onClose, tableId, isReadOnl
   };
 
   // Helper para renderizar os grupos de inputs (DRY)
-  const renderGroup = (title: string, fields: { label: string, key: keyof typeof INITIAL_STATE }[]) => (
+  const renderGroup = (title: string, fields: { label: string, key: NumericSalinityField }[]) => (
     <Box borderWidth="1px" p={3} borderRadius="md" _dark={{ borderColor: "gray.600" }}>
       <Text fontWeight="bold" mb={3} color="green.600" _dark={{ color: "green.300" }} fontSize="sm">{title}</Text>
       <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap={3}>
@@ -224,6 +234,31 @@ export default function SalinityTableModal({ isOpen, onClose, tableId, isReadOnl
                   { label: "Menor pH", key: "sodic_soil_lowest_ph" },
                   { label: "Menor RAS", key: "sodic_soil_lowest_ras" },
                 ])}
+                <Grid templateColumns={{ base: "1fr" }} gap={4}>
+                  <Field.Root>
+                    <Field.Label>Observações</Field.Label>
+                    <Textarea
+                      value={form.observacoes}
+                      onChange={(event) => handleChange("observacoes", event.target.value)}
+                      readOnly={isReadOnly}
+                      minH="100px"
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                    />
+                  </Field.Root>
+
+                  <Field.Root>
+                    <Field.Label>Fontes</Field.Label>
+                    <Textarea
+                      value={form.fontes}
+                      onChange={(event) => handleChange("fontes", event.target.value)}
+                      readOnly={isReadOnly}
+                      minH="100px"
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                    />
+                  </Field.Root>
+                </Grid>
               </VStack>
             )}
           </Dialog.Body>

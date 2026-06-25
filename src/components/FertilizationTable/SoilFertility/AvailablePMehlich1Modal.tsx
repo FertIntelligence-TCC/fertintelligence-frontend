@@ -8,7 +8,8 @@ import {
   Box,
   Spinner,
   Field,
-  Tabs
+  Tabs,
+  Textarea
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
 import {
@@ -48,8 +49,13 @@ const INITIAL_STATE = {
   // Muito Argiloso
   menor_teor_fosforo_solo_muito_argiloso: "", teor_inicial_baixo_fosforo_solo_muito_argiloso: "", teor_final_baixo_fosforo_solo_muito_argiloso: "",
   teor_inicial_medio_fosforo_solo_muito_argiloso: "", teor_final_medio_fosforo_solo_muito_argiloso: "", teor_inicial_alto_fosforo_solo_muito_argiloso: "",
-  teor_final_alto_fosforo_solo_muito_argiloso: "", maior_teor_fosforo_solo_muito_argiloso: ""
+  teor_final_alto_fosforo_solo_muito_argiloso: "", maior_teor_fosforo_solo_muito_argiloso: "",
+  observacoes: "",
+  fontes: ""
 };
+
+const TEXT_FIELDS = ["observacoes", "fontes"];
+type AvailablePMehlich1FormKey = keyof typeof INITIAL_STATE;
 
 export default function AvailablePMehlich1Modal({ isOpen, onClose, tableId, isReadOnly = false }: Props) {
   const [loading, setLoading] = useState(false);
@@ -75,7 +81,7 @@ export default function AvailablePMehlich1Modal({ isOpen, onClose, tableId, isRe
         const newForm: any = {};
         Object.keys(INITIAL_STATE).forEach(key => {
             // @ts-ignore
-            newForm[key] = data[key] !== null ? String(data[key]) : "";
+            newForm[key] = data[key] !== null && data[key] !== undefined ? String(data[key]) : "";
         });
         setForm(newForm);
       } else {
@@ -89,7 +95,7 @@ export default function AvailablePMehlich1Modal({ isOpen, onClose, tableId, isRe
     }
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: AvailablePMehlich1FormKey | string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -105,7 +111,7 @@ export default function AvailablePMehlich1Modal({ isOpen, onClose, tableId, isRe
         // UPDATE (Prefixo "novo_")
         const payload: any = {};
         Object.keys(form).forEach(key => {
-            payload[`novo_${key}`] = parse((form as any)[key]);
+            payload[`novo_${key}`] = TEXT_FIELDS.includes(key) ? (form as any)[key] : parse((form as any)[key]);
         });
         
         await updateAvailablePMehlich1(existingId, payload as AvailablePMehlich1PostRequestDto);
@@ -115,7 +121,7 @@ export default function AvailablePMehlich1Modal({ isOpen, onClose, tableId, isRe
         // CREATE (Sem prefixo)
         const payload: any = {};
         Object.keys(form).forEach(key => {
-            payload[key] = parse((form as any)[key]);
+            payload[key] = TEXT_FIELDS.includes(key) ? (form as any)[key] : parse((form as any)[key]);
         });
 
         await createAvailablePMehlich1(tableId!, payload as AvailablePMehlich1CreateRequestDto);
@@ -187,6 +193,7 @@ export default function AvailablePMehlich1Modal({ isOpen, onClose, tableId, isRe
             {loading ? (
                <Box textAlign="center" py={10}><Spinner size="xl" color="green.500"/></Box>
             ) : (
+                <>
                 <Tabs.Root defaultValue="arenoso" variant="enclosed">
                     <Tabs.List>
                         <Tabs.Trigger value="arenoso">Arenoso</Tabs.Trigger>
@@ -215,6 +222,32 @@ export default function AvailablePMehlich1Modal({ isOpen, onClose, tableId, isRe
                         {renderTextureInputs("_solo_muito_argiloso")}
                     </Tabs.Content>
                 </Tabs.Root>
+                <Grid templateColumns={{ base: "1fr" }} gap={4} mt={6}>
+                    <Field.Root>
+                        <Field.Label>Observações</Field.Label>
+                        <Textarea
+                            value={form.observacoes}
+                            onChange={(event) => handleChange("observacoes", event.target.value)}
+                            readOnly={isReadOnly}
+                            minH="100px"
+                            bg="white"
+                            _dark={{ bg: "gray.700" }}
+                        />
+                    </Field.Root>
+
+                    <Field.Root>
+                        <Field.Label>Fontes</Field.Label>
+                        <Textarea
+                            value={form.fontes}
+                            onChange={(event) => handleChange("fontes", event.target.value)}
+                            readOnly={isReadOnly}
+                            minH="100px"
+                            bg="white"
+                            _dark={{ bg: "gray.700" }}
+                        />
+                    </Field.Root>
+                </Grid>
+                </>
             )}
           </Dialog.Body>
           <Dialog.Footer>

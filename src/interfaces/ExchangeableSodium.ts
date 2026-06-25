@@ -36,10 +36,13 @@ export interface ExchangeableSodiumResponseDto {
   teor_inicial_alto_sodio_ctc_maior_15: number;
   teor_final_alto_sodio_ctc_maior_15: number;
   maior_teor_sodio_ctc_maior_15: number;
+
+  observacoes?: string | null;
+  fontes?: string | null;
 }
 
 export type ExchangeableSodiumCreateRequestDto = Omit<ExchangeableSodiumResponseDto, 'id' | 'id_tabela'>;
 
 export type ExchangeableSodiumPostRequestDto = {
-  [K in keyof ExchangeableSodiumCreateRequestDto as `novo_${K & string}`]?: number;
+  [K in keyof ExchangeableSodiumCreateRequestDto as `novo_${K & string}`]?: ExchangeableSodiumCreateRequestDto[K];
 };

@@ -16,11 +16,14 @@ teor_final_alto_k: number;
 maior_teor_k: number;
 
 
+observacoes?: string | null;
+fontes?: string | null;
+
 }
 
 export type KExchangeableContentCreateRequestDto =
 Omit<KExchangeableContentResponseDto, 'id' | 'id_tabela'>;
 
 export interface KExchangeableContentPostRequestDto {
-[key: string]: number;
+[key: string]: number | string | undefined;
 }

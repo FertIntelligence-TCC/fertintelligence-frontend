@@ -7,7 +7,8 @@ import {
   Box,
   Spinner,
   Field,
-  Text
+  Text,
+  Textarea
 } from "@chakra-ui/react";
 import { toaster } from "@/components/ui/toaster";
 import {
@@ -35,7 +36,9 @@ const INITIAL_STATE = {
   medio_maior: "",
   alto_menor: "",
   alto_maior: "",
-  muito_alto: ""
+  muito_alto: "",
+  observacoes: "",
+  fontes: ""
 };
 
 const FIELDS = [
@@ -48,6 +51,8 @@ const FIELDS = [
   { label: "Alto Maior", key: "alto_maior" },
   { label: "Muito Alto", key: "muito_alto" }
 ] as const;
+
+type AvailablePResinFormKey = keyof typeof INITIAL_STATE;
 
 const UNIT = "mg/dm³";
 
@@ -77,6 +82,8 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
         FIELDS.forEach((field) => {
           newForm[field.key] = data[field.key] !== null && data[field.key] !== undefined ? String(data[field.key]) : "";
         });
+        newForm.observacoes = data.observacoes ?? "";
+        newForm.fontes = data.fontes ?? "";
         setForm(newForm);
       } else {
         setExistingId(null);
@@ -89,7 +96,7 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
     }
   };
 
-  const handleChange = (key: keyof typeof INITIAL_STATE, value: string) => {
+  const handleChange = (key: AvailablePResinFormKey, value: string) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
@@ -106,6 +113,8 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
         FIELDS.forEach((field) => {
           payload[`novo_${field.key}`] = parse(form[field.key]);
         });
+        payload.novo_observacoes = form.observacoes;
+        payload.novo_fontes = form.fontes;
         await updateAvailablePResin(existingId, payload);
         toaster.create({ title: "Fósforo (Resina) atualizado!", type: "success" });
       } else {
@@ -113,6 +122,8 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
         FIELDS.forEach((field) => {
           payload[field.key] = parse(form[field.key]);
         });
+        payload.observacoes = form.observacoes;
+        payload.fontes = form.fontes;
 
         await createAvailablePResin(tableId!, payload);
         toaster.create({ title: "Fósforo (Resina) configurado!", type: "success" });
@@ -172,6 +183,32 @@ export default function AvailablePResinModal({ isOpen, onClose, tableId, isReadO
                   </Text>
                   {renderInputs()}
                 </Box>
+
+                <Grid templateColumns={{ base: "1fr" }} gap={4} mt={6}>
+                  <Field.Root>
+                    <Field.Label>Observações</Field.Label>
+                    <Textarea
+                      value={form.observacoes}
+                      onChange={(event) => handleChange("observacoes", event.target.value)}
+                      readOnly={isReadOnly}
+                      minH="100px"
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                    />
+                  </Field.Root>
+
+                  <Field.Root>
+                    <Field.Label>Fontes</Field.Label>
+                    <Textarea
+                      value={form.fontes}
+                      onChange={(event) => handleChange("fontes", event.target.value)}
+                      readOnly={isReadOnly}
+                      minH="100px"
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
+                    />
+                  </Field.Root>
+                </Grid>
               </Box>
             )}
           </Dialog.Body>
