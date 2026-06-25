@@ -11,7 +11,10 @@ type ReportBlock =
   | { type: "text"; content: string }
   | { type: "table"; rows: string[][] };
 
+const markdownHeadingRegex = /^#{1,6}\s+/;
 const sectionTitleRegex = /^\d+(\.\d+)*\.\s+.+/;
+
+const normalizeMarkdownHeading = (line: string) => line.trim().replace(markdownHeadingRegex, "");
 
 const isMarkdownTableLine = (line: string) => {
   const trimmedLine = line.trim();
@@ -64,8 +67,9 @@ export const parseRecommendationReportBlocks = (reportText: string): ReportBlock
       return;
     }
 
-    if (sectionTitleRegex.test(trimmedLine)) {
-      blocks.push({ type: "heading", content: line });
+    const headingContent = normalizeMarkdownHeading(line);
+    if (sectionTitleRegex.test(headingContent)) {
+      blocks.push({ type: "heading", content: headingContent });
       return;
     }
 

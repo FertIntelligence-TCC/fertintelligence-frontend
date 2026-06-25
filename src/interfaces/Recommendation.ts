@@ -74,6 +74,7 @@ export interface RecommendationResponse {
   cropId?: number;
 
   laudo_tecnico?: string;
+  laudoTecnico?: string;
   technicalReport?: string;
 
   printable?: boolean;
@@ -88,5 +89,5 @@ export const getRecommendationReportText = (
   recommendation?: RecommendationResponse | null,
 ): string => {
   if (!recommendation) return "";
-  return recommendation.laudo_tecnico ?? recommendation.technicalReport ?? "";
+  return recommendation.laudo_tecnico ?? recommendation.laudoTecnico ?? recommendation.technicalReport ?? "";
 };
