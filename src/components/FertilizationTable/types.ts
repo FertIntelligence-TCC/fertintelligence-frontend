@@ -28,22 +28,6 @@ export const LimingLabels: Record<LimingCriteria, string> = {
     [LimingCriteria.NEUTRALIZACAO_AL_ELEVACAO_CA_MG]: "Neutr. Al + Elev. Ca/Mg"
 };
 
-export enum ManureType {
-    BOVINO = "BOVINO",
-    CAPRINO = "CAPRINO",
-    OVINO = "OVINO",
-    FRANGO = "FRANGO",
-    TORTA_MAMONA = "TORTAS"
-}
-
-export const ManureLabels: Record<ManureType, string> = {
-    [ManureType.BOVINO]: "Bovino",
-    [ManureType.CAPRINO]: "Caprino",
-    [ManureType.OVINO]: "Ovino",
-    [ManureType.FRANGO]: "Frango/Aves",
-    [ManureType.TORTA_MAMONA]: "Torta de Mamona"
-};
-
 // --- Culturas ---
 export enum CropType {
     ALGODAO = "ALGODAO",
@@ -154,9 +138,6 @@ export type FertilizationTableFormState = {
     linkedFertilityAnalysisIdentification?: string;
     showLinkedData?: boolean;
     
-    sugestaoEstercoTipo: ManureType;
-    sugestaoEstercoQtd: string;
-
     coberturaLabels: string[]; 
     plantioN: string;
     coberturasN: string[];
@@ -192,9 +173,6 @@ export const DEFAULT_TABLE_STATE: FertilizationTableFormState = {
     linkedPhysicalAnalysisIdentification: "",
     linkedFertilityAnalysisIdentification: "",
     showLinkedData: false,
-    sugestaoEstercoTipo: ManureType.BOVINO,
-    sugestaoEstercoQtd: "",
-    
     coberturaLabels: ["1ª Cobertura", "2ª Cobertura"], 
     plantioN: "",
     coberturasN: ["", ""],

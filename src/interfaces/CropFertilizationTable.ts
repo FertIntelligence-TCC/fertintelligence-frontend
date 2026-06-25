@@ -13,14 +13,6 @@ export enum LimingCriteria {
     NEUTRALIZACAO_AL_ELEVACAO_CA_MG = "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL_MAIS_ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO"
 }
 
-export enum ManureType {
-    BOVINO = "BOVINO",
-    CAPRINO = "CAPRINO",
-    OVINO = "OVINO",
-    FRANGO = "FRANGO",
-    TORTA_MAMONA = "TORTAS"
-}
-
 export enum CropType {
     ALGODAO = "ALGODAO",
     AMENDOIM = "AMENDOIM",
@@ -119,8 +111,8 @@ export interface CropFertilizationTableResponseDto {
     identificacao_analise_fertilidade?: string | null;
     fertilityAnalysisIdentification?: string | null;
     
-    tipo_de_esterco: ManureType;
-    quantidade_de_esterco: number;
+    tipo_de_esterco?: string | null;
+    quantidade_de_esterco?: number | null;
     
     observacoes: string;
     fontes: string;
@@ -169,9 +161,6 @@ export interface CropFertilizationTableCreateRequestDto {
     fertilityAnalysisId?: number | null;
     id_analise_fisica?: number | null;
     id_analise_fertilidade?: number | null;
-    
-    tipo_de_esterco: ManureType;
-    quantidade_de_esterco: number;
     
     observacoes: string;
     fontes: string;

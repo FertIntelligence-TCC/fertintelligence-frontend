@@ -42,8 +42,6 @@ const toUpdatePayload = (payload: CropFertilizationTableCreateRequestDto) => ({
     plotId: payload.plotId,
     id_analise_fisica: payload.physicalAnalysisId ?? payload.id_analise_fisica ?? null,
     id_analise_fertilidade: payload.fertilityAnalysisId ?? payload.id_analise_fertilidade ?? null,
-    novo_tipo_de_esterco: payload.tipo_de_esterco,
-    novo_quantidade_de_esterco: payload.quantidade_de_esterco,
     novo_observacoes: payload.observacoes,
     novo_fontes: payload.fontes,
     tabela_publica: payload.tabela_publica,

@@ -251,9 +251,6 @@ const mapHydratedDataToForm = (
     linkedFertilityAnalysisIdentification: canShowLinkedData(data) ? formatAnalysisIdentification(data.identificacao_analise_fertilidade ?? data.fertilityAnalysisIdentification) : "",
     showLinkedData: canShowLinkedData(data),
 
-    sugestaoEstercoTipo: data.tipo_de_esterco as any,
-    sugestaoEstercoQtd: String(data.quantidade_de_esterco),
-
     coberturaLabels: coberturaLabels.length > 0 ? coberturaLabels : ["1ª Cobertura"],
     plantioN,
     coberturasN: coberturasN.length > 0 ? coberturasN : [""],
@@ -313,9 +310,6 @@ const mapFormToRequest = (
     fertilityAnalysisId: optionalId(form.fertilityAnalysisId),
     id_analise_fisica: optionalId(form.physicalAnalysisId),
     id_analise_fertilidade: optionalId(form.fertilityAnalysisId),
-
-    tipo_de_esterco: form.sugestaoEstercoTipo,
-    quantidade_de_esterco: num(form.sugestaoEstercoQtd),
 
     observacoes: form.observacoes,
     fontes: form.fontes,

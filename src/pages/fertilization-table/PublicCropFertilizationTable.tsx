@@ -148,8 +148,6 @@ const mapHydratedDataToForm = (data: HydratedTableData): FertilizationTableFormS
     linkedPhysicalAnalysisIdentification: canShowLinkedData(data) ? formatAnalysisIdentification(data.identificacao_analise_fisica ?? data.physicalAnalysisIdentification) : "",
     linkedFertilityAnalysisIdentification: canShowLinkedData(data) ? formatAnalysisIdentification(data.identificacao_analise_fertilidade ?? data.fertilityAnalysisIdentification) : "",
     showLinkedData: canShowLinkedData(data),
-    sugestaoEstercoTipo: data.tipo_de_esterco as any,
-    sugestaoEstercoQtd: String(data.quantidade_de_esterco),
     coberturaLabels: coberturaLabels.length > 0 ? coberturaLabels : ["1ª Cobertura"],
     plantioN,
     coberturasN: coberturasN.length > 0 ? coberturasN : [""],
