@@ -64,6 +64,11 @@ export const ENDPOINT = {
   CREATE_AVAILABLE_S: "available-s/register",
   UPDATE_AVAILABLE_S: "available-s/update",
 
+  // --- Sulfur Dose Endpoints ---
+  GET_BY_TABLE_SULFUR_DOSE: "sulfur-dose/get-by-table",
+  CREATE_SULFUR_DOSE: "sulfur-dose/register",
+  UPDATE_SULFUR_DOSE: "sulfur-dose/update",
+
   // --- Bio Fertilizer Endpoints ---
   DELETE_BIO_FERTILIZER: "bio-fertilizer/delete",
   GET_ALL_BIO_FERTILIZER: "bio-fertilizer/get-all",
