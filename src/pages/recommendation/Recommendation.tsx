@@ -42,7 +42,10 @@ import {
   type RecommendationTableGroup,
   type FertilizerSourceOption,
   type RecommendationCreatePayload,
+  type DirectRecommendationResponse,
   type RecommendationResponse,
+  type ShoppingListResponse,
+  type SummaryRecommendationResponse,
   type RecommendationType,
   getRecommendationReportText,
 } from "@/interfaces/Recommendation";
@@ -81,6 +84,9 @@ import {
   preparePrintRecommendation,
   improveRecommendationNarrative,
 } from "@/services/recommendationService";
+import { getSummaryRecommendationByRecommendation } from "@/services/summaryRecommendationService";
+import { getDirectRecommendationByRecommendation } from "@/services/directRecommendationService";
+import { getShoppingListByRecommendation } from "@/services/shoppingListService";
 import { useUserStore } from "@/stores/user/user.store";
 import { LuArrowLeft, LuFileText, LuFolder, LuListChecks, LuShoppingCart } from "react-icons/lu";
 import RecommendationReportViewer, {
@@ -126,11 +132,13 @@ type RecommendationDocumentView = {
 };
 
 const documentUnavailableMessages: Record<RecommendationDocumentKey, string> = {
-  general: "A Recomendação Geral ainda não possui technicalReport/laudo_tecnico retornado pelo backend.",
-  summary: "Documento ainda não gerado. O frontend não possui endpoint real declarado para gerar/carregar a Recomendação Resumida.",
-  direct: "Documento ainda não gerado. O frontend não possui endpoint real declarado para gerar/carregar a Recomendação Direta.",
-  shopping: "Documento ainda não gerado. O frontend não possui endpoint real declarado para gerar/carregar a Lista de Compras.",
+  general: "Documento ainda não gerado.",
+  summary: "Documento ainda não gerado.",
+  direct: "Documento ainda não gerado.",
+  shopping: "Documento ainda não gerado.",
 };
+
+const documentLoadErrorMessage = "Não foi possível carregar este documento.";
 
 type RawTable = {
   id?: number;
@@ -352,6 +360,52 @@ const getDocumentStatusColor = (status: RecommendationDocumentStatus) => {
   return "gray";
 };
 
+type RecommendationDocumentResponse =
+  | SummaryRecommendationResponse
+  | DirectRecommendationResponse
+  | ShoppingListResponse;
+
+const commonDocumentTextFields = [
+  "conteudo",
+  "content",
+  "texto",
+  "text",
+  "documento",
+  "document",
+  "markdown",
+  "relatorio",
+  "report",
+];
+
+const documentSpecificTextFields: Record<Exclude<RecommendationDocumentKey, "general">, string[]> = {
+  summary: ["resumo", "summary", "recomendacao_resumida", "recomendacaoResumida", "summaryRecommendation"],
+  direct: ["recomendacao_direta", "recomendacaoDireta", "direct", "directRecommendation"],
+  shopping: ["lista_compras", "listaCompras", "shoppingList"],
+};
+
+const getTextField = (value: unknown): string => {
+  if (typeof value !== "string") return "";
+  return value.trim();
+};
+
+const getRecommendationDocumentText = (
+  document: RecommendationDocumentResponse | string | null | undefined,
+  key: Exclude<RecommendationDocumentKey, "general">,
+): string => {
+  const directText = getTextField(document);
+  if (directText) return directText;
+
+  if (!document || typeof document !== "object") return "";
+
+  const record = document as Record<string, unknown>;
+  for (const field of [...documentSpecificTextFields[key], ...commonDocumentTextFields]) {
+    const text = getTextField(record[field]);
+    if (text) return text;
+  }
+
+  return "";
+};
+
 const writePrintableReport = (printWindow: Window, text: string) => {
   const escapeHtml = (value: string) =>
     value
@@ -468,6 +522,8 @@ export default function Recommendation() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [openingRecommendationId, setOpeningRecommendationId] = useState<number | null>(null);
   const [selectedDocumentKey, setSelectedDocumentKey] = useState<RecommendationDocumentKey>("general");
+  const [loadedDocuments, setLoadedDocuments] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
+  const [notGeneratedDocuments, setNotGeneratedDocuments] = useState<Partial<Record<RecommendationDocumentKey, boolean>>>({});
   const [documentErrors, setDocumentErrors] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
   const [loadingDocumentKey, setLoadingDocumentKey] = useState<RecommendationDocumentKey | null>(null);
   const [printing, setPrinting] = useState(false);
@@ -491,6 +547,8 @@ export default function Recommendation() {
 
   useEffect(() => {
     setSelectedDocumentKey("general");
+    setLoadedDocuments({});
+    setNotGeneratedDocuments({});
     setDocumentErrors({});
     setLoadingDocumentKey(null);
   }, [selectedRecommendation?.id]);
@@ -917,9 +975,39 @@ export default function Recommendation() {
     }
   };
 
+  const loadRecommendationFolderDocument = async (
+    key: Exclude<RecommendationDocumentKey, "general">,
+    recommendationId: number,
+  ) => {
+    if (key === "summary") {
+      return getRecommendationDocumentText(
+        await getSummaryRecommendationByRecommendation(recommendationId),
+        key,
+      );
+    }
+
+    if (key === "direct") {
+      return getRecommendationDocumentText(
+        await getDirectRecommendationByRecommendation(recommendationId),
+        key,
+      );
+    }
+
+    return getRecommendationDocumentText(
+      await getShoppingListByRecommendation(recommendationId),
+      key,
+    );
+  };
+
   const reportText = getRecommendationReportText(selectedRecommendation);
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
     const hasGeneralReport = Boolean(reportText?.trim());
+    const summaryText = loadedDocuments.summary ?? "";
+    const directText = loadedDocuments.direct ?? "";
+    const shoppingText = loadedDocuments.shopping ?? "";
+    const summaryNotGenerated = notGeneratedDocuments.summary === true;
+    const directNotGenerated = notGeneratedDocuments.direct === true;
+    const shoppingNotGenerated = notGeneratedDocuments.shopping === true;
 
     return [
       {
@@ -941,29 +1029,59 @@ export default function Recommendation() {
       {
         key: "summary",
         title: "Recomendação Resumida",
-        description: "Aguardando documento salvo ou endpoint real do backend.",
-        status: loadingDocumentKey === "summary" ? "loading" : documentErrors.summary ? "error" : "not_generated",
-        content: "",
+        description: summaryText.trim()
+          ? "Documento da pasta carregado."
+          : summaryNotGenerated
+            ? "Documento ainda não gerado."
+            : "Clique para carregar o documento.",
+        status: loadingDocumentKey === "summary"
+          ? "loading"
+          : documentErrors.summary
+            ? "error"
+            : summaryText.trim()
+              ? "generated"
+              : "not_generated",
+        content: summaryText,
         icon: LuListChecks,
       },
       {
         key: "direct",
         title: "Recomendação Direta",
-        description: "Aguardando documento salvo ou endpoint real do backend.",
-        status: loadingDocumentKey === "direct" ? "loading" : documentErrors.direct ? "error" : "not_generated",
-        content: "",
+        description: directText.trim()
+          ? "Documento da pasta carregado."
+          : directNotGenerated
+            ? "Documento ainda não gerado."
+            : "Clique para carregar o documento.",
+        status: loadingDocumentKey === "direct"
+          ? "loading"
+          : documentErrors.direct
+            ? "error"
+            : directText.trim()
+              ? "generated"
+              : "not_generated",
+        content: directText,
         icon: LuFileText,
       },
       {
         key: "shopping",
         title: "Lista de Compras",
-        description: "Aguardando documento salvo ou endpoint real do backend.",
-        status: loadingDocumentKey === "shopping" ? "loading" : documentErrors.shopping ? "error" : "not_generated",
-        content: "",
+        description: shoppingText.trim()
+          ? "Documento da pasta carregado."
+          : shoppingNotGenerated
+            ? "Documento ainda não gerado."
+            : "Clique para carregar o documento.",
+        status: loadingDocumentKey === "shopping"
+          ? "loading"
+          : documentErrors.shopping
+            ? "error"
+            : shoppingText.trim()
+              ? "generated"
+              : "not_generated",
+        content: shoppingText,
         icon: LuShoppingCart,
       },
     ];
-  }, [documentErrors, loadingDocumentKey, reportText]);
+  }, [documentErrors, loadedDocuments, loadingDocumentKey, notGeneratedDocuments, reportText]);
   const selectedDocument = recommendationDocuments.find((document) => document.key === selectedDocumentKey) ?? recommendationDocuments[0];
   const selectedDocumentError = documentErrors[selectedDocument.key];
 
@@ -1003,29 +1121,46 @@ export default function Recommendation() {
 
     setLoadingDocumentKey(document.key);
     setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: undefined }));
+    setNotGeneratedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: false }));
 
     try {
-      const refreshedRecommendation = await getRecommendation(selectedRecommendation.id);
-      setSelectedRecommendation(refreshedRecommendation);
+      if (document.key === "general") {
+        const refreshedRecommendation = await getRecommendation(selectedRecommendation.id);
+        setSelectedRecommendation(refreshedRecommendation);
 
-      const refreshedGeneralReport = getRecommendationReportText(refreshedRecommendation);
-      if (document.key === "general" && refreshedGeneralReport.trim()) {
+        const refreshedGeneralReport = getRecommendationReportText(refreshedRecommendation);
+        if (!refreshedGeneralReport.trim()) {
+          const message = documentUnavailableMessages[document.key];
+          setNotGeneratedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: true }));
+          toaster.create({
+            title: message,
+            type: "warning",
+          });
+        }
+        return;
+      }
+
+      const documentText = await loadRecommendationFolderDocument(document.key, selectedRecommendation.id);
+      if (documentText.trim()) {
+        setLoadedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: documentText }));
         return;
       }
 
       const message = documentUnavailableMessages[document.key];
-      setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: message }));
-      toaster.create({
-        title: "Documento ainda não gerado.",
-        description: message,
-        type: "warning",
-      });
+      setNotGeneratedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: true }));
+      toaster.create({ title: message, type: "warning" });
     } catch (error) {
       console.error(error);
-      const message = "Não foi possível gerar o documento.";
-      setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: message }));
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        const message = documentUnavailableMessages[document.key];
+        setNotGeneratedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: true }));
+        toaster.create({ title: message, type: "warning" });
+        return;
+      }
+
+      setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: documentLoadErrorMessage }));
       toaster.create({
-        title: message,
+        title: documentLoadErrorMessage,
         description: "Falha ao consultar o backend para carregar o documento solicitado.",
         type: "error",
       });
@@ -1230,7 +1365,7 @@ export default function Recommendation() {
                   ) : selectedDocument?.status === "loading" ? (
                     <HStack gap={2}>
                       <Spinner size="sm" />
-                      <Text color="fg.muted">Gerando documento...</Text>
+                      <Text color="fg.muted">Carregando documento...</Text>
                     </HStack>
                   ) : (
                     <VStack align="start" gap={2}>
@@ -1240,7 +1375,7 @@ export default function Recommendation() {
                     </VStack>
                   )}
                 </Box>
-                <Text fontSize="xs" color="fg.muted">A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos não são montados no frontend; quando não há endpoint real declarado, a tela apenas informa a indisponibilidade técnica.</Text>
+                <Text fontSize="xs" color="fg.muted">A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos são carregados dos endpoints próprios e não são montados no frontend.</Text>
                 <Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>
                 {!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}
               </VStack>

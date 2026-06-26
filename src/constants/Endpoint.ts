@@ -267,6 +267,9 @@ export const ENDPOINT = {
   GET_BY_PLOT_RECOMMENDATION: "recommendation/plot",
   PREPARE_PRINT_RECOMMENDATION: "recommendation/print",
   GET_BY_PROPERTY_RECOMMENDATION: "recommendation/property",
+  GET_SUMMARY_RECOMMENDATION_BY_RECOMMENDATION: "summary-recommendation/get-by-recommendation",
+  GET_DIRECT_RECOMMENDATION_BY_RECOMMENDATION: "direct-recommendation/get-by-recommendation",
+  GET_SHOPPING_LIST_BY_RECOMMENDATION: "shopping-list/get-by-recommendation",
   
   // --- Salinity Interpretation Endpoints ---
   GET_BY_TABLE_SALINITY_INTERPRETATION: "salinity-interpretation/get-by-table",

@@ -89,6 +89,42 @@ export interface RecommendationResponse {
   updatedAt?: string;
 }
 
+interface RecommendationDocumentTextFields {
+  id?: number;
+  recommendationId?: number;
+  id_recommendation?: number;
+  conteudo?: string | null;
+  content?: string | null;
+  texto?: string | null;
+  text?: string | null;
+  documento?: string | null;
+  document?: string | null;
+  markdown?: string | null;
+  relatorio?: string | null;
+  report?: string | null;
+}
+
+export interface SummaryRecommendationResponse extends RecommendationDocumentTextFields {
+  resumo?: string | null;
+  summary?: string | null;
+  recomendacao_resumida?: string | null;
+  recomendacaoResumida?: string | null;
+  summaryRecommendation?: string | null;
+}
+
+export interface DirectRecommendationResponse extends RecommendationDocumentTextFields {
+  recomendacao_direta?: string | null;
+  recomendacaoDireta?: string | null;
+  direct?: string | null;
+  directRecommendation?: string | null;
+}
+
+export interface ShoppingListResponse extends RecommendationDocumentTextFields {
+  lista_compras?: string | null;
+  listaCompras?: string | null;
+  shoppingList?: string | null;
+}
+
 export const getRecommendationReportText = (
   recommendation?: RecommendationResponse | null,
 ): string => {
