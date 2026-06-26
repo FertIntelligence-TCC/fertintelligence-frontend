@@ -11,6 +11,10 @@ type ReportBlock =
   | { type: "text"; content: string }
   | { type: "table"; rows: string[][] };
 
+const recommendationDocumentFontFamily = "Aptos, Calibri, Arial, sans-serif";
+const recommendationDocumentBaseFontSize = "10pt";
+const recommendationDocumentHeadingFontSize = "12pt";
+
 const markdownHeadingRegex = /^#{1,6}\s+/;
 const sectionTitleRegex = /^\d+(\.\d+)*\.\s+.+/;
 
@@ -89,11 +93,17 @@ export default function RecommendationReportViewer({
   }
 
   const blocks = parseRecommendationReportBlocks(reportText);
-  const headingSize = variant === "print" ? "md" : "sm";
-  const textSize = variant === "print" ? "md" : "sm";
+  const headingSize = variant === "print" ? "13pt" : recommendationDocumentHeadingFontSize;
 
   return (
-    <VStack align="stretch" gap={2}>
+    <VStack
+      align="stretch"
+      className="recommendation-document-viewer"
+      fontFamily={recommendationDocumentFontFamily}
+      fontSize={recommendationDocumentBaseFontSize}
+      gap={2}
+      lineHeight="1.55"
+    >
       {blocks.map((block, blockIndex) => {
         if (block.type === "spacing") {
           return <Box key={`spacing-${blockIndex}`} h={3} />;
@@ -110,7 +120,7 @@ export default function RecommendationReportViewer({
         if (block.type === "table") {
           return (
             <Box key={`table-${blockIndex}`} overflowX="auto">
-              <Box as="table" width="100%" borderCollapse="collapse" fontSize={textSize}>
+              <Box as="table" width="100%" borderCollapse="collapse" fontSize={recommendationDocumentBaseFontSize}>
                 <Box as="tbody">
                   {block.rows.map((row, rowIndex) => (
                     <Box as="tr" key={`row-${blockIndex}-${rowIndex}`}>
@@ -137,7 +147,7 @@ export default function RecommendationReportViewer({
         }
 
         return (
-          <Text key={`text-${blockIndex}`} fontSize={textSize} lineHeight="1.65" whiteSpace="pre-wrap">
+          <Text key={`text-${blockIndex}`} fontSize={recommendationDocumentBaseFontSize} lineHeight="1.55" whiteSpace="pre-wrap">
             {block.content}
           </Text>
         );

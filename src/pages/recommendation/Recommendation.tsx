@@ -395,20 +395,25 @@ const writePrintableReport = (printWindow: Window, text: string) => {
     <meta charset="UTF-8" />
     <title>Laudo Técnico</title>
     <style>
-      body { font-family: Arial, sans-serif; padding: 32px; line-height: 1.6; color: #000; font-size: 14px; }
-      h1 { margin: 0 0 24px; font-size: 26px; }
-      h2 { margin: 20px 0 8px; font-size: 18px; }
+      body { font-family: Aptos, Calibri, Arial, sans-serif; padding: 32px; line-height: 1.55; color: #000; font-size: 10pt; }
+      .recommendation-print-document { font-family: Aptos, Calibri, Arial, sans-serif; font-size: 10pt; }
+      h1 { margin: 0 0 24px; font-size: 14pt; }
+      h2 { margin: 20px 0 8px; font-size: 12pt; }
       p { margin: 0; white-space: pre-wrap; }
       .spacing { height: 12px; }
-      table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+      table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
       th, td { border: 1px solid #000; padding: 8px 10px; text-align: left; vertical-align: top; }
       th { font-weight: 700; background: #f2f2f2; }
       .footer { margin-top: 36px; }
+      @media print {
+        body, .recommendation-print-document { font-family: Aptos, Calibri, Arial, sans-serif; font-size: 10pt; }
+        table { font-size: 10pt; }
+      }
     </style>
   </head>
   <body>
     <h1>Laudo Técnico de Recomendação Agrícola</h1>
-    <div>${contentHtml}</div>
+    <div class="recommendation-print-document">${contentHtml}</div>
     <div class="footer">Documento emitido pelo sistema FertIntelligence.</div>
   </body>
 </html>`);
