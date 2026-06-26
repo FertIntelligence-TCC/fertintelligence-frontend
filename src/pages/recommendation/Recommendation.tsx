@@ -8,6 +8,7 @@ import {
   Flex,
   HStack,
   Heading,
+  Input,
   Separator,
   SimpleGrid,
   Spinner,
@@ -396,6 +397,7 @@ export default function Recommendation() {
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
   const [fertilizerSourceOption, setFertilizerSourceOption] = useState<FertilizerSourceOption>("ALL");
+  const [recommendationFolderName, setRecommendationFolderName] = useState("");
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
@@ -761,6 +763,7 @@ export default function Recommendation() {
         cropFoliarAnalysisInterpretationTableGroup: cropFoliarAnalysisInterpretationTableGroup,
         criterio_calagem: null,
         origem_adubos: normalizeFertilizerSourceOption(fertilizerSourceOption),
+        nome_pasta_recomendacao: recommendationFolderName.trim() || null,
       };
       const result = await generateRecommendation(payload);
       setSelectedRecommendation(result);
@@ -1003,6 +1006,14 @@ export default function Recommendation() {
               <Box>
                 <Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
                 <NativeSelect value={normalizeFertilizerSourceOption(fertilizerSourceOption)} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
+              </Box>
+              <Box>
+                <Text fontSize="sm" mb={1}>Nome da pasta de recomendação?</Text>
+                <Input
+                  value={recommendationFolderName}
+                  onChange={(e) => setRecommendationFolderName(e.target.value)}
+                  aria-label="Nome da pasta de recomendação?"
+                />
               </Box>
               <Button colorPalette="blue" onClick={handleGenerate} loading={generating}>Gerar Recomendação</Button>
             </VStack>

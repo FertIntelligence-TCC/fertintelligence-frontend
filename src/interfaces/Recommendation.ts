@@ -29,6 +29,7 @@ export interface RecommendationCreatePayload {
   cropFoliarAnalysisInterpretationTableGroup: RecommendationTableGroup;
   criterio_calagem?: RecommendationLimingCriteria | null;
   origem_adubos: FertilizerSourceOption;
+  nome_pasta_recomendacao?: string | null;
 }
 
 export interface RecommendationResponse {
