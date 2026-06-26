@@ -50,12 +50,12 @@ const INITIAL_STATE = {
   teor_inicial_alto_enxofre_argila_maior_400: "",
   teor_final_alto_enxofre_argila_maior_400: "",
   maior_teor_enxofre_argila_maior_400: "",
-  fonte_literatura: "",
-  observacoes: DEFAULT_OBSERVATIONS
+  observacoes: DEFAULT_OBSERVATIONS,
+  fontes: ""
 };
 
 const NUMERIC_FIELDS = Object.keys(INITIAL_STATE).filter(
-  key => key !== "fonte_literatura" && key !== "observacoes"
+  key => key !== "observacoes" && key !== "fontes"
 );
 
 export default function AvailableSModal({ isOpen, onClose, tableId, isReadOnly = false }: Props) {
@@ -84,6 +84,7 @@ export default function AvailableSModal({ isOpen, onClose, tableId, isReadOnly =
           newForm[key] = data[key] !== null && data[key] !== undefined ? String(data[key]) : "";
         });
         if (!newForm.observacoes) newForm.observacoes = DEFAULT_OBSERVATIONS;
+        newForm.fontes = data.fontes ?? data.fonte_literatura ?? "";
         setForm(newForm);
       } else {
         setExistingId(null);
@@ -111,6 +112,7 @@ export default function AvailableSModal({ isOpen, onClose, tableId, isReadOnly =
         ? parse((form as any)[key])
         : (form as any)[key];
     });
+    payload[update ? "novo_fonte_literatura" : "fonte_literatura"] = form.fontes;
     return payload;
   };
 
@@ -208,21 +210,24 @@ export default function AvailableSModal({ isOpen, onClose, tableId, isReadOnly =
 
                 <Grid templateColumns={{ base: "1fr" }} gap={4} mt={6}>
                   <Field.Root>
-                    <Field.Label>Fontes</Field.Label>
-                    <Input
-                      value={form.fonte_literatura}
-                      onChange={(e) => handleChange("fonte_literatura", e.target.value)}
-                      readOnly={isReadOnly}
-                    />
-                  </Field.Root>
-
-                  <Field.Root>
                     <Field.Label>Observações</Field.Label>
                     <Textarea
                       value={form.observacoes}
                       onChange={(e) => handleChange("observacoes", e.target.value)}
                       readOnly={isReadOnly}
                       minH="120px"
+                    />
+                  </Field.Root>
+
+                  <Field.Root>
+                    <Field.Label>Fontes</Field.Label>
+                    <Textarea
+                      value={form.fontes}
+                      onChange={(e) => handleChange("fontes", e.target.value)}
+                      readOnly={isReadOnly}
+                      minH="100px"
+                      bg="white"
+                      _dark={{ bg: "gray.700" }}
                     />
                   </Field.Root>
                 </Grid>

@@ -21,7 +21,8 @@ export interface AvailableSResponseDto {
     maior_teor_enxofre_argila_maior_400: number;
 
     fonte_literatura?: string;
-    observacoes?: string;
+    observacoes?: string | null;
+    fontes?: string | null;
 }
 
 export type AvailableSCreateRequestDto = Omit<AvailableSResponseDto, 'id' | 'id_tabela'>;
