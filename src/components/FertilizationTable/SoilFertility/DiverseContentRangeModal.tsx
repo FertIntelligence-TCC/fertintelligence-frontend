@@ -90,12 +90,24 @@ const NUTRIENTS_WITHOUT_EXTREME_RANGES: NutrientSuffix[] = [
     "zinco",
 ];
 
-const EXTREME_RANGE_PREFIXES = ["menor_teor", "maior_teor"];
+const MICRONUTRIENT_HIDDEN_RANGE_PREFIXES = [
+    "menor_teor",
+    "teor_inicial_baixo",
+    "teor_final_alto",
+    "maior_teor",
+];
 const TEXT_FIELDS = ["observacoes", "fontes"];
 
 const shouldHideRangeField = (suffix: NutrientSuffix, prefix: string) =>
     NUTRIENTS_WITHOUT_EXTREME_RANGES.includes(suffix) &&
-    EXTREME_RANGE_PREFIXES.includes(prefix);
+    MICRONUTRIENT_HIDDEN_RANGE_PREFIXES.includes(prefix);
+
+const getRangeLabel = (suffix: NutrientSuffix, prefix: string, label: string) => {
+    if (!NUTRIENTS_WITHOUT_EXTREME_RANGES.includes(suffix)) return label;
+    if (prefix === "teor_final_baixo") return "Baixo";
+    if (prefix === "teor_inicial_alto") return "Alto";
+    return label;
+};
 
 const READ_SUFFIX_ALIASES: Partial<Record<NutrientSuffix, string[]>> = {
     aluminio_mais_hidrogenio: ["h_al", "hal", "aluminio_hidrogenio"],
@@ -196,7 +208,7 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
         Object.keys(form).forEach(key => {
             if (TEXT_FIELDS.includes(key)) return;
             const matchingHiddenField = NUTRIENTS_WITHOUT_EXTREME_RANGES.some(suffix =>
-                EXTREME_RANGE_PREFIXES.some(prefix => key === `${prefix}_${suffix}`)
+                MICRONUTRIENT_HIDDEN_RANGE_PREFIXES.some(prefix => key === `${prefix}_${suffix}`)
             );
             if (matchingHiddenField) return;
             payload[`novo_${key}`] = parse(form[key]);
@@ -239,17 +251,21 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
       const suffix = selectedNutrient;
       
       const fields = [
-          { label: "Muito Baixo (Menor que)", key: `menor_teor_${suffix}` },
-          { label: "Baixo (Menor Teor)", key: `teor_inicial_baixo_${suffix}` },
-          { label: "Baixo (Maior Teor)", key: `teor_final_baixo_${suffix}` },
-          { label: "Médio (Menor Teor)", key: `teor_inicial_medio_${suffix}` },
-          { label: "Médio (Maior Teor)", key: `teor_final_medio_${suffix}` },
-          { label: "Alto (Menor Teor)", key: `teor_inicial_alto_${suffix}` },
-          { label: "Alto (Maior Teor)", key: `teor_final_alto_${suffix}` },
-          { label: "Muito Alto (Maior que)", key: `maior_teor_${suffix}` },
-      ].filter(({ key }) => {
-          const prefix = key.replace(`_${suffix}`, "");
+          { label: "Muito Baixo (Menor que)", prefix: "menor_teor" },
+          { label: "Baixo (Menor Teor)", prefix: "teor_inicial_baixo" },
+          { label: "Baixo (Maior Teor)", prefix: "teor_final_baixo" },
+          { label: "Médio (Menor Teor)", prefix: "teor_inicial_medio" },
+          { label: "Médio (Maior Teor)", prefix: "teor_final_medio" },
+          { label: "Alto (Menor Teor)", prefix: "teor_inicial_alto" },
+          { label: "Alto (Maior Teor)", prefix: "teor_final_alto" },
+          { label: "Muito Alto (Maior que)", prefix: "maior_teor" },
+      ].filter(({ prefix }) => {
           return !shouldHideRangeField(suffix, prefix);
+      }).map(({ label, prefix }) => {
+          return {
+              label: getRangeLabel(suffix, prefix, label),
+              key: `${prefix}_${suffix}`,
+          };
       });
 
       return (
