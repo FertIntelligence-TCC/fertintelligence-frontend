@@ -61,6 +61,9 @@ export interface RecommendationResponse {
   origem_adubos?: FertilizerSourceOption;
   origemAdubos?: FertilizerSourceOption;
 
+  nome_pasta_recomendacao?: string | null;
+  nomePastaRecomendacao?: string | null;
+
   id_tabela_adubacao_cultura?: number;
   id_tabela_interpretacao_fertilidade_solo?: number;
   id_tabela_interpretacao_analise_foliar?: number;

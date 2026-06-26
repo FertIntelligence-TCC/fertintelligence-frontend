@@ -76,12 +76,13 @@ import {
 import {
   deleteRecommendation,
   generateRecommendation,
+  getRecommendation,
   getMyRecommendations,
   preparePrintRecommendation,
   improveRecommendationNarrative,
 } from "@/services/recommendationService";
 import { useUserStore } from "@/stores/user/user.store";
-import { LuArrowLeft } from "react-icons/lu";
+import { LuArrowLeft, LuFileText, LuFolder, LuListChecks, LuShoppingCart } from "react-icons/lu";
 import RecommendationReportViewer, {
   parseRecommendationReportBlocks,
 } from "@/components/Recommendation/RecommendationReportViewer";
@@ -110,6 +111,18 @@ type AnalysisExtractOption<TExtract = unknown> = {
   id: number;
   label: string;
   extract: TExtract;
+};
+
+type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
+type RecommendationDocumentStatus = "generated" | "not_generated" | "loading" | "error";
+
+type RecommendationDocumentView = {
+  key: RecommendationDocumentKey;
+  title: string;
+  description: string;
+  status: RecommendationDocumentStatus;
+  content: string;
+  icon: typeof LuFileText;
 };
 
 type RawTable = {
@@ -313,6 +326,25 @@ const getFolderLabel = (folder: AnnualCropFolderResponseDto) =>
 const getCropLabel = (crop: CropResponseDto) =>
   [crop.nome?.replace(/_/g, " "), crop.variedade, crop.tipo_cultivo].filter(Boolean).join(" • ") || `Cultura ${crop.id}`;
 
+const getRecommendationFolderName = (recommendation: RecommendationResponse) =>
+  recommendation.nome_pasta_recomendacao?.trim() ||
+  recommendation.nomePastaRecomendacao?.trim() ||
+  `Recomendação #${recommendation.id}`;
+
+const getDocumentStatusLabel = (status: RecommendationDocumentStatus) => {
+  if (status === "generated") return "Gerado";
+  if (status === "loading") return "Carregando";
+  if (status === "error") return "Erro";
+  return "Não gerado";
+};
+
+const getDocumentStatusColor = (status: RecommendationDocumentStatus) => {
+  if (status === "generated") return "green";
+  if (status === "loading") return "blue";
+  if (status === "error") return "red";
+  return "gray";
+};
+
 const writePrintableReport = (printWindow: Window, text: string) => {
   const escapeHtml = (value: string) =>
     value
@@ -422,6 +454,9 @@ export default function Recommendation() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyErrorMessage, setHistoryErrorMessage] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [openingRecommendationId, setOpeningRecommendationId] = useState<number | null>(null);
+  const [selectedDocumentKey, setSelectedDocumentKey] = useState<RecommendationDocumentKey>("general");
+  const [documentErrors, setDocumentErrors] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
   const [printing, setPrinting] = useState(false);
   const [improvingNarrative, setImprovingNarrative] = useState(false);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
@@ -440,6 +475,11 @@ export default function Recommendation() {
     () => filterTablesByGroup(foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup),
     [foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup],
   );
+
+  useEffect(() => {
+    setSelectedDocumentKey("general");
+    setDocumentErrors({});
+  }, [selectedRecommendation?.id]);
   const selectedPhysicalAnalysisExtract = useMemo(
     () => physicalAnalysisOptions.find((analysis) => String(analysis.id) === physicalAnalysisExtractId)?.extract ?? null,
     [physicalAnalysisOptions, physicalAnalysisExtractId],
@@ -864,6 +904,92 @@ export default function Recommendation() {
   };
 
   const reportText = getRecommendationReportText(selectedRecommendation);
+  const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
+    const hasGeneralReport = Boolean(reportText?.trim());
+
+    // TODO técnico: integrar endpoints reais dos documentos sob demanda quando o backend expuser esse contrato.
+    return [
+      {
+        key: "general",
+        title: "Recomendação Geral",
+        description: hasGeneralReport
+          ? "Documento principal da pasta."
+          : "Aguardando conteúdo retornado pelo backend.",
+        status: documentErrors.general ? "error" : hasGeneralReport ? "generated" : "not_generated",
+        content: reportText,
+        icon: LuFileText,
+      },
+      {
+        key: "summary",
+        title: "Recomendação Resumida",
+        description: "Documento sob demanda ainda não disponível no contrato atual.",
+        status: documentErrors.summary ? "error" : "not_generated",
+        content: "",
+        icon: LuListChecks,
+      },
+      {
+        key: "direct",
+        title: "Recomendação Direta",
+        description: "Documento sob demanda ainda não disponível no contrato atual.",
+        status: documentErrors.direct ? "error" : "not_generated",
+        content: "",
+        icon: LuFileText,
+      },
+      {
+        key: "shopping",
+        title: "Lista de Compras",
+        description: "Documento sob demanda ainda não disponível no contrato atual.",
+        status: documentErrors.shopping ? "error" : "not_generated",
+        content: "",
+        icon: LuShoppingCart,
+      },
+    ];
+  }, [documentErrors, reportText]);
+  const selectedDocument = recommendationDocuments.find((document) => document.key === selectedDocumentKey) ?? recommendationDocuments[0];
+  const selectedDocumentError = documentErrors[selectedDocument.key];
+
+  const handleOpenRecommendation = async (item: RecommendationResponse) => {
+    if (!item.id) {
+      setSelectedRecommendation(item);
+      return;
+    }
+
+    setOpeningRecommendationId(item.id);
+    try {
+      const detailedRecommendation = await getRecommendation(item.id);
+      setSelectedRecommendation(detailedRecommendation);
+    } catch (error) {
+      console.error(error);
+      setSelectedRecommendation(item);
+      toaster.create({
+        title: "Detalhe indisponível",
+        description: "Não foi possível buscar recommendation/get. Abrindo os dados já carregados no histórico.",
+        type: "warning",
+      });
+    } finally {
+      setOpeningRecommendationId(null);
+    }
+  };
+
+  const handleSelectDocument = (document: RecommendationDocumentView) => {
+    setSelectedDocumentKey(document.key);
+
+    if (document.status === "generated") {
+      return;
+    }
+
+    const message = document.key === "general"
+      ? "A Recomendação Geral ainda não possui technicalReport/laudo_tecnico retornado pelo backend."
+      : "Não há endpoint de geração/carregamento sob demanda declarado neste frontend para este documento.";
+
+    setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: message }));
+    toaster.create({
+      title: "Documento não gerado",
+      description: message,
+      type: "warning",
+    });
+  };
+
   const physicalAnalysisPlaceholder = !selectedPlotId
     ? "Selecione um talhão para ver análises físicas"
     : physicalAnalysisOptions.length
@@ -1018,13 +1144,63 @@ export default function Recommendation() {
               <Button colorPalette="blue" onClick={handleGenerate} loading={generating}>Gerar Recomendação</Button>
             </VStack>
           </Box>
-          <Box borderWidth="1px" borderRadius="lg" p={6}><Flex justify="space-between" align="center" mb={3} gap={2}><Heading size="md">Resultado da Recomendação</Heading>{selectedRecommendation ? <Button size="xs" variant="ghost" onClick={() => setIsFullscreenOpen(true)}>Tela cheia</Button> : null}</Flex><Separator mb={4} />
-            {selectedRecommendation ? (<VStack align="stretch" gap={4}><Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap"><Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge><HStack gap={2}><Button variant="outline" onClick={async () => { if (!reportText) { toaster.create({ title: "Nenhum laudo para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(reportText); toaster.create({ title: "Laudo copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar laudo.", type: "error" }); } }}>Copiar Laudo</Button><Button variant="subtle" loading={improvingNarrative} onClick={handleImproveNarrative}>{improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}</Button>{userCanPrint && selectedRecommendation.printable !== false ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}</HStack></Flex><Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex><Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto"><RecommendationReportViewer reportText={reportText} variant="compact" /></Box><Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}</VStack>) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
+          <Box borderWidth="1px" borderRadius="lg" p={6}><Flex justify="space-between" align="center" mb={3} gap={2}><Heading size="md">Pasta da Recommendation</Heading>{selectedRecommendation && selectedDocument?.status === "generated" ? <Button size="xs" variant="ghost" onClick={() => setIsFullscreenOpen(true)}>Tela cheia</Button> : null}</Flex><Separator mb={4} />
+            {selectedRecommendation ? (
+              <VStack align="stretch" gap={4}>
+                <Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap">
+                  <HStack gap={2}>
+                    <LuFolder />
+                    <Heading size="sm">{getRecommendationFolderName(selectedRecommendation)}</Heading>
+                    <Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge>
+                  </HStack>
+                  <HStack gap={2} wrap="wrap">
+                    <Button variant="outline" disabled={selectedDocument?.status !== "generated"} onClick={async () => { if (!selectedDocument?.content) { toaster.create({ title: "Nenhum documento para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(selectedDocument.content); toaster.create({ title: "Documento copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar documento.", type: "error" }); } }}>Copiar Documento</Button>
+                    {selectedDocument?.key === "general" ? <Button variant="subtle" loading={improvingNarrative} onClick={handleImproveNarrative}>{improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}</Button> : null}
+                    {userCanPrint && selectedRecommendation.printable !== false && selectedDocument?.key === "general" ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}
+                  </HStack>
+                </Flex>
+                <Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
+                  {recommendationDocuments.map((document) => {
+                    const DocumentIcon = document.icon;
+                    const isSelected = selectedDocumentKey === document.key;
+                    return (
+                      <Box key={document.key} as="button" textAlign="left" borderWidth="1px" borderRadius="md" p={4} borderColor={isSelected ? "blue.400" : undefined} bg={isSelected ? "blue.50" : "bg.panel"} _dark={isSelected ? { bg: "blue.950", borderColor: "blue.400" } : undefined} onClick={() => handleSelectDocument(document)}>
+                        <Flex justify="space-between" align="start" gap={3}>
+                          <HStack align="start" gap={3}>
+                            <Box fontSize="xl" color={document.status === "generated" ? "green.600" : "fg.muted"}><DocumentIcon /></Box>
+                            <VStack align="start" gap={1}>
+                              <Text fontWeight="semibold">{document.title}</Text>
+                              <Text fontSize="xs" color="fg.muted">{document.description}</Text>
+                            </VStack>
+                          </HStack>
+                          <Badge colorPalette={getDocumentStatusColor(document.status)}>{getDocumentStatusLabel(document.status)}</Badge>
+                        </Flex>
+                      </Box>
+                    );
+                  })}
+                </SimpleGrid>
+                <Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">
+                  {selectedDocument?.status === "generated" ? (
+                    <RecommendationReportViewer reportText={selectedDocument.content} variant="compact" />
+                  ) : (
+                    <VStack align="start" gap={2}>
+                      <Text fontWeight="semibold">{selectedDocument?.title}</Text>
+                      <Text color="fg.muted">Documento ainda não gerado para esta pasta.</Text>
+                      {selectedDocumentError ? <Text color="orange.600" fontSize="sm">{selectedDocumentError}</Text> : null}
+                    </VStack>
+                  )}
+                </Box>
+                <Text fontSize="xs" color="fg.muted">A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos aguardam endpoint real de geração/carregamento sob demanda.</Text>
+                <Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>
+                {!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}
+              </VStack>
+            ) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
           </Box>
         </SimpleGrid>
 
         <Box borderWidth="1px" borderRadius="lg" p={6} mt={4}><Heading size="md" mb={3}>Minhas Recomendações</Heading><Separator mb={4} />
-          {loadingHistory ? <Spinner /> : historyErrorMessage ? <Text color="orange.600">{historyErrorMessage}</Text> : recommendationsHistory.length === 0 ? <Text color="fg.muted">Nenhuma recomendação encontrada.</Text> : <VStack align="stretch" gap={3}>{recommendationsHistory.map((item) => (<Flex key={item.id} borderWidth="1px" borderRadius="md" p={3} justify="space-between" wrap="wrap" gap={3}><VStack align="start" gap={1}><Text fontWeight="bold">Recomendação #{item.id}</Text><Text fontSize="sm">Propriedade: {item.nome_propriedade ?? item.id_propriedade ?? "-"} • Talhão: {item.identificacao_talhao ?? item.id_talhao ?? "-"}</Text><Text fontSize="sm">Cultura: {item.cultura ?? "-"} • Ano: {item.ano_safra ?? "-"} • Tipo: {item.tipo_recomendacao ?? "-"} • Calagem: {normalizeLimingCriteria(item.criterio_calagem ?? item.criterioCalagem) ?? "-"}</Text></VStack><Flex gap={2}><Button size="sm" onClick={() => setSelectedRecommendation(item)}>Abrir</Button><Button size="sm" colorPalette="red" loading={deletingId === item.id} onClick={async () => { if (!window.confirm("Deseja excluir esta recomendação?")) return; setDeletingId(item.id); try { await deleteRecommendation(item.id); if (selectedRecommendation?.id === item.id) setSelectedRecommendation(null); toaster.create({ title: "Recomendação excluída com sucesso.", type: "success" }); await loadHistory(); } catch (error) { console.error(error); toaster.create({ title: "Falha ao excluir recomendação.", type: "error" }); } finally { setDeletingId(null); } }}>Excluir</Button></Flex></Flex>))}</VStack>}
+          {loadingHistory ? <Spinner /> : historyErrorMessage ? <Text color="orange.600">{historyErrorMessage}</Text> : recommendationsHistory.length === 0 ? <Text color="fg.muted">Nenhuma recomendação encontrada.</Text> : <VStack align="stretch" gap={3}>{recommendationsHistory.map((item) => (<Flex key={item.id} borderWidth="1px" borderRadius="md" p={3} justify="space-between" wrap="wrap" gap={3}><VStack align="start" gap={1}><Text fontWeight="bold">{getRecommendationFolderName(item)}</Text><Text fontSize="sm">Propriedade: {item.nome_propriedade ?? item.id_propriedade ?? "-"} • Talhão: {item.identificacao_talhao ?? item.id_talhao ?? "-"}</Text><Text fontSize="sm">Cultura: {item.cultura ?? "-"} • Ano: {item.ano_safra ?? "-"} • Tipo: {item.tipo_recomendacao ?? "-"} • Calagem: {normalizeLimingCriteria(item.criterio_calagem ?? item.criterioCalagem) ?? "-"}</Text></VStack><Flex gap={2}><Button size="sm" loading={openingRecommendationId === item.id} onClick={() => void handleOpenRecommendation(item)}>Abrir</Button><Button size="sm" colorPalette="red" loading={deletingId === item.id} onClick={async () => { if (!window.confirm("Deseja excluir esta recomendação?")) return; setDeletingId(item.id); try { await deleteRecommendation(item.id); if (selectedRecommendation?.id === item.id) setSelectedRecommendation(null); toaster.create({ title: "Recomendação excluída com sucesso.", type: "success" }); await loadHistory(); } catch (error) { console.error(error); toaster.create({ title: "Falha ao excluir recomendação.", type: "error" }); } finally { setDeletingId(null); } }}>Excluir</Button></Flex></Flex>))}</VStack>}
         </Box>
       </Box>
 
@@ -1036,7 +1212,7 @@ export default function Recommendation() {
       >
         <DialogContent w="85vw" maxW="85vw" h="85vh">
           <DialogHeader>
-            <DialogTitle>Resultado da Recomendação</DialogTitle>
+            <DialogTitle>{selectedDocument?.title ?? "Documento da Recommendation"}</DialogTitle>
           </DialogHeader>
           <DialogBody overflow="hidden" pb={4}>
             <Box
@@ -1048,7 +1224,11 @@ export default function Recommendation() {
               overflowY="auto"
               overflowX="auto"
             >
-              <RecommendationReportViewer reportText={reportText} variant="modal" />
+              {selectedDocument?.status === "generated" ? (
+                <RecommendationReportViewer reportText={selectedDocument.content} variant="modal" />
+              ) : (
+                <Text color="fg.muted">Documento ainda não gerado para esta pasta.</Text>
+              )}
             </Box>
           </DialogBody>
           <DialogCloseTrigger />
