@@ -113,24 +113,98 @@ const DOSE_CLASSES = [
   { className: "alto", baseLabel: "Alto" }
 ] as const satisfies readonly { className: DoseClass; baseLabel: string }[];
 
-const RANGE_PREFIXES = [
-  "teor_inicial_baixo",
-  "teor_final_baixo",
-  "teor_inicial_medio",
-  "teor_final_medio",
-  "teor_inicial_alto",
-  "teor_final_alto"
-] as const;
+type DynamicLabelRanges = {
+  baixo: number;
+  medioMenorTeor: number;
+  medioMaiorTeor: number;
+  alto: number;
+};
 
 const parseNumber = (value: string) => {
   if (!value) return 0;
   return parseFloat(value.replace(",", ".")) || 0;
 };
 
-const hasNumber = (value: unknown): value is number =>
-  typeof value === "number" && Number.isFinite(value);
+const parseFilledNumber = (value: unknown) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : undefined;
+  }
+
+  if (typeof value !== "string" || value.trim() === "") {
+    return undefined;
+  }
+
+  const parsed = Number(value.replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
 
 const formatThreshold = (value: number) => String(value).replace(".", ",");
+
+const getFirstFilledRangeValue = (
+  data: DiverseContentRangeResponseDto | null,
+  keys: readonly string[]
+) => {
+  if (!data) return undefined;
+
+  for (const key of keys) {
+    const value = parseFilledNumber(data[key]);
+    if (value !== undefined) return value;
+  }
+
+  return undefined;
+};
+
+const getMicronutrientRangeValues = (
+  data: DiverseContentRangeResponseDto | null,
+  suffix: MicronutrientSuffix
+): DynamicLabelRanges | null => {
+  const baixo = getFirstFilledRangeValue(data, [
+    `baixo_${suffix}`,
+    `${suffix}_baixo`,
+    `baixoMaiorTeor_${suffix}`,
+    `${suffix}_baixoMaiorTeor`,
+    `baixo_maior_teor_${suffix}`,
+    `teor_final_baixo_${suffix}`,
+    `valor_final_baixo_${suffix}`
+  ]);
+
+  const medioMenorTeor = getFirstFilledRangeValue(data, [
+    `medioMenorTeor_${suffix}`,
+    `${suffix}_medioMenorTeor`,
+    `medio_menor_teor_${suffix}`,
+    `teor_inicial_medio_${suffix}`,
+    `valor_inicial_medio_${suffix}`
+  ]);
+
+  const medioMaiorTeor = getFirstFilledRangeValue(data, [
+    `medioMaiorTeor_${suffix}`,
+    `${suffix}_medioMaiorTeor`,
+    `medio_maior_teor_${suffix}`,
+    `teor_final_medio_${suffix}`,
+    `valor_final_medio_${suffix}`
+  ]);
+
+  const alto = getFirstFilledRangeValue(data, [
+    `alto_${suffix}`,
+    `${suffix}_alto`,
+    `altoMenorTeor_${suffix}`,
+    `${suffix}_altoMenorTeor`,
+    `alto_menor_teor_${suffix}`,
+    `teor_inicial_alto_${suffix}`,
+    `valor_inicial_alto_${suffix}`
+  ]);
+
+  if (
+    baixo === undefined ||
+    medioMenorTeor === undefined ||
+    medioMaiorTeor === undefined ||
+    alto === undefined
+  ) {
+    return null;
+  }
+
+  return { baixo, medioMenorTeor, medioMaiorTeor, alto };
+};
 
 export default function MicronutrientDoseModal({ isOpen, onClose, tableId, isReadOnly = false }: Props) {
   const [loading, setLoading] = useState(false);
@@ -193,29 +267,10 @@ export default function MicronutrientDoseModal({ isOpen, onClose, tableId, isRea
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const getRangeValue = (suffix: MicronutrientSuffix, prefix: typeof RANGE_PREFIXES[number]) => {
-    if (!diverseContentRange) return undefined;
-    return diverseContentRange[`${prefix}_${suffix}`];
-  };
-
   const getLabels = (suffix: MicronutrientSuffix) => {
-    const ranges = {
-      lowStart: getRangeValue(suffix, "teor_inicial_baixo"),
-      lowEnd: getRangeValue(suffix, "teor_final_baixo"),
-      mediumStart: getRangeValue(suffix, "teor_inicial_medio"),
-      mediumEnd: getRangeValue(suffix, "teor_final_medio"),
-      highStart: getRangeValue(suffix, "teor_inicial_alto"),
-      highEnd: getRangeValue(suffix, "teor_final_alto")
-    };
+    const ranges = getMicronutrientRangeValues(diverseContentRange, suffix);
 
-    if (
-      !hasNumber(ranges.lowStart) ||
-      !hasNumber(ranges.lowEnd) ||
-      !hasNumber(ranges.mediumStart) ||
-      !hasNumber(ranges.mediumEnd) ||
-      !hasNumber(ranges.highStart) ||
-      !hasNumber(ranges.highEnd)
-    ) {
+    if (!ranges) {
       return {
         baixo: "Baixo",
         medio: "Médio",
@@ -224,9 +279,9 @@ export default function MicronutrientDoseModal({ isOpen, onClose, tableId, isRea
     }
 
     return {
-      baixo: `Baixo (Teores entre ${formatThreshold(ranges.lowStart)} mg/dm³ e ${formatThreshold(ranges.lowEnd)} mg/dm³)`,
-      medio: `Médio (Teores entre ${formatThreshold(ranges.mediumStart)} mg/dm³ e ${formatThreshold(ranges.mediumEnd)} mg/dm³)`,
-      alto: `Alto (Teores entre ${formatThreshold(ranges.highStart)} mg/dm³ e ${formatThreshold(ranges.highEnd)} mg/dm³)`
+      baixo: `Baixo (Teores menores que ${formatThreshold(ranges.baixo)} mg/dm³)`,
+      medio: `Médio (Teores entre ${formatThreshold(ranges.medioMenorTeor)} mg/dm³ e ${formatThreshold(ranges.medioMaiorTeor)} mg/dm³)`,
+      alto: `Alto (Teores maiores que ${formatThreshold(ranges.alto)} mg/dm³)`
     };
   };
 
