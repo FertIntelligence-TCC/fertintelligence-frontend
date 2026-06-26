@@ -125,6 +125,13 @@ type RecommendationDocumentView = {
   icon: typeof LuFileText;
 };
 
+const documentUnavailableMessages: Record<RecommendationDocumentKey, string> = {
+  general: "A Recomendação Geral ainda não possui technicalReport/laudo_tecnico retornado pelo backend.",
+  summary: "Documento ainda não gerado. O frontend não possui endpoint real declarado para gerar/carregar a Recomendação Resumida.",
+  direct: "Documento ainda não gerado. O frontend não possui endpoint real declarado para gerar/carregar a Recomendação Direta.",
+  shopping: "Documento ainda não gerado. O frontend não possui endpoint real declarado para gerar/carregar a Lista de Compras.",
+};
+
 type RawTable = {
   id?: number;
   nome?: string;
@@ -457,6 +464,7 @@ export default function Recommendation() {
   const [openingRecommendationId, setOpeningRecommendationId] = useState<number | null>(null);
   const [selectedDocumentKey, setSelectedDocumentKey] = useState<RecommendationDocumentKey>("general");
   const [documentErrors, setDocumentErrors] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
+  const [loadingDocumentKey, setLoadingDocumentKey] = useState<RecommendationDocumentKey | null>(null);
   const [printing, setPrinting] = useState(false);
   const [improvingNarrative, setImprovingNarrative] = useState(false);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
@@ -479,6 +487,7 @@ export default function Recommendation() {
   useEffect(() => {
     setSelectedDocumentKey("general");
     setDocumentErrors({});
+    setLoadingDocumentKey(null);
   }, [selectedRecommendation?.id]);
   const selectedPhysicalAnalysisExtract = useMemo(
     () => physicalAnalysisOptions.find((analysis) => String(analysis.id) === physicalAnalysisExtractId)?.extract ?? null,
@@ -907,7 +916,6 @@ export default function Recommendation() {
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
     const hasGeneralReport = Boolean(reportText?.trim());
 
-    // TODO técnico: integrar endpoints reais dos documentos sob demanda quando o backend expuser esse contrato.
     return [
       {
         key: "general",
@@ -915,36 +923,42 @@ export default function Recommendation() {
         description: hasGeneralReport
           ? "Documento principal da pasta."
           : "Aguardando conteúdo retornado pelo backend.",
-        status: documentErrors.general ? "error" : hasGeneralReport ? "generated" : "not_generated",
+        status: loadingDocumentKey === "general"
+          ? "loading"
+          : documentErrors.general
+            ? "error"
+            : hasGeneralReport
+              ? "generated"
+              : "not_generated",
         content: reportText,
         icon: LuFileText,
       },
       {
         key: "summary",
         title: "Recomendação Resumida",
-        description: "Documento sob demanda ainda não disponível no contrato atual.",
-        status: documentErrors.summary ? "error" : "not_generated",
+        description: "Aguardando documento salvo ou endpoint real do backend.",
+        status: loadingDocumentKey === "summary" ? "loading" : documentErrors.summary ? "error" : "not_generated",
         content: "",
         icon: LuListChecks,
       },
       {
         key: "direct",
         title: "Recomendação Direta",
-        description: "Documento sob demanda ainda não disponível no contrato atual.",
-        status: documentErrors.direct ? "error" : "not_generated",
+        description: "Aguardando documento salvo ou endpoint real do backend.",
+        status: loadingDocumentKey === "direct" ? "loading" : documentErrors.direct ? "error" : "not_generated",
         content: "",
         icon: LuFileText,
       },
       {
         key: "shopping",
         title: "Lista de Compras",
-        description: "Documento sob demanda ainda não disponível no contrato atual.",
-        status: documentErrors.shopping ? "error" : "not_generated",
+        description: "Aguardando documento salvo ou endpoint real do backend.",
+        status: loadingDocumentKey === "shopping" ? "loading" : documentErrors.shopping ? "error" : "not_generated",
         content: "",
         icon: LuShoppingCart,
       },
     ];
-  }, [documentErrors, reportText]);
+  }, [documentErrors, loadingDocumentKey, reportText]);
   const selectedDocument = recommendationDocuments.find((document) => document.key === selectedDocumentKey) ?? recommendationDocuments[0];
   const selectedDocumentError = documentErrors[selectedDocument.key];
 
@@ -971,23 +985,48 @@ export default function Recommendation() {
     }
   };
 
-  const handleSelectDocument = (document: RecommendationDocumentView) => {
+  const handleSelectDocument = async (document: RecommendationDocumentView) => {
     setSelectedDocumentKey(document.key);
 
     if (document.status === "generated") {
       return;
     }
 
-    const message = document.key === "general"
-      ? "A Recomendação Geral ainda não possui technicalReport/laudo_tecnico retornado pelo backend."
-      : "Não há endpoint de geração/carregamento sob demanda declarado neste frontend para este documento.";
+    if (!selectedRecommendation?.id || loadingDocumentKey) {
+      return;
+    }
 
-    setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: message }));
-    toaster.create({
-      title: "Documento não gerado",
-      description: message,
-      type: "warning",
-    });
+    setLoadingDocumentKey(document.key);
+    setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: undefined }));
+
+    try {
+      const refreshedRecommendation = await getRecommendation(selectedRecommendation.id);
+      setSelectedRecommendation(refreshedRecommendation);
+
+      const refreshedGeneralReport = getRecommendationReportText(refreshedRecommendation);
+      if (document.key === "general" && refreshedGeneralReport.trim()) {
+        return;
+      }
+
+      const message = documentUnavailableMessages[document.key];
+      setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: message }));
+      toaster.create({
+        title: "Documento ainda não gerado.",
+        description: message,
+        type: "warning",
+      });
+    } catch (error) {
+      console.error(error);
+      const message = "Não foi possível gerar o documento.";
+      setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: message }));
+      toaster.create({
+        title: message,
+        description: "Falha ao consultar o backend para carregar o documento solicitado.",
+        type: "error",
+      });
+    } finally {
+      setLoadingDocumentKey(null);
+    }
   };
 
   const physicalAnalysisPlaceholder = !selectedPlotId
@@ -1151,7 +1190,7 @@ export default function Recommendation() {
                   <HStack gap={2}>
                     <LuFolder />
                     <Heading size="sm">{getRecommendationFolderName(selectedRecommendation)}</Heading>
-                    <Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Simulação"}</Badge>
+                    <Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Laudo não imprimível"}</Badge>
                   </HStack>
                   <HStack gap={2} wrap="wrap">
                     <Button variant="outline" disabled={selectedDocument?.status !== "generated"} onClick={async () => { if (!selectedDocument?.content) { toaster.create({ title: "Nenhum documento para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(selectedDocument.content); toaster.create({ title: "Documento copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar documento.", type: "error" }); } }}>Copiar Documento</Button>
@@ -1165,10 +1204,10 @@ export default function Recommendation() {
                     const DocumentIcon = document.icon;
                     const isSelected = selectedDocumentKey === document.key;
                     return (
-                      <Box key={document.key} as="button" textAlign="left" borderWidth="1px" borderRadius="md" p={4} borderColor={isSelected ? "blue.400" : undefined} bg={isSelected ? "blue.50" : "bg.panel"} _dark={isSelected ? { bg: "blue.950", borderColor: "blue.400" } : undefined} onClick={() => handleSelectDocument(document)}>
+                      <Box key={document.key} as="button" textAlign="left" borderWidth="1px" borderRadius="md" p={4} borderColor={isSelected ? "blue.400" : undefined} bg={isSelected ? "blue.50" : "bg.panel"} _dark={isSelected ? { bg: "blue.950", borderColor: "blue.400" } : undefined} aria-disabled={Boolean(loadingDocumentKey)} opacity={loadingDocumentKey && loadingDocumentKey !== document.key ? 0.65 : 1} cursor={loadingDocumentKey ? "not-allowed" : "pointer"} onClick={() => { void handleSelectDocument(document); }}>
                         <Flex justify="space-between" align="start" gap={3}>
                           <HStack align="start" gap={3}>
-                            <Box fontSize="xl" color={document.status === "generated" ? "green.600" : "fg.muted"}><DocumentIcon /></Box>
+                            <Box fontSize="xl" color={document.status === "generated" ? "green.600" : "fg.muted"}>{document.status === "loading" ? <Spinner size="sm" /> : <DocumentIcon />}</Box>
                             <VStack align="start" gap={1}>
                               <Text fontWeight="semibold">{document.title}</Text>
                               <Text fontSize="xs" color="fg.muted">{document.description}</Text>
@@ -1183,6 +1222,11 @@ export default function Recommendation() {
                 <Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">
                   {selectedDocument?.status === "generated" ? (
                     <RecommendationReportViewer reportText={selectedDocument.content} variant="compact" />
+                  ) : selectedDocument?.status === "loading" ? (
+                    <HStack gap={2}>
+                      <Spinner size="sm" />
+                      <Text color="fg.muted">Gerando documento...</Text>
+                    </HStack>
                   ) : (
                     <VStack align="start" gap={2}>
                       <Text fontWeight="semibold">{selectedDocument?.title}</Text>
@@ -1191,9 +1235,9 @@ export default function Recommendation() {
                     </VStack>
                   )}
                 </Box>
-                <Text fontSize="xs" color="fg.muted">A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos aguardam endpoint real de geração/carregamento sob demanda.</Text>
+                <Text fontSize="xs" color="fg.muted">A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos não são montados no frontend; quando não há endpoint real declarado, a tela apenas informa a indisponibilidade técnica.</Text>
                 <Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>
-                {!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Esta recomendação foi gerada para fins de simulação. Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}
+                {!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}
               </VStack>
             ) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
           </Box>
