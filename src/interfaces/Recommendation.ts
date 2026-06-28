@@ -28,6 +28,16 @@ export interface RecommendationFertilizerLine {
   [key: string]: unknown;
   id?: number | string;
 
+  micronutriente?: string | null;
+  micronutrient?: string | null;
+  nutrient?: string | null;
+
+  dose_micronutriente_kg_ha?: number | string | null;
+  doseMicronutrienteKgHa?: number | string | null;
+  micronutrientDoseKgHa?: number | string | null;
+  kg_ha_micronutriente?: number | string | null;
+  kgHaMicronutriente?: number | string | null;
+
   id_adubo?: number | string | null;
   adubo_id?: number | string | null;
   fertilizerId?: number | string | null;
@@ -38,6 +48,12 @@ export interface RecommendationFertilizerLine {
   nomeAdubo?: string | null;
   fertilizer?: string | null;
   fertilizerName?: string | null;
+
+  teor?: number | string | null;
+  teor_usado?: number | string | null;
+  teorUsado?: number | string | null;
+  usedContent?: number | string | null;
+  contentUsed?: number | string | null;
 
   dose_kg_ha?: number | string | null;
   doseKgHa?: number | string | null;
@@ -71,6 +87,12 @@ export interface RecommendationFertilizerLine {
   observacaoTecnica?: string | null;
   technicalObservation?: string | null;
   technicalNote?: string | null;
+
+  mensagem?: string | null;
+  mensagem_tecnica?: string | null;
+  mensagemTecnica?: string | null;
+  message?: string | null;
+  technicalMessage?: string | null;
 
   micronutrientes?: RecommendationMicronutrientValues | null;
   micronutrientes_aplicados?: RecommendationMicronutrientValues | null;

@@ -83,6 +83,7 @@ import {
   formatRecommendationTableCell,
   getRecommendationTableDisplay,
 } from "@/components/Recommendation/recommendationColumnDecision";
+import { hasMicronutrientFertilizerRows } from "@/components/Recommendation/MicronutrientFertilizerTable";
 import RecommendationFolderDocuments, {
   buildRecommendationDocumentViews,
   type RecommendationDocumentKey,
@@ -327,6 +328,11 @@ type RecommendationDocumentResponse =
   | DirectRecommendationResponse
   | ShoppingListResponse;
 
+type LoadedRecommendationFolderDocument = {
+  text: string;
+  directRecommendationDocument?: DirectRecommendationResponse;
+};
+
 const commonDocumentTextFields = [
   "conteudo",
   "content",
@@ -490,6 +496,8 @@ export default function Recommendation() {
   const [openingRecommendationId, setOpeningRecommendationId] = useState<number | null>(null);
   const [selectedDocumentKey, setSelectedDocumentKey] = useState<RecommendationDocumentKey>("general");
   const [loadedDocuments, setLoadedDocuments] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
+  const [directRecommendationDocument, setDirectRecommendationDocument] =
+    useState<DirectRecommendationResponse | null>(null);
   const [notGeneratedDocuments, setNotGeneratedDocuments] = useState<Partial<Record<RecommendationDocumentKey, boolean>>>({});
   const [documentErrors, setDocumentErrors] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
   const [loadingDocumentKey, setLoadingDocumentKey] = useState<RecommendationDocumentKey | null>(null);
@@ -537,6 +545,7 @@ export default function Recommendation() {
   useEffect(() => {
 	setSelectedDocumentKey("general");
 	setLoadedDocuments({});
+	setDirectRecommendationDocument(null);
 	setNotGeneratedDocuments({});
 	setDocumentErrors({});
 	setLoadingDocumentKey(null);
@@ -916,28 +925,31 @@ export default function Recommendation() {
   const loadRecommendationFolderDocument = async (
 	key: Exclude<RecommendationDocumentKey, "general">,
 	recommendationId: number,
-  ) => {
+  ): Promise<LoadedRecommendationFolderDocument> => {
 	if (key === "summary") {
-  	return getRecommendationDocumentText(
-    	await getSummaryRecommendationByRecommendation(recommendationId),
-    	key,
-  	);
+  	const document = await getSummaryRecommendationByRecommendation(recommendationId);
+  	return { text: getRecommendationDocumentText(document, key) };
 	}
 
 	if (key === "direct") {
-  	return getRecommendationDocumentText(
-    	await getDirectRecommendationByRecommendation(recommendationId),
-    	key,
-  	);
+  	const document = await getDirectRecommendationByRecommendation(recommendationId);
+  	return {
+    	text: getRecommendationDocumentText(document, key),
+    	directRecommendationDocument: document,
+  	};
 	}
 
-	return getRecommendationDocumentText(
-  	await getShoppingListByRecommendation(recommendationId),
-  	key,
-	);
+	const document = await getShoppingListByRecommendation(recommendationId);
+	return { text: getRecommendationDocumentText(document, key) };
   };
 
   const reportText = getRecommendationReportText(selectedRecommendation);
+  const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
+	() => ({
+  	direct: hasMicronutrientFertilizerRows(directRecommendationDocument),
+	}),
+	[directRecommendationDocument],
+  );
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
 	return buildRecommendationDocumentViews({
   	reportText,
@@ -945,8 +957,9 @@ export default function Recommendation() {
   	notGeneratedDocuments,
   	documentErrors,
   	loadingDocumentKey,
+  	structuredDocuments,
 	});
-  }, [documentErrors, loadedDocuments, loadingDocumentKey, notGeneratedDocuments, reportText]);
+  }, [documentErrors, loadedDocuments, loadingDocumentKey, notGeneratedDocuments, reportText, structuredDocuments]);
   const selectedDocument = recommendationDocuments.find((document) => document.key === selectedDocumentKey) ?? recommendationDocuments[0];
   const selectedDocumentError = documentErrors[selectedDocument.key];
 
@@ -1020,9 +1033,14 @@ export default function Recommendation() {
     	return;
   	}
 
-  	const documentText = await loadRecommendationFolderDocument(document.key, selectedRecommendation.id);
-  	if (documentText.trim()) {
-    	setLoadedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: documentText }));
+  	const loadedDocument = await loadRecommendationFolderDocument(document.key, selectedRecommendation.id);
+  	if (loadedDocument.directRecommendationDocument) {
+    	setDirectRecommendationDocument(loadedDocument.directRecommendationDocument);
+  	}
+
+  	const hasStructuredContent = hasMicronutrientFertilizerRows(loadedDocument.directRecommendationDocument);
+  	if (loadedDocument.text.trim() || hasStructuredContent) {
+    	setLoadedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: loadedDocument.text }));
     	return;
   	}
 
@@ -1184,6 +1202,7 @@ export default function Recommendation() {
         	selectedDocumentKey={selectedDocumentKey}
         	recommendationDocuments={recommendationDocuments}
         	selectedDocumentError={selectedDocumentError}
+        	directRecommendationDocument={directRecommendationDocument}
         	loadingDocumentKey={loadingDocumentKey}
         	userCanPrint={userCanPrint}
         	printing={printing}

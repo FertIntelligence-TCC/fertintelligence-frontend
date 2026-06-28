@@ -22,8 +22,9 @@ import {
   DialogRoot,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { RecommendationResponse } from "@/interfaces/Recommendation";
+import type { DirectRecommendationResponse, RecommendationResponse } from "@/interfaces/Recommendation";
 
+import MicronutrientFertilizerTable from "./MicronutrientFertilizerTable";
 import RecommendationReportViewer from "./RecommendationReportViewer";
 
 export type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
@@ -44,6 +45,7 @@ type BuildRecommendationDocumentViewsParams = {
   notGeneratedDocuments: Partial<Record<RecommendationDocumentKey, boolean>>;
   documentErrors: Partial<Record<RecommendationDocumentKey, string>>;
   loadingDocumentKey: RecommendationDocumentKey | null;
+  structuredDocuments?: Partial<Record<RecommendationDocumentKey, boolean>>;
 };
 
 type RecommendationFolderDocumentsProps = {
@@ -52,6 +54,7 @@ type RecommendationFolderDocumentsProps = {
   selectedDocumentKey: RecommendationDocumentKey;
   recommendationDocuments: RecommendationDocumentView[];
   selectedDocumentError?: string;
+  directRecommendationDocument?: DirectRecommendationResponse | null;
   loadingDocumentKey: RecommendationDocumentKey | null;
   userCanPrint: boolean;
   printing: boolean;
@@ -87,6 +90,7 @@ export function buildRecommendationDocumentViews({
   notGeneratedDocuments,
   documentErrors,
   loadingDocumentKey,
+  structuredDocuments = {},
 }: BuildRecommendationDocumentViewsParams): RecommendationDocumentView[] {
   const hasGeneralReport = Boolean(reportText?.trim());
   const summaryText = loadedDocuments.summary ?? "";
@@ -134,7 +138,7 @@ export function buildRecommendationDocumentViews({
     {
       key: "direct",
       title: "Recomendação Direta",
-      description: directText.trim()
+      description: directText.trim() || structuredDocuments.direct
         ? "Documento da pasta carregado."
         : directNotGenerated
           ? "Documento ainda não gerado."
@@ -143,7 +147,7 @@ export function buildRecommendationDocumentViews({
         ? "loading"
         : documentErrors.direct
           ? "error"
-          : directText.trim()
+          : directText.trim() || structuredDocuments.direct
             ? "generated"
             : "not_generated",
       content: directText,
@@ -221,14 +225,25 @@ function RecommendationDocumentCard({
 function RecommendationDocumentPanel({
   selectedDocument,
   selectedDocumentError,
+  directRecommendationDocument,
 }: {
   selectedDocument?: RecommendationDocumentView;
   selectedDocumentError?: string;
+  directRecommendationDocument?: DirectRecommendationResponse | null;
 }) {
+  const showDirectStructuredContent = selectedDocument?.key === "direct";
+
   return (
     <Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">
       {selectedDocument?.status === "generated" ? (
-        <RecommendationReportViewer reportText={selectedDocument.content} />
+        <VStack align="stretch" gap={4}>
+          {selectedDocument.content.trim() ? (
+            <RecommendationReportViewer reportText={selectedDocument.content} />
+          ) : null}
+          {showDirectStructuredContent ? (
+            <MicronutrientFertilizerTable directRecommendation={directRecommendationDocument} />
+          ) : null}
+        </VStack>
       ) : selectedDocument?.status === "loading" ? (
         <HStack gap={2}>
           <Spinner size="sm" />
@@ -255,6 +270,7 @@ export default function RecommendationFolderDocuments({
   selectedDocumentKey,
   recommendationDocuments,
   selectedDocumentError,
+  directRecommendationDocument,
   loadingDocumentKey,
   userCanPrint,
   printing,
@@ -329,6 +345,7 @@ export default function RecommendationFolderDocuments({
             <RecommendationDocumentPanel
               selectedDocument={selectedDocument}
               selectedDocumentError={selectedDocumentError}
+              directRecommendationDocument={directRecommendationDocument}
             />
             <Text fontSize="xs" color="fg.muted">
               A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos são carregados dos endpoints próprios e não são montados no frontend.
@@ -368,7 +385,14 @@ export default function RecommendationFolderDocuments({
               overflowX="auto"
             >
               {selectedDocument?.status === "generated" ? (
-                <RecommendationReportViewer reportText={selectedDocument.content} />
+                <VStack align="stretch" gap={4}>
+                  {selectedDocument.content.trim() ? (
+                    <RecommendationReportViewer reportText={selectedDocument.content} />
+                  ) : null}
+                  {selectedDocument.key === "direct" ? (
+                    <MicronutrientFertilizerTable directRecommendation={directRecommendationDocument} />
+                  ) : null}
+                </VStack>
               ) : (
                 <Text color="fg.muted">Documento ainda não gerado para esta pasta.</Text>
               )}
