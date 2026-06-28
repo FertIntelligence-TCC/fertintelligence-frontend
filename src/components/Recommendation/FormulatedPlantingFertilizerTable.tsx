@@ -5,6 +5,7 @@ import type {
   PlantingFormulatedFertilizerLine,
   RecommendationApplicationUnit,
   RecommendationNpkValues,
+  TopDressingFormulatedFertilizerLine,
 } from "@/interfaces/Recommendation";
 
 type FormulatedPlantingFertilizerTableProps = {
@@ -14,6 +15,18 @@ type FormulatedPlantingFertilizerTableProps = {
 type LocalizedDose = {
   label: "g/m linear" | "g/cova";
   value: string;
+};
+
+type FormulatedFertilizerLine = PlantingFormulatedFertilizerLine | TopDressingFormulatedFertilizerLine;
+
+type FormulatedFertilizerTableProps<TLine extends FormulatedFertilizerLine> = {
+  title: string;
+  lines: TLine[];
+};
+
+type TopDressingFertilizerGroup = {
+  label: string;
+  lines: TopDressingFormulatedFertilizerLine[];
 };
 
 const formatter = new Intl.NumberFormat("pt-BR", {
@@ -28,8 +41,28 @@ const lineArrayFields = [
   "linhasFormuladosPlantio",
 ] as const;
 
+const topDressingLineArrayFields = [
+  "formulados_cobertura",
+  "formuladosCobertura",
+  "topDressingFormulatedFertilizers",
+  "linhas_formulados_cobertura",
+  "linhasFormuladosCobertura",
+] as const;
+
 const valueFields = {
   phase: ["fase", "phase"],
+  coverage: [
+    "cobertura",
+    "identificacao_cobertura",
+    "identificacaoCobertura",
+    "nome_cobertura",
+    "nomeCobertura",
+    "coverage",
+    "coverageName",
+    "ordem_cobertura",
+    "ordemCobertura",
+    "coverageOrder",
+  ],
   fertilizer: [
     "formulado",
     "nome_formulado",
@@ -71,7 +104,7 @@ const normalizeText = (value: unknown): string => {
 };
 
 const getFirstText = (
-  line: PlantingFormulatedFertilizerLine,
+  line: FormulatedFertilizerLine,
   fields: readonly string[],
 ): string => {
   for (const field of fields) {
@@ -94,7 +127,7 @@ const formatNpkValues = (value: RecommendationNpkValues): string => {
 };
 
 const getFirstNpkText = (
-  line: PlantingFormulatedFertilizerLine,
+  line: FormulatedFertilizerLine,
   fields: readonly string[],
 ): string => {
   for (const field of fields) {
@@ -106,7 +139,7 @@ const getFirstNpkText = (
   return "";
 };
 
-const getFormulaText = (line: PlantingFormulatedFertilizerLine): string => {
+const getFormulaText = (line: FormulatedFertilizerLine): string => {
   const formula = getFirstNpkText(line, valueFields.formula);
   if (formula) return formula;
 
@@ -117,7 +150,7 @@ const getFormulaText = (line: PlantingFormulatedFertilizerLine): string => {
   return n || p || k ? `${n || "-"}-${p || "-"}-${k || "-"}` : "";
 };
 
-const getRelationText = (line: PlantingFormulatedFertilizerLine): string => {
+const getRelationText = (line: FormulatedFertilizerLine): string => {
   const relation = getFirstNpkText(line, valueFields.relation);
   return relation.replace(/-/g, " : ");
 };
@@ -158,18 +191,40 @@ export const getFormulatedPlantingFertilizerLines = (
   return [];
 };
 
+export const getFormulatedTopDressingFertilizerLines = (
+  directRecommendation?: DirectRecommendationResponse | null,
+): TopDressingFormulatedFertilizerLine[] => {
+  if (!directRecommendation) return [];
+
+  for (const field of topDressingLineArrayFields) {
+    const value = directRecommendation[field];
+    if (Array.isArray(value) && value.length > 0) return value;
+  }
+
+  return [];
+};
+
+const hasFormulatedFertilizerData = (line: FormulatedFertilizerLine): boolean =>
+  Boolean(getFirstText(line, valueFields.fertilizer) || getFormulaText(line));
+
+const hasFormulatedFertilizerDisplayContent = (line: FormulatedFertilizerLine): boolean =>
+  Boolean(
+    hasFormulatedFertilizerData(line) ||
+      getFirstText(line, valueFields.message) ||
+      getFirstText(line, valueFields.observation),
+  );
+
 export const hasFormulatedPlantingFertilizerRows = (
   directRecommendation?: DirectRecommendationResponse | null,
 ): boolean =>
-  getFormulatedPlantingFertilizerLines(directRecommendation).some((line) =>
-    Boolean(
-      getFirstText(line, valueFields.fertilizer) ||
-        getFormulaText(line) ||
-        getFirstText(line, valueFields.message),
-    ),
-  );
+  getFormulatedPlantingFertilizerLines(directRecommendation).some(hasFormulatedFertilizerDisplayContent);
 
-const getLocalizedDose = (line: PlantingFormulatedFertilizerLine): LocalizedDose | null => {
+export const hasFormulatedTopDressingFertilizerRows = (
+  directRecommendation?: DirectRecommendationResponse | null,
+): boolean =>
+  getFormulatedTopDressingFertilizerLines(directRecommendation).some(hasFormulatedFertilizerDisplayContent);
+
+const getLocalizedDose = (line: FormulatedFertilizerLine): LocalizedDose | null => {
   const unit = normalizeUnit(getFirstText(line, valueFields.unit));
 
   if (unit === "G_M_LINEAR") {
@@ -194,96 +249,156 @@ const getLocalizedColumnLabel = (localizedDoses: (LocalizedDose | null)[]) => {
   return labels.length === 1 ? labels[0] : "Aplicacao localizada";
 };
 
-export default function FormulatedPlantingFertilizerTable({
-  directRecommendation,
-}: FormulatedPlantingFertilizerTableProps) {
-  const lines = getFormulatedPlantingFertilizerLines(directRecommendation)
-    .filter((line) =>
-      Boolean(
-        getFirstText(line, valueFields.fertilizer) ||
-          getFormulaText(line) ||
-          getFirstText(line, valueFields.message),
-      ),
-    )
-    .slice(0, 2);
+const getCoverageLabel = (line: TopDressingFormulatedFertilizerLine): string =>
+  getFirstText(line, valueFields.coverage) || getFirstText(line, valueFields.phase);
 
-  if (lines.length === 0) return null;
+const groupTopDressingLines = (
+  lines: TopDressingFormulatedFertilizerLine[],
+): TopDressingFertilizerGroup[] => {
+  const groups: TopDressingFertilizerGroup[] = [];
 
-  const localizedDoses = lines.map(getLocalizedDose);
+  for (const line of lines) {
+    const label = getCoverageLabel(line) || "Cobertura";
+    const currentGroup = groups[groups.length - 1];
+
+    if (currentGroup && currentGroup.label === label) {
+      currentGroup.lines.push(line);
+    } else {
+      groups.push({ label, lines: [line] });
+    }
+  }
+
+  return groups;
+};
+
+function FormulatedFertilizerTable<TLine extends FormulatedFertilizerLine>({
+  title,
+  lines,
+}: FormulatedFertilizerTableProps<TLine>) {
+  const fertilizerLines = lines.filter(hasFormulatedFertilizerData);
+  const warnings = lines
+    .filter((line) => !hasFormulatedFertilizerData(line))
+    .map((line) => getFirstText(line, valueFields.observation) || getFirstText(line, valueFields.message))
+    .filter(Boolean);
+
+  if (fertilizerLines.length === 0 && warnings.length === 0) return null;
+
+  const localizedDoses = fertilizerLines.map(getLocalizedDose);
   const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
 
   return (
     <VStack align="stretch" gap={3}>
-      <Heading size="sm">Formulados de plantio</Heading>
-      <Box overflowX="auto">
-        <Table.Root size="sm" variant="outline" minW="860px">
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeader>Formulado</Table.ColumnHeader>
-              <Table.ColumnHeader>Formula N-P2O5-K2O</Table.ColumnHeader>
-              <Table.ColumnHeader>Relacao</Table.ColumnHeader>
-              <Table.ColumnHeader>kg/ha</Table.ColumnHeader>
-              <Table.ColumnHeader>{localizedColumnLabel}</Table.ColumnHeader>
-              <Table.ColumnHeader>Observacao</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {lines.map((line, index) => {
-              const localizedDose = localizedDoses[index];
-              const selectionType = normalizeSelectionType(getFirstText(line, valueFields.selectionType));
-              const phase = getFirstText(line, valueFields.phase);
-              const message = getFirstText(line, valueFields.message);
-              const observation = getFirstText(line, valueFields.observation);
+      <Heading size="sm">{title}</Heading>
+      {fertilizerLines.length > 0 ? (
+        <Box overflowX="auto">
+          <Table.Root size="sm" variant="outline" minW="860px">
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeader>Formulado</Table.ColumnHeader>
+                <Table.ColumnHeader>Formula N-P2O5-K2O</Table.ColumnHeader>
+                <Table.ColumnHeader>Relacao</Table.ColumnHeader>
+                <Table.ColumnHeader>kg/ha</Table.ColumnHeader>
+                <Table.ColumnHeader>{localizedColumnLabel}</Table.ColumnHeader>
+                <Table.ColumnHeader>Observacao</Table.ColumnHeader>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {fertilizerLines.map((line, index) => {
+                const localizedDose = localizedDoses[index];
+                const selectionType = normalizeSelectionType(getFirstText(line, valueFields.selectionType));
+                const phase = getFirstText(line, valueFields.phase);
+                const message = getFirstText(line, valueFields.message);
+                const observation = getFirstText(line, valueFields.observation);
 
-              return (
-                <Table.Row key={String(line.id ?? index)}>
-                  <Table.Cell>
-                    <VStack align="start" gap={1}>
-                      <HStack gap={2} wrap="wrap">
-                        <Text>{getFirstText(line, valueFields.fertilizer) || "-"}</Text>
-                        {selectionType ? (
-                          <Badge colorPalette={isApproximateSelection(selectionType) ? "orange" : "green"}>
-                            {selectionType}
-                          </Badge>
+                return (
+                  <Table.Row key={String(line.id ?? index)}>
+                    <Table.Cell>
+                      <VStack align="start" gap={1}>
+                        <HStack gap={2} wrap="wrap">
+                          <Text>{getFirstText(line, valueFields.fertilizer) || "-"}</Text>
+                          {selectionType ? (
+                            <Badge colorPalette={isApproximateSelection(selectionType) ? "orange" : "green"}>
+                              {selectionType}
+                            </Badge>
+                          ) : null}
+                        </HStack>
+                        {phase ? (
+                          <Text color="fg.muted" fontSize="xs">
+                            Fase: {phase}
+                          </Text>
                         ) : null}
-                      </HStack>
-                      {phase ? (
+                        {message ? (
+                          <Text color="orange.600" fontSize="xs">
+                            {message}
+                          </Text>
+                        ) : null}
+                      </VStack>
+                    </Table.Cell>
+                    <Table.Cell>{getFormulaText(line) || "-"}</Table.Cell>
+                    <Table.Cell>{getRelationText(line) || "-"}</Table.Cell>
+                    <Table.Cell>{getFirstText(line, valueFields.fertilizerDose) || "-"}</Table.Cell>
+                    <Table.Cell>
+                      {localizedDose
+                        ? localizedColumnLabel === "Aplicacao localizada"
+                          ? `${localizedDose.value} ${localizedDose.label}`
+                          : localizedDose.value
+                        : "-"}
+                    </Table.Cell>
+                    <Table.Cell>
+                      {observation ? (
                         <Text color="fg.muted" fontSize="xs">
-                          Fase: {phase}
+                          {observation}
                         </Text>
-                      ) : null}
-                      {message ? (
-                        <Text color="orange.600" fontSize="xs">
-                          {message}
-                        </Text>
-                      ) : null}
-                    </VStack>
-                  </Table.Cell>
-                  <Table.Cell>{getFormulaText(line) || "-"}</Table.Cell>
-                  <Table.Cell>{getRelationText(line) || "-"}</Table.Cell>
-                  <Table.Cell>{getFirstText(line, valueFields.fertilizerDose) || "-"}</Table.Cell>
-                  <Table.Cell>
-                    {localizedDose
-                      ? localizedColumnLabel === "Aplicacao localizada"
-                        ? `${localizedDose.value} ${localizedDose.label}`
-                        : localizedDose.value
-                      : "-"}
-                  </Table.Cell>
-                  <Table.Cell>
-                    {observation ? (
-                      <Text color="fg.muted" fontSize="xs">
-                        {observation}
-                      </Text>
-                    ) : (
-                      "-"
-                    )}
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </Table.Body>
-        </Table.Root>
-      </Box>
+                      ) : (
+                        "-"
+                      )}
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
+            </Table.Body>
+          </Table.Root>
+        </Box>
+      ) : null}
+      {warnings.map((warning, index) => (
+        <Box key={`${warning}-${index}`} borderWidth="1px" borderRadius="md" borderColor="orange.200" p={3}>
+          <Text color="orange.700" fontSize="sm" overflowWrap="anywhere">
+            {warning}
+          </Text>
+        </Box>
+      ))}
     </VStack>
   );
+}
+
+export function FormulatedTopDressingFertilizerTable({
+  directRecommendation,
+}: FormulatedPlantingFertilizerTableProps) {
+  const lines = getFormulatedTopDressingFertilizerLines(directRecommendation).filter(
+    hasFormulatedFertilizerDisplayContent,
+  );
+  const groups = groupTopDressingLines(lines);
+
+  if (groups.length === 0) return null;
+
+  return (
+    <VStack align="stretch" gap={4}>
+      <Heading size="sm">Formulados de cobertura</Heading>
+      {groups.map((group, index) => (
+        <Box key={`${group.label}-${index}`} borderWidth="1px" borderRadius="md" p={3}>
+          <FormulatedFertilizerTable title={group.label} lines={group.lines} />
+        </Box>
+      ))}
+    </VStack>
+  );
+}
+
+export default function FormulatedPlantingFertilizerTable({
+  directRecommendation,
+}: FormulatedPlantingFertilizerTableProps) {
+  const lines = getFormulatedPlantingFertilizerLines(directRecommendation)
+    .filter(hasFormulatedFertilizerDisplayContent)
+    .slice(0, 2);
+
+  return <FormulatedFertilizerTable title="Formulados de plantio" lines={lines} />;
 }

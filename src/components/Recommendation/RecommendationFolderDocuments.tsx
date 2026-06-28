@@ -24,7 +24,9 @@ import {
 } from "@/components/ui/dialog";
 import type { DirectRecommendationResponse, RecommendationResponse } from "@/interfaces/Recommendation";
 
-import FormulatedPlantingFertilizerTable from "./FormulatedPlantingFertilizerTable";
+import FormulatedPlantingFertilizerTable, {
+  FormulatedTopDressingFertilizerTable,
+} from "./FormulatedPlantingFertilizerTable";
 import MicronutrientFertilizerTable from "./MicronutrientFertilizerTable";
 import RecommendationReportViewer from "./RecommendationReportViewer";
 
@@ -244,6 +246,7 @@ function RecommendationDocumentPanel({
           {showDirectStructuredContent ? (
             <>
               <FormulatedPlantingFertilizerTable directRecommendation={directRecommendationDocument} />
+              <FormulatedTopDressingFertilizerTable directRecommendation={directRecommendationDocument} />
               <MicronutrientFertilizerTable directRecommendation={directRecommendationDocument} />
             </>
           ) : null}
@@ -396,6 +399,7 @@ export default function RecommendationFolderDocuments({
                   {selectedDocument.key === "direct" ? (
                     <>
                       <FormulatedPlantingFertilizerTable directRecommendation={directRecommendationDocument} />
+                      <FormulatedTopDressingFertilizerTable directRecommendation={directRecommendationDocument} />
                       <MicronutrientFertilizerTable directRecommendation={directRecommendationDocument} />
                     </>
                   ) : null}
