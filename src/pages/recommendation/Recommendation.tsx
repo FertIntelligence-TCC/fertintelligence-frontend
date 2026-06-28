@@ -2,11 +2,9 @@ import { AxiosError } from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Badge,
   Box,
   Button,
   Flex,
-  HStack,
   Heading,
   Input,
   Separator,
@@ -15,14 +13,6 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import {
-  DialogBody,
-  DialogCloseTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogRoot,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
@@ -86,10 +76,12 @@ import { getSummaryRecommendationByRecommendation } from "@/services/summaryReco
 import { getDirectRecommendationByRecommendation } from "@/services/directRecommendationService";
 import { getShoppingListByRecommendation } from "@/services/shoppingListService";
 import { useUserStore } from "@/stores/user/user.store";
-import { LuArrowLeft, LuFileText, LuFolder, LuListChecks, LuShoppingCart } from "react-icons/lu";
-import RecommendationReportViewer, {
-  parseRecommendationReportBlocks,
-} from "@/components/Recommendation/RecommendationReportViewer";
+import { LuArrowLeft, LuFileText, LuListChecks, LuShoppingCart } from "react-icons/lu";
+import { parseRecommendationReportBlocks } from "@/components/Recommendation/RecommendationReportViewer";
+import RecommendationFolderDocuments, {
+  type RecommendationDocumentKey,
+  type RecommendationDocumentView,
+} from "@/components/Recommendation/RecommendationFolderDocuments";
 import TextureClassificationSystemSelect, {
   type TextureClassificationSystem,
 } from "@/components/Recommendation/TextureClassificationSystemSelect";
@@ -107,18 +99,6 @@ import {
   normalizeFertilizerSourceOption,
   validateRecommendationGeneration,
 } from "@/components/Recommendation/generationValidation";
-
-type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
-type RecommendationDocumentStatus = "generated" | "not_generated" | "loading" | "error";
-
-type RecommendationDocumentView = {
-  key: RecommendationDocumentKey;
-  title: string;
-  description: string;
-  status: RecommendationDocumentStatus;
-  content: string;
-  icon: typeof LuFileText;
-};
 
 const documentUnavailableMessages: Record<RecommendationDocumentKey, string> = {
   general: "Documento ainda não gerado.",
@@ -311,20 +291,6 @@ const getRecommendationFolderName = (recommendation: RecommendationResponse) =>
   recommendation.nome_pasta_recomendacao?.trim() ||
   recommendation.nomePastaRecomendacao?.trim() ||
   `Recomendação #${recommendation.id}`;
-
-const getDocumentStatusLabel = (status: RecommendationDocumentStatus) => {
-  if (status === "generated") return "Gerado";
-  if (status === "loading") return "Carregando";
-  if (status === "error") return "Erro";
-  return "Não gerado";
-};
-
-const getDocumentStatusColor = (status: RecommendationDocumentStatus) => {
-  if (status === "generated") return "green";
-  if (status === "loading") return "blue";
-  if (status === "error") return "red";
-  return "gray";
-};
 
 type RecommendationDocumentResponse =
   | SummaryRecommendationResponse
@@ -1067,6 +1033,21 @@ export default function Recommendation() {
   const selectedDocument = recommendationDocuments.find((document) => document.key === selectedDocumentKey) ?? recommendationDocuments[0];
   const selectedDocumentError = documentErrors[selectedDocument.key];
 
+  const handleCopySelectedDocument = async () => {
+	if (!selectedDocument?.content) {
+  	toaster.create({ title: "Nenhum documento para copiar.", type: "warning" });
+  	return;
+	}
+
+	try {
+  	await navigator.clipboard.writeText(selectedDocument.content);
+  	toaster.create({ title: "Documento copiado para a área de transferência.", type: "success" });
+	} catch (error) {
+  	console.error(error);
+  	toaster.create({ title: "Falha ao copiar documento.", type: "error" });
+	}
+  };
+
   const handleOpenRecommendation = async (item: RecommendationResponse) => {
 	if (!item.id) {
   	setSelectedRecommendation(item);
@@ -1268,64 +1249,26 @@ export default function Recommendation() {
           	<Button colorPalette="blue" onClick={handleGenerate} loading={generating}>Gerar Recomendação</Button>
         	</VStack>
       	</Box>
-      	<Box borderWidth="1px" borderRadius="lg" p={6}><Flex justify="space-between" align="center" mb={3} gap={2}><Heading size="md">Pasta de Recomendações</Heading>{selectedRecommendation && selectedDocument?.status === "generated" ? <Button size="xs" variant="ghost" onClick={() => setIsFullscreenOpen(true)}>Tela cheia</Button> : null}</Flex><Separator mb={4} />
-        	{selectedRecommendation ? (
-          	<VStack align="stretch" gap={4}>
-            	<Flex justify="space-between" align={{ base: "start", md: "center" }} gap={3} wrap="wrap">
-              	<HStack gap={2}>
-                	<LuFolder />
-                	<Heading size="sm">{getRecommendationFolderName(selectedRecommendation)}</Heading>
-                	<Badge colorPalette={userCanPrint ? "green" : "orange"}>{userCanPrint ? "Laudo imprimível" : "Laudo não imprimível"}</Badge>
-              	</HStack>
-              	<HStack gap={2} wrap="wrap">
-                	<Button variant="outline" disabled={selectedDocument?.status !== "generated"} onClick={async () => { if (!selectedDocument?.content) { toaster.create({ title: "Nenhum documento para copiar.", type: "warning" }); return; } try { await navigator.clipboard.writeText(selectedDocument.content); toaster.create({ title: "Documento copiado para a área de transferência.", type: "success" }); } catch (error) { console.error(error); toaster.create({ title: "Falha ao copiar documento.", type: "error" }); } }}>Copiar Documento</Button>
-                	{selectedDocument?.key === "general" ? <Button variant="subtle" loading={improvingNarrative} onClick={handleImproveNarrative}>{improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}</Button> : null}
-                	{userCanPrint && selectedRecommendation.printable !== false && selectedDocument?.key === "general" ? <Button colorPalette="blue" loading={printing} onClick={handlePrintRecommendation}>Imprimir Laudo</Button> : null}
-              	</HStack>
-            	</Flex>
-            	<Flex gap={2} wrap="wrap"><Badge>ID {selectedRecommendation.id}</Badge><Badge>Propriedade {selectedRecommendation.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation.id_propriedade ?? "-"}</Badge><Badge>Talhão {selectedRecommendation.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation.id_talhao ?? "-"}</Badge><Badge>Cultura {selectedRecommendation.cultura ?? "-"}</Badge><Badge>Ano {selectedRecommendation.ano_safra ?? "-"}</Badge><Badge>Tipo {selectedRecommendation.tipo_recomendacao ?? "-"}</Badge></Flex>
-            	<SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
-              	{recommendationDocuments.map((document) => {
-                	const DocumentIcon = document.icon;
-                	const isSelected = selectedDocumentKey === document.key;
-                	return (
-                  	<Box key={document.key} as="button" textAlign="left" borderWidth="1px" borderRadius="md" p={4} borderColor={isSelected ? "blue.400" : undefined} bg={isSelected ? "blue.50" : "bg.panel"} _dark={isSelected ? { bg: "blue.950", borderColor: "blue.400" } : undefined} aria-disabled={Boolean(loadingDocumentKey)} opacity={loadingDocumentKey && loadingDocumentKey !== document.key ? 0.65 : 1} cursor={loadingDocumentKey ? "not-allowed" : "pointer"} onClick={() => { void handleSelectDocument(document); }}>
-                    	<Flex justify="space-between" align="start" gap={3}>
-                      	<HStack align="start" gap={3}>
-                        	<Box fontSize="xl" color={document.status === "generated" ? "green.600" : "fg.muted"}>{document.status === "loading" ? <Spinner size="sm" /> : <DocumentIcon />}</Box>
-                        	<VStack align="start" gap={1}>
-                          	<Text fontWeight="semibold">{document.title}</Text>
-                          	<Text fontSize="xs" color="fg.muted">{document.description}</Text>
-                        	</VStack>
-                      	</HStack>
-                      	<Badge colorPalette={getDocumentStatusColor(document.status)}>{getDocumentStatusLabel(document.status)}</Badge>
-                    	</Flex>
-                  	</Box>
-                	);
-              	})}
-            	</SimpleGrid>
-            	<Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">
-              	{selectedDocument?.status === "generated" ? (
-                	<RecommendationReportViewer reportText={selectedDocument.content} variant="compact" />
-              	) : selectedDocument?.status === "loading" ? (
-                	<HStack gap={2}>
-                  	<Spinner size="sm" />
-                  	<Text color="fg.muted">Carregando documento...</Text>
-                	</HStack>
-              	) : (
-                	<VStack align="start" gap={2}>
-                  	<Text fontWeight="semibold">{selectedDocument?.title}</Text>
-                  	<Text color="fg.muted">Documento ainda não gerado para esta pasta.</Text>
-                  	{selectedDocumentError ? <Text color="orange.600" fontSize="sm">{selectedDocumentError}</Text> : null}
-                	</VStack>
-              	)}
-            	</Box>
-            	<Text fontSize="xs" color="fg.muted">A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos são carregados dos endpoints próprios e não são montados no frontend.</Text>
-            	<Text fontSize="xs" color="fg.muted">A melhoria de texto não altera cálculos, doses ou recomendações técnicas.</Text>
-            	{!userCanPrint ? <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.</Box> : null}
-          	</VStack>
-        	) : <Text color="fg.muted">Nenhuma recomendação gerada ainda.</Text>}
-      	</Box>
+      	<RecommendationFolderDocuments
+        	selectedRecommendation={selectedRecommendation}
+        	selectedDocument={selectedDocument}
+        	selectedDocumentKey={selectedDocumentKey}
+        	recommendationDocuments={recommendationDocuments}
+        	selectedDocumentError={selectedDocumentError}
+        	loadingDocumentKey={loadingDocumentKey}
+        	userCanPrint={userCanPrint}
+        	printing={printing}
+        	improvingNarrative={improvingNarrative}
+        	isFullscreenOpen={isFullscreenOpen}
+        	propertyLabel={selectedRecommendation?.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation?.id_propriedade ?? "-"}
+        	plotLabel={selectedRecommendation?.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation?.id_talhao ?? "-"}
+        	folderName={selectedRecommendation ? getRecommendationFolderName(selectedRecommendation) : ""}
+        	onSelectDocument={(document) => { void handleSelectDocument(document); }}
+        	onCopyDocument={() => { void handleCopySelectedDocument(); }}
+        	onImproveNarrative={handleImproveNarrative}
+        	onPrintRecommendation={handlePrintRecommendation}
+        	onFullscreenOpenChange={setIsFullscreenOpen}
+      	/>
     	</SimpleGrid>
 
     	<Box borderWidth="1px" borderRadius="lg" p={6} mt={4}><Heading size="md" mb={3}>Minhas Recomendações</Heading><Separator mb={4} />
@@ -1333,36 +1276,6 @@ export default function Recommendation() {
     	</Box>
   	</Box>
 
-  	<DialogRoot
-    	open={isFullscreenOpen}
-    	onOpenChange={(event) => setIsFullscreenOpen(event.open)}
-    	size="cover"
-    	placement="center"
-  	>
-    	<DialogContent w="85vw" maxW="85vw" h="85vh">
-      	<DialogHeader>
-        	<DialogTitle>{selectedDocument?.title ?? "Documento da Recommendation"}</DialogTitle>
-      	</DialogHeader>
-      	<DialogBody overflow="hidden" pb={4}>
-        	<Box
-          	fontSize="sm"
-          	borderWidth="1px"
-          	borderRadius="md"
-          	p={4}
-          	h="100%"
-          	overflowY="auto"
-          	overflowX="auto"
-        	>
-          	{selectedDocument?.status === "generated" ? (
-            	<RecommendationReportViewer reportText={selectedDocument.content} variant="modal" />
-          	) : (
-            	<Text color="fg.muted">Documento ainda não gerado para esta pasta.</Text>
-          	)}
-        	</Box>
-      	</DialogBody>
-      	<DialogCloseTrigger />
-    	</DialogContent>
-  	</DialogRoot>
 	</UserLayout>
   );
 }
