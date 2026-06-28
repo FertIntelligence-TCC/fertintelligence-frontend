@@ -12,7 +12,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import type { IconType } from "react-icons";
-import { LuFolder } from "react-icons/lu";
+import { LuFileText, LuFolder, LuListChecks, LuShoppingCart } from "react-icons/lu";
 
 import {
   DialogBody,
@@ -36,6 +36,14 @@ export type RecommendationDocumentView = {
   status: RecommendationDocumentStatus;
   content: string;
   icon: IconType;
+};
+
+type BuildRecommendationDocumentViewsParams = {
+  reportText: string;
+  loadedDocuments: Partial<Record<RecommendationDocumentKey, string>>;
+  notGeneratedDocuments: Partial<Record<RecommendationDocumentKey, boolean>>;
+  documentErrors: Partial<Record<RecommendationDocumentKey, string>>;
+  loadingDocumentKey: RecommendationDocumentKey | null;
 };
 
 type RecommendationFolderDocumentsProps = {
@@ -72,6 +80,95 @@ const getDocumentStatusColor = (status: RecommendationDocumentStatus) => {
   if (status === "error") return "red";
   return "gray";
 };
+
+export function buildRecommendationDocumentViews({
+  reportText,
+  loadedDocuments,
+  notGeneratedDocuments,
+  documentErrors,
+  loadingDocumentKey,
+}: BuildRecommendationDocumentViewsParams): RecommendationDocumentView[] {
+  const hasGeneralReport = Boolean(reportText?.trim());
+  const summaryText = loadedDocuments.summary ?? "";
+  const directText = loadedDocuments.direct ?? "";
+  const shoppingText = loadedDocuments.shopping ?? "";
+  const summaryNotGenerated = notGeneratedDocuments.summary === true;
+  const directNotGenerated = notGeneratedDocuments.direct === true;
+  const shoppingNotGenerated = notGeneratedDocuments.shopping === true;
+
+  return [
+    {
+      key: "general",
+      title: "Recomendação Geral",
+      description: hasGeneralReport
+        ? "Documento principal da pasta."
+        : "Aguardando conteúdo retornado pelo backend.",
+      status: loadingDocumentKey === "general"
+        ? "loading"
+        : documentErrors.general
+          ? "error"
+          : hasGeneralReport
+            ? "generated"
+            : "not_generated",
+      content: reportText,
+      icon: LuFileText,
+    },
+    {
+      key: "summary",
+      title: "Recomendação Resumida",
+      description: summaryText.trim()
+        ? "Documento da pasta carregado."
+        : summaryNotGenerated
+          ? "Documento ainda não gerado."
+          : "Clique para carregar o documento.",
+      status: loadingDocumentKey === "summary"
+        ? "loading"
+        : documentErrors.summary
+          ? "error"
+          : summaryText.trim()
+            ? "generated"
+            : "not_generated",
+      content: summaryText,
+      icon: LuListChecks,
+    },
+    {
+      key: "direct",
+      title: "Recomendação Direta",
+      description: directText.trim()
+        ? "Documento da pasta carregado."
+        : directNotGenerated
+          ? "Documento ainda não gerado."
+          : "Clique para carregar o documento.",
+      status: loadingDocumentKey === "direct"
+        ? "loading"
+        : documentErrors.direct
+          ? "error"
+          : directText.trim()
+            ? "generated"
+            : "not_generated",
+      content: directText,
+      icon: LuFileText,
+    },
+    {
+      key: "shopping",
+      title: "Lista de Compras",
+      description: shoppingText.trim()
+        ? "Documento da pasta carregado."
+        : shoppingNotGenerated
+          ? "Documento ainda não gerado."
+          : "Clique para carregar o documento.",
+      status: loadingDocumentKey === "shopping"
+        ? "loading"
+        : documentErrors.shopping
+          ? "error"
+          : shoppingText.trim()
+            ? "generated"
+            : "not_generated",
+      content: shoppingText,
+      icon: LuShoppingCart,
+    },
+  ];
+}
 
 function RecommendationDocumentCard({
   document,

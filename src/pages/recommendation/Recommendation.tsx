@@ -76,9 +76,10 @@ import { getSummaryRecommendationByRecommendation } from "@/services/summaryReco
 import { getDirectRecommendationByRecommendation } from "@/services/directRecommendationService";
 import { getShoppingListByRecommendation } from "@/services/shoppingListService";
 import { useUserStore } from "@/stores/user/user.store";
-import { LuArrowLeft, LuFileText, LuListChecks, LuShoppingCart } from "react-icons/lu";
+import { LuArrowLeft } from "react-icons/lu";
 import { parseRecommendationReportBlocks } from "@/components/Recommendation/RecommendationReportViewer";
 import RecommendationFolderDocuments, {
+  buildRecommendationDocumentViews,
   type RecommendationDocumentKey,
   type RecommendationDocumentView,
 } from "@/components/Recommendation/RecommendationFolderDocuments";
@@ -242,6 +243,18 @@ const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]):
 
 const filterTablesByGroup = (tables: TableOption[], group: TableGroupValue) =>
   group ? tables.filter((table) => table.source === group) : [];
+
+type TableFetchers = Record<Exclude<TableGroupValue, "">, () => Promise<RawTable[]>>;
+
+const loadTableOptionsByGroup = async (
+  group: TableGroupValue,
+  fetchers: TableFetchers,
+): Promise<TableOption[]> => {
+  if (!group) return [];
+  return (await fetchers[group]())
+	.map((table) => normalizeTable(table, group))
+	.filter(Boolean) as TableOption[];
+};
 
 const formatExtractPosition = (extract: {
   profundidade_inicial?: number;
@@ -552,21 +565,11 @@ export default function Recommendation() {
   	}
   	setLoadingTables(true);
   	try {
-    	let data: TableOption[];
-    	switch (cropFertilizationTableGroup) {
-      	case "PRIVATE":
-        	data = (await fetchCropFertilizationTables()).map(t => normalizeTable(t, "PRIVATE")).filter(Boolean) as TableOption[];
-        	break;
-      	case "PUBLIC":
-        	data = (await fetchPublicCropFertilizationTables()).map(t => normalizeTable(t, "PUBLIC")).filter(Boolean) as TableOption[];
-        	break;
-      	case "DEFAULT":
-        	data = (await fetchDefaultCropFertilizationTables()).map(t => normalizeTable(t, "DEFAULT")).filter(Boolean) as TableOption[];
-        	break;
-      	default:
-        	data = [];
-    	}
-    	setCropFertilizationTables(data);
+    	setCropFertilizationTables(await loadTableOptionsByGroup(cropFertilizationTableGroup, {
+      	PRIVATE: fetchCropFertilizationTables,
+      	PUBLIC: fetchPublicCropFertilizationTables,
+      	DEFAULT: fetchDefaultCropFertilizationTables,
+    	}));
   	} catch (error) {
     	console.error(error);
     	toaster.create({ title: "Falha ao carregar tabelas de adubação.", type: "error" });
@@ -584,21 +587,11 @@ export default function Recommendation() {
   	}
   	setLoadingTables(true);
   	try {
-    	let data: TableOption[];
-    	switch (soilFertilityInterpretationTableGroup) {
-      	case "PRIVATE":
-        	data = (await fetchSoilFertilityTables()).map(t => normalizeTable(t, "PRIVATE")).filter(Boolean) as TableOption[];
-        	break;
-      	case "PUBLIC":
-        	data = (await fetchPublicSoilFertilityTables()).map(t => normalizeTable(t, "PUBLIC")).filter(Boolean) as TableOption[];
-        	break;
-      	case "DEFAULT":
-        	data = (await fetchDefaultSoilFertilityTables()).map(t => normalizeTable(t, "DEFAULT")).filter(Boolean) as TableOption[];
-        	break;
-      	default:
-        	data = [];
-    	}
-    	setSoilFertilityTables(data);
+    	setSoilFertilityTables(await loadTableOptionsByGroup(soilFertilityInterpretationTableGroup, {
+      	PRIVATE: fetchSoilFertilityTables,
+      	PUBLIC: fetchPublicSoilFertilityTables,
+      	DEFAULT: fetchDefaultSoilFertilityTables,
+    	}));
   	} catch (error) {
     	console.error(error);
     	toaster.create({ title: "Falha ao carregar tabelas de fertilidade.", type: "error" });
@@ -618,21 +611,11 @@ export default function Recommendation() {
   	setLoadingTables(true);
   	setCropFoliarAnalysisInterpretationTableId("");
   	try {
-    	let data: TableOption[];
-    	switch (cropFoliarAnalysisInterpretationTableGroup) {
-      	case "PRIVATE":
-        	data = (await fetchFoliarTables()).map(t => normalizeTable(t, "PRIVATE")).filter(Boolean) as TableOption[];
-        	break;
-      	case "PUBLIC":
-        	data = (await fetchPublicFoliarTables()).map(t => normalizeTable(t, "PUBLIC")).filter(Boolean) as TableOption[];
-        	break;
-      	case "DEFAULT":
-        	data = (await fetchDefaultFoliarTables()).map(t => normalizeTable(t, "DEFAULT")).filter(Boolean) as TableOption[];
-        	break;
-      	default:
-        	data = [];
-    	}
-    	setFoliarInterpretationTables(data);
+    	setFoliarInterpretationTables(await loadTableOptionsByGroup(cropFoliarAnalysisInterpretationTableGroup, {
+      	PRIVATE: fetchFoliarTables,
+      	PUBLIC: fetchPublicFoliarTables,
+      	DEFAULT: fetchDefaultFoliarTables,
+    	}));
   	} catch (error) {
     	console.error(error);
     	toaster.create({ title: "Falha ao carregar tabelas foliares.", type: "error" });
@@ -949,86 +932,13 @@ export default function Recommendation() {
 
   const reportText = getRecommendationReportText(selectedRecommendation);
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
-	const hasGeneralReport = Boolean(reportText?.trim());
-	const summaryText = loadedDocuments.summary ?? "";
-	const directText = loadedDocuments.direct ?? "";
-	const shoppingText = loadedDocuments.shopping ?? "";
-	const summaryNotGenerated = notGeneratedDocuments.summary === true;
-	const directNotGenerated = notGeneratedDocuments.direct === true;
-	const shoppingNotGenerated = notGeneratedDocuments.shopping === true;
-
-	return [
-  	{
-    	key: "general",
-    	title: "Recomendação Geral",
-    	description: hasGeneralReport
-      	? "Documento principal da pasta."
-      	: "Aguardando conteúdo retornado pelo backend.",
-    	status: loadingDocumentKey === "general"
-      	? "loading"
-      	: documentErrors.general
-        	? "error"
-        	: hasGeneralReport
-          	? "generated"
-          	: "not_generated",
-    	content: reportText,
-    	icon: LuFileText,
-  	},
-  	{
-    	key: "summary",
-    	title: "Recomendação Resumida",
-    	description: summaryText.trim()
-      	? "Documento da pasta carregado."
-      	: summaryNotGenerated
-        	? "Documento ainda não gerado."
-        	: "Clique para carregar o documento.",
-    	status: loadingDocumentKey === "summary"
-      	? "loading"
-      	: documentErrors.summary
-        	? "error"
-        	: summaryText.trim()
-          	? "generated"
-          	: "not_generated",
-    	content: summaryText,
-    	icon: LuListChecks,
-  	},
-  	{
-    	key: "direct",
-    	title: "Recomendação Direta",
-    	description: directText.trim()
-      	? "Documento da pasta carregado."
-      	: directNotGenerated
-        	? "Documento ainda não gerado."
-        	: "Clique para carregar o documento.",
-    	status: loadingDocumentKey === "direct"
-      	? "loading"
-      	: documentErrors.direct
-        	? "error"
-        	: directText.trim()
-          	? "generated"
-          	: "not_generated",
-    	content: directText,
-    	icon: LuFileText,
-  	},
-  	{
-    	key: "shopping",
-    	title: "Lista de Compras",
-    	description: shoppingText.trim()
-      	? "Documento da pasta carregado."
-      	: shoppingNotGenerated
-        	? "Documento ainda não gerado."
-        	: "Clique para carregar o documento.",
-    	status: loadingDocumentKey === "shopping"
-      	? "loading"
-      	: documentErrors.shopping
-        	? "error"
-        	: shoppingText.trim()
-          	? "generated"
-          	: "not_generated",
-    	content: shoppingText,
-    	icon: LuShoppingCart,
-  	},
-	];
+	return buildRecommendationDocumentViews({
+  	reportText,
+  	loadedDocuments,
+  	notGeneratedDocuments,
+  	documentErrors,
+  	loadingDocumentKey,
+	});
   }, [documentErrors, loadedDocuments, loadingDocumentKey, notGeneratedDocuments, reportText]);
   const selectedDocument = recommendationDocuments.find((document) => document.key === selectedDocumentKey) ?? recommendationDocuments[0];
   const selectedDocumentError = documentErrors[selectedDocument.key];
