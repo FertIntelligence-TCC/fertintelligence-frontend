@@ -4,12 +4,10 @@ import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
-  Flex,
   Heading,
   Input,
   Separator,
   SimpleGrid,
-  Spinner,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -29,9 +27,7 @@ import {
   type RecommendationLimingCriteria,
   type FertilizerSourceOption,
   type DirectRecommendationResponse,
-  type RecommendationPrintResponse,
   type RecommendationResponse,
-  type RecommendationStructuredFertilizerLines,
   type ShoppingListResponse,
   type SummaryRecommendationResponse,
   type RecommendationType,
@@ -77,30 +73,14 @@ import { getDirectRecommendationByRecommendation } from "@/services/directRecomm
 import { getShoppingListByRecommendation } from "@/services/shoppingListService";
 import { useUserStore } from "@/stores/user/user.store";
 import { LuArrowLeft } from "react-icons/lu";
-import {
-  detectRecommendationSpacingMode,
-  parseRecommendationReportBlocks,
-} from "@/components/Recommendation/RecommendationReportViewer";
-import {
-  formatRecommendationTableCell,
-  getRecommendationTableDisplay,
-} from "@/components/Recommendation/recommendationColumnDecision";
-import {
-  buildFormulatedPlantingFertilizerTableModels,
-  buildFormulatedTopDressingFertilizerTableModels,
-  hasFormulatedPlantingFertilizerRows,
-  hasFormulatedTopDressingFertilizerRows,
-} from "@/components/Recommendation/FormulatedPlantingFertilizerTable";
-import {
-  buildMicronutrientFertilizerTableModel,
-  hasMicronutrientFertilizerRows,
-  type RecommendationPrintTableModel,
-} from "@/components/Recommendation/MicronutrientFertilizerTable";
 import RecommendationFolderDocuments, {
   buildRecommendationDocumentViews,
   type RecommendationDocumentKey,
   type RecommendationDocumentView,
 } from "@/components/Recommendation/RecommendationFolderDocuments";
+import RecommendationHistoryList from "@/components/Recommendation/RecommendationHistoryList";
+import { writePrintableReport } from "@/components/Recommendation/RecommendationPrintDocument";
+import { hasStructuredRecommendationContent } from "@/components/Recommendation/RecommendationStructuredFertilizerTables";
 import TextureClassificationSystemSelect, {
   type TextureClassificationSystem,
 } from "@/components/Recommendation/TextureClassificationSystemSelect";
@@ -385,131 +365,6 @@ const getRecommendationDocumentText = (
   }
 
   return "";
-};
-
-const hasStructuredRecommendationContent = (
-  document?: RecommendationStructuredFertilizerLines | null,
-): boolean =>
-  hasMicronutrientFertilizerRows(document) ||
-  hasFormulatedPlantingFertilizerRows(document) ||
-  hasFormulatedTopDressingFertilizerRows(document);
-
-type StructuredPrintTableModel = RecommendationPrintTableModel & {
-  warnings?: string[];
-};
-
-const getStructuredPrintTableModels = (
-  recommendation: RecommendationPrintResponse,
-): StructuredPrintTableModel[] => {
-  const micronutrientTable = buildMicronutrientFertilizerTableModel(recommendation);
-
-  return [
-    ...buildFormulatedPlantingFertilizerTableModels(recommendation),
-    ...buildFormulatedTopDressingFertilizerTableModels(recommendation),
-    ...(micronutrientTable ? [micronutrientTable] : []),
-  ];
-};
-
-const writePrintableReport = (
-  printWindow: Window,
-  text: string,
-  printableRecommendation: RecommendationPrintResponse,
-) => {
-  const escapeHtml = (value: string) =>
-	value
-  	.replace(/&/g, "&amp;")
-  	.replace(/</g, "&lt;")
-  	.replace(/>/g, "&gt;")
-  	.replace(/"/g, "&quot;")
-  	.replace(/'/g, "&#39;");
-
-  const renderTableHtml = (model: StructuredPrintTableModel) => {
-    const headerHtml = `<thead><tr>${model.headers
-      .map((header) => `<th>${escapeHtml(formatRecommendationTableCell(header))}</th>`)
-      .join("")}</tr></thead>`;
-    const bodyHtml = `<tbody>${model.rows
-      .map((row) =>
-        `<tr>${row
-          .map((cell) => `<td>${escapeHtml(formatRecommendationTableCell(cell))}</td>`)
-          .join("")}</tr>`,
-      )
-      .join("")}</tbody>`;
-    const warningsHtml = model.warnings?.length
-      ? model.warnings
-          .map((warning) => `<p class="technical-warning">${escapeHtml(warning)}</p>`)
-          .join("")
-      : "";
-
-    return `<h2>${escapeHtml(model.title)}</h2><table>${headerHtml}${bodyHtml}</table>${warningsHtml}`;
-  };
-
-  const blocks = parseRecommendationReportBlocks(text);
-  const spacingMode = detectRecommendationSpacingMode(text);
-  const contentHtml = blocks
-	.map((block) => {
-  	if (block.type === "spacing") {
-    	return "<div class=\"spacing\"></div>";
-  	}
-
-  	if (block.type === "heading") {
-    	return `<h2>${escapeHtml(block.content)}</h2>`;
-  	}
-
-  	if (block.type === "table") {
-    	const display = getRecommendationTableDisplay(block.rows, spacingMode);
-    	const [headerRow, ...bodyRows] = display.rows;
-    	const headerHtml = headerRow
-      	? `<thead><tr>${headerRow.map((cell) => `<th>${escapeHtml(formatRecommendationTableCell(cell))}</th>`).join("")}</tr></thead>`
-      	: "";
-    	const bodyHtml = `<tbody>${bodyRows
-      	.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(formatRecommendationTableCell(cell))}</td>`).join("")}</tr>`)
-      	.join("")}</tbody>`;
-    	const warningHtml = display.warning ? `<p class="technical-warning">${escapeHtml(display.warning)}</p>` : "";
-    	return `${warningHtml}<table>${headerHtml}${bodyHtml}</table>`;
-  	}
-
-  	return `<p>${escapeHtml(block.content)}</p>`;
-	})
-	.join("");
-  const structuredTablesHtml = getStructuredPrintTableModels(printableRecommendation)
-    .map(renderTableHtml)
-    .join("");
-  const structuredContentHtml = structuredTablesHtml
-    ? `<div class="spacing"></div>${structuredTablesHtml}`
-    : "";
-
-  const doc = printWindow.document;
-  doc.open();
-  doc.write(`<!DOCTYPE html>
-<html>
-  <head>
-	<meta charset="UTF-8" />
-	<title>Laudo Técnico</title>
-	<style>
-  	body { font-family: Aptos, Calibri, Arial, sans-serif; padding: 32px; line-height: 1.55; color: #000; font-size: 10pt; }
-  	.recommendation-print-document { font-family: Aptos, Calibri, Arial, sans-serif; font-size: 10pt; }
-  	h1 { margin: 0 0 24px; font-size: 14pt; }
-  	h2 { margin: 20px 0 8px; font-size: 12pt; }
-  	p { margin: 0; white-space: pre-wrap; }
-  	.technical-warning { color: #c2410c; font-size: 9pt; margin: 6px 0; }
-  	.spacing { height: 12px; }
-  	table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
-  	th, td { border: 1px solid #000; padding: 8px 10px; text-align: left; vertical-align: top; white-space: pre-wrap; }
-  	th { font-weight: 700; background: #f2f2f2; }
-  	.footer { margin-top: 36px; }
-  	@media print {
-    	body, .recommendation-print-document { font-family: Aptos, Calibri, Arial, sans-serif; font-size: 10pt; }
-    	table { font-size: 10pt; }
-  	}
-	</style>
-  </head>
-  <body>
-	<h1>Laudo Técnico de Recomendação Agrícola</h1>
-	<div class="recommendation-print-document">${contentHtml}${structuredContentHtml}</div>
-	<div class="footer">Documento emitido pelo sistema FertIntelligence.</div>
-  </body>
-</html>`);
-  doc.close();
 };
 
 export default function Recommendation() {
@@ -1073,6 +928,21 @@ export default function Recommendation() {
 	}
   };
 
+  const handleDeleteRecommendation = async (item: RecommendationResponse) => {
+	setDeletingId(item.id);
+	try {
+  	await deleteRecommendation(item.id);
+  	if (selectedRecommendation?.id === item.id) setSelectedRecommendation(null);
+  	toaster.create({ title: "Recomendação excluída com sucesso.", type: "success" });
+  	await loadHistory();
+	} catch (error) {
+  	console.error(error);
+  	toaster.create({ title: "Falha ao excluir recomendação.", type: "error" });
+	} finally {
+  	setDeletingId(null);
+	}
+  };
+
   const handleSelectDocument = async (document: RecommendationDocumentView) => {
 	setSelectedDocumentKey(document.key);
 
@@ -1297,9 +1167,17 @@ export default function Recommendation() {
       	/>
     	</SimpleGrid>
 
-    	<Box borderWidth="1px" borderRadius="lg" p={6} mt={4}><Heading size="md" mb={3}>Minhas Recomendações</Heading><Separator mb={4} />
-      	{loadingHistory ? <Spinner /> : historyErrorMessage ? <Text color="orange.600">{historyErrorMessage}</Text> : recommendationsHistory.length === 0 ? <Text color="fg.muted">Nenhuma recomendação encontrada.</Text> : <VStack align="stretch" gap={3}>{recommendationsHistory.map((item) => (<Flex key={item.id} borderWidth="1px" borderRadius="md" p={3} justify="space-between" wrap="wrap" gap={3}><VStack align="start" gap={1}><Text fontWeight="bold">{getRecommendationFolderName(item)}</Text><Text fontSize="sm">Propriedade: {item.nome_propriedade ?? item.id_propriedade ?? "-"} • Talhão: {item.identificacao_talhao ?? item.id_talhao ?? "-"}</Text><Text fontSize="sm">Cultura: {item.cultura ?? "-"} • Ano: {item.ano_safra ?? "-"} • Tipo: {item.tipo_recomendacao ?? "-"} • Calagem: {normalizeLimingCriteria(item.criterio_calagem ?? item.criterioCalagem) ?? "-"}</Text></VStack><Flex gap={2}><Button size="sm" loading={openingRecommendationId === item.id} onClick={() => void handleOpenRecommendation(item)}>Abrir</Button><Button size="sm" colorPalette="red" loading={deletingId === item.id} onClick={async () => { if (!window.confirm("Deseja excluir esta recomendação?")) return; setDeletingId(item.id); try { await deleteRecommendation(item.id); if (selectedRecommendation?.id === item.id) setSelectedRecommendation(null); toaster.create({ title: "Recomendação excluída com sucesso.", type: "success" }); await loadHistory(); } catch (error) { console.error(error); toaster.create({ title: "Falha ao excluir recomendação.", type: "error" }); } finally { setDeletingId(null); } }}>Excluir</Button></Flex></Flex>))}</VStack>}
-    	</Box>
+    	<RecommendationHistoryList
+      	recommendations={recommendationsHistory}
+      	loading={loadingHistory}
+      	errorMessage={historyErrorMessage}
+      	openingRecommendationId={openingRecommendationId}
+      	deletingId={deletingId}
+      	getFolderName={getRecommendationFolderName}
+      	normalizeLimingCriteria={normalizeLimingCriteria}
+      	onOpen={(item) => void handleOpenRecommendation(item)}
+      	onDelete={(item) => void handleDeleteRecommendation(item)}
+    	/>
   	</Box>
 
 	</UserLayout>

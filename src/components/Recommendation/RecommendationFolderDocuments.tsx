@@ -28,13 +28,10 @@ import type {
   ShoppingListResponse,
 } from "@/interfaces/Recommendation";
 
-import FormulatedPlantingFertilizerTable, {
-  FormulatedTopDressingFertilizerTable,
-  hasFormulatedPlantingFertilizerRows,
-  hasFormulatedTopDressingFertilizerRows,
-} from "./FormulatedPlantingFertilizerTable";
-import MicronutrientFertilizerTable, { hasMicronutrientFertilizerRows } from "./MicronutrientFertilizerTable";
 import RecommendationReportViewer from "./RecommendationReportViewer";
+import RecommendationStructuredFertilizerTables, {
+  hasStructuredRecommendationContent,
+} from "./RecommendationStructuredFertilizerTables";
 
 export type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
 export type RecommendationDocumentStatus = "generated" | "not_generated" | "loading" | "error";
@@ -246,9 +243,7 @@ function RecommendationDocumentPanel({
   const showDirectStructuredContent = selectedDocument?.key === "direct";
   const showShoppingStructuredContent =
     selectedDocument?.key === "shopping" &&
-    (hasMicronutrientFertilizerRows(shoppingListDocument) ||
-      hasFormulatedPlantingFertilizerRows(shoppingListDocument) ||
-      hasFormulatedTopDressingFertilizerRows(shoppingListDocument));
+    hasStructuredRecommendationContent(shoppingListDocument);
   const shouldRenderTextContent =
     selectedDocument?.content.trim() && !(selectedDocument.key === "shopping" && showShoppingStructuredContent);
 
@@ -260,18 +255,10 @@ function RecommendationDocumentPanel({
             <RecommendationReportViewer reportText={selectedDocument.content} />
           ) : null}
           {showDirectStructuredContent ? (
-            <>
-              <FormulatedPlantingFertilizerTable directRecommendation={directRecommendationDocument} />
-              <FormulatedTopDressingFertilizerTable directRecommendation={directRecommendationDocument} />
-              <MicronutrientFertilizerTable directRecommendation={directRecommendationDocument} />
-            </>
+            <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
           ) : null}
           {showShoppingStructuredContent ? (
-            <>
-              <FormulatedPlantingFertilizerTable directRecommendation={shoppingListDocument} />
-              <FormulatedTopDressingFertilizerTable directRecommendation={shoppingListDocument} />
-              <MicronutrientFertilizerTable directRecommendation={shoppingListDocument} />
-            </>
+            <RecommendationStructuredFertilizerTables document={shoppingListDocument} />
           ) : null}
         </VStack>
       ) : selectedDocument?.status === "loading" ? (
@@ -420,27 +407,15 @@ export default function RecommendationFolderDocuments({
                 <VStack align="stretch" gap={4}>
                   {selectedDocument.content.trim() &&
                   !(selectedDocument.key === "shopping" &&
-                    (hasMicronutrientFertilizerRows(shoppingListDocument) ||
-                      hasFormulatedPlantingFertilizerRows(shoppingListDocument) ||
-                      hasFormulatedTopDressingFertilizerRows(shoppingListDocument))) ? (
+                    hasStructuredRecommendationContent(shoppingListDocument)) ? (
                     <RecommendationReportViewer reportText={selectedDocument.content} />
                   ) : null}
                   {selectedDocument.key === "direct" ? (
-                    <>
-                      <FormulatedPlantingFertilizerTable directRecommendation={directRecommendationDocument} />
-                      <FormulatedTopDressingFertilizerTable directRecommendation={directRecommendationDocument} />
-                      <MicronutrientFertilizerTable directRecommendation={directRecommendationDocument} />
-                    </>
+                    <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
                   ) : null}
                   {selectedDocument.key === "shopping" &&
-                  (hasMicronutrientFertilizerRows(shoppingListDocument) ||
-                    hasFormulatedPlantingFertilizerRows(shoppingListDocument) ||
-                    hasFormulatedTopDressingFertilizerRows(shoppingListDocument)) ? (
-                    <>
-                      <FormulatedPlantingFertilizerTable directRecommendation={shoppingListDocument} />
-                      <FormulatedTopDressingFertilizerTable directRecommendation={shoppingListDocument} />
-                      <MicronutrientFertilizerTable directRecommendation={shoppingListDocument} />
-                    </>
+                  hasStructuredRecommendationContent(shoppingListDocument) ? (
+                    <RecommendationStructuredFertilizerTables document={shoppingListDocument} />
                   ) : null}
                 </VStack>
               ) : (
