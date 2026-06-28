@@ -21,7 +21,7 @@ import { toaster } from "@/components/ui/toaster";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
-import type { CropResponseDto } from "@/interfaces/Crop";
+import type { CropResponseDto, PlantSpacingMode } from "@/interfaces/Crop";
 import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
 import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
 import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/SaturationExtractAnalysisExtract";
@@ -90,7 +90,7 @@ import AnalysisSelectors from "@/components/Recommendation/AnalysisSelectors";
 import CropTableSelectors from "@/components/Recommendation/CropTableSelectors";
 import LimingPreviewFields from "@/components/Recommendation/LimingPreviewFields";
 import PropertyPlotSelectors from "@/components/Recommendation/PropertyPlotSelectors";
-import SpacingSection, { type PlantSpacingMode } from "@/components/Recommendation/SpacingSection";
+import SpacingSection from "@/components/Recommendation/SpacingSection";
 import {
   type AnalysisExtractOption,
   type TableGroupValue,
@@ -514,6 +514,13 @@ export default function Recommendation() {
 	}
 
 	setRowDistance(String(selectedCrop.distancia_entre_linhas ?? ""));
+	if (selectedCrop.modo_espacamento === "holes") {
+  	setPlantSpacingMode("holes");
+  	setPlantSpacingValue(String(selectedCrop.distancia_entre_plantas ?? ""));
+  	setPlantsPerHole(String(selectedCrop.numero_plantas_por_cova ?? ""));
+  	return;
+	}
+
 	setPlantSpacingMode("plants_per_meter");
 	setPlantSpacingValue(String(selectedCrop.numero_plantas_por_metro ?? ""));
 	setPlantsPerHole("");

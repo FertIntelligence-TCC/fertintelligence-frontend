@@ -27,7 +27,8 @@ import {
   CropResponseDto, 
   CropDate, 
   CultivationType, 
-  NomeComum 
+  NomeComum,
+  PlantSpacingMode
 } from "@/interfaces/Crop";
 import { createCrop, updateCrop } from "@/services/cropService";
 import { getPlotById } from "@/services/plotService";
@@ -69,6 +70,7 @@ const CROP_NAMES: NomeComum[] = [
   'ALGODAO', 'AMENDOIM', 'CANA_DE_ACUCAR', 'FEIJAO_CAUPI', 
   'FEIJAO_COMUM', 'GERGELIM', 'MAMONA', 'MILHO', 'SISAL', 'SOJA'
 ];
+const PLANT_SPACING_MODES: PlantSpacingMode[] = ["plants_per_meter", "holes"];
 
 type ApiErrorData = { message?: string; error?: string } | string;
 
@@ -104,6 +106,12 @@ const isAreaConflictError = (message: string) => {
   );
 };
 
+const isPlantSpacingMode = (value?: string | null): value is PlantSpacingMode =>
+  !!value && PLANT_SPACING_MODES.includes(value as PlantSpacingMode);
+
+const getCropPlantSpacingMode = (crop: CropResponseDto): PlantSpacingMode =>
+  isPlantSpacingMode(crop.modo_espacamento) ? crop.modo_espacamento : "plants_per_meter";
+
 export const CropFormDialog = ({
   open,
   onOpenChange,
@@ -123,8 +131,11 @@ export const CropFormDialog = ({
   const [variedade, setVariedade] = useState("");
   const [tipoCultivo, setTipoCultivo] = useState<CultivationType | string>("");
   const [ciclo, setCiclo] = useState("");
+  const [modoEspacamento, setModoEspacamento] = useState<PlantSpacingMode>("plants_per_meter");
   const [distanciaEntreLinhas, setDistanciaEntreLinhas] = useState("");
   const [plantasPorMetro, setPlantasPorMetro] = useState("");
+  const [distanciaEntrePlantas, setDistanciaEntrePlantas] = useState("");
+  const [plantasPorCova, setPlantasPorCova] = useState("");
   const [areaUsada, setAreaUsada] = useState("");
   const [produtividadeEsperada, setProdutividadeEsperada] = useState("");
   const [produtividadeObtida, setProdutividadeObtida] = useState("");
@@ -140,10 +151,13 @@ export const CropFormDialog = ({
   // Cálculos Automáticos
   const population = useMemo(() => {
     const dist = parseFloat(distanciaEntreLinhas);
-    const plants = parseFloat(plantasPorMetro);
-    if (!dist || !plants || dist === 0) return "0";
-    return Math.round((10000 * plants) / dist).toLocaleString('pt-BR');
-  }, [distanciaEntreLinhas, plantasPorMetro]);
+    const plantsPerMeter = modoEspacamento === "holes"
+      ? Number(plantasPorCova) / Number(distanciaEntrePlantas)
+      : Number(plantasPorMetro);
+
+    if (!dist || !plantsPerMeter || dist === 0) return "0";
+    return Math.round((10000 * plantsPerMeter) / dist).toLocaleString('pt-BR');
+  }, [distanciaEntreLinhas, distanciaEntrePlantas, modoEspacamento, plantasPorCova, plantasPorMetro]);
 
   const areaPercentage = useMemo(() => {
     const used = parseFloat(areaUsada);
@@ -176,8 +190,11 @@ export const CropFormDialog = ({
     setVariedade(crop.variedade);
     setTipoCultivo(crop.tipo_cultivo);
     setCiclo(crop.ciclo?.toString() || "");
+    setModoEspacamento(getCropPlantSpacingMode(crop));
     setDistanciaEntreLinhas(crop.distancia_entre_linhas?.toString() || "");
     setPlantasPorMetro(crop.numero_plantas_por_metro?.toString() || "");
+    setDistanciaEntrePlantas(crop.distancia_entre_plantas?.toString() || "");
+    setPlantasPorCova(crop.numero_plantas_por_cova?.toString() || "");
     setAreaUsada(crop.area_usada_no_talhao?.toString() || "");
     setProdutividadeEsperada(crop.produtividade_esperada?.toString() || "");
     setProdutividadeObtida(crop.produtividade_obtida?.toString() || "");
@@ -195,8 +212,11 @@ export const CropFormDialog = ({
     setVariedade("");
     setTipoCultivo("");
     setCiclo("");
+    setModoEspacamento("plants_per_meter");
     setDistanciaEntreLinhas("");
     setPlantasPorMetro("");
+    setDistanciaEntrePlantas("");
+    setPlantasPorCova("");
     setAreaUsada("");
     setProdutividadeEsperada("");
     setProdutividadeObtida("");
@@ -220,13 +240,19 @@ export const CropFormDialog = ({
 
     setIsLoading(true);
     try {
+      const computedPlantsPerMeter = modoEspacamento === "holes"
+        ? Number(plantasPorCova) / Number(distanciaEntrePlantas)
+        : Number(plantasPorMetro);
       const commonData = {
         nome: nome as NomeComum,
         variedade,
         tipo_cultivo: tipoCultivo as CultivationType,
         ciclo: Number(ciclo) || 0,
         distancia_entre_linhas: Number(distanciaEntreLinhas) || 0,
-        numero_plantas_por_metro: Number(plantasPorMetro) || 0,
+        numero_plantas_por_metro: Number.isFinite(computedPlantsPerMeter) ? computedPlantsPerMeter : 0,
+        modo_espacamento: modoEspacamento,
+        distancia_entre_plantas: modoEspacamento === "holes" ? Number(distanciaEntrePlantas) || 0 : null,
+        numero_plantas_por_cova: modoEspacamento === "holes" ? Number(plantasPorCova) || 0 : null,
         area_usada_no_talhao: Number(areaUsada) || 0,
         produtividade_esperada: Number(produtividadeEsperada) || 0,
         produtividade_obtida: Number(produtividadeObtida) || 0,
@@ -248,6 +274,9 @@ export const CropFormDialog = ({
           novo_ciclo: commonData.ciclo,
           novo_distancia_entre_linhas: commonData.distancia_entre_linhas,
           novo_numero_plantas_por_metro: commonData.numero_plantas_por_metro,
+          novo_modo_espacamento: commonData.modo_espacamento,
+          novo_distancia_entre_plantas: commonData.distancia_entre_plantas,
+          novo_numero_plantas_por_cova: commonData.numero_plantas_por_cova,
           novo_area_usada_no_talhao: commonData.area_usada_no_talhao,
           novo_produtividade_esperada: commonData.produtividade_esperada,
           novo_produtividade_obtida: commonData.produtividade_obtida,
@@ -376,18 +405,76 @@ export const CropFormDialog = ({
                 {/* Seção 2: Espaçamento */}
                 <VStack align="stretch" gap={3}>
                   <Heading size="sm" color="gray.600">Espaçamento</Heading>
-                  <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} alignItems="end">
+                  <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} alignItems="end">
                     <Field label="Distância entre linhas (m)">
                       <Input type="number" step="0.01" value={distanciaEntreLinhas} onChange={(e) => setDistanciaEntreLinhas(e.target.value)} placeholder="Ex: 0.5" />
                     </Field>
-                    <Field label="Plantas por metro">
-                      <Input type="number" step="0.1" value={plantasPorMetro} onChange={(e) => setPlantasPorMetro(e.target.value)} placeholder="Ex: 12" />
+                    <Field label="Distância entre plantas">
+                      <NativeSelect.Root size="sm" width="100%">
+                        <NativeSelect.Field
+                          value={modoEspacamento}
+                          onChange={(e) => {
+                            if (isPlantSpacingMode(e.target.value)) {
+                              setModoEspacamento(e.target.value);
+                            }
+                          }}
+                        >
+                          <option value="plants_per_meter">Nº de Plantas/m linear</option>
+                          <option value="holes">Distância entre covas (m)</option>
+                        </NativeSelect.Field>
+                      </NativeSelect.Root>
                     </Field>
+                  </SimpleGrid>
+
+                  <SimpleGrid columns={{ base: 1, md: modoEspacamento === "holes" ? 3 : 2 }} gap={4} alignItems="end">
+                    {modoEspacamento === "holes" ? (
+                      <>
+                        <Field label="Distância entre covas (m)">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={distanciaEntrePlantas}
+                            onChange={(e) => setDistanciaEntrePlantas(e.target.value)}
+                            placeholder="Ex: 0.25"
+                          />
+                        </Field>
+                        <Field label="Nº de Plantas/cova">
+                          <Input
+                            type="number"
+                            step="1"
+                            value={plantasPorCova}
+                            onChange={(e) => setPlantasPorCova(e.target.value)}
+                            placeholder="Ex: 2"
+                          />
+                        </Field>
+                      </>
+                    ) : (
+                      <Field label="Nº de Plantas/m linear">
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={plantasPorMetro}
+                          onChange={(e) => setPlantasPorMetro(e.target.value)}
+                          placeholder="Ex: 12"
+                        />
+                      </Field>
+                    )}
                     <Box pb={2}>
                       <Text fontSize="sm" color="gray.500">População Estimada</Text>
                       <Text fontWeight="bold" fontSize="lg">{population} plantas/ha</Text>
+                      {modoEspacamento === "holes" ? (
+                        <Text fontSize="xs" color="gray.500">
+                          O valor legado de plantas/m linear será calculado a partir das covas.
+                        </Text>
+                      ) : null}
                     </Box>
                   </SimpleGrid>
+
+                  {currentCrop && !currentCrop.modo_espacamento ? (
+                    <Text fontSize="xs" color="gray.500">
+                      Cultura antiga sem modo de espaçamento salvo: usando Nº de Plantas/m linear.
+                    </Text>
+                  ) : null}
                 </VStack>
 
                 <Separator />

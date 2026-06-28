@@ -1,8 +1,7 @@
 import { Box, Heading, Input, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 
+import type { PlantSpacingMode } from "@/interfaces/Crop";
 import { NativeSelect } from "./RecommendationSelectControls";
-
-export type PlantSpacingMode = "plants_per_meter" | "holes";
 
 type SpacingSectionProps = {
   rowDistance: string;
