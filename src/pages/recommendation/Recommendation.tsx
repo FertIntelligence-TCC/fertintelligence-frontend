@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -21,7 +21,7 @@ import { toaster } from "@/components/ui/toaster";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
-import type { CropResponseDto, PlantSpacingMode } from "@/interfaces/Crop";
+import type { PlantSpacingMode } from "@/interfaces/Crop";
 import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
 import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
 import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/SaturationExtractAnalysisExtract";
@@ -41,7 +41,6 @@ import { fetchManageableProperties, fetchMyProperties } from "@/services/propert
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
 import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import { getAllAnnualCropFoldersByPlot } from "@/services/annualCropFolderService";
-import { getCropsByFolder } from "@/services/cropService";
 import { soilAnalysisService } from "@/services/soilAnalysisService";
 import { rangeExtractService } from "@/services/rangeExtractService";
 import { layerExtractService } from "@/services/layerExtractService";
@@ -79,9 +78,9 @@ import { useUserStore } from "@/stores/user/user.store";
 import { LuArrowLeft } from "react-icons/lu";
 import {
   detectRecommendationSpacingMode,
-  getRecommendationTableDisplay,
   parseRecommendationReportBlocks,
 } from "@/components/Recommendation/RecommendationReportViewer";
+import { getRecommendationTableDisplay } from "@/components/Recommendation/recommendationColumnDecision";
 import RecommendationFolderDocuments, {
   buildRecommendationDocumentViews,
   type RecommendationDocumentKey,
@@ -105,6 +104,7 @@ import {
   normalizeFertilizerSourceOption,
   validateRecommendationGeneration,
 } from "@/components/Recommendation/generationValidation";
+import { useRecommendationCrops } from "@/components/Recommendation/useRecommendationCrops";
 
 const documentUnavailableMessages: Record<RecommendationDocumentKey, string> = {
   general: "Documento ainda não gerado.",
@@ -310,9 +310,6 @@ const getRecommendationFolderName = (recommendation: RecommendationResponse) =>
   recommendation.nomePastaRecomendacao?.trim() ||
   `Recomendação #${recommendation.id}`;
 
-const hasLegacyPlantsPerMeter = (crop: CropResponseDto) =>
-  Number.isFinite(crop.numero_plantas_por_metro) && crop.numero_plantas_por_metro > 0;
-
 type RecommendationDocumentResponse =
   | SummaryRecommendationResponse
   | DirectRecommendationResponse
@@ -466,7 +463,6 @@ export default function Recommendation() {
   const [soilFertilityAnalysisOptions, setSoilFertilityAnalysisOptions] = useState<AnalysisExtractOption<FertilityAnalysisExtractResponse>[]>([]);
   const [saturationExtractAnalysisOptions, setSaturationExtractAnalysisOptions] = useState<AnalysisExtractOption<SaturationExtractAnalysisExtractResponse>[]>([]);
   const [annualCropFolders, setAnnualCropFolders] = useState<AnnualCropFolderResponseDto[]>([]);
-  const [crops, setCrops] = useState<CropResponseDto[]>([]);
   const [cropFertilizationTables, setCropFertilizationTables] = useState<TableOption[]>([]);
   const [soilFertilityTables, setSoilFertilityTables] = useState<TableOption[]>([]);
   const [foliarInterpretationTables, setFoliarInterpretationTables] = useState<TableOption[]>([]);
@@ -477,7 +473,6 @@ export default function Recommendation() {
   const [loadingPlots, setLoadingPlots] = useState(false);
   const [loadingPlotAnalyses, setLoadingPlotAnalyses] = useState(false);
   const [loadingAnnualCropFolders, setLoadingAnnualCropFolders] = useState(false);
-  const [loadingCrops, setLoadingCrops] = useState(false);
   const [loadingTables, setLoadingTables] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -507,46 +502,41 @@ export default function Recommendation() {
 	() => filterTablesByGroup(foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup),
 	[foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup],
   );
-  const selectedCrop = useMemo(
-	() => crops.find((crop) => String(crop.id) === cropId) ?? null,
-	[crops, cropId],
-  );
   const selectedCropFertilizationTable = useMemo(
 	() => cropFertilizationTables.find((table) => String(table.id) === cropFertilizationTableId) ?? null,
 	[cropFertilizationTables, cropFertilizationTableId],
   );
-  const selectedCropSpacingWarning = useMemo(() => {
-	if (!selectedCrop) {
-  	return "Aviso técnico: estes campos refletem o espaçamento da cultura selecionada para conferência no frontend. O payload atual de geração envia apenas a cultura selecionada ao backend.";
-	}
-
-	if (!selectedCrop.modo_espacamento && !hasLegacyPlantsPerMeter(selectedCrop)) {
-  	return "Aviso técnico: cultura antiga sem modo de espaçamento e sem plantas/m linear para inferir automaticamente. O payload atual de geração envia apenas a cultura selecionada ao backend.";
-	}
-
-	return "Aviso técnico: estes campos refletem o espaçamento da cultura selecionada para conferência no frontend. O payload atual de geração envia apenas a cultura selecionada ao backend.";
-  }, [selectedCrop]);
-
-  useEffect(() => {
-	if (!selectedCrop) {
-  	setRowDistance("");
-  	setPlantSpacingValue("");
-  	setPlantsPerHole("");
-  	return;
-	}
-
-	setRowDistance(String(selectedCrop.distancia_entre_linhas ?? ""));
-	if (selectedCrop.modo_espacamento === "holes") {
-  	setPlantSpacingMode("holes");
-  	setPlantSpacingValue(String(selectedCrop.distancia_entre_plantas ?? ""));
-  	setPlantsPerHole(String(selectedCrop.numero_plantas_por_cova ?? ""));
-  	return;
-	}
-
-	setPlantSpacingMode("plants_per_meter");
-	setPlantSpacingValue(String(selectedCrop.numero_plantas_por_metro ?? ""));
-	setPlantsPerHole("");
-  }, [selectedCrop]);
+  const handleCropLoadError = useCallback(() => {
+	toaster.create({ title: "Falha ao carregar culturas da pasta anual.", type: "error" });
+  }, []);
+  const handleCropSpacingChange = useCallback(({
+	rowDistance: nextRowDistance,
+	plantSpacingMode: nextPlantSpacingMode,
+	plantSpacingValue: nextPlantSpacingValue,
+	plantsPerHole: nextPlantsPerHole,
+  }: {
+	rowDistance: string;
+	plantSpacingMode: PlantSpacingMode;
+	plantSpacingValue: string;
+	plantsPerHole: string;
+  }) => {
+	setRowDistance(nextRowDistance);
+	setPlantSpacingMode(nextPlantSpacingMode);
+	setPlantSpacingValue(nextPlantSpacingValue);
+	setPlantsPerHole(nextPlantsPerHole);
+  }, []);
+  const {
+	crops,
+	loadingCrops,
+	selectedCrop,
+	selectedCropSpacingWarning,
+  } = useRecommendationCrops({
+	annualCropFolderId,
+	cropId,
+	onCropChange: setCropId,
+	onSpacingChange: handleCropSpacingChange,
+	onLoadError: handleCropLoadError,
+  });
 
   useEffect(() => {
 	setSelectedDocumentKey("general");
@@ -707,7 +697,6 @@ export default function Recommendation() {
   	setSoilFertilityAnalysisOptions([]);
   	setSaturationExtractAnalysisOptions([]);
   	setAnnualCropFolders([]);
-  	setCrops([]);
 	};
 
 	const loadPlotDependencies = async () => {
@@ -781,32 +770,6 @@ export default function Recommendation() {
 
 	return () => { isCurrent = false; };
   }, [selectedPlotId]);
-
-  useEffect(() => {
-	let isCurrent = true;
-
-	const loadCrops = async () => {
-  	setCropId("");
-  	setCrops([]);
-
-  	if (!annualCropFolderId) return;
-
-  	setLoadingCrops(true);
-  	try {
-    	const data = await getCropsByFolder(Number(annualCropFolderId));
-    	if (isCurrent) setCrops(data ?? []);
-  	} catch (error) {
-    	console.error(error);
-    	if (isCurrent) toaster.create({ title: "Falha ao carregar culturas da pasta anual.", type: "error" });
-  	} finally {
-    	if (isCurrent) setLoadingCrops(false);
-  	}
-	};
-
-	void loadCrops();
-
-	return () => { isCurrent = false; };
-  }, [annualCropFolderId]);
 
   const handleGenerate = async () => {
 	const validation = validateRecommendationGeneration({
