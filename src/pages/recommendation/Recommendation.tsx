@@ -80,7 +80,10 @@ import {
   detectRecommendationSpacingMode,
   parseRecommendationReportBlocks,
 } from "@/components/Recommendation/RecommendationReportViewer";
-import { getRecommendationTableDisplay } from "@/components/Recommendation/recommendationColumnDecision";
+import {
+  formatRecommendationTableCell,
+  getRecommendationTableDisplay,
+} from "@/components/Recommendation/recommendationColumnDecision";
 import RecommendationFolderDocuments, {
   buildRecommendationDocumentViews,
   type RecommendationDocumentKey,
@@ -381,10 +384,10 @@ const writePrintableReport = (printWindow: Window, text: string) => {
     	const display = getRecommendationTableDisplay(block.rows, spacingMode);
     	const [headerRow, ...bodyRows] = display.rows;
     	const headerHtml = headerRow
-      	? `<thead><tr>${headerRow.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr></thead>`
+      	? `<thead><tr>${headerRow.map((cell) => `<th>${escapeHtml(formatRecommendationTableCell(cell))}</th>`).join("")}</tr></thead>`
       	: "";
     	const bodyHtml = `<tbody>${bodyRows
-      	.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`)
+      	.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(formatRecommendationTableCell(cell))}</td>`).join("")}</tr>`)
       	.join("")}</tbody>`;
     	const warningHtml = display.warning ? `<p class="technical-warning">${escapeHtml(display.warning)}</p>` : "";
     	return `${warningHtml}<table>${headerHtml}${bodyHtml}</table>`;

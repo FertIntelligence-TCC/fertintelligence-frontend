@@ -1,6 +1,7 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
 
 import {
+  formatRecommendationTableCell,
   getRecommendationTableDisplay,
   type RecommendationSpacingMode,
 } from "./recommendationColumnDecision";
@@ -84,7 +85,13 @@ function RecommendationReportTable({
         </Text>
       ) : null}
       <Box overflowX="auto">
-        <Box as="table" width="100%" borderCollapse="collapse" fontSize={recommendationDocumentBaseFontSize}>
+        <Box
+          as="table"
+          width="100%"
+          minWidth="max-content"
+          borderCollapse="collapse"
+          fontSize={recommendationDocumentBaseFontSize}
+        >
           <Box as="tbody">
             {display.rows.map((row, rowIndex) => (
               <Box as="tr" key={`row-${blockIndex}-${rowIndex}`}>
@@ -99,7 +106,7 @@ function RecommendationReportTable({
                     verticalAlign="top"
                     fontWeight={rowIndex === 0 ? "semibold" : "normal"}
                   >
-                    {cell}
+                    {formatRecommendationTableCell(cell)}
                   </Box>
                 ))}
               </Box>
