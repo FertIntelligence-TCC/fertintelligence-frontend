@@ -39,7 +39,6 @@ import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/Satu
 import { TipoExtrato, type SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import {
   type RecommendationLimingCriteria,
-  type RecommendationTableGroup,
   type FertilizerSourceOption,
   type DirectRecommendationResponse,
   type RecommendationResponse,
@@ -95,6 +94,10 @@ import RecommendationReportViewer, {
 import TextureClassificationSystemSelect, {
   type TextureClassificationSystem,
 } from "@/components/Recommendation/TextureClassificationSystemSelect";
+import {
+  normalizeFertilizerSourceOption,
+  validateRecommendationGeneration,
+} from "@/components/Recommendation/generationValidation";
 
 const NativeSelect = chakra("select", {
   base: {
@@ -143,7 +146,6 @@ const documentUnavailableMessages: Record<RecommendationDocumentKey, string> = {
 };
 
 const documentLoadErrorMessage = "Não foi possível carregar este documento.";
-const CROP_TABLE_INCOMPATIBILITY_MESSAGE = "Cultura Anual e Tabela de Adubação de Culturas incompatíveis!";
 
 type RawTable = {
   id?: number;
@@ -257,25 +259,6 @@ const tableGroupOptions: { value: TableSource; label: string }[] = [
   { value: "DEFAULT", label: "Padrão" },
 ];
 
-const recommendationTypeValues = recommendationTypeOptions.map((option) => option.value);
-const fertilizerSourceValues = fertilizerOriginOptions.map((option) => option.value);
-const legacyFertilizerSourceValues: FertilizerSourceOption[] = ["BOTH", "AMBAS"];
-const tableGroupValues = tableGroupOptions.map((option) => option.value);
-
-const isRecommendationType = (value: string): value is RecommendationType =>
-  recommendationTypeValues.includes(value as RecommendationType);
-
-const isFertilizerSourceOption = (value: string): value is FertilizerSourceOption =>
-  fertilizerSourceValues.includes(value as FertilizerSourceOption) ||
-  legacyFertilizerSourceValues.includes(value as FertilizerSourceOption);
-
-const normalizeFertilizerSourceOption = (
-  value: FertilizerSourceOption,
-): FertilizerSourceOption => (legacyFertilizerSourceValues.includes(value) ? "ALL" : value);
-
-const isRecommendationTableGroup = (value: TableGroupValue): value is RecommendationTableGroup =>
-  tableGroupValues.includes(value as TableSource);
-
 const canPrintRecommendation = (cargo?: string) => {
   const roleMode = getAuthorizationRoleMode(cargo);
   return roleMode === "SUPREME" || roleMode === "RESIDENT" || roleMode === "CONSULTANT";
@@ -299,24 +282,6 @@ const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]):
   const regionText = region ? ` (${region})` : "";
   const baseName = table.nome ?? table.name ?? table.nome_tabela ?? table.nome_criterios ?? `Tabela ${table.id}`;
   return { id: table.id, label: `${baseName}${cropName}${regionText}`, source, cropName: table.nome_comum_cultura ?? null };
-};
-
-const normalizeComparableCropName = (value?: string | null): string | null => {
-  const normalized = value?.trim();
-  return normalized || null;
-};
-
-const isAnnualCropCompatibleWithFertilizationTable = (
-  crop?: CropResponseDto | null,
-  table?: TableOption | null,
-) => {
-  const cropName = normalizeComparableCropName(crop?.nome);
-  const tableCropName = normalizeComparableCropName(table?.cropName);
-
-  // Alguns endpoints legados podem omitir nome_comum_cultura; sem os dois enums não há comparação segura no frontend.
-  if (!cropName || !tableCropName) return true;
-
-  return cropName === tableCropName;
 };
 
 const filterTablesByGroup = (tables: TableOption[], group: TableGroupValue) =>
@@ -877,35 +842,35 @@ export default function Recommendation() {
   }, [annualCropFolderId]);
 
   const handleGenerate = async () => {
-	if (!recommendationType || !selectedPropertyId || !selectedPlotId || !physicalAnalysisExtractId || !soilFertilityAnalysisId || !annualCropFolderId || !cropId || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !fertilizerSourceOption) {
-  	toaster.create({ title: "Campos obrigatórios", description: "Preencha todos os campos necessários antes de gerar a recomendação.", type: "warning" });
-  	return;
-	}
+	const validation = validateRecommendationGeneration({
+  	recommendationType,
+  	propertyId: selectedPropertyId,
+  	plotId: selectedPlotId,
+  	physicalAnalysisExtractId,
+  	soilFertilityAnalysisId,
+  	annualCropFolderId,
+  	cropId,
+  	cropFertilizationTableId,
+  	soilFertilityInterpretationTableId,
+  	cropFoliarAnalysisInterpretationTableId,
+  	cropFertilizationTableGroup,
+  	soilFertilityInterpretationTableGroup,
+  	cropFoliarAnalysisInterpretationTableGroup,
+  	fertilizerSourceOption,
+  	texturalClassification: textureClassificationSystem,
+  	selectedCrop,
+  	selectedCropFertilizationTable,
+	});
 
-	if (
-  	!isRecommendationType(recommendationType) ||
-  	!isRecommendationTableGroup(cropFertilizationTableGroup) ||
-  	!isRecommendationTableGroup(soilFertilityInterpretationTableGroup) ||
-  	!isRecommendationTableGroup(cropFoliarAnalysisInterpretationTableGroup) ||
-  	!isFertilizerSourceOption(fertilizerSourceOption)
-	) {
-  	toaster.create({
-    	title: "Parâmetros inválidos",
-    	description: "Revise tipo de recomendação, grupos de tabelas e origem dos adubos antes de gerar.",
-    	type: "warning",
-  	});
-  	return;
-	}
-
-	if (!isAnnualCropCompatibleWithFertilizationTable(selectedCrop, selectedCropFertilizationTable)) {
-  	toaster.create({ title: CROP_TABLE_INCOMPATIBILITY_MESSAGE, type: "warning" });
+	if (!validation.isValid) {
+  	toaster.create({ title: validation.title, description: validation.description, type: "warning" });
   	return;
 	}
 
 	setGenerating(true);
 	try {
   	const payload = buildRecommendationCreatePayload({
-    	recommendationType,
+    	recommendationType: validation.recommendationType,
     	propertyId: selectedPropertyId,
     	plotId: selectedPlotId,
     	physicalAnalysisExtractId,
@@ -916,13 +881,13 @@ export default function Recommendation() {
     	cropFertilizationTableId,
     	soilFertilityInterpretationTableId,
     	cropFoliarAnalysisInterpretationTableId,
-    	cropFertilizationTableGroup,
-    	soilFertilityInterpretationTableGroup,
-    	cropFoliarAnalysisInterpretationTableGroup,
+    	cropFertilizationTableGroup: validation.cropFertilizationTableGroup,
+    	soilFertilityInterpretationTableGroup: validation.soilFertilityInterpretationTableGroup,
+    	cropFoliarAnalysisInterpretationTableGroup: validation.cropFoliarAnalysisInterpretationTableGroup,
     	limingCriteria: null,
-    	fertilizerSourceOption: normalizeFertilizerSourceOption(fertilizerSourceOption),
+    	fertilizerSourceOption: validation.fertilizerSourceOption,
     	recommendationFolderName,
-    	texturalClassification: textureClassificationSystem,
+    	texturalClassification: validation.texturalClassification,
   	});
   	const result = await generateRecommendation(payload);
   	setSelectedRecommendation(result);
