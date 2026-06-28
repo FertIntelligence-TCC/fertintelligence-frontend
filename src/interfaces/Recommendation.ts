@@ -64,6 +64,13 @@ export interface RecommendationFertilizerLine {
   formulatedFertilizer?: string | null;
   formulatedFertilizerName?: string | null;
 
+  tipo_adubo?: string | null;
+  tipoAdubo?: string | null;
+  fertilizerType?: string | null;
+  grupo_adubo?: string | null;
+  grupoAdubo?: string | null;
+  fertilizerGroup?: string | null;
+
   formula?: RecommendationNpkValues | string | null;
   formula_npk?: RecommendationNpkValues | string | null;
   formulaNpk?: RecommendationNpkValues | string | null;

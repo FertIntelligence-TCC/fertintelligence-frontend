@@ -31,6 +31,7 @@ import {
   type DirectRecommendationResponse,
   type RecommendationPrintResponse,
   type RecommendationResponse,
+  type RecommendationStructuredFertilizerLines,
   type ShoppingListResponse,
   type SummaryRecommendationResponse,
   type RecommendationType,
@@ -342,6 +343,7 @@ type RecommendationDocumentResponse =
 type LoadedRecommendationFolderDocument = {
   text: string;
   directRecommendationDocument?: DirectRecommendationResponse;
+  shoppingListDocument?: ShoppingListResponse;
 };
 
 const commonDocumentTextFields = [
@@ -384,6 +386,13 @@ const getRecommendationDocumentText = (
 
   return "";
 };
+
+const hasStructuredRecommendationContent = (
+  document?: RecommendationStructuredFertilizerLines | null,
+): boolean =>
+  hasMicronutrientFertilizerRows(document) ||
+  hasFormulatedPlantingFertilizerRows(document) ||
+  hasFormulatedTopDressingFertilizerRows(document);
 
 type StructuredPrintTableModel = RecommendationPrintTableModel & {
   warnings?: string[];
@@ -555,6 +564,7 @@ export default function Recommendation() {
   const [loadedDocuments, setLoadedDocuments] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
   const [directRecommendationDocument, setDirectRecommendationDocument] =
     useState<DirectRecommendationResponse | null>(null);
+  const [shoppingListDocument, setShoppingListDocument] = useState<ShoppingListResponse | null>(null);
   const [notGeneratedDocuments, setNotGeneratedDocuments] = useState<Partial<Record<RecommendationDocumentKey, boolean>>>({});
   const [documentErrors, setDocumentErrors] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
   const [loadingDocumentKey, setLoadingDocumentKey] = useState<RecommendationDocumentKey | null>(null);
@@ -603,6 +613,7 @@ export default function Recommendation() {
 	setSelectedDocumentKey("general");
 	setLoadedDocuments({});
 	setDirectRecommendationDocument(null);
+	setShoppingListDocument(null);
 	setNotGeneratedDocuments({});
 	setDocumentErrors({});
 	setLoadingDocumentKey(null);
@@ -997,18 +1008,19 @@ export default function Recommendation() {
 	}
 
 	const document = await getShoppingListByRecommendation(recommendationId);
-	return { text: getRecommendationDocumentText(document, key) };
+	return {
+  	text: getRecommendationDocumentText(document, key),
+  	shoppingListDocument: document,
+	};
   };
 
   const reportText = getRecommendationReportText(selectedRecommendation);
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
-  	direct:
-        hasMicronutrientFertilizerRows(directRecommendationDocument) ||
-        hasFormulatedPlantingFertilizerRows(directRecommendationDocument) ||
-        hasFormulatedTopDressingFertilizerRows(directRecommendationDocument),
+  	direct: hasStructuredRecommendationContent(directRecommendationDocument),
+  	shopping: hasStructuredRecommendationContent(shoppingListDocument),
 	}),
-	[directRecommendationDocument],
+	[directRecommendationDocument, shoppingListDocument],
   );
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
 	return buildRecommendationDocumentViews({
@@ -1097,11 +1109,13 @@ export default function Recommendation() {
   	if (loadedDocument.directRecommendationDocument) {
     	setDirectRecommendationDocument(loadedDocument.directRecommendationDocument);
   	}
+  	if (loadedDocument.shoppingListDocument) {
+    	setShoppingListDocument(loadedDocument.shoppingListDocument);
+  	}
 
-  	const hasStructuredContent =
-        hasMicronutrientFertilizerRows(loadedDocument.directRecommendationDocument) ||
-        hasFormulatedPlantingFertilizerRows(loadedDocument.directRecommendationDocument) ||
-        hasFormulatedTopDressingFertilizerRows(loadedDocument.directRecommendationDocument);
+  	const hasStructuredContent = hasStructuredRecommendationContent(
+        loadedDocument.directRecommendationDocument ?? loadedDocument.shoppingListDocument,
+  	);
   	if (loadedDocument.text.trim() || hasStructuredContent) {
     	setLoadedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: loadedDocument.text }));
     	return;
@@ -1266,6 +1280,7 @@ export default function Recommendation() {
         	recommendationDocuments={recommendationDocuments}
         	selectedDocumentError={selectedDocumentError}
         	directRecommendationDocument={directRecommendationDocument}
+        	shoppingListDocument={shoppingListDocument}
         	loadingDocumentKey={loadingDocumentKey}
         	userCanPrint={userCanPrint}
         	printing={printing}

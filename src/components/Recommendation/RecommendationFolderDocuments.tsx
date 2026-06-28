@@ -22,12 +22,18 @@ import {
   DialogRoot,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { DirectRecommendationResponse, RecommendationResponse } from "@/interfaces/Recommendation";
+import type {
+  DirectRecommendationResponse,
+  RecommendationResponse,
+  ShoppingListResponse,
+} from "@/interfaces/Recommendation";
 
 import FormulatedPlantingFertilizerTable, {
   FormulatedTopDressingFertilizerTable,
+  hasFormulatedPlantingFertilizerRows,
+  hasFormulatedTopDressingFertilizerRows,
 } from "./FormulatedPlantingFertilizerTable";
-import MicronutrientFertilizerTable from "./MicronutrientFertilizerTable";
+import MicronutrientFertilizerTable, { hasMicronutrientFertilizerRows } from "./MicronutrientFertilizerTable";
 import RecommendationReportViewer from "./RecommendationReportViewer";
 
 export type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
@@ -58,6 +64,7 @@ type RecommendationFolderDocumentsProps = {
   recommendationDocuments: RecommendationDocumentView[];
   selectedDocumentError?: string;
   directRecommendationDocument?: DirectRecommendationResponse | null;
+  shoppingListDocument?: ShoppingListResponse | null;
   loadingDocumentKey: RecommendationDocumentKey | null;
   userCanPrint: boolean;
   printing: boolean;
@@ -159,7 +166,7 @@ export function buildRecommendationDocumentViews({
     {
       key: "shopping",
       title: "Lista de Compras",
-      description: shoppingText.trim()
+      description: shoppingText.trim() || structuredDocuments.shopping
         ? "Documento da pasta carregado."
         : shoppingNotGenerated
           ? "Documento ainda não gerado."
@@ -168,7 +175,7 @@ export function buildRecommendationDocumentViews({
         ? "loading"
         : documentErrors.shopping
           ? "error"
-          : shoppingText.trim()
+          : shoppingText.trim() || structuredDocuments.shopping
             ? "generated"
             : "not_generated",
       content: shoppingText,
@@ -229,18 +236,27 @@ function RecommendationDocumentPanel({
   selectedDocument,
   selectedDocumentError,
   directRecommendationDocument,
+  shoppingListDocument,
 }: {
   selectedDocument?: RecommendationDocumentView;
   selectedDocumentError?: string;
   directRecommendationDocument?: DirectRecommendationResponse | null;
+  shoppingListDocument?: ShoppingListResponse | null;
 }) {
   const showDirectStructuredContent = selectedDocument?.key === "direct";
+  const showShoppingStructuredContent =
+    selectedDocument?.key === "shopping" &&
+    (hasMicronutrientFertilizerRows(shoppingListDocument) ||
+      hasFormulatedPlantingFertilizerRows(shoppingListDocument) ||
+      hasFormulatedTopDressingFertilizerRows(shoppingListDocument));
+  const shouldRenderTextContent =
+    selectedDocument?.content.trim() && !(selectedDocument.key === "shopping" && showShoppingStructuredContent);
 
   return (
     <Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">
       {selectedDocument?.status === "generated" ? (
         <VStack align="stretch" gap={4}>
-          {selectedDocument.content.trim() ? (
+          {shouldRenderTextContent ? (
             <RecommendationReportViewer reportText={selectedDocument.content} />
           ) : null}
           {showDirectStructuredContent ? (
@@ -248,6 +264,13 @@ function RecommendationDocumentPanel({
               <FormulatedPlantingFertilizerTable directRecommendation={directRecommendationDocument} />
               <FormulatedTopDressingFertilizerTable directRecommendation={directRecommendationDocument} />
               <MicronutrientFertilizerTable directRecommendation={directRecommendationDocument} />
+            </>
+          ) : null}
+          {showShoppingStructuredContent ? (
+            <>
+              <FormulatedPlantingFertilizerTable directRecommendation={shoppingListDocument} />
+              <FormulatedTopDressingFertilizerTable directRecommendation={shoppingListDocument} />
+              <MicronutrientFertilizerTable directRecommendation={shoppingListDocument} />
             </>
           ) : null}
         </VStack>
@@ -278,6 +301,7 @@ export default function RecommendationFolderDocuments({
   recommendationDocuments,
   selectedDocumentError,
   directRecommendationDocument,
+  shoppingListDocument,
   loadingDocumentKey,
   userCanPrint,
   printing,
@@ -353,6 +377,7 @@ export default function RecommendationFolderDocuments({
               selectedDocument={selectedDocument}
               selectedDocumentError={selectedDocumentError}
               directRecommendationDocument={directRecommendationDocument}
+              shoppingListDocument={shoppingListDocument}
             />
             <Text fontSize="xs" color="fg.muted">
               A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos são carregados dos endpoints próprios e não são montados no frontend.
@@ -393,7 +418,11 @@ export default function RecommendationFolderDocuments({
             >
               {selectedDocument?.status === "generated" ? (
                 <VStack align="stretch" gap={4}>
-                  {selectedDocument.content.trim() ? (
+                  {selectedDocument.content.trim() &&
+                  !(selectedDocument.key === "shopping" &&
+                    (hasMicronutrientFertilizerRows(shoppingListDocument) ||
+                      hasFormulatedPlantingFertilizerRows(shoppingListDocument) ||
+                      hasFormulatedTopDressingFertilizerRows(shoppingListDocument))) ? (
                     <RecommendationReportViewer reportText={selectedDocument.content} />
                   ) : null}
                   {selectedDocument.key === "direct" ? (
@@ -401,6 +430,16 @@ export default function RecommendationFolderDocuments({
                       <FormulatedPlantingFertilizerTable directRecommendation={directRecommendationDocument} />
                       <FormulatedTopDressingFertilizerTable directRecommendation={directRecommendationDocument} />
                       <MicronutrientFertilizerTable directRecommendation={directRecommendationDocument} />
+                    </>
+                  ) : null}
+                  {selectedDocument.key === "shopping" &&
+                  (hasMicronutrientFertilizerRows(shoppingListDocument) ||
+                    hasFormulatedPlantingFertilizerRows(shoppingListDocument) ||
+                    hasFormulatedTopDressingFertilizerRows(shoppingListDocument)) ? (
+                    <>
+                      <FormulatedPlantingFertilizerTable directRecommendation={shoppingListDocument} />
+                      <FormulatedTopDressingFertilizerTable directRecommendation={shoppingListDocument} />
+                      <MicronutrientFertilizerTable directRecommendation={shoppingListDocument} />
                     </>
                   ) : null}
                 </VStack>

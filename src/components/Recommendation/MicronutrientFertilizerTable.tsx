@@ -2,6 +2,7 @@ import { Box, Heading, Table, Text, VStack } from "@chakra-ui/react";
 
 import type {
   DirectRecommendationResponse,
+  RecommendationStructuredFertilizerLines,
   SolidFertilizerWithMicronutrientsLine,
 } from "@/interfaces/Recommendation";
 import {
@@ -12,7 +13,7 @@ import {
 } from "@/utils/recommendationLocalizedDose";
 
 type MicronutrientFertilizerTableProps = {
-  directRecommendation?: DirectRecommendationResponse | null;
+  directRecommendation?: RecommendationStructuredFertilizerLines | null;
 };
 
 export type RecommendationPrintTableModel = {
@@ -32,6 +33,8 @@ const lineArrayFields = [
 const valueFields = {
   micronutrient: ["micronutriente", "micronutrient", "nutrient"],
   fertilizer: ["adubo", "nome_adubo", "nomeAdubo", "fertilizer", "fertilizerName"],
+  fertilizerType: ["tipo_adubo", "tipoAdubo", "fertilizerType", "grupo_adubo", "grupoAdubo", "fertilizerGroup"],
+  phase: ["fase", "phase"],
   content: ["teor", "teor_usado", "teorUsado", "usedContent", "contentUsed"],
   micronutrientDose: [
     "dose_micronutriente_kg_ha",
@@ -54,7 +57,7 @@ const getFirstText = (
 ): string => getFirstRecommendationText(line, fields);
 
 export const getMicronutrientFertilizerLines = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: RecommendationStructuredFertilizerLines | null,
 ): SolidFertilizerWithMicronutrientsLine[] => {
   if (!directRecommendation) return [];
 
@@ -67,7 +70,7 @@ export const getMicronutrientFertilizerLines = (
 };
 
 export const hasMicronutrientFertilizerRows = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
   getMicronutrientFertilizerLines(directRecommendation).some((line) =>
     Boolean(
@@ -81,7 +84,7 @@ const getLineLocalizedDose = (line: SolidFertilizerWithMicronutrientsLine) =>
   getLocalizedDose(line, valueFields);
 
 export const buildMicronutrientFertilizerTableModel = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: DirectRecommendationResponse | RecommendationStructuredFertilizerLines | null,
 ): RecommendationPrintTableModel | null => {
   const lines = getMicronutrientFertilizerLines(directRecommendation).filter((line) =>
     Boolean(
@@ -110,12 +113,21 @@ export const buildMicronutrientFertilizerTableModel = (
       const localizedDose = localizedDoses[index];
       const message = getFirstText(line, valueFields.message);
       const observation = getFirstText(line, valueFields.observation);
+      const fertilizerType = getFirstText(line, valueFields.fertilizerType);
+      const phase = getFirstText(line, valueFields.phase);
       const fertilizer = getFirstText(line, valueFields.fertilizer) || "-";
       const localizedDoseText = formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel);
 
       return [
         getFirstText(line, valueFields.micronutrient) || "-",
-        [fertilizer, message].filter(Boolean).join("\n"),
+        [
+          fertilizer,
+          fertilizerType ? `Tipo/grupo: ${fertilizerType}` : "",
+          phase ? `Fase: ${phase}` : "",
+          message,
+        ]
+          .filter(Boolean)
+          .join("\n"),
         getFirstText(line, valueFields.content) || "-",
         getFirstText(line, valueFields.micronutrientDose) || "-",
         getFirstText(line, valueFields.fertilizerDose) || "-",
@@ -162,6 +174,8 @@ export default function MicronutrientFertilizerTable({
               const localizedDose = localizedDoses[index];
               const message = getFirstText(line, valueFields.message);
               const observation = getFirstText(line, valueFields.observation);
+              const fertilizerType = getFirstText(line, valueFields.fertilizerType);
+              const phase = getFirstText(line, valueFields.phase);
 
               return (
                 <Table.Row key={String(line.id ?? index)}>
@@ -169,6 +183,16 @@ export default function MicronutrientFertilizerTable({
                   <Table.Cell>
                     <VStack align="start" gap={1}>
                       <Text>{getFirstText(line, valueFields.fertilizer) || "-"}</Text>
+                      {fertilizerType ? (
+                        <Text color="fg.muted" fontSize="xs">
+                          Tipo/grupo: {fertilizerType}
+                        </Text>
+                      ) : null}
+                      {phase ? (
+                        <Text color="fg.muted" fontSize="xs">
+                          Fase: {phase}
+                        </Text>
+                      ) : null}
                       {message ? (
                         <Text color="orange.600" fontSize="xs">
                           {message}

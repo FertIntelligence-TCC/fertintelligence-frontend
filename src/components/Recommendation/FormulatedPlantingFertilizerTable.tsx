@@ -4,6 +4,7 @@ import type {
   DirectRecommendationResponse,
   PlantingFormulatedFertilizerLine,
   RecommendationNpkValues,
+  RecommendationStructuredFertilizerLines,
   TopDressingFormulatedFertilizerLine,
 } from "@/interfaces/Recommendation";
 import {
@@ -15,7 +16,7 @@ import {
 } from "@/utils/recommendationLocalizedDose";
 
 type FormulatedPlantingFertilizerTableProps = {
-  directRecommendation?: DirectRecommendationResponse | null;
+  directRecommendation?: RecommendationStructuredFertilizerLines | null;
 };
 
 export type FormulatedFertilizerPrintTableModel = {
@@ -86,6 +87,7 @@ const valueFields = {
     "fertilizerId",
     "idFertilizante",
   ],
+  fertilizerType: ["tipo_adubo", "tipoAdubo", "fertilizerType", "grupo_adubo", "grupoAdubo", "fertilizerGroup"],
   formula: ["formula", "formula_npk", "formulaNpk", "npkFormula"],
   formulaN: ["formula_n", "formulaN", "n"],
   formulaP: ["formula_p2o5", "formulaP2o5", "formula_p", "formulaP", "p2o5", "p"],
@@ -162,7 +164,7 @@ const isApproximateSelection = (value: string): boolean => {
 };
 
 export const getFormulatedPlantingFertilizerLines = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: RecommendationStructuredFertilizerLines | null,
 ): PlantingFormulatedFertilizerLine[] => {
   if (!directRecommendation) return [];
 
@@ -175,7 +177,7 @@ export const getFormulatedPlantingFertilizerLines = (
 };
 
 export const getFormulatedTopDressingFertilizerLines = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: RecommendationStructuredFertilizerLines | null,
 ): TopDressingFormulatedFertilizerLine[] => {
   if (!directRecommendation) return [];
 
@@ -198,12 +200,12 @@ const hasFormulatedFertilizerDisplayContent = (line: FormulatedFertilizerLine): 
   );
 
 export const hasFormulatedPlantingFertilizerRows = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
   getFormulatedPlantingFertilizerLines(directRecommendation).some(hasFormulatedFertilizerDisplayContent);
 
 export const hasFormulatedTopDressingFertilizerRows = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
   getFormulatedTopDressingFertilizerLines(directRecommendation).some(hasFormulatedFertilizerDisplayContent);
 
@@ -260,6 +262,7 @@ const buildFormulatedFertilizerTableModel = <TLine extends FormulatedFertilizerL
     rows: fertilizerLines.map((line, index) => {
       const localizedDose = localizedDoses[index];
       const selectionType = normalizeSelectionType(getFirstText(line, valueFields.selectionType));
+      const fertilizerType = getFirstText(line, valueFields.fertilizerType);
       const phase = getFirstText(line, valueFields.phase);
       const message = getFirstText(line, valueFields.message);
       const observation = getFirstText(line, valueFields.observation);
@@ -268,6 +271,7 @@ const buildFormulatedFertilizerTableModel = <TLine extends FormulatedFertilizerL
       return [
         [
           getFirstText(line, valueFields.fertilizer) || "-",
+          fertilizerType ? `Tipo/grupo: ${fertilizerType}` : "",
           selectionType ? `Tipo: ${selectionType}` : "",
           phase ? `Fase: ${phase}` : "",
           message,
@@ -286,7 +290,7 @@ const buildFormulatedFertilizerTableModel = <TLine extends FormulatedFertilizerL
 };
 
 export const buildFormulatedPlantingFertilizerTableModels = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: DirectRecommendationResponse | RecommendationStructuredFertilizerLines | null,
 ): FormulatedFertilizerPrintTableModel[] => {
   const lines = getFormulatedPlantingFertilizerLines(directRecommendation).filter(
     hasFormulatedFertilizerDisplayContent,
@@ -296,7 +300,7 @@ export const buildFormulatedPlantingFertilizerTableModels = (
 };
 
 export const buildFormulatedTopDressingFertilizerTableModels = (
-  directRecommendation?: DirectRecommendationResponse | null,
+  directRecommendation?: DirectRecommendationResponse | RecommendationStructuredFertilizerLines | null,
 ): FormulatedFertilizerPrintTableModel[] => {
   const lines = getFormulatedTopDressingFertilizerLines(directRecommendation).filter(
     hasFormulatedFertilizerDisplayContent,
@@ -341,6 +345,7 @@ function FormulatedFertilizerTable<TLine extends FormulatedFertilizerLine>({
               {fertilizerLines.map((line, index) => {
                 const localizedDose = localizedDoses[index];
                 const selectionType = normalizeSelectionType(getFirstText(line, valueFields.selectionType));
+                const fertilizerType = getFirstText(line, valueFields.fertilizerType);
                 const phase = getFirstText(line, valueFields.phase);
                 const message = getFirstText(line, valueFields.message);
                 const observation = getFirstText(line, valueFields.observation);
@@ -357,6 +362,11 @@ function FormulatedFertilizerTable<TLine extends FormulatedFertilizerLine>({
                             </Badge>
                           ) : null}
                         </HStack>
+                        {fertilizerType ? (
+                          <Text color="fg.muted" fontSize="xs">
+                            Tipo/grupo: {fertilizerType}
+                          </Text>
+                        ) : null}
                         {phase ? (
                           <Text color="fg.muted" fontSize="xs">
                             Fase: {phase}
