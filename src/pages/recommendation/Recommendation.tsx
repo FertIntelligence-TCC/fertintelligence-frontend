@@ -180,6 +180,14 @@ const toNullableNumber = (value: unknown): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const adjustedLimingNeedFormatter = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const formatAdjustedLimingNeed = (value: number): string =>
+  adjustedLimingNeedFormatter.format(value);
+
 const calculateBaseSaturationLiming = (fertilityExtract?: FertilityAnalysisExtractResponse | null): LimingCriterionPreview => {
   const ctcPh7 = toNullableNumber(fertilityExtract?.ctc_ph7);
   const baseSaturation = toNullableNumber(fertilityExtract?.saturacao_bases_v);
@@ -1342,7 +1350,7 @@ export default function Recommendation() {
                 	<Box>
                   	<Text fontSize="sm" mb={1}>Necessidade de calagem estimada (t/ha, PRNT 100%)</Text>
                   	<Box borderWidth="1px" borderRadius="md" px={3} py={2} minH={10} bg="bg.panel" color="fg.muted" aria-label="Necessidade de calagem estimada (t/ha, PRNT 100%)">
-                    	{limingCriterionPreview.limingNeed.toFixed(2)}
+                    	{formatAdjustedLimingNeed(limingCriterionPreview.limingNeed)}
                   	</Box>
                 	</Box>
               	) : null}
