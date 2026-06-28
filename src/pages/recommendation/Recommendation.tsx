@@ -92,6 +92,9 @@ import { LuArrowLeft, LuFileText, LuFolder, LuListChecks, LuShoppingCart } from 
 import RecommendationReportViewer, {
   parseRecommendationReportBlocks,
 } from "@/components/Recommendation/RecommendationReportViewer";
+import TextureClassificationSystemSelect, {
+  type TextureClassificationSystem,
+} from "@/components/Recommendation/TextureClassificationSystemSelect";
 
 const NativeSelect = chakra("select", {
   base: {
@@ -515,6 +518,8 @@ export default function Recommendation() {
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
   const [fertilizerSourceOption, setFertilizerSourceOption] = useState<FertilizerSourceOption>("ALL");
+  const [textureClassificationSystem, setTextureClassificationSystem] =
+    useState<TextureClassificationSystem>("BRASILEIRO");
   const [recommendationFolderName, setRecommendationFolderName] = useState("");
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
@@ -1322,6 +1327,10 @@ export default function Recommendation() {
             	onGroupChange: setCropFoliarAnalysisInterpretationTableGroup,
             	onTableChange: setCropFoliarAnalysisInterpretationTableId,
           	})}
+          	<TextureClassificationSystemSelect
+            	value={textureClassificationSystem}
+            	onChange={setTextureClassificationSystem}
+          	/>
           	<Box>
             	<SimpleGrid columns={{ base: 1, sm: limingCriterionPreview.limingNeed === null ? 1 : 2 }} gap={2}>
               	<Box>
