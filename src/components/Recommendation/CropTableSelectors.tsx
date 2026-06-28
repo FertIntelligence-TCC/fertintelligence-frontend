@@ -1,0 +1,141 @@
+import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
+import type { CropResponseDto } from "@/interfaces/Crop";
+
+import {
+  type TableGroupValue,
+  type TableOption,
+  NativeSelect,
+} from "./RecommendationSelectControls";
+import RecommendationTableSelector from "./RecommendationTableSelector";
+
+type CropTableSelectorsProps = {
+  selectedPlotId: string;
+  annualCropFolderId: string;
+  cropId: string;
+  annualCropFolders: AnnualCropFolderResponseDto[];
+  crops: CropResponseDto[];
+  annualCropFolderPlaceholder: string;
+  cropPlaceholder: string;
+  loadingAnnualCropFolders: boolean;
+  loadingCrops: boolean;
+  loadingTables: boolean;
+  cropFertilizationTableGroup: TableGroupValue;
+  soilFertilityInterpretationTableGroup: TableGroupValue;
+  cropFoliarAnalysisInterpretationTableGroup: TableGroupValue;
+  cropFertilizationTableId: string;
+  soilFertilityInterpretationTableId: string;
+  cropFoliarAnalysisInterpretationTableId: string;
+  cropFertilizationTables: TableOption[];
+  soilFertilityTables: TableOption[];
+  foliarInterpretationTables: TableOption[];
+  onAnnualCropFolderChange: (folderId: string) => void;
+  onCropChange: (cropId: string) => void;
+  onCropFertilizationTableGroupChange: (group: TableGroupValue) => void;
+  onSoilFertilityInterpretationTableGroupChange: (group: TableGroupValue) => void;
+  onCropFoliarAnalysisInterpretationTableGroupChange: (group: TableGroupValue) => void;
+  onCropFertilizationTableChange: (tableId: string) => void;
+  onSoilFertilityInterpretationTableChange: (tableId: string) => void;
+  onCropFoliarAnalysisInterpretationTableChange: (tableId: string) => void;
+};
+
+const getFolderLabel = (folder: AnnualCropFolderResponseDto) =>
+  folder.ano_culturas ? `Pasta anual ${folder.ano_culturas}` : `Pasta ${folder.id}`;
+
+const getCropLabel = (crop: CropResponseDto) =>
+  [crop.nome?.replace(/_/g, " "), crop.variedade, crop.tipo_cultivo].filter(Boolean).join(" • ") || `Cultura ${crop.id}`;
+
+export default function CropTableSelectors({
+  selectedPlotId,
+  annualCropFolderId,
+  cropId,
+  annualCropFolders,
+  crops,
+  annualCropFolderPlaceholder,
+  cropPlaceholder,
+  loadingAnnualCropFolders,
+  loadingCrops,
+  loadingTables,
+  cropFertilizationTableGroup,
+  soilFertilityInterpretationTableGroup,
+  cropFoliarAnalysisInterpretationTableGroup,
+  cropFertilizationTableId,
+  soilFertilityInterpretationTableId,
+  cropFoliarAnalysisInterpretationTableId,
+  cropFertilizationTables,
+  soilFertilityTables,
+  foliarInterpretationTables,
+  onAnnualCropFolderChange,
+  onCropChange,
+  onCropFertilizationTableGroupChange,
+  onSoilFertilityInterpretationTableGroupChange,
+  onCropFoliarAnalysisInterpretationTableGroupChange,
+  onCropFertilizationTableChange,
+  onSoilFertilityInterpretationTableChange,
+  onCropFoliarAnalysisInterpretationTableChange,
+}: CropTableSelectorsProps) {
+  return (
+    <>
+      <NativeSelect
+        value={annualCropFolderId}
+        onChange={(event) => onAnnualCropFolderChange(event.target.value)}
+        disabled={!selectedPlotId || loadingAnnualCropFolders || annualCropFolders.length === 0}
+      >
+        {loadingAnnualCropFolders ? (
+          <option>Carregando pastas anuais...</option>
+        ) : (
+          <>
+            <option value="">{annualCropFolderPlaceholder}</option>
+            {annualCropFolders.map((folder) => (
+              <option key={folder.id} value={folder.id}>{getFolderLabel(folder)}</option>
+            ))}
+          </>
+        )}
+      </NativeSelect>
+
+      <NativeSelect
+        value={cropId}
+        onChange={(event) => onCropChange(event.target.value)}
+        disabled={!annualCropFolderId || loadingCrops || crops.length === 0}
+      >
+        {loadingCrops ? (
+          <option>Carregando culturas...</option>
+        ) : (
+          <>
+            <option value="">{cropPlaceholder}</option>
+            {crops.map((crop) => (
+              <option key={crop.id} value={crop.id}>{getCropLabel(crop)}</option>
+            ))}
+          </>
+        )}
+      </NativeSelect>
+
+      <RecommendationTableSelector
+        label="Tabela de adubação de culturas"
+        group={cropFertilizationTableGroup}
+        tableId={cropFertilizationTableId}
+        tables={cropFertilizationTables}
+        loadingTables={loadingTables}
+        onGroupChange={onCropFertilizationTableGroupChange}
+        onTableChange={onCropFertilizationTableChange}
+      />
+      <RecommendationTableSelector
+        label="Tabela de interpretação da fertilidade do solo"
+        group={soilFertilityInterpretationTableGroup}
+        tableId={soilFertilityInterpretationTableId}
+        tables={soilFertilityTables}
+        loadingTables={loadingTables}
+        onGroupChange={onSoilFertilityInterpretationTableGroupChange}
+        onTableChange={onSoilFertilityInterpretationTableChange}
+      />
+      <RecommendationTableSelector
+        label="Tabela de interpretação de análise foliar"
+        group={cropFoliarAnalysisInterpretationTableGroup}
+        tableId={cropFoliarAnalysisInterpretationTableId}
+        tables={foliarInterpretationTables}
+        loadingTables={loadingTables}
+        onGroupChange={onCropFoliarAnalysisInterpretationTableGroupChange}
+        onTableChange={onCropFoliarAnalysisInterpretationTableChange}
+      />
+    </>
+  );
+}

@@ -14,7 +14,6 @@ import {
   Spinner,
   Text,
   VStack,
-  chakra,
 } from "@chakra-ui/react";
 import {
   DialogBody,
@@ -94,37 +93,20 @@ import RecommendationReportViewer, {
 import TextureClassificationSystemSelect, {
   type TextureClassificationSystem,
 } from "@/components/Recommendation/TextureClassificationSystemSelect";
+import AnalysisSelectors from "@/components/Recommendation/AnalysisSelectors";
+import CropTableSelectors from "@/components/Recommendation/CropTableSelectors";
+import LimingPreviewFields from "@/components/Recommendation/LimingPreviewFields";
+import PropertyPlotSelectors from "@/components/Recommendation/PropertyPlotSelectors";
+import {
+  type AnalysisExtractOption,
+  type TableGroupValue,
+  type TableOption,
+  NativeSelect,
+} from "@/components/Recommendation/RecommendationSelectControls";
 import {
   normalizeFertilizerSourceOption,
   validateRecommendationGeneration,
 } from "@/components/Recommendation/generationValidation";
-
-const NativeSelect = chakra("select", {
-  base: {
-	borderWidth: "1px",
-	borderRadius: "md",
-	px: 3,
-	h: 10,
-	width: "100%",
-	bg: "bg.panel",
-  },
-});
-
-type TableSource = "PRIVATE" | "PUBLIC" | "DEFAULT";
-type TableGroupValue = TableSource | "";
-
-type TableOption = {
-  id: number;
-  label: string;
-  source: TableSource;
-  cropName?: string | null;
-};
-
-type AnalysisExtractOption<TExtract = unknown> = {
-  id: number;
-  label: string;
-  extract: TExtract;
-};
 
 type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
 type RecommendationDocumentStatus = "generated" | "not_generated" | "loading" | "error";
@@ -253,12 +235,6 @@ const fertilizerOriginOptions: { value: FertilizerSourceOption; label: string }[
   { value: "ALL", label: "Todos" },
 ];
 
-const tableGroupOptions: { value: TableSource; label: string }[] = [
-  { value: "PRIVATE", label: "Privadas" },
-  { value: "PUBLIC", label: "Públicas" },
-  { value: "DEFAULT", label: "Padrão" },
-];
-
 const canPrintRecommendation = (cargo?: string) => {
   const roleMode = getAuthorizationRoleMode(cargo);
   return roleMode === "SUPREME" || roleMode === "RESIDENT" || roleMode === "CONSULTANT";
@@ -330,12 +306,6 @@ const mapSaturationAnalysisOption = (
   label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
   extract,
 });
-
-const getFolderLabel = (folder: AnnualCropFolderResponseDto) =>
-  folder.ano_culturas ? `Pasta anual ${folder.ano_culturas}` : `Pasta ${folder.id}`;
-
-const getCropLabel = (crop: CropResponseDto) =>
-  [crop.nome?.replace(/_/g, " "), crop.variedade, crop.tipo_cultivo].filter(Boolean).join(" • ") || `Cultura ${crop.id}`;
 
 const getRecommendationFolderName = (recommendation: RecommendationResponse) =>
   recommendation.nome_pasta_recomendacao?.trim() ||
@@ -1206,56 +1176,6 @@ export default function Recommendation() {
 	: crops.length
   	? "Cultura da pasta anual"
   	: "Nenhuma cultura encontrada";
-  const getTableChoicePlaceholder = (group: TableGroupValue, tables: TableOption[]) => {
-	if (!group) return "Selecione o grupo da tabela";
-	return tables.length ? "Escolha da tabela" : "Nenhuma tabela encontrada";
-  };
-  const renderTableSelectors = ({
-	label,
-	group,
-	tableId,
-	tables,
-	onGroupChange,
-	onTableChange,
-  }: {
-	label: string;
-	group: TableGroupValue;
-	tableId: string;
-	tables: TableOption[];
-	onGroupChange: (value: TableGroupValue) => void;
-	onTableChange: (value: string) => void;
-  }) => (
-	<Box>
-  	<Text fontSize="sm" mb={1}>{label}</Text>
-  	<SimpleGrid columns={{ base: 1, sm: 2 }} gap={2}>
-    	<NativeSelect
-      	value={group}
-      	onChange={(e) => {
-        	onGroupChange(e.target.value as TableGroupValue);
-        	onTableChange("");
-      	}}
-      	disabled={loadingTables}
-      	aria-label={`${label}: grupo da tabela`}
-    	>
-      	<option value="">Grupo da tabela</option>
-      	{tableGroupOptions.map((option) => (
-        	<option key={option.value} value={option.value}>{option.label}</option>
-      	))}
-    	</NativeSelect>
-    	<NativeSelect
-      	value={tableId}
-      	onChange={(e) => onTableChange(e.target.value)}
-      	disabled={loadingTables || !group || tables.length === 0}
-      	aria-label={`${label}: escolha da tabela`}
-    	>
-      	<option value="">{getTableChoicePlaceholder(group, tables)}</option>
-      	{tables.map((table) => (
-        	<option key={`${table.source}-${table.id}`} value={table.id}>{table.label}</option>
-      	))}
-    	</NativeSelect>
-  	</SimpleGrid>
-	</Box>
-  );
 
   return (
 	<UserLayout><FertName subtitle="Módulo de recomendações" /><ConfigMenu />
@@ -1268,62 +1188,71 @@ export default function Recommendation() {
       	<Box borderWidth="1px" borderRadius="lg" p={6}><Heading size="md" mb={3}>Formulário técnico</Heading><Separator mb={4} />
         	<VStack align="stretch" gap={3}>
           	<NativeSelect value={recommendationType} onChange={(e) => setRecommendationType(e.target.value)}><option value="">Tipo de recomendação</option>{recommendationTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
-          	<NativeSelect value={selectedPropertyId} onChange={(e) => setSelectedPropertyId(e.target.value)} disabled={loadingProperties}>{loadingProperties ? <option>Carregando...</option> : <><option value="">Propriedade</option>{properties.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</>}</NativeSelect>
-          	<NativeSelect value={selectedPlotId} onChange={(e) => setSelectedPlotId(e.target.value)} disabled={!selectedPropertyId || loadingPlots}>{loadingPlots ? <option>Carregando...</option> : <><option value="">Talhão</option>{plots.map((p) => <option key={p.id} value={p.id}>{p.identificacao ?? `Talhão ${p.id}`}</option>)}</>}</NativeSelect>
-          	<NativeSelect value={physicalAnalysisExtractId} onChange={(e) => setPhysicalAnalysisExtractId(e.target.value)} disabled={!selectedPlotId || loadingPlotAnalyses || physicalAnalysisOptions.length === 0}>{loadingPlotAnalyses ? <option>Carregando análises físicas...</option> : <><option value="">{physicalAnalysisPlaceholder}</option>{physicalAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}</>}</NativeSelect>
-          	<NativeSelect value={soilFertilityAnalysisId} onChange={(e) => setSoilFertilityAnalysisId(e.target.value)} disabled={!selectedPlotId || loadingPlotAnalyses || soilFertilityAnalysisOptions.length === 0}>{loadingPlotAnalyses ? <option>Carregando análises de fertilidade...</option> : <><option value="">{soilFertilityAnalysisPlaceholder}</option>{soilFertilityAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}</>}</NativeSelect>
-          	<NativeSelect value={saturationExtractAnalysisExtractId} onChange={(e) => setSaturationExtractAnalysisExtractId(e.target.value)} disabled={!selectedPlotId || loadingPlotAnalyses || saturationExtractAnalysisOptions.length === 0}>{loadingPlotAnalyses ? <option>Carregando análises de extrato de saturação...</option> : <><option value="">{saturationExtractAnalysisPlaceholder}</option>{saturationExtractAnalysisOptions.map((analysis) => <option key={analysis.id} value={analysis.id}>{analysis.label}</option>)}</>}</NativeSelect>
-          	<NativeSelect value={annualCropFolderId} onChange={(e) => setAnnualCropFolderId(e.target.value)} disabled={!selectedPlotId || loadingAnnualCropFolders || annualCropFolders.length === 0}>{loadingAnnualCropFolders ? <option>Carregando pastas anuais...</option> : <><option value="">{annualCropFolderPlaceholder}</option>{annualCropFolders.map((folder) => <option key={folder.id} value={folder.id}>{getFolderLabel(folder)}</option>)}</>}</NativeSelect>
-          	<NativeSelect value={cropId} onChange={(e) => setCropId(e.target.value)} disabled={!annualCropFolderId || loadingCrops || crops.length === 0}>{loadingCrops ? <option>Carregando culturas...</option> : <><option value="">{cropPlaceholder}</option>{crops.map((crop) => <option key={crop.id} value={crop.id}>{getCropLabel(crop)}</option>)}</>}</NativeSelect>
-          	{renderTableSelectors({
-            	label: "Tabela de adubação de culturas",
-            	group: cropFertilizationTableGroup,
-            	tableId: cropFertilizationTableId,
-            	tables: filteredCropFertilizationTables,
-            	onGroupChange: setCropFertilizationTableGroup,
-            	onTableChange: setCropFertilizationTableId,
-          	})}
-          	{renderTableSelectors({
-            	label: "Tabela de interpretação da fertilidade do solo",
-            	group: soilFertilityInterpretationTableGroup,
-            	tableId: soilFertilityInterpretationTableId,
-            	tables: filteredSoilFertilityTables,
-            	onGroupChange: setSoilFertilityInterpretationTableGroup,
-            	onTableChange: setSoilFertilityInterpretationTableId,
-          	})}
-          	{renderTableSelectors({
-            	label: "Tabela de interpretação de análise foliar",
-            	group: cropFoliarAnalysisInterpretationTableGroup,
-            	tableId: cropFoliarAnalysisInterpretationTableId,
-            	tables: filteredFoliarInterpretationTables,
-            	onGroupChange: setCropFoliarAnalysisInterpretationTableGroup,
-            	onTableChange: setCropFoliarAnalysisInterpretationTableId,
-          	})}
+          	<PropertyPlotSelectors
+            	propertyId={selectedPropertyId}
+            	plotId={selectedPlotId}
+            	properties={properties}
+            	plots={plots}
+            	loadingProperties={loadingProperties}
+            	loadingPlots={loadingPlots}
+            	onPropertyChange={setSelectedPropertyId}
+            	onPlotChange={setSelectedPlotId}
+          	/>
+          	<AnalysisSelectors
+            	selectedPlotId={selectedPlotId}
+            	loadingPlotAnalyses={loadingPlotAnalyses}
+            	physicalAnalysisExtractId={physicalAnalysisExtractId}
+            	soilFertilityAnalysisId={soilFertilityAnalysisId}
+            	saturationExtractAnalysisExtractId={saturationExtractAnalysisExtractId}
+            	physicalAnalysisOptions={physicalAnalysisOptions}
+            	soilFertilityAnalysisOptions={soilFertilityAnalysisOptions}
+            	saturationExtractAnalysisOptions={saturationExtractAnalysisOptions}
+            	physicalAnalysisPlaceholder={physicalAnalysisPlaceholder}
+            	soilFertilityAnalysisPlaceholder={soilFertilityAnalysisPlaceholder}
+            	saturationExtractAnalysisPlaceholder={saturationExtractAnalysisPlaceholder}
+            	onPhysicalAnalysisChange={setPhysicalAnalysisExtractId}
+            	onSoilFertilityAnalysisChange={setSoilFertilityAnalysisId}
+            	onSaturationExtractAnalysisChange={setSaturationExtractAnalysisExtractId}
+          	/>
+          	<CropTableSelectors
+            	selectedPlotId={selectedPlotId}
+            	annualCropFolderId={annualCropFolderId}
+            	cropId={cropId}
+            	annualCropFolders={annualCropFolders}
+            	crops={crops}
+            	annualCropFolderPlaceholder={annualCropFolderPlaceholder}
+            	cropPlaceholder={cropPlaceholder}
+            	loadingAnnualCropFolders={loadingAnnualCropFolders}
+            	loadingCrops={loadingCrops}
+            	loadingTables={loadingTables}
+            	cropFertilizationTableGroup={cropFertilizationTableGroup}
+            	soilFertilityInterpretationTableGroup={soilFertilityInterpretationTableGroup}
+            	cropFoliarAnalysisInterpretationTableGroup={cropFoliarAnalysisInterpretationTableGroup}
+            	cropFertilizationTableId={cropFertilizationTableId}
+            	soilFertilityInterpretationTableId={soilFertilityInterpretationTableId}
+            	cropFoliarAnalysisInterpretationTableId={cropFoliarAnalysisInterpretationTableId}
+            	cropFertilizationTables={filteredCropFertilizationTables}
+            	soilFertilityTables={filteredSoilFertilityTables}
+            	foliarInterpretationTables={filteredFoliarInterpretationTables}
+            	onAnnualCropFolderChange={setAnnualCropFolderId}
+            	onCropChange={setCropId}
+            	onCropFertilizationTableGroupChange={setCropFertilizationTableGroup}
+            	onSoilFertilityInterpretationTableGroupChange={setSoilFertilityInterpretationTableGroup}
+            	onCropFoliarAnalysisInterpretationTableGroupChange={setCropFoliarAnalysisInterpretationTableGroup}
+            	onCropFertilizationTableChange={setCropFertilizationTableId}
+            	onSoilFertilityInterpretationTableChange={setSoilFertilityInterpretationTableId}
+            	onCropFoliarAnalysisInterpretationTableChange={setCropFoliarAnalysisInterpretationTableId}
+          	/>
           	<TextureClassificationSystemSelect
             	value={textureClassificationSystem}
             	onChange={setTextureClassificationSystem}
           	/>
-          	<Box>
-            	<SimpleGrid columns={{ base: 1, sm: limingCriterionPreview.limingNeed === null ? 1 : 2 }} gap={2}>
-              	<Box>
-                	<Text fontSize="sm" mb={1}>Critério de calagem</Text>
-                	<Box borderWidth="1px" borderRadius="md" px={3} py={2} minH={10} bg="bg.panel" color="fg.muted" aria-label="Critério de calagem">
-                  	{limingCriterionPreview.criterionLabel}
-                	</Box>
-              	</Box>
-              	{limingCriterionPreview.limingNeed !== null ? (
-                	<Box>
-                  	<Text fontSize="sm" mb={1}>Necessidade de calagem estimada (t/ha, PRNT 100%)</Text>
-                  	<Box borderWidth="1px" borderRadius="md" px={3} py={2} minH={10} bg="bg.panel" color="fg.muted" aria-label="Necessidade de calagem estimada (t/ha, PRNT 100%)">
-                    	{formatAdjustedLimingNeed(limingCriterionPreview.limingNeed)}
-                  	</Box>
-                	</Box>
-              	) : null}
-            	</SimpleGrid>
-            	{limingCriterionPreview.warning ? (
-              	<Text mt={2} fontSize="xs" color="fg.muted">{limingCriterionPreview.warning}</Text>
-            	) : null}
-          	</Box>
+          	<LimingPreviewFields
+            	criterionLabel={limingCriterionPreview.criterionLabel}
+            	limingNeed={limingCriterionPreview.limingNeed}
+            	warning={limingCriterionPreview.warning}
+            	formatLimingNeed={formatAdjustedLimingNeed}
+          	/>
           	<Box>
             	<Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
             	<NativeSelect value={normalizeFertilizerSourceOption(fertilizerSourceOption)} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
