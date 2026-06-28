@@ -77,7 +77,11 @@ import { getDirectRecommendationByRecommendation } from "@/services/directRecomm
 import { getShoppingListByRecommendation } from "@/services/shoppingListService";
 import { useUserStore } from "@/stores/user/user.store";
 import { LuArrowLeft } from "react-icons/lu";
-import { parseRecommendationReportBlocks } from "@/components/Recommendation/RecommendationReportViewer";
+import {
+  detectRecommendationSpacingMode,
+  getRecommendationTableDisplay,
+  parseRecommendationReportBlocks,
+} from "@/components/Recommendation/RecommendationReportViewer";
 import RecommendationFolderDocuments, {
   buildRecommendationDocumentViews,
   type RecommendationDocumentKey,
@@ -362,6 +366,7 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   	.replace(/'/g, "&#39;");
 
   const blocks = parseRecommendationReportBlocks(text);
+  const spacingMode = detectRecommendationSpacingMode(text);
   const contentHtml = blocks
 	.map((block) => {
   	if (block.type === "spacing") {
@@ -373,14 +378,16 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   	}
 
   	if (block.type === "table") {
-    	const [headerRow, ...bodyRows] = block.rows;
+    	const display = getRecommendationTableDisplay(block.rows, spacingMode);
+    	const [headerRow, ...bodyRows] = display.rows;
     	const headerHtml = headerRow
       	? `<thead><tr>${headerRow.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr></thead>`
       	: "";
     	const bodyHtml = `<tbody>${bodyRows
       	.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`)
       	.join("")}</tbody>`;
-    	return `<table>${headerHtml}${bodyHtml}</table>`;
+    	const warningHtml = display.warning ? `<p class="technical-warning">${escapeHtml(display.warning)}</p>` : "";
+    	return `${warningHtml}<table>${headerHtml}${bodyHtml}</table>`;
   	}
 
   	return `<p>${escapeHtml(block.content)}</p>`;
@@ -400,6 +407,7 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   	h1 { margin: 0 0 24px; font-size: 14pt; }
   	h2 { margin: 20px 0 8px; font-size: 12pt; }
   	p { margin: 0; white-space: pre-wrap; }
+  	.technical-warning { color: #c2410c; font-size: 9pt; margin: 6px 0; }
   	.spacing { height: 12px; }
   	table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
   	th, td { border: 1px solid #000; padding: 8px 10px; text-align: left; vertical-align: top; }
