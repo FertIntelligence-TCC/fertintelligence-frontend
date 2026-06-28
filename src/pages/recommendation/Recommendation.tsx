@@ -41,7 +41,6 @@ import {
   type RecommendationLimingCriteria,
   type RecommendationTableGroup,
   type FertilizerSourceOption,
-  type RecommendationCreatePayload,
   type DirectRecommendationResponse,
   type RecommendationResponse,
   type ShoppingListResponse,
@@ -77,6 +76,7 @@ import {
   fetchPublicFoliarTables,
 } from "@/services/foliarAnalysisInterpretationTableService";
 import {
+  buildRecommendationCreatePayload,
   deleteRecommendation,
   generateRecommendation,
   getRecommendation,
@@ -896,27 +896,26 @@ export default function Recommendation() {
 
 	setGenerating(true);
 	try {
-  	const payload: RecommendationCreatePayload = {
-    	tipo_recomendacao: recommendationType,
-    	id_propriedade: Number(selectedPropertyId),
-    	id_talhao: Number(selectedPlotId),
-    	id_extrato_analise_fisica: Number(physicalAnalysisExtractId),
-    	id_analise_fertilidade_solo: Number(soilFertilityAnalysisId),
-    	id_extrato_analise_extrato_saturacao: saturationExtractAnalysisExtractId
-      	? Number(saturationExtractAnalysisExtractId)
-      	: null,
-    	id_pasta_cultura_anual: Number(annualCropFolderId),
-    	id_cultura: Number(cropId),
-    	id_tabela_adubacao_cultura: Number(cropFertilizationTableId),
-    	id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
-    	id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
+  	const payload = buildRecommendationCreatePayload({
+    	recommendationType,
+    	propertyId: selectedPropertyId,
+    	plotId: selectedPlotId,
+    	physicalAnalysisExtractId,
+    	soilFertilityAnalysisId,
+    	saturationExtractAnalysisExtractId,
+    	annualCropFolderId,
+    	cropId,
+    	cropFertilizationTableId,
+    	soilFertilityInterpretationTableId,
+    	cropFoliarAnalysisInterpretationTableId,
     	cropFertilizationTableGroup,
-    	soilFertilityInterpretationCriteriaTableGroup: soilFertilityInterpretationTableGroup,
-    	cropFoliarAnalysisInterpretationTableGroup: cropFoliarAnalysisInterpretationTableGroup,
-    	criterio_calagem: null,
-    	origem_adubos: normalizeFertilizerSourceOption(fertilizerSourceOption),
-    	nome_pasta_recomendacao: recommendationFolderName.trim() || null,
-  	};
+    	soilFertilityInterpretationTableGroup,
+    	cropFoliarAnalysisInterpretationTableGroup,
+    	limingCriteria: null,
+    	fertilizerSourceOption: normalizeFertilizerSourceOption(fertilizerSourceOption),
+    	recommendationFolderName,
+    	texturalClassification: textureClassificationSystem,
+  	});
   	const result = await generateRecommendation(payload);
   	setSelectedRecommendation(result);
   	toaster.create({ title: "Recomendação gerada com sucesso.", type: "success" });

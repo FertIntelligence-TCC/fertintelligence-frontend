@@ -12,6 +12,8 @@ export type RecommendationLimingCriteria =
   | "ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO"
   | "NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL_MAIS_ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO";
 
+export type RecommendationTexturalClassification = "BRASILEIRO" | "AMERICANO";
+
 export interface RecommendationCreatePayload {
   tipo_recomendacao: RecommendationType;
   id_propriedade: number;
@@ -28,6 +30,7 @@ export interface RecommendationCreatePayload {
   soilFertilityInterpretationCriteriaTableGroup: RecommendationTableGroup;
   cropFoliarAnalysisInterpretationTableGroup: RecommendationTableGroup;
   criterio_calagem?: RecommendationLimingCriteria | null;
+  classificacao_textural: RecommendationTexturalClassification;
   origem_adubos: FertilizerSourceOption;
   nome_pasta_recomendacao?: string | null;
 }
@@ -54,9 +57,12 @@ export interface RecommendationResponse {
   cultura?: string;
   ano_safra?: number;
   criterio_calagem?: RecommendationLimingCriteria | null;
+  classificacao_textural?: RecommendationTexturalClassification | null;
   tipoRecomendacao?: RecommendationType;
   anoSafra?: number;
   criterioCalagem?: RecommendationLimingCriteria | null;
+  classificacaoTextural?: RecommendationTexturalClassification | null;
+  texturalClassification?: RecommendationTexturalClassification | null;
 
   origem_adubos?: FertilizerSourceOption;
   origemAdubos?: FertilizerSourceOption;

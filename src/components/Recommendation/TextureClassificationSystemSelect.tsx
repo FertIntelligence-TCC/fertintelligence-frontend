@@ -1,6 +1,8 @@
 import { Box, Text, chakra } from "@chakra-ui/react";
 
-export type TextureClassificationSystem = "BRASILEIRO" | "AMERICANO";
+import type { RecommendationTexturalClassification } from "@/interfaces/Recommendation";
+
+export type TextureClassificationSystem = RecommendationTexturalClassification;
 
 type TextureClassificationSystemSelectProps = {
   value: TextureClassificationSystem;
