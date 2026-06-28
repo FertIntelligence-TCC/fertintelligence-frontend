@@ -112,6 +112,9 @@ const isPlantSpacingMode = (value?: string | null): value is PlantSpacingMode =>
 const getCropPlantSpacingMode = (crop: CropResponseDto): PlantSpacingMode =>
   isPlantSpacingMode(crop.modo_espacamento) ? crop.modo_espacamento : "plants_per_meter";
 
+const hasLegacyPlantsPerMeter = (crop: CropResponseDto) =>
+  Number.isFinite(crop.numero_plantas_por_metro) && crop.numero_plantas_por_metro > 0;
+
 export const CropFormDialog = ({
   open,
   onOpenChange,
@@ -251,8 +254,12 @@ export const CropFormDialog = ({
         distancia_entre_linhas: Number(distanciaEntreLinhas) || 0,
         numero_plantas_por_metro: Number.isFinite(computedPlantsPerMeter) ? computedPlantsPerMeter : 0,
         modo_espacamento: modoEspacamento,
-        distancia_entre_plantas: modoEspacamento === "holes" ? Number(distanciaEntrePlantas) || 0 : null,
-        numero_plantas_por_cova: modoEspacamento === "holes" ? Number(plantasPorCova) || 0 : null,
+        distancia_entre_plantas: modoEspacamento === "holes"
+          ? Number(distanciaEntrePlantas) || 0
+          : currentCrop?.distancia_entre_plantas ?? null,
+        numero_plantas_por_cova: modoEspacamento === "holes"
+          ? Number(plantasPorCova) || 0
+          : currentCrop?.numero_plantas_por_cova ?? null,
         area_usada_no_talhao: Number(areaUsada) || 0,
         produtividade_esperada: Number(produtividadeEsperada) || 0,
         produtividade_obtida: Number(produtividadeObtida) || 0,
@@ -470,9 +477,15 @@ export const CropFormDialog = ({
                     </Box>
                   </SimpleGrid>
 
-                  {currentCrop && !currentCrop.modo_espacamento ? (
+                  {currentCrop && !currentCrop.modo_espacamento && hasLegacyPlantsPerMeter(currentCrop) ? (
                     <Text fontSize="xs" color="gray.500">
                       Cultura antiga sem modo de espaçamento salvo: usando Nº de Plantas/m linear.
+                    </Text>
+                  ) : null}
+
+                  {currentCrop && !currentCrop.modo_espacamento && !hasLegacyPlantsPerMeter(currentCrop) ? (
+                    <Text fontSize="xs" color="orange.600">
+                      Aviso técnico: cultura antiga sem modo de espaçamento e sem plantas/m linear para inferir automaticamente.
                     </Text>
                   ) : null}
                 </VStack>

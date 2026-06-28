@@ -3,9 +3,28 @@ import { api } from "./axios";
 import { 
   CropCreateRequestDto, 
   CropPostRequestDto, 
-  CropResponseDto 
+  CropResponseDto,
+  PlantSpacingMode,
 } from "@/interfaces/Crop";
 
+const PLANT_SPACING_MODES: PlantSpacingMode[] = ["plants_per_meter", "holes"];
+
+const isPlantSpacingMode = (value?: string | null): value is PlantSpacingMode =>
+  !!value && PLANT_SPACING_MODES.includes(value as PlantSpacingMode);
+
+const hasLegacyPlantsPerMeter = (crop: CropResponseDto) =>
+  Number.isFinite(crop.numero_plantas_por_metro) && crop.numero_plantas_por_metro > 0;
+
+const normalizeCropResponse = (crop: CropResponseDto): CropResponseDto => {
+  if (isPlantSpacingMode(crop.modo_espacamento) || !hasLegacyPlantsPerMeter(crop)) {
+    return crop;
+  }
+
+  return {
+    ...crop,
+    modo_espacamento: "plants_per_meter",
+  };
+};
 
 export const createCrop = async (
   folderId: number,
@@ -14,7 +33,7 @@ export const createCrop = async (
   const response = await api.post(ENDPOINT.CREATE_CROP, data, {
     params: { folderId }
   });
-  return response.data;
+  return normalizeCropResponse(response.data);
 };
 
 export const getCropById = async (
@@ -23,7 +42,7 @@ export const getCropById = async (
   const response = await api.get(ENDPOINT.GET_CROP, {
     params: { cropId }
   });
-  return response.data;
+  return normalizeCropResponse(response.data);
 };
 
 export const getCropsByFolder = async (
@@ -32,7 +51,7 @@ export const getCropsByFolder = async (
   const response = await api.get(ENDPOINT.GET_CROP_BY_FOLDER, {
     params: { folderId }
   });
-  return response.data;
+  return response.data.map(normalizeCropResponse);
 };
 
 export const updateCrop = async (
@@ -42,7 +61,7 @@ export const updateCrop = async (
   const response = await api.put(ENDPOINT.UPDATE_CROP, data, {
     params: { cropId }
   });
-  return response.data;
+  return normalizeCropResponse(response.data);
 };
 
 export const deleteCrop = async (

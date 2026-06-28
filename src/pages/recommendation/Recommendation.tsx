@@ -310,6 +310,9 @@ const getRecommendationFolderName = (recommendation: RecommendationResponse) =>
   recommendation.nomePastaRecomendacao?.trim() ||
   `Recomendação #${recommendation.id}`;
 
+const hasLegacyPlantsPerMeter = (crop: CropResponseDto) =>
+  Number.isFinite(crop.numero_plantas_por_metro) && crop.numero_plantas_por_metro > 0;
+
 type RecommendationDocumentResponse =
   | SummaryRecommendationResponse
   | DirectRecommendationResponse
@@ -512,6 +515,17 @@ export default function Recommendation() {
 	() => cropFertilizationTables.find((table) => String(table.id) === cropFertilizationTableId) ?? null,
 	[cropFertilizationTables, cropFertilizationTableId],
   );
+  const selectedCropSpacingWarning = useMemo(() => {
+	if (!selectedCrop) {
+  	return "Aviso técnico: estes campos refletem o espaçamento da cultura selecionada para conferência no frontend. O payload atual de geração envia apenas a cultura selecionada ao backend.";
+	}
+
+	if (!selectedCrop.modo_espacamento && !hasLegacyPlantsPerMeter(selectedCrop)) {
+  	return "Aviso técnico: cultura antiga sem modo de espaçamento e sem plantas/m linear para inferir automaticamente. O payload atual de geração envia apenas a cultura selecionada ao backend.";
+	}
+
+	return "Aviso técnico: estes campos refletem o espaçamento da cultura selecionada para conferência no frontend. O payload atual de geração envia apenas a cultura selecionada ao backend.";
+  }, [selectedCrop]);
 
   useEffect(() => {
 	if (!selectedCrop) {
@@ -1174,7 +1188,7 @@ export default function Recommendation() {
             	plantSpacingValue={plantSpacingValue}
             	plantsPerHole={plantsPerHole}
             	disabled={!selectedCrop}
-            	warning="Aviso técnico: estes campos refletem o espaçamento da cultura selecionada para conferência no frontend. O payload atual de geração envia apenas a cultura selecionada ao backend."
+            	warning={selectedCropSpacingWarning}
             	onRowDistanceChange={setRowDistance}
             	onPlantSpacingModeChange={setPlantSpacingMode}
             	onPlantSpacingValueChange={setPlantSpacingValue}
