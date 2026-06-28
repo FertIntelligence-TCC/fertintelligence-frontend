@@ -153,25 +153,26 @@ export interface RecommendationFertilizerLine {
 export type SolidFertilizerWithMicronutrientsLine = RecommendationFertilizerLine;
 export type PlantingFormulatedFertilizerLine = RecommendationFertilizerLine;
 export type TopDressingFormulatedFertilizerLine = RecommendationFertilizerLine;
+type NullableRecommendationLineArray<T> = T[] | null;
 
 export interface RecommendationStructuredFertilizerLines {
-  adubos_solidos_micronutrientes?: SolidFertilizerWithMicronutrientsLine[];
-  adubosSolidosMicronutrientes?: SolidFertilizerWithMicronutrientsLine[];
-  solidFertilizersWithMicronutrients?: SolidFertilizerWithMicronutrientsLine[];
-  linhas_adubos_solidos_micronutrientes?: SolidFertilizerWithMicronutrientsLine[];
-  linhasAdubosSolidosMicronutrientes?: SolidFertilizerWithMicronutrientsLine[];
+  adubos_solidos_micronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
+  adubosSolidosMicronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
+  solidFertilizersWithMicronutrients?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
+  linhas_adubos_solidos_micronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
+  linhasAdubosSolidosMicronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
 
-  formulados_plantio?: PlantingFormulatedFertilizerLine[];
-  formuladosPlantio?: PlantingFormulatedFertilizerLine[];
-  plantingFormulatedFertilizers?: PlantingFormulatedFertilizerLine[];
-  linhas_formulados_plantio?: PlantingFormulatedFertilizerLine[];
-  linhasFormuladosPlantio?: PlantingFormulatedFertilizerLine[];
+  formulados_plantio?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  formuladosPlantio?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  plantingFormulatedFertilizers?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  linhas_formulados_plantio?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  linhasFormuladosPlantio?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
 
-  formulados_cobertura?: TopDressingFormulatedFertilizerLine[];
-  formuladosCobertura?: TopDressingFormulatedFertilizerLine[];
-  topDressingFormulatedFertilizers?: TopDressingFormulatedFertilizerLine[];
-  linhas_formulados_cobertura?: TopDressingFormulatedFertilizerLine[];
-  linhasFormuladosCobertura?: TopDressingFormulatedFertilizerLine[];
+  formulados_cobertura?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+  formuladosCobertura?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+  topDressingFormulatedFertilizers?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+  linhas_formulados_cobertura?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+  linhasFormuladosCobertura?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
 }
 
 const recommendationStructuredArrayFields = [

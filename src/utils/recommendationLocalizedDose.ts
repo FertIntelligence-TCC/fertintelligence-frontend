@@ -23,8 +23,11 @@ const formatter = new Intl.NumberFormat("pt-BR", {
 
 export const normalizeRecommendationText = (value: unknown): string => {
   if (value === null || value === undefined) return "";
-  if (typeof value === "number") return formatter.format(value);
-  if (typeof value === "string") return value.trim();
+  if (typeof value === "number") return Number.isFinite(value) ? formatter.format(value) : "";
+  if (typeof value === "string") {
+    const text = value.trim();
+    return /\bNaN\b/i.test(text) ? "" : text;
+  }
   return "";
 };
 
