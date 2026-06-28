@@ -56,7 +56,7 @@ export const getRecommendationTableDisplay = (
 
   if (!hasBothUnitColumns) return { rows };
 
-  const displayDecision =
+  const columnDisplayDecision =
     spacingMode === "UNKNOWN"
       ? getUnknownSpacingHiddenColumns(rows, gramPerMeterColumns, gramPerHoleColumns)
       : {
@@ -64,11 +64,11 @@ export const getRecommendationTableDisplay = (
           warning: undefined,
         };
 
-  const hiddenColumns = new Set(displayDecision.hiddenColumns);
+  const hiddenColumns = new Set(columnDisplayDecision.hiddenColumns);
   if (hiddenColumns.size === 0) return { rows };
 
   return {
     rows: rows.map((row) => row.filter((_, index) => !hiddenColumns.has(index))),
-    warning: displayDecision.warning,
+    warning: columnDisplayDecision.warning,
   };
 };

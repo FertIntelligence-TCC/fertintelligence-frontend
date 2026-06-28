@@ -78,7 +78,7 @@ function RecommendationReportTable({
   const display = getRecommendationTableDisplay(rows, spacingMode);
 
   return (
-    <VStack key={`table-${blockIndex}`} align="stretch" gap={1}>
+    <VStack align="stretch" gap={1}>
       {display.warning ? (
         <Text color="orange.600" fontSize="xs">
           {display.warning}

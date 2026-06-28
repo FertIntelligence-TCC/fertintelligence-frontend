@@ -21,7 +21,6 @@ import { toaster } from "@/components/ui/toaster";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
-import type { PlantSpacingMode } from "@/interfaces/Crop";
 import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
 import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
 import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/SaturationExtractAnalysisExtract";
@@ -107,7 +106,10 @@ import {
   normalizeFertilizerSourceOption,
   validateRecommendationGeneration,
 } from "@/components/Recommendation/generationValidation";
-import { useRecommendationCrops } from "@/components/Recommendation/useRecommendationCrops";
+import {
+  type CropSpacingFormState,
+  useRecommendationCrops,
+} from "@/components/Recommendation/useRecommendationCrops";
 
 const documentUnavailableMessages: Record<RecommendationDocumentKey, string> = {
   general: "Documento ainda não gerado.",
@@ -223,6 +225,13 @@ const fertilizerOriginOptions: { value: FertilizerSourceOption; label: string }[
   { value: "PRIVATE", label: "Privado" },
   { value: "ALL", label: "Todos" },
 ];
+
+const initialCropSpacingForm: CropSpacingFormState = {
+  rowDistance: "",
+  plantSpacingMode: "plants_per_meter",
+  plantSpacingValue: "",
+  plantsPerHole: "",
+};
 
 const canPrintRecommendation = (cargo?: string) => {
   const roleMode = getAuthorizationRoleMode(cargo);
@@ -455,10 +464,7 @@ export default function Recommendation() {
   const [textureClassificationSystem, setTextureClassificationSystem] =
     useState<TextureClassificationSystem>("BRASILEIRO");
   const [recommendationFolderName, setRecommendationFolderName] = useState("");
-  const [rowDistance, setRowDistance] = useState("");
-  const [plantSpacingMode, setPlantSpacingMode] = useState<PlantSpacingMode>("plants_per_meter");
-  const [plantSpacingValue, setPlantSpacingValue] = useState("");
-  const [plantsPerHole, setPlantsPerHole] = useState("");
+  const [cropSpacingForm, setCropSpacingForm] = useState<CropSpacingFormState>(initialCropSpacingForm);
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
@@ -512,21 +518,8 @@ export default function Recommendation() {
   const handleCropLoadError = useCallback(() => {
 	toaster.create({ title: "Falha ao carregar culturas da pasta anual.", type: "error" });
   }, []);
-  const handleCropSpacingChange = useCallback(({
-	rowDistance: nextRowDistance,
-	plantSpacingMode: nextPlantSpacingMode,
-	plantSpacingValue: nextPlantSpacingValue,
-	plantsPerHole: nextPlantsPerHole,
-  }: {
-	rowDistance: string;
-	plantSpacingMode: PlantSpacingMode;
-	plantSpacingValue: string;
-	plantsPerHole: string;
-  }) => {
-	setRowDistance(nextRowDistance);
-	setPlantSpacingMode(nextPlantSpacingMode);
-	setPlantSpacingValue(nextPlantSpacingValue);
-	setPlantsPerHole(nextPlantsPerHole);
+  const handleCropSpacingChange = useCallback((nextSpacingForm: CropSpacingFormState) => {
+	setCropSpacingForm(nextSpacingForm);
   }, []);
   const {
 	crops,
@@ -1149,16 +1142,16 @@ export default function Recommendation() {
             	onCropFoliarAnalysisInterpretationTableChange={setCropFoliarAnalysisInterpretationTableId}
           	/>
           	<SpacingSection
-            	rowDistance={rowDistance}
-            	plantSpacingMode={plantSpacingMode}
-            	plantSpacingValue={plantSpacingValue}
-            	plantsPerHole={plantsPerHole}
+            	rowDistance={cropSpacingForm.rowDistance}
+            	plantSpacingMode={cropSpacingForm.plantSpacingMode}
+            	plantSpacingValue={cropSpacingForm.plantSpacingValue}
+            	plantsPerHole={cropSpacingForm.plantsPerHole}
             	disabled={!selectedCrop}
             	warning={selectedCropSpacingWarning}
-            	onRowDistanceChange={setRowDistance}
-            	onPlantSpacingModeChange={setPlantSpacingMode}
-            	onPlantSpacingValueChange={setPlantSpacingValue}
-            	onPlantsPerHoleChange={setPlantsPerHole}
+            	onRowDistanceChange={(rowDistance) => setCropSpacingForm((current) => ({ ...current, rowDistance }))}
+            	onPlantSpacingModeChange={(plantSpacingMode) => setCropSpacingForm((current) => ({ ...current, plantSpacingMode }))}
+            	onPlantSpacingValueChange={(plantSpacingValue) => setCropSpacingForm((current) => ({ ...current, plantSpacingValue }))}
+            	onPlantsPerHoleChange={(plantsPerHole) => setCropSpacingForm((current) => ({ ...current, plantsPerHole }))}
           	/>
           	<TextureClassificationSystemSelect
             	value={textureClassificationSystem}

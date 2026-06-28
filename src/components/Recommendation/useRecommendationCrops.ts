@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CropResponseDto, PlantSpacingMode } from "@/interfaces/Crop";
 import { getCropsByFolder } from "@/services/cropService";
 
-type CropSpacingFormState = {
+export type CropSpacingFormState = {
   rowDistance: string;
   plantSpacingMode: PlantSpacingMode;
   plantSpacingValue: string;
