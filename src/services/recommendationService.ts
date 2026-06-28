@@ -64,20 +64,41 @@ export function buildRecommendationCreatePayload({
   recommendationFolderName,
   texturalClassification,
 }: BuildRecommendationCreatePayloadParams): RecommendationCreatePayload {
+  const normalizedPropertyId = Number(propertyId);
+  const normalizedPlotId = Number(plotId);
+  const normalizedPhysicalAnalysisExtractId = Number(physicalAnalysisExtractId);
+  const normalizedSoilFertilityAnalysisId = Number(soilFertilityAnalysisId);
+  const normalizedSaturationExtractAnalysisExtractId = saturationExtractAnalysisExtractId
+    ? Number(saturationExtractAnalysisExtractId)
+    : null;
+  const normalizedAnnualCropFolderId = Number(annualCropFolderId);
+  const normalizedCropId = Number(cropId);
+  const normalizedCropFertilizationTableId = Number(cropFertilizationTableId);
+  const normalizedSoilFertilityInterpretationTableId = Number(soilFertilityInterpretationTableId);
+  const normalizedCropFoliarAnalysisInterpretationTableId = Number(cropFoliarAnalysisInterpretationTableId);
+
   return {
     tipo_recomendacao: recommendationType,
-    id_propriedade: Number(propertyId),
-    id_talhao: Number(plotId),
-    id_extrato_analise_fisica: Number(physicalAnalysisExtractId),
-    id_analise_fertilidade_solo: Number(soilFertilityAnalysisId),
-    id_extrato_analise_extrato_saturacao: saturationExtractAnalysisExtractId
-      ? Number(saturationExtractAnalysisExtractId)
-      : null,
-    id_pasta_cultura_anual: Number(annualCropFolderId),
-    id_cultura: Number(cropId),
-    id_tabela_adubacao_cultura: Number(cropFertilizationTableId),
-    id_tabela_interpretacao_fertilidade_solo: Number(soilFertilityInterpretationTableId),
-    id_tabela_interpretacao_analise_foliar: Number(cropFoliarAnalysisInterpretationTableId),
+    propertyId: normalizedPropertyId,
+    plotId: normalizedPlotId,
+    physicalAnalysisExtractId: normalizedPhysicalAnalysisExtractId,
+    soilFertilityAnalysisId: normalizedSoilFertilityAnalysisId,
+    saturationExtractAnalysisExtractId: normalizedSaturationExtractAnalysisExtractId,
+    annualCropFolderId: normalizedAnnualCropFolderId,
+    cropId: normalizedCropId,
+    cropFertilizationTableId: normalizedCropFertilizationTableId,
+    soilFertilityInterpretationTableId: normalizedSoilFertilityInterpretationTableId,
+    cropFoliarAnalysisInterpretationTableId: normalizedCropFoliarAnalysisInterpretationTableId,
+    id_propriedade: normalizedPropertyId,
+    id_talhao: normalizedPlotId,
+    id_extrato_analise_fisica: normalizedPhysicalAnalysisExtractId,
+    id_analise_fertilidade_solo: normalizedSoilFertilityAnalysisId,
+    id_extrato_analise_extrato_saturacao: normalizedSaturationExtractAnalysisExtractId,
+    id_pasta_cultura_anual: normalizedAnnualCropFolderId,
+    id_cultura: normalizedCropId,
+    id_tabela_adubacao_cultura: normalizedCropFertilizationTableId,
+    id_tabela_interpretacao_fertilidade_solo: normalizedSoilFertilityInterpretationTableId,
+    id_tabela_interpretacao_analise_foliar: normalizedCropFoliarAnalysisInterpretationTableId,
     cropFertilizationTableGroup,
     soilFertilityInterpretationCriteriaTableGroup: soilFertilityInterpretationTableGroup,
     cropFoliarAnalysisInterpretationTableGroup,

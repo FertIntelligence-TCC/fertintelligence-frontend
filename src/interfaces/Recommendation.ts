@@ -16,6 +16,16 @@ export type RecommendationTexturalClassification = "BRASILEIRO" | "AMERICANO";
 
 export interface RecommendationCreatePayload {
   tipo_recomendacao: RecommendationType;
+  propertyId: number;
+  plotId: number;
+  physicalAnalysisExtractId: number;
+  soilFertilityAnalysisId: number;
+  saturationExtractAnalysisExtractId: number | null;
+  annualCropFolderId: number;
+  cropId: number;
+  cropFertilizationTableId: number;
+  soilFertilityInterpretationTableId: number;
+  cropFoliarAnalysisInterpretationTableId: number;
   id_propriedade: number;
   id_talhao: number;
   id_extrato_analise_fisica: number;

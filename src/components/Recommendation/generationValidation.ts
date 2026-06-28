@@ -155,6 +155,14 @@ export function validateRecommendationGeneration({
     };
   }
 
+  if (!selectedCrop) {
+    return {
+      isValid: false,
+      title: "Cultura indisponível",
+      description: "A cultura selecionada não foi carregada a partir da pasta anual. Selecione a pasta anual novamente antes de gerar.",
+    };
+  }
+
   if (!isAnnualCropCompatibleWithFertilizationTable(selectedCrop, selectedCropFertilizationTable)) {
     return {
       isValid: false,
