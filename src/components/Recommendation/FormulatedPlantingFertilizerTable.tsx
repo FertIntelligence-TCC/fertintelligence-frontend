@@ -3,18 +3,19 @@ import { Badge, Box, Heading, HStack, Table, Text, VStack } from "@chakra-ui/rea
 import type {
   DirectRecommendationResponse,
   PlantingFormulatedFertilizerLine,
-  RecommendationApplicationUnit,
   RecommendationNpkValues,
   TopDressingFormulatedFertilizerLine,
 } from "@/interfaces/Recommendation";
+import {
+  formatLocalizedDoseForColumn,
+  getFirstRecommendationText,
+  getLocalizedColumnLabel,
+  getLocalizedDose,
+  normalizeRecommendationText,
+} from "@/utils/recommendationLocalizedDose";
 
 type FormulatedPlantingFertilizerTableProps = {
   directRecommendation?: DirectRecommendationResponse | null;
-};
-
-type LocalizedDose = {
-  label: "g/m linear" | "g/cova";
-  value: string;
 };
 
 export type FormulatedFertilizerPrintTableModel = {
@@ -35,10 +36,6 @@ type TopDressingFertilizerGroup = {
   label: string;
   lines: TopDressingFormulatedFertilizerLine[];
 };
-
-const formatter = new Intl.NumberFormat("pt-BR", {
-  maximumFractionDigits: 4,
-});
 
 const lineArrayFields = [
   "formulados_plantio",
@@ -103,32 +100,18 @@ const valueFields = {
   message: ["mensagem", "mensagem_tecnica", "mensagemTecnica", "message", "technicalMessage"],
 } as const;
 
-const normalizeText = (value: unknown): string => {
-  if (value === null || value === undefined) return "";
-  if (typeof value === "number") return formatter.format(value);
-  if (typeof value === "string") return value.trim();
-  return "";
-};
-
 const getFirstText = (
   line: FormulatedFertilizerLine,
   fields: readonly string[],
-): string => {
-  for (const field of fields) {
-    const text = normalizeText(line[field]);
-    if (text) return text;
-  }
-
-  return "";
-};
+): string => getFirstRecommendationText(line, fields);
 
 const isNpkValues = (value: unknown): value is RecommendationNpkValues =>
   Boolean(value && typeof value === "object" && !Array.isArray(value));
 
 const formatNpkValues = (value: RecommendationNpkValues): string => {
-  const n = normalizeText(value.n);
-  const p = normalizeText(value.p2o5 ?? value.p);
-  const k = normalizeText(value.k2o ?? value.k);
+  const n = normalizeRecommendationText(value.n);
+  const p = normalizeRecommendationText(value.p2o5 ?? value.p);
+  const k = normalizeRecommendationText(value.k2o ?? value.k);
 
   return n || p || k ? `${n || "-"}-${p || "-"}-${k || "-"}` : "";
 };
@@ -139,7 +122,7 @@ const getFirstNpkText = (
 ): string => {
   for (const field of fields) {
     const value = line[field];
-    const text = isNpkValues(value) ? formatNpkValues(value) : normalizeText(value);
+    const text = isNpkValues(value) ? formatNpkValues(value) : normalizeRecommendationText(value);
     if (text) return text;
   }
 
@@ -160,13 +143,6 @@ const getFormulaText = (line: FormulatedFertilizerLine): string => {
 const getRelationText = (line: FormulatedFertilizerLine): string => {
   const relation = getFirstNpkText(line, valueFields.relation);
   return relation.replace(/-/g, " : ");
-};
-
-const normalizeUnit = (value: string): RecommendationApplicationUnit | "" => {
-  const unit = value.trim().toUpperCase();
-  if (["G_M_LINEAR", "G/M", "G_M", "GRAMAS_M_LINEAR"].includes(unit)) return "G_M_LINEAR";
-  if (["G_COVA", "G/COVA", "GRAMAS_COVA"].includes(unit)) return "G_COVA";
-  return "";
 };
 
 const normalizeSelectionType = (value: string): string => {
@@ -231,32 +207,8 @@ export const hasFormulatedTopDressingFertilizerRows = (
 ): boolean =>
   getFormulatedTopDressingFertilizerLines(directRecommendation).some(hasFormulatedFertilizerDisplayContent);
 
-const getLocalizedDose = (line: FormulatedFertilizerLine): LocalizedDose | null => {
-  const unit = normalizeUnit(getFirstText(line, valueFields.unit));
-
-  if (unit === "G_M_LINEAR") {
-    return { label: "g/m linear", value: getFirstText(line, valueFields.linearDose) || "-" };
-  }
-
-  if (unit === "G_COVA") {
-    return { label: "g/cova", value: getFirstText(line, valueFields.holeDose) || "-" };
-  }
-
-  const linearDose = getFirstText(line, valueFields.linearDose);
-  if (linearDose) return { label: "g/m linear", value: linearDose };
-
-  const holeDose = getFirstText(line, valueFields.holeDose);
-  if (holeDose) return { label: "g/cova", value: holeDose };
-
-  return null;
-};
-
-const getLocalizedColumnLabel = (localizedDoses: (LocalizedDose | null)[]) => {
-  const labels = Array.from(
-    new Set(localizedDoses.map((dose) => dose?.label).filter((label): label is LocalizedDose["label"] => Boolean(label))),
-  );
-  return labels.length === 1 ? labels[0] : "Aplicacao localizada";
-};
+const getLineLocalizedDose = (line: FormulatedFertilizerLine) =>
+  getLocalizedDose(line, valueFields);
 
 const getCoverageLabel = (line: TopDressingFormulatedFertilizerLine): string =>
   getFirstText(line, valueFields.coverage) || getFirstText(line, valueFields.phase);
@@ -292,7 +244,7 @@ const buildFormulatedFertilizerTableModel = <TLine extends FormulatedFertilizerL
 
   if (fertilizerLines.length === 0 && warnings.length === 0) return null;
 
-  const localizedDoses = fertilizerLines.map(getLocalizedDose);
+  const localizedDoses = fertilizerLines.map(getLineLocalizedDose);
   const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
 
   return {
@@ -311,11 +263,7 @@ const buildFormulatedFertilizerTableModel = <TLine extends FormulatedFertilizerL
       const phase = getFirstText(line, valueFields.phase);
       const message = getFirstText(line, valueFields.message);
       const observation = getFirstText(line, valueFields.observation);
-      const localizedDoseText = localizedDose
-        ? localizedColumnLabel === "Aplicacao localizada"
-          ? `${localizedDose.value} ${localizedDose.label}`
-          : localizedDose.value
-        : "-";
+      const localizedDoseText = formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel);
 
       return [
         [
@@ -370,7 +318,7 @@ function FormulatedFertilizerTable<TLine extends FormulatedFertilizerLine>({
 
   if (fertilizerLines.length === 0 && warnings.length === 0) return null;
 
-  const localizedDoses = fertilizerLines.map(getLocalizedDose);
+  const localizedDoses = fertilizerLines.map(getLineLocalizedDose);
   const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
 
   return (
@@ -425,11 +373,7 @@ function FormulatedFertilizerTable<TLine extends FormulatedFertilizerLine>({
                     <Table.Cell>{getRelationText(line) || "-"}</Table.Cell>
                     <Table.Cell>{getFirstText(line, valueFields.fertilizerDose) || "-"}</Table.Cell>
                     <Table.Cell>
-                      {localizedDose
-                        ? localizedColumnLabel === "Aplicacao localizada"
-                          ? `${localizedDose.value} ${localizedDose.label}`
-                          : localizedDose.value
-                        : "-"}
+                      {formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel)}
                     </Table.Cell>
                     <Table.Cell>
                       {observation ? (

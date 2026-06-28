@@ -2,17 +2,17 @@ import { Box, Heading, Table, Text, VStack } from "@chakra-ui/react";
 
 import type {
   DirectRecommendationResponse,
-  RecommendationApplicationUnit,
   SolidFertilizerWithMicronutrientsLine,
 } from "@/interfaces/Recommendation";
+import {
+  formatLocalizedDoseForColumn,
+  getFirstRecommendationText,
+  getLocalizedColumnLabel,
+  getLocalizedDose,
+} from "@/utils/recommendationLocalizedDose";
 
 type MicronutrientFertilizerTableProps = {
   directRecommendation?: DirectRecommendationResponse | null;
-};
-
-type LocalizedDose = {
-  label: "g/m linear" | "g/cova";
-  value: string;
 };
 
 export type RecommendationPrintTableModel = {
@@ -20,10 +20,6 @@ export type RecommendationPrintTableModel = {
   headers: string[];
   rows: string[][];
 };
-
-const formatter = new Intl.NumberFormat("pt-BR", {
-  maximumFractionDigits: 4,
-});
 
 const lineArrayFields = [
   "adubos_solidos_micronutrientes",
@@ -52,31 +48,10 @@ const valueFields = {
   message: ["mensagem", "mensagem_tecnica", "mensagemTecnica", "message", "technicalMessage"],
 } as const;
 
-const normalizeText = (value: unknown): string => {
-  if (value === null || value === undefined) return "";
-  if (typeof value === "number") return formatter.format(value);
-  if (typeof value === "string") return value.trim();
-  return "";
-};
-
 const getFirstText = (
   line: SolidFertilizerWithMicronutrientsLine,
   fields: readonly string[],
-): string => {
-  for (const field of fields) {
-    const text = normalizeText(line[field]);
-    if (text) return text;
-  }
-
-  return "";
-};
-
-const normalizeUnit = (value: string): RecommendationApplicationUnit | "" => {
-  const unit = value.trim().toUpperCase();
-  if (["G_M_LINEAR", "G/M", "G_M", "GRAMAS_M_LINEAR"].includes(unit)) return "G_M_LINEAR";
-  if (["G_COVA", "G/COVA", "GRAMAS_COVA"].includes(unit)) return "G_COVA";
-  return "";
-};
+): string => getFirstRecommendationText(line, fields);
 
 export const getMicronutrientFertilizerLines = (
   directRecommendation?: DirectRecommendationResponse | null,
@@ -102,32 +77,8 @@ export const hasMicronutrientFertilizerRows = (
     ),
   );
 
-const getLocalizedDose = (line: SolidFertilizerWithMicronutrientsLine): LocalizedDose | null => {
-  const unit = normalizeUnit(getFirstText(line, valueFields.unit));
-
-  if (unit === "G_M_LINEAR") {
-    return { label: "g/m linear", value: getFirstText(line, valueFields.linearDose) || "-" };
-  }
-
-  if (unit === "G_COVA") {
-    return { label: "g/cova", value: getFirstText(line, valueFields.holeDose) || "-" };
-  }
-
-  const linearDose = getFirstText(line, valueFields.linearDose);
-  if (linearDose) return { label: "g/m linear", value: linearDose };
-
-  const holeDose = getFirstText(line, valueFields.holeDose);
-  if (holeDose) return { label: "g/cova", value: holeDose };
-
-  return null;
-};
-
-const getLocalizedColumnLabel = (localizedDoses: (LocalizedDose | null)[]) => {
-  const labels = Array.from(
-    new Set(localizedDoses.map((dose) => dose?.label).filter((label): label is LocalizedDose["label"] => Boolean(label))),
-  );
-  return labels.length === 1 ? labels[0] : "Aplicação localizada";
-};
+const getLineLocalizedDose = (line: SolidFertilizerWithMicronutrientsLine) =>
+  getLocalizedDose(line, valueFields);
 
 export const buildMicronutrientFertilizerTableModel = (
   directRecommendation?: DirectRecommendationResponse | null,
@@ -142,7 +93,7 @@ export const buildMicronutrientFertilizerTableModel = (
 
   if (lines.length === 0) return null;
 
-  const localizedDoses = lines.map(getLocalizedDose);
+  const localizedDoses = lines.map(getLineLocalizedDose);
   const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
 
   return {
@@ -160,11 +111,7 @@ export const buildMicronutrientFertilizerTableModel = (
       const message = getFirstText(line, valueFields.message);
       const observation = getFirstText(line, valueFields.observation);
       const fertilizer = getFirstText(line, valueFields.fertilizer) || "-";
-      const localizedDoseText = localizedDose
-        ? localizedColumnLabel === "Aplicação localizada"
-          ? `${localizedDose.value} ${localizedDose.label}`
-          : localizedDose.value
-        : "-";
+      const localizedDoseText = formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel);
 
       return [
         getFirstText(line, valueFields.micronutrient) || "-",
@@ -191,7 +138,7 @@ export default function MicronutrientFertilizerTable({
 
   if (lines.length === 0) return null;
 
-  const localizedDoses = lines.map(getLocalizedDose);
+  const localizedDoses = lines.map(getLineLocalizedDose);
   const tableModel = buildMicronutrientFertilizerTableModel(directRecommendation);
   const localizedColumnLabel = tableModel?.headers[5] ?? getLocalizedColumnLabel(localizedDoses);
 
@@ -233,11 +180,7 @@ export default function MicronutrientFertilizerTable({
                   <Table.Cell>{getFirstText(line, valueFields.micronutrientDose) || "-"}</Table.Cell>
                   <Table.Cell>{getFirstText(line, valueFields.fertilizerDose) || "-"}</Table.Cell>
                   <Table.Cell>
-                    {localizedDose
-                      ? localizedColumnLabel === "Aplicação localizada"
-                        ? `${localizedDose.value} ${localizedDose.label}`
-                        : localizedDose.value
-                      : "-"}
+                    {formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel)}
                     {observation ? (
                       <Text color="fg.muted" fontSize="xs" mt={1}>
                         {observation}

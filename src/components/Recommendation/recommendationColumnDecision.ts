@@ -1,3 +1,5 @@
+import { LOCALIZED_APPLICATION_COLUMN_LABEL } from "@/utils/recommendationLocalizedDose";
+
 export type RecommendationSpacingMode = "linear" | "holes" | "UNKNOWN";
 
 type RecommendationTableDisplay = {
@@ -19,24 +21,54 @@ const hasDisplayValue = (value: string | undefined) => {
   return displayValue !== "-" && displayValue !== "—";
 };
 
-const countFilledCells = (rows: string[][], columns: number[]) =>
-  rows.slice(1).reduce((total, row) => total + columns.filter((column) => hasDisplayValue(row[column])).length, 0);
+const getFirstDisplayValue = (row: string[], columns: number[]) => {
+  for (const column of columns) {
+    const value = formatRecommendationTableCell(row[column]);
+    if (hasDisplayValue(value)) return value;
+  }
 
-const getUnknownSpacingHiddenColumns = (
-  rows: string[][],
+  return "";
+};
+
+const getLocalizedApplicationCell = (
+  row: string[],
+  spacingMode: RecommendationSpacingMode,
   gramPerMeterColumns: number[],
   gramPerHoleColumns: number[],
-): { hiddenColumns: number[]; warning: string } => {
-  const filledGramPerMeterCells = countFilledCells(rows, gramPerMeterColumns);
-  const filledGramPerHoleCells = countFilledCells(rows, gramPerHoleColumns);
-  const showHoleColumns = filledGramPerHoleCells > filledGramPerMeterCells;
+) => {
+  const gramPerMeterValue = getFirstDisplayValue(row, gramPerMeterColumns);
+  const gramPerHoleValue = getFirstDisplayValue(row, gramPerHoleColumns);
 
-  return {
-    hiddenColumns: showHoleColumns ? gramPerMeterColumns : gramPerHoleColumns,
-    warning: showHoleColumns
-      ? "Modo de espaçamento não identificado no laudo retornado pelo backend; exibindo apenas g/cova porque essa coluna possui dados preenchidos."
-      : "Modo de espaçamento não identificado no laudo retornado pelo backend; exibindo apenas g/m para evitar duplicidade com g/cova.",
-  };
+  if (gramPerMeterValue && gramPerHoleValue) {
+    return spacingMode === "holes"
+      ? `${gramPerHoleValue} g/cova`
+      : `${gramPerMeterValue} g/m linear`;
+  }
+
+  if (gramPerMeterValue) return `${gramPerMeterValue} g/m linear`;
+  if (gramPerHoleValue) return `${gramPerHoleValue} g/cova`;
+  return "-";
+};
+
+const mergeLocalizedApplicationColumns = (
+  rows: string[][],
+  spacingMode: RecommendationSpacingMode,
+  gramPerMeterColumns: number[],
+  gramPerHoleColumns: number[],
+): string[][] => {
+  const localizedColumns = [...gramPerMeterColumns, ...gramPerHoleColumns].sort((a, b) => a - b);
+  const firstLocalizedColumn = localizedColumns[0];
+  const hiddenColumns = new Set(localizedColumns.filter((column) => column !== firstLocalizedColumn));
+
+  return rows.map((row, rowIndex) =>
+    row
+      .map((cell, index) => {
+        if (index !== firstLocalizedColumn) return cell;
+        if (rowIndex === 0) return LOCALIZED_APPLICATION_COLUMN_LABEL;
+        return getLocalizedApplicationCell(row, spacingMode, gramPerMeterColumns, gramPerHoleColumns);
+      })
+      .filter((_, index) => !hiddenColumns.has(index)),
+  );
 };
 
 export const getRecommendationTableDisplay = (
@@ -56,13 +88,31 @@ export const getRecommendationTableDisplay = (
 
   if (!hasBothUnitColumns) return { rows };
 
+  if (spacingMode === "UNKNOWN") {
+    return {
+      rows: mergeLocalizedApplicationColumns(rows, spacingMode, gramPerMeterColumns, gramPerHoleColumns),
+      warning:
+        "Modo de espaçamento não identificado no laudo retornado pelo backend; exibindo a unidade localizada preenchida em cada linha.",
+    };
+  }
+
+  const hasMixedLocalizedRows = rows.slice(1).some((row) => {
+    const hasGramPerMeterValue = Boolean(getFirstDisplayValue(row, gramPerMeterColumns));
+    const hasGramPerHoleValue = Boolean(getFirstDisplayValue(row, gramPerHoleColumns));
+    return hasGramPerMeterValue !== hasGramPerHoleValue;
+  });
+
+  if (hasMixedLocalizedRows) {
+    return {
+      rows: mergeLocalizedApplicationColumns(rows, spacingMode, gramPerMeterColumns, gramPerHoleColumns),
+    };
+  }
+
   const columnDisplayDecision =
-    spacingMode === "UNKNOWN"
-      ? getUnknownSpacingHiddenColumns(rows, gramPerMeterColumns, gramPerHoleColumns)
-      : {
-          hiddenColumns: spacingMode === "linear" ? gramPerHoleColumns : gramPerMeterColumns,
-          warning: undefined,
-        };
+    {
+      hiddenColumns: spacingMode === "linear" ? gramPerHoleColumns : gramPerMeterColumns,
+      warning: undefined,
+    };
 
   const hiddenColumns = new Set(columnDisplayDecision.hiddenColumns);
   if (hiddenColumns.size === 0) return { rows };
