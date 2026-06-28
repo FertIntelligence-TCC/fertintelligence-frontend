@@ -83,6 +83,7 @@ import {
   formatRecommendationTableCell,
   getRecommendationTableDisplay,
 } from "@/components/Recommendation/recommendationColumnDecision";
+import { hasFormulatedPlantingFertilizerRows } from "@/components/Recommendation/FormulatedPlantingFertilizerTable";
 import { hasMicronutrientFertilizerRows } from "@/components/Recommendation/MicronutrientFertilizerTable";
 import RecommendationFolderDocuments, {
   buildRecommendationDocumentViews,
@@ -946,7 +947,9 @@ export default function Recommendation() {
   const reportText = getRecommendationReportText(selectedRecommendation);
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
-  	direct: hasMicronutrientFertilizerRows(directRecommendationDocument),
+  	direct:
+        hasMicronutrientFertilizerRows(directRecommendationDocument) ||
+        hasFormulatedPlantingFertilizerRows(directRecommendationDocument),
 	}),
 	[directRecommendationDocument],
   );
@@ -1038,7 +1041,9 @@ export default function Recommendation() {
     	setDirectRecommendationDocument(loadedDocument.directRecommendationDocument);
   	}
 
-  	const hasStructuredContent = hasMicronutrientFertilizerRows(loadedDocument.directRecommendationDocument);
+  	const hasStructuredContent =
+        hasMicronutrientFertilizerRows(loadedDocument.directRecommendationDocument) ||
+        hasFormulatedPlantingFertilizerRows(loadedDocument.directRecommendationDocument);
   	if (loadedDocument.text.trim() || hasStructuredContent) {
     	setLoadedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: loadedDocument.text }));
     	return;

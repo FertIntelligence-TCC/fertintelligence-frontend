@@ -23,6 +23,13 @@ export type DirectRecommendationPhase = FlexibleEnum<"PLANTIO" | "COBERTURA">;
 export type DirectRecommendationSelectionType = FlexibleEnum<"DIRETA" | "APROXIMADA">;
 
 export type RecommendationMicronutrientValues = Record<string, number | string | null | undefined>;
+export type RecommendationNpkValues = {
+  n?: number | string | null;
+  p?: number | string | null;
+  p2o5?: number | string | null;
+  k?: number | string | null;
+  k2o?: number | string | null;
+};
 
 export interface RecommendationFertilizerLine {
   [key: string]: unknown;
@@ -42,12 +49,48 @@ export interface RecommendationFertilizerLine {
   adubo_id?: number | string | null;
   fertilizerId?: number | string | null;
   idFertilizante?: number | string | null;
+  id_formulado?: number | string | null;
+  idFormulado?: number | string | null;
+  formulatedFertilizerId?: number | string | null;
 
   adubo?: string | null;
   nome_adubo?: string | null;
   nomeAdubo?: string | null;
   fertilizer?: string | null;
   fertilizerName?: string | null;
+  formulado?: string | null;
+  nome_formulado?: string | null;
+  nomeFormulado?: string | null;
+  formulatedFertilizer?: string | null;
+  formulatedFertilizerName?: string | null;
+
+  formula?: RecommendationNpkValues | string | null;
+  formula_npk?: RecommendationNpkValues | string | null;
+  formulaNpk?: RecommendationNpkValues | string | null;
+  npkFormula?: RecommendationNpkValues | string | null;
+  n?: number | string | null;
+  p?: number | string | null;
+  p2o5?: number | string | null;
+  k?: number | string | null;
+  k2o?: number | string | null;
+  formula_n?: number | string | null;
+  formulaN?: number | string | null;
+  formula_p?: number | string | null;
+  formulaP?: number | string | null;
+  formula_p2o5?: number | string | null;
+  formulaP2o5?: number | string | null;
+  formula_k?: number | string | null;
+  formulaK?: number | string | null;
+  formula_k2o?: number | string | null;
+  formulaK2o?: number | string | null;
+
+  relacao?: RecommendationNpkValues | string | null;
+  relacao_npk?: RecommendationNpkValues | string | null;
+  relacaoNpk?: RecommendationNpkValues | string | null;
+  relacao_usada?: RecommendationNpkValues | string | null;
+  relacaoUsada?: RecommendationNpkValues | string | null;
+  relation?: RecommendationNpkValues | string | null;
+  relationUsed?: RecommendationNpkValues | string | null;
 
   teor?: number | string | null;
   teor_usado?: number | string | null;
