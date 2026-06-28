@@ -18,7 +18,7 @@ export interface RecommendationCreatePayload {
   id_talhao: number;
   id_extrato_analise_fisica: number;
   id_analise_fertilidade_solo: number;
-  id_extrato_analise_extrato_saturacao: number;
+  id_extrato_analise_extrato_saturacao: number | null;
   id_pasta_cultura_anual: number;
   id_cultura: number;
   id_tabela_adubacao_cultura: number;

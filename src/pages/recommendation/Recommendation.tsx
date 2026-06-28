@@ -836,7 +836,7 @@ export default function Recommendation() {
   }, [annualCropFolderId]);
 
   const handleGenerate = async () => {
-	if (!recommendationType || !selectedPropertyId || !selectedPlotId || !physicalAnalysisExtractId || !soilFertilityAnalysisId || !saturationExtractAnalysisExtractId || !annualCropFolderId || !cropId || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !fertilizerSourceOption) {
+	if (!recommendationType || !selectedPropertyId || !selectedPlotId || !physicalAnalysisExtractId || !soilFertilityAnalysisId || !annualCropFolderId || !cropId || !cropFertilizationTableId || !soilFertilityInterpretationTableId || !cropFoliarAnalysisInterpretationTableId || !fertilizerSourceOption) {
   	toaster.create({ title: "Campos obrigatórios", description: "Preencha todos os campos necessários antes de gerar a recomendação.", type: "warning" });
   	return;
 	}
@@ -864,7 +864,9 @@ export default function Recommendation() {
     	id_talhao: Number(selectedPlotId),
     	id_extrato_analise_fisica: Number(physicalAnalysisExtractId),
     	id_analise_fertilidade_solo: Number(soilFertilityAnalysisId),
-    	id_extrato_analise_extrato_saturacao: Number(saturationExtractAnalysisExtractId),
+    	id_extrato_analise_extrato_saturacao: saturationExtractAnalysisExtractId
+      	? Number(saturationExtractAnalysisExtractId)
+      	: null,
     	id_pasta_cultura_anual: Number(annualCropFolderId),
     	id_cultura: Number(cropId),
     	id_tabela_adubacao_cultura: Number(cropFertilizationTableId),
