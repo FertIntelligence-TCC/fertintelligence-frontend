@@ -29,6 +29,7 @@ import {
   type RecommendationLimingCriteria,
   type FertilizerSourceOption,
   type DirectRecommendationResponse,
+  type RecommendationPrintResponse,
   type RecommendationResponse,
   type ShoppingListResponse,
   type SummaryRecommendationResponse,
@@ -84,10 +85,16 @@ import {
   getRecommendationTableDisplay,
 } from "@/components/Recommendation/recommendationColumnDecision";
 import {
+  buildFormulatedPlantingFertilizerTableModels,
+  buildFormulatedTopDressingFertilizerTableModels,
   hasFormulatedPlantingFertilizerRows,
   hasFormulatedTopDressingFertilizerRows,
 } from "@/components/Recommendation/FormulatedPlantingFertilizerTable";
-import { hasMicronutrientFertilizerRows } from "@/components/Recommendation/MicronutrientFertilizerTable";
+import {
+  buildMicronutrientFertilizerTableModel,
+  hasMicronutrientFertilizerRows,
+  type RecommendationPrintTableModel,
+} from "@/components/Recommendation/MicronutrientFertilizerTable";
 import RecommendationFolderDocuments, {
   buildRecommendationDocumentViews,
   type RecommendationDocumentKey,
@@ -378,7 +385,27 @@ const getRecommendationDocumentText = (
   return "";
 };
 
-const writePrintableReport = (printWindow: Window, text: string) => {
+type StructuredPrintTableModel = RecommendationPrintTableModel & {
+  warnings?: string[];
+};
+
+const getStructuredPrintTableModels = (
+  recommendation: RecommendationPrintResponse,
+): StructuredPrintTableModel[] => {
+  const micronutrientTable = buildMicronutrientFertilizerTableModel(recommendation);
+
+  return [
+    ...buildFormulatedPlantingFertilizerTableModels(recommendation),
+    ...buildFormulatedTopDressingFertilizerTableModels(recommendation),
+    ...(micronutrientTable ? [micronutrientTable] : []),
+  ];
+};
+
+const writePrintableReport = (
+  printWindow: Window,
+  text: string,
+  printableRecommendation: RecommendationPrintResponse,
+) => {
   const escapeHtml = (value: string) =>
 	value
   	.replace(/&/g, "&amp;")
@@ -386,6 +413,26 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   	.replace(/>/g, "&gt;")
   	.replace(/"/g, "&quot;")
   	.replace(/'/g, "&#39;");
+
+  const renderTableHtml = (model: StructuredPrintTableModel) => {
+    const headerHtml = `<thead><tr>${model.headers
+      .map((header) => `<th>${escapeHtml(formatRecommendationTableCell(header))}</th>`)
+      .join("")}</tr></thead>`;
+    const bodyHtml = `<tbody>${model.rows
+      .map((row) =>
+        `<tr>${row
+          .map((cell) => `<td>${escapeHtml(formatRecommendationTableCell(cell))}</td>`)
+          .join("")}</tr>`,
+      )
+      .join("")}</tbody>`;
+    const warningsHtml = model.warnings?.length
+      ? model.warnings
+          .map((warning) => `<p class="technical-warning">${escapeHtml(warning)}</p>`)
+          .join("")
+      : "";
+
+    return `<h2>${escapeHtml(model.title)}</h2><table>${headerHtml}${bodyHtml}</table>${warningsHtml}`;
+  };
 
   const blocks = parseRecommendationReportBlocks(text);
   const spacingMode = detectRecommendationSpacingMode(text);
@@ -415,6 +462,12 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   	return `<p>${escapeHtml(block.content)}</p>`;
 	})
 	.join("");
+  const structuredTablesHtml = getStructuredPrintTableModels(printableRecommendation)
+    .map(renderTableHtml)
+    .join("");
+  const structuredContentHtml = structuredTablesHtml
+    ? `<div class="spacing"></div>${structuredTablesHtml}`
+    : "";
 
   const doc = printWindow.document;
   doc.open();
@@ -432,7 +485,7 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   	.technical-warning { color: #c2410c; font-size: 9pt; margin: 6px 0; }
   	.spacing { height: 12px; }
   	table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
-  	th, td { border: 1px solid #000; padding: 8px 10px; text-align: left; vertical-align: top; }
+  	th, td { border: 1px solid #000; padding: 8px 10px; text-align: left; vertical-align: top; white-space: pre-wrap; }
   	th { font-weight: 700; background: #f2f2f2; }
   	.footer { margin-top: 36px; }
   	@media print {
@@ -443,7 +496,7 @@ const writePrintableReport = (printWindow: Window, text: string) => {
   </head>
   <body>
 	<h1>Laudo Técnico de Recomendação Agrícola</h1>
-	<div class="recommendation-print-document">${contentHtml}</div>
+	<div class="recommendation-print-document">${contentHtml}${structuredContentHtml}</div>
 	<div class="footer">Documento emitido pelo sistema FertIntelligence.</div>
   </body>
 </html>`);
@@ -901,7 +954,7 @@ export default function Recommendation() {
     	return;
   	}
 
-  	writePrintableReport(printWindow, printableReportText);
+  	writePrintableReport(printWindow, printableReportText, printableRecommendation);
   	printWindow.onload = () => {
     	printWindow.focus();
     	printWindow.print();

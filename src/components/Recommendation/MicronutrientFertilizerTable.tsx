@@ -15,6 +15,12 @@ type LocalizedDose = {
   value: string;
 };
 
+export type RecommendationPrintTableModel = {
+  title: string;
+  headers: string[];
+  rows: string[][];
+};
+
 const formatter = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 4,
 });
@@ -117,8 +123,59 @@ const getLocalizedDose = (line: SolidFertilizerWithMicronutrientsLine): Localize
 };
 
 const getLocalizedColumnLabel = (localizedDoses: (LocalizedDose | null)[]) => {
-  const labels = Array.from(new Set(localizedDoses.map((dose) => dose?.label).filter(Boolean)));
+  const labels = Array.from(
+    new Set(localizedDoses.map((dose) => dose?.label).filter((label): label is LocalizedDose["label"] => Boolean(label))),
+  );
   return labels.length === 1 ? labels[0] : "Aplicação localizada";
+};
+
+export const buildMicronutrientFertilizerTableModel = (
+  directRecommendation?: DirectRecommendationResponse | null,
+): RecommendationPrintTableModel | null => {
+  const lines = getMicronutrientFertilizerLines(directRecommendation).filter((line) =>
+    Boolean(
+      getFirstText(line, valueFields.micronutrient) ||
+        getFirstText(line, valueFields.fertilizer) ||
+        getFirstText(line, valueFields.message),
+    ),
+  );
+
+  if (lines.length === 0) return null;
+
+  const localizedDoses = lines.map(getLocalizedDose);
+  const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
+
+  return {
+    title: "Adubos sólidos com micronutrientes",
+    headers: [
+      "Micronutriente",
+      "Fonte/adubo",
+      "Teor",
+      "kg/ha micronutriente",
+      "kg/ha adubo",
+      localizedColumnLabel,
+    ],
+    rows: lines.map((line, index) => {
+      const localizedDose = localizedDoses[index];
+      const message = getFirstText(line, valueFields.message);
+      const observation = getFirstText(line, valueFields.observation);
+      const fertilizer = getFirstText(line, valueFields.fertilizer) || "-";
+      const localizedDoseText = localizedDose
+        ? localizedColumnLabel === "Aplicação localizada"
+          ? `${localizedDose.value} ${localizedDose.label}`
+          : localizedDose.value
+        : "-";
+
+      return [
+        getFirstText(line, valueFields.micronutrient) || "-",
+        [fertilizer, message].filter(Boolean).join("\n"),
+        getFirstText(line, valueFields.content) || "-",
+        getFirstText(line, valueFields.micronutrientDose) || "-",
+        getFirstText(line, valueFields.fertilizerDose) || "-",
+        [localizedDoseText, observation].filter(Boolean).join("\n"),
+      ];
+    }),
+  };
 };
 
 export default function MicronutrientFertilizerTable({
@@ -135,7 +192,8 @@ export default function MicronutrientFertilizerTable({
   if (lines.length === 0) return null;
 
   const localizedDoses = lines.map(getLocalizedDose);
-  const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
+  const tableModel = buildMicronutrientFertilizerTableModel(directRecommendation);
+  const localizedColumnLabel = tableModel?.headers[5] ?? getLocalizedColumnLabel(localizedDoses);
 
   return (
     <VStack align="stretch" gap={3}>

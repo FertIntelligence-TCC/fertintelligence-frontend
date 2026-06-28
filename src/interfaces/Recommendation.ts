@@ -290,6 +290,10 @@ export interface RecommendationResponse {
   updatedAt?: string;
 }
 
+export interface RecommendationPrintResponse
+  extends RecommendationResponse,
+    RecommendationStructuredFertilizerLines {}
+
 interface RecommendationDocumentTextFields {
   id?: number;
   recommendationId?: number;

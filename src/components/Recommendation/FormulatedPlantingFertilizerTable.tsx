@@ -17,6 +17,13 @@ type LocalizedDose = {
   value: string;
 };
 
+export type FormulatedFertilizerPrintTableModel = {
+  title: string;
+  headers: string[];
+  rows: string[][];
+  warnings: string[];
+};
+
 type FormulatedFertilizerLine = PlantingFormulatedFertilizerLine | TopDressingFormulatedFertilizerLine;
 
 type FormulatedFertilizerTableProps<TLine extends FormulatedFertilizerLine> = {
@@ -245,7 +252,9 @@ const getLocalizedDose = (line: FormulatedFertilizerLine): LocalizedDose | null 
 };
 
 const getLocalizedColumnLabel = (localizedDoses: (LocalizedDose | null)[]) => {
-  const labels = Array.from(new Set(localizedDoses.map((dose) => dose?.label).filter(Boolean)));
+  const labels = Array.from(
+    new Set(localizedDoses.map((dose) => dose?.label).filter((label): label is LocalizedDose["label"] => Boolean(label))),
+  );
   return labels.length === 1 ? labels[0] : "Aplicacao localizada";
 };
 
@@ -269,6 +278,84 @@ const groupTopDressingLines = (
   }
 
   return groups;
+};
+
+const buildFormulatedFertilizerTableModel = <TLine extends FormulatedFertilizerLine>(
+  title: string,
+  lines: TLine[],
+): FormulatedFertilizerPrintTableModel | null => {
+  const fertilizerLines = lines.filter(hasFormulatedFertilizerData);
+  const warnings = lines
+    .filter((line) => !hasFormulatedFertilizerData(line))
+    .map((line) => getFirstText(line, valueFields.observation) || getFirstText(line, valueFields.message))
+    .filter(Boolean);
+
+  if (fertilizerLines.length === 0 && warnings.length === 0) return null;
+
+  const localizedDoses = fertilizerLines.map(getLocalizedDose);
+  const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
+
+  return {
+    title,
+    headers: [
+      "Formulado",
+      "Formula N-P2O5-K2O",
+      "Relacao",
+      "kg/ha",
+      localizedColumnLabel,
+      "Observacao",
+    ],
+    rows: fertilizerLines.map((line, index) => {
+      const localizedDose = localizedDoses[index];
+      const selectionType = normalizeSelectionType(getFirstText(line, valueFields.selectionType));
+      const phase = getFirstText(line, valueFields.phase);
+      const message = getFirstText(line, valueFields.message);
+      const observation = getFirstText(line, valueFields.observation);
+      const localizedDoseText = localizedDose
+        ? localizedColumnLabel === "Aplicacao localizada"
+          ? `${localizedDose.value} ${localizedDose.label}`
+          : localizedDose.value
+        : "-";
+
+      return [
+        [
+          getFirstText(line, valueFields.fertilizer) || "-",
+          selectionType ? `Tipo: ${selectionType}` : "",
+          phase ? `Fase: ${phase}` : "",
+          message,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        getFormulaText(line) || "-",
+        getRelationText(line) || "-",
+        getFirstText(line, valueFields.fertilizerDose) || "-",
+        localizedDoseText,
+        observation || "-",
+      ];
+    }),
+    warnings,
+  };
+};
+
+export const buildFormulatedPlantingFertilizerTableModels = (
+  directRecommendation?: DirectRecommendationResponse | null,
+): FormulatedFertilizerPrintTableModel[] => {
+  const lines = getFormulatedPlantingFertilizerLines(directRecommendation).filter(
+    hasFormulatedFertilizerDisplayContent,
+  );
+  const model = buildFormulatedFertilizerTableModel("Formulados de plantio", lines);
+  return model ? [model] : [];
+};
+
+export const buildFormulatedTopDressingFertilizerTableModels = (
+  directRecommendation?: DirectRecommendationResponse | null,
+): FormulatedFertilizerPrintTableModel[] => {
+  const lines = getFormulatedTopDressingFertilizerLines(directRecommendation).filter(
+    hasFormulatedFertilizerDisplayContent,
+  );
+  return groupTopDressingLines(lines)
+    .map((group) => buildFormulatedFertilizerTableModel(`Formulados de cobertura - ${group.label}`, group.lines))
+    .filter((model): model is FormulatedFertilizerPrintTableModel => Boolean(model));
 };
 
 function FormulatedFertilizerTable<TLine extends FormulatedFertilizerLine>({

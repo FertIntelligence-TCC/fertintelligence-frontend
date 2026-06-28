@@ -3,6 +3,7 @@ import {
   type FertilizerSourceOption,
   type RecommendationCreatePayload,
   type RecommendationLimingCriteria,
+  type RecommendationPrintResponse,
   type RecommendationResponse,
   type RecommendationTableGroup,
   type RecommendationTexturalClassification,
@@ -128,8 +129,8 @@ export async function getMyRecommendations(): Promise<RecommendationResponse[]> 
   return data;
 }
 
-export async function preparePrintRecommendation(id: number): Promise<RecommendationResponse> {
-  const { data } = await api.get<RecommendationResponse>(ENDPOINT.PREPARE_PRINT_RECOMMENDATION, {
+export async function preparePrintRecommendation(id: number): Promise<RecommendationPrintResponse> {
+  const { data } = await api.get<RecommendationPrintResponse>(ENDPOINT.PREPARE_PRINT_RECOMMENDATION, {
     params: { id },
   });
   return data;
