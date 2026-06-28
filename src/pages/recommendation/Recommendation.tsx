@@ -111,6 +111,7 @@ type TableOption = {
   id: number;
   label: string;
   source: TableSource;
+  cropName?: string | null;
 };
 
 type AnalysisExtractOption<TExtract = unknown> = {
@@ -139,6 +140,7 @@ const documentUnavailableMessages: Record<RecommendationDocumentKey, string> = {
 };
 
 const documentLoadErrorMessage = "Não foi possível carregar este documento.";
+const CROP_TABLE_INCOMPATIBILITY_MESSAGE = "Cultura Anual e Tabela de Adubação de Culturas incompatíveis!";
 
 type RawTable = {
   id?: number;
@@ -285,7 +287,25 @@ const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]):
   const region = table.regiao ?? table.region;
   const regionText = region ? ` (${region})` : "";
   const baseName = table.nome ?? table.name ?? table.nome_tabela ?? table.nome_criterios ?? `Tabela ${table.id}`;
-  return { id: table.id, label: `${baseName}${cropName}${regionText}`, source };
+  return { id: table.id, label: `${baseName}${cropName}${regionText}`, source, cropName: table.nome_comum_cultura ?? null };
+};
+
+const normalizeComparableCropName = (value?: string | null): string | null => {
+  const normalized = value?.trim();
+  return normalized || null;
+};
+
+const isAnnualCropCompatibleWithFertilizationTable = (
+  crop?: CropResponseDto | null,
+  table?: TableOption | null,
+) => {
+  const cropName = normalizeComparableCropName(crop?.nome);
+  const tableCropName = normalizeComparableCropName(table?.cropName);
+
+  // Alguns endpoints legados podem omitir nome_comum_cultura; sem os dois enums não há comparação segura no frontend.
+  if (!cropName || !tableCropName) return true;
+
+  return cropName === tableCropName;
 };
 
 const filterTablesByGroup = (tables: TableOption[], group: TableGroupValue) =>
@@ -543,6 +563,14 @@ export default function Recommendation() {
   const filteredFoliarInterpretationTables = useMemo(
 	() => filterTablesByGroup(foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup),
 	[foliarInterpretationTables, cropFoliarAnalysisInterpretationTableGroup],
+  );
+  const selectedCrop = useMemo(
+	() => crops.find((crop) => String(crop.id) === cropId) ?? null,
+	[crops, cropId],
+  );
+  const selectedCropFertilizationTable = useMemo(
+	() => cropFertilizationTables.find((table) => String(table.id) === cropFertilizationTableId) ?? null,
+	[cropFertilizationTables, cropFertilizationTableId],
   );
 
   useEffect(() => {
@@ -853,6 +881,11 @@ export default function Recommendation() {
     	description: "Revise tipo de recomendação, grupos de tabelas e origem dos adubos antes de gerar.",
     	type: "warning",
   	});
+  	return;
+	}
+
+	if (!isAnnualCropCompatibleWithFertilizationTable(selectedCrop, selectedCropFertilizationTable)) {
+  	toaster.create({ title: CROP_TABLE_INCOMPATIBILITY_MESSAGE, type: "warning" });
   	return;
 	}
 
