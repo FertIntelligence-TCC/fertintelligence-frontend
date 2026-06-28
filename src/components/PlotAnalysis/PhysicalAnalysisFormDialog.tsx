@@ -528,11 +528,11 @@ export const PhysicalAnalysisFormDialog = ({
                                                 <Box gridColumn="span 2"><Field label="Prof. Final (cm)" type="number" value={ext.profundidadeFinal} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeFinal', parseFloat(e.target.value))} readOnly={isReadOnly} /></Box>
                                             </Grid>
 
-                                            <SectionHeader title="Granulometria (g/dm³)" colorPalette="blue" />
+                                            <SectionHeader title="Granulometria (g/kg)" colorPalette="blue" />
                                             <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                                                <Field label="Areia (g/dm³)" type="number" value={ext.teorAreia} onChange={e => handleChangeExtract(ext.tempId, 'teorAreia', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Silte (g/dm³)" type="number" value={ext.teorSilte} onChange={e => handleChangeExtract(ext.tempId, 'teorSilte', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Argila (g/dm³)" type="number" value={ext.teorArgila} onChange={e => handleChangeExtract(ext.tempId, 'teorArgila', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Areia (g/kg)" type="number" value={ext.teorAreia} onChange={e => handleChangeExtract(ext.tempId, 'teorAreia', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Silte (g/kg)" type="number" value={ext.teorSilte} onChange={e => handleChangeExtract(ext.tempId, 'teorSilte', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <Field label="Argila (g/kg)" type="number" value={ext.teorArgila} onChange={e => handleChangeExtract(ext.tempId, 'teorArgila', parseFloat(e.target.value))} readOnly={isReadOnly} />
                                             </Grid>
 
                                             <SectionHeader title="Física do Solo" colorPalette="orange" />
