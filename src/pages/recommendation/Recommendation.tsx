@@ -90,6 +90,7 @@ import AnalysisSelectors from "@/components/Recommendation/AnalysisSelectors";
 import CropTableSelectors from "@/components/Recommendation/CropTableSelectors";
 import LimingPreviewFields from "@/components/Recommendation/LimingPreviewFields";
 import PropertyPlotSelectors from "@/components/Recommendation/PropertyPlotSelectors";
+import SpacingSection, { type PlantSpacingMode } from "@/components/Recommendation/SpacingSection";
 import {
   type AnalysisExtractOption,
   type TableGroupValue,
@@ -443,6 +444,10 @@ export default function Recommendation() {
   const [textureClassificationSystem, setTextureClassificationSystem] =
     useState<TextureClassificationSystem>("BRASILEIRO");
   const [recommendationFolderName, setRecommendationFolderName] = useState("");
+  const [rowDistance, setRowDistance] = useState("");
+  const [plantSpacingMode, setPlantSpacingMode] = useState<PlantSpacingMode>("plants_per_meter");
+  const [plantSpacingValue, setPlantSpacingValue] = useState("");
+  const [plantsPerHole, setPlantsPerHole] = useState("");
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
@@ -499,6 +504,20 @@ export default function Recommendation() {
 	() => cropFertilizationTables.find((table) => String(table.id) === cropFertilizationTableId) ?? null,
 	[cropFertilizationTables, cropFertilizationTableId],
   );
+
+  useEffect(() => {
+	if (!selectedCrop) {
+  	setRowDistance("");
+  	setPlantSpacingValue("");
+  	setPlantsPerHole("");
+  	return;
+	}
+
+	setRowDistance(String(selectedCrop.distancia_entre_linhas ?? ""));
+	setPlantSpacingMode("plants_per_meter");
+	setPlantSpacingValue(String(selectedCrop.numero_plantas_por_metro ?? ""));
+	setPlantsPerHole("");
+  }, [selectedCrop]);
 
   useEffect(() => {
 	setSelectedDocumentKey("general");
@@ -1133,6 +1152,18 @@ export default function Recommendation() {
             	onCropFertilizationTableChange={setCropFertilizationTableId}
             	onSoilFertilityInterpretationTableChange={setSoilFertilityInterpretationTableId}
             	onCropFoliarAnalysisInterpretationTableChange={setCropFoliarAnalysisInterpretationTableId}
+          	/>
+          	<SpacingSection
+            	rowDistance={rowDistance}
+            	plantSpacingMode={plantSpacingMode}
+            	plantSpacingValue={plantSpacingValue}
+            	plantsPerHole={plantsPerHole}
+            	disabled={!selectedCrop}
+            	warning="Aviso técnico: estes campos refletem o espaçamento da cultura selecionada para conferência no frontend. O payload atual de geração envia apenas a cultura selecionada ao backend."
+            	onRowDistanceChange={setRowDistance}
+            	onPlantSpacingModeChange={setPlantSpacingMode}
+            	onPlantSpacingValueChange={setPlantSpacingValue}
+            	onPlantsPerHoleChange={setPlantsPerHole}
           	/>
           	<TextureClassificationSystemSelect
             	value={textureClassificationSystem}
