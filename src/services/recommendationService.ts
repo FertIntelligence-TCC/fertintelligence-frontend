@@ -128,22 +128,6 @@ export async function getMyRecommendations(): Promise<RecommendationResponse[]> 
   return data;
 }
 
-export async function getRecommendationsByProperty(
-  propertyId: number,
-): Promise<RecommendationResponse[]> {
-  const { data } = await api.get<RecommendationResponse[]>(ENDPOINT.GET_BY_PROPERTY_RECOMMENDATION, {
-    params: { propertyId },
-  });
-  return data;
-}
-
-export async function getRecommendationsByPlot(plotId: number): Promise<RecommendationResponse[]> {
-  const { data } = await api.get<RecommendationResponse[]>(ENDPOINT.GET_BY_PLOT_RECOMMENDATION, {
-    params: { plotId },
-  });
-  return data;
-}
-
 export async function preparePrintRecommendation(id: number): Promise<RecommendationResponse> {
   const { data } = await api.get<RecommendationResponse>(ENDPOINT.PREPARE_PRINT_RECOMMENDATION, {
     params: { id },

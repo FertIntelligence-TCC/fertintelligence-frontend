@@ -228,7 +228,7 @@ function RecommendationDocumentPanel({
   return (
     <Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">
       {selectedDocument?.status === "generated" ? (
-        <RecommendationReportViewer reportText={selectedDocument.content} variant="compact" />
+        <RecommendationReportViewer reportText={selectedDocument.content} />
       ) : selectedDocument?.status === "loading" ? (
         <HStack gap={2}>
           <Spinner size="sm" />
@@ -355,7 +355,7 @@ export default function RecommendationFolderDocuments({
       >
         <DialogContent w="85vw" maxW="85vw" h="85vh">
           <DialogHeader>
-            <DialogTitle>{selectedDocument?.title ?? "Documento da Recommendation"}</DialogTitle>
+            <DialogTitle>{selectedDocument?.title ?? "Documento da recomendação"}</DialogTitle>
           </DialogHeader>
           <DialogBody overflow="hidden" pb={4}>
             <Box
@@ -368,7 +368,7 @@ export default function RecommendationFolderDocuments({
               overflowX="auto"
             >
               {selectedDocument?.status === "generated" ? (
-                <RecommendationReportViewer reportText={selectedDocument.content} variant="modal" />
+                <RecommendationReportViewer reportText={selectedDocument.content} />
               ) : (
                 <Text color="fg.muted">Documento ainda não gerado para esta pasta.</Text>
               )}

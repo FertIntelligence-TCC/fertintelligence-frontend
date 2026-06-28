@@ -120,7 +120,7 @@ const documentUnavailableMessages: Record<RecommendationDocumentKey, string> = {
 
 const documentLoadErrorMessage = "Não foi possível carregar este documento.";
 
-type RawTable = {
+type RecommendationTableApiResponse = {
   id?: number;
   nome?: string;
   name?: string;
@@ -244,7 +244,7 @@ const normalizeLimingCriteria = (criteria?: string | null): RecommendationLiming
   return criteria as RecommendationLimingCriteria;
 };
 
-const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]): TableOption | null => {
+const normalizeTable = (table: RecommendationTableApiResponse, fallbackSource: TableOption["source"]): TableOption | null => {
   if (!table?.id) return null;
   const isPublic = table.tabela_publica === true || table.public_table === true || table.publicTable === true || table.public === true;
   const source =
@@ -261,7 +261,7 @@ const normalizeTable = (table: RawTable, fallbackSource: TableOption["source"]):
 const filterTablesByGroup = (tables: TableOption[], group: TableGroupValue) =>
   group ? tables.filter((table) => table.source === group) : [];
 
-type TableFetchers = Record<Exclude<TableGroupValue, "">, () => Promise<RawTable[]>>;
+type TableFetchers = Record<Exclude<TableGroupValue, "">, () => Promise<RecommendationTableApiResponse[]>>;
 
 const loadTableOptionsByGroup = async (
   group: TableGroupValue,
@@ -824,7 +824,7 @@ export default function Recommendation() {
   	console.error("Erro ao gerar recomendação:", axiosError.response?.data || error);
   	toaster.create({
     	title: "Falha ao gerar recomendação.",
-    	description: "O endpoint recommendation/generate recusou o payload atual. Confira se as tabelas escolhidas pertencem aos grupos informados.",
+    	description: "O backend recusou o payload atual. Confira se as tabelas escolhidas pertencem aos grupos informados.",
     	type: "error",
   	});
 	} finally { setGenerating(false); }
@@ -980,7 +980,7 @@ export default function Recommendation() {
   	setSelectedRecommendation(item);
   	toaster.create({
     	title: "Detalhe indisponível",
-    	description: "Não foi possível buscar recommendation/get. Abrindo os dados já carregados no histórico.",
+    	description: "Não foi possível buscar o detalhe completo. Abrindo os dados já carregados no histórico.",
     	type: "warning",
   	});
 	} finally {

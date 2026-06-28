@@ -8,7 +8,6 @@ import {
 
 type RecommendationReportViewerProps = {
   reportText: string;
-  variant?: "compact" | "modal" | "print";
 };
 
 export type ReportBlock =
@@ -162,7 +161,6 @@ export const parseRecommendationReportBlocks = (reportText: string): ReportBlock
 
 export default function RecommendationReportViewer({
   reportText,
-  variant = "compact",
 }: RecommendationReportViewerProps) {
   if (!reportText?.trim()) {
     return <Text>Nenhum laudo retornado.</Text>;
@@ -170,7 +168,6 @@ export default function RecommendationReportViewer({
 
   const blocks = parseRecommendationReportBlocks(reportText);
   const spacingMode = detectRecommendationSpacingMode(reportText);
-  const headingSize = variant === "print" ? "13pt" : recommendationDocumentHeadingFontSize;
 
   return (
     <VStack
@@ -188,7 +185,7 @@ export default function RecommendationReportViewer({
 
         if (block.type === "heading") {
           return (
-            <Text key={`heading-${blockIndex}`} fontSize={headingSize} fontWeight="bold" mt={2}>
+            <Text key={`heading-${blockIndex}`} fontSize={recommendationDocumentHeadingFontSize} fontWeight="bold" mt={2}>
               {block.content}
             </Text>
           );
