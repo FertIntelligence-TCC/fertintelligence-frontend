@@ -1,5 +1,8 @@
 import { ENDPOINT } from "@/constants/Endpoint";
-import { DirectRecommendationResponse } from "@/interfaces/Recommendation";
+import {
+  DirectRecommendationResponse,
+  withEmptyRecommendationStructuredArrays,
+} from "@/interfaces/Recommendation";
 
 import { api } from "./axios";
 
@@ -13,5 +16,5 @@ export async function getDirectRecommendationByRecommendation(
       params: { recommendationId },
     },
   );
-  return data;
+  return withEmptyRecommendationStructuredArrays(data);
 }

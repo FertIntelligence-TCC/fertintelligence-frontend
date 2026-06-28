@@ -1,5 +1,8 @@
 import { ENDPOINT } from "@/constants/Endpoint";
-import { ShoppingListResponse } from "@/interfaces/Recommendation";
+import {
+  ShoppingListResponse,
+  withEmptyRecommendationStructuredArrays,
+} from "@/interfaces/Recommendation";
 
 import { api } from "./axios";
 
@@ -13,5 +16,5 @@ export async function getShoppingListByRecommendation(
       params: { recommendationId },
     },
   );
-  return data;
+  return withEmptyRecommendationStructuredArrays(data);
 }

@@ -14,6 +14,126 @@ export type RecommendationLimingCriteria =
 
 export type RecommendationTexturalClassification = "BRASILEIRO" | "AMERICANO";
 
+type FlexibleEnum<T extends string> = T | (string & {});
+
+export type RecommendationApplicationUnit = FlexibleEnum<"KG_HA" | "G_M_LINEAR" | "G_COVA">;
+
+export type DirectRecommendationPhase = FlexibleEnum<"PLANTIO" | "COBERTURA">;
+
+export type DirectRecommendationSelectionType = FlexibleEnum<"DIRETA" | "APROXIMADA">;
+
+export type RecommendationMicronutrientValues = Record<string, number | string | null | undefined>;
+
+export interface RecommendationFertilizerLine {
+  [key: string]: unknown;
+  id?: number | string;
+
+  id_adubo?: number | string | null;
+  adubo_id?: number | string | null;
+  fertilizerId?: number | string | null;
+  idFertilizante?: number | string | null;
+
+  adubo?: string | null;
+  nome_adubo?: string | null;
+  nomeAdubo?: string | null;
+  fertilizer?: string | null;
+  fertilizerName?: string | null;
+
+  dose_kg_ha?: number | string | null;
+  doseKgHa?: number | string | null;
+  kg_ha?: number | string | null;
+  kgHa?: number | string | null;
+
+  g_m_linear?: number | string | null;
+  gMLinear?: number | string | null;
+  gramas_m_linear?: number | string | null;
+  gramasMLinear?: number | string | null;
+  gramsPerLinearMeter?: number | string | null;
+
+  g_cova?: number | string | null;
+  gCova?: number | string | null;
+  gramas_cova?: number | string | null;
+  gramasCova?: number | string | null;
+  gramsPerHole?: number | string | null;
+
+  unidade_aplicavel?: RecommendationApplicationUnit | null;
+  unidadeAplicavel?: RecommendationApplicationUnit | null;
+  applicableUnit?: RecommendationApplicationUnit | null;
+
+  fase?: DirectRecommendationPhase | null;
+  phase?: DirectRecommendationPhase | null;
+
+  tipo_selecao?: DirectRecommendationSelectionType | null;
+  tipoSelecao?: DirectRecommendationSelectionType | null;
+  selectionType?: DirectRecommendationSelectionType | null;
+
+  observacao_tecnica?: string | null;
+  observacaoTecnica?: string | null;
+  technicalObservation?: string | null;
+  technicalNote?: string | null;
+
+  micronutrientes?: RecommendationMicronutrientValues | null;
+  micronutrientes_aplicados?: RecommendationMicronutrientValues | null;
+  micronutrients?: RecommendationMicronutrientValues | null;
+  appliedMicronutrients?: RecommendationMicronutrientValues | null;
+}
+
+export type SolidFertilizerWithMicronutrientsLine = RecommendationFertilizerLine;
+export type PlantingFormulatedFertilizerLine = RecommendationFertilizerLine;
+export type TopDressingFormulatedFertilizerLine = RecommendationFertilizerLine;
+
+export interface RecommendationStructuredFertilizerLines {
+  adubos_solidos_micronutrientes?: SolidFertilizerWithMicronutrientsLine[];
+  adubosSolidosMicronutrientes?: SolidFertilizerWithMicronutrientsLine[];
+  solidFertilizersWithMicronutrients?: SolidFertilizerWithMicronutrientsLine[];
+  linhas_adubos_solidos_micronutrientes?: SolidFertilizerWithMicronutrientsLine[];
+  linhasAdubosSolidosMicronutrientes?: SolidFertilizerWithMicronutrientsLine[];
+
+  formulados_plantio?: PlantingFormulatedFertilizerLine[];
+  formuladosPlantio?: PlantingFormulatedFertilizerLine[];
+  plantingFormulatedFertilizers?: PlantingFormulatedFertilizerLine[];
+  linhas_formulados_plantio?: PlantingFormulatedFertilizerLine[];
+  linhasFormuladosPlantio?: PlantingFormulatedFertilizerLine[];
+
+  formulados_cobertura?: TopDressingFormulatedFertilizerLine[];
+  formuladosCobertura?: TopDressingFormulatedFertilizerLine[];
+  topDressingFormulatedFertilizers?: TopDressingFormulatedFertilizerLine[];
+  linhas_formulados_cobertura?: TopDressingFormulatedFertilizerLine[];
+  linhasFormuladosCobertura?: TopDressingFormulatedFertilizerLine[];
+}
+
+const recommendationStructuredArrayFields = [
+  "adubos_solidos_micronutrientes",
+  "adubosSolidosMicronutrientes",
+  "solidFertilizersWithMicronutrients",
+  "linhas_adubos_solidos_micronutrientes",
+  "linhasAdubosSolidosMicronutrientes",
+  "formulados_plantio",
+  "formuladosPlantio",
+  "plantingFormulatedFertilizers",
+  "linhas_formulados_plantio",
+  "linhasFormuladosPlantio",
+  "formulados_cobertura",
+  "formuladosCobertura",
+  "topDressingFormulatedFertilizers",
+  "linhas_formulados_cobertura",
+  "linhasFormuladosCobertura",
+] as const satisfies readonly (keyof RecommendationStructuredFertilizerLines)[];
+
+export function withEmptyRecommendationStructuredArrays<T extends RecommendationStructuredFertilizerLines>(
+  data: T,
+): T {
+  const normalized = { ...data } as T & Record<keyof RecommendationStructuredFertilizerLines, unknown>;
+
+  for (const field of recommendationStructuredArrayFields) {
+    if (!Array.isArray(normalized[field])) {
+      normalized[field] = [];
+    }
+  }
+
+  return normalized;
+}
+
 export interface RecommendationCreatePayload {
   tipo_recomendacao: RecommendationType;
   propertyId: number;
@@ -128,14 +248,18 @@ export interface SummaryRecommendationResponse extends RecommendationDocumentTex
   summaryRecommendation?: string | null;
 }
 
-export interface DirectRecommendationResponse extends RecommendationDocumentTextFields {
+export interface DirectRecommendationResponse
+  extends RecommendationDocumentTextFields,
+    RecommendationStructuredFertilizerLines {
   recomendacao_direta?: string | null;
   recomendacaoDireta?: string | null;
   direct?: string | null;
   directRecommendation?: string | null;
 }
 
-export interface ShoppingListResponse extends RecommendationDocumentTextFields {
+export interface ShoppingListResponse
+  extends RecommendationDocumentTextFields,
+    RecommendationStructuredFertilizerLines {
   lista_compras?: string | null;
   listaCompras?: string | null;
   shoppingList?: string | null;
