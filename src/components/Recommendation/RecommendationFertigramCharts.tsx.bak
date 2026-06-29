@@ -308,14 +308,7 @@ export default function RecommendationFertigramCharts({
   document,
   source,
 }: RecommendationFertigramChartsProps) {
-  console.log("🔍 RecommendationFertigramCharts recebeu:", { document, source });
-console.log("🔍 document keys:", Object.keys(document || {}));
-console.log("🔍 document.fertigramas:", document?.fertigramas);
-console.log("🔍 document.recomendacao_geral:", document?.recomendacao_geral);
-console.log("🔍 document.recomendacao_resumida:", document?.recomendacao_resumida);
-console.log("🔍 document.summaryRecommendation:", document?.summaryRecommendation);
-console.log("🔍 document.generalRecommendation:", document?.generalRecommendation);
-const groups = getGroupsToRender(document, source);
+  const groups = getGroupsToRender(document, source);
 
   if (groups.length === 0) return null;
 
