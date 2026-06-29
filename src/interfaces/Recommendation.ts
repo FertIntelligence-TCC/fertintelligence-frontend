@@ -39,6 +39,21 @@ export interface RecommendationFertilizerLine {
   micronutriente?: string | null;
   micronutrient?: string | null;
   nutrient?: string | null;
+  nutriente?: string | null;
+  nutriente_objetivo?: string | null;
+  nutrienteObjetivo?: string | null;
+  nutrientObjective?: string | null;
+  objetivo?: string | null;
+  objective?: string | null;
+
+  tipo?: string | null;
+  type?: string | null;
+  tipo_linha?: string | null;
+  tipoLinha?: string | null;
+  lineType?: string | null;
+  tipo_fonte?: string | null;
+  tipoFonte?: string | null;
+  sourceType?: string | null;
 
   dose_micronutriente_kg_ha?: number | string | null;
   doseMicronutrienteKgHa?: number | string | null;
@@ -156,9 +171,14 @@ export interface RecommendationFertilizerLine {
   quantidadeTotal?: number | string | null;
   quantity?: number | string | null;
   totalQuantity?: number | string | null;
+  total_area?: number | string | null;
+  totalArea?: number | string | null;
+  totalForArea?: number | string | null;
   unidade_quantidade?: string | null;
   unidadeQuantidade?: string | null;
   quantityUnit?: string | null;
+  unidade?: string | null;
+  unit?: string | null;
 
   g_m_linear?: number | string | null;
   gMLinear?: number | string | null;
@@ -191,6 +211,11 @@ export interface RecommendationFertilizerLine {
   observacaoTecnica?: string | null;
   technicalObservation?: string | null;
   technicalNote?: string | null;
+  justificativa?: string | null;
+  justification?: string | null;
+  limitacoes?: string | null;
+  limitações?: string | null;
+  limitations?: string | null;
 
   mensagem?: string | null;
   mensagem_tecnica?: string | null;
@@ -255,6 +280,13 @@ export interface RecommendationStructuredFertilizerLines {
   bioFertilizers?: NullableRecommendationLineArray<BioFertilizerRecommendationLine>;
   linhas_biofertilizantes?: NullableRecommendationLineArray<BioFertilizerRecommendationLine>;
   linhasBiofertilizantes?: NullableRecommendationLineArray<BioFertilizerRecommendationLine>;
+
+  linhas?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  linhas_recomendacao?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  linhasRecomendacao?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  recommendationLines?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  itens?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  items?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
 }
 
 const recommendationStructuredArrayFields = [
@@ -293,6 +325,12 @@ const recommendationStructuredArrayFields = [
   "bioFertilizers",
   "linhas_biofertilizantes",
   "linhasBiofertilizantes",
+  "linhas",
+  "linhas_recomendacao",
+  "linhasRecomendacao",
+  "recommendationLines",
+  "itens",
+  "items",
 ] as const satisfies readonly (keyof RecommendationStructuredFertilizerLines)[];
 
 export function withEmptyRecommendationStructuredArrays<T extends RecommendationStructuredFertilizerLines>(

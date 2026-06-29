@@ -34,6 +34,7 @@ import RecommendationStructuredFertilizerTables, {
   hasStructuredRecommendationContent,
 } from "./RecommendationStructuredFertilizerTables";
 import MicronutrientFertilizerTable, {
+  getCalculatedMicronutrientLabels,
   hasMicronutrientFertilizerRows,
 } from "./MicronutrientFertilizerTable";
 
@@ -123,6 +124,30 @@ export const hasDirectFertilizationObservations = (
 export const hasDirectNpkFertilizerRows = (
   directRecommendationDocument?: DirectRecommendationResponse | null,
 ): boolean => hasStructuredRecommendationContent(directRecommendationDocument);
+
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getDisplayDocumentContent = (
+  selectedDocument?: RecommendationDocumentView,
+  summaryRecommendationDocument?: SummaryRecommendationResponse | null,
+): string => {
+  const content = selectedDocument?.content ?? "";
+  if (selectedDocument?.key !== "summary") return content;
+
+  const calculatedMicronutrients = getCalculatedMicronutrientLabels(summaryRecommendationDocument);
+  if (calculatedMicronutrients.length === 0) return content;
+
+  const micronutrientPattern = calculatedMicronutrients.map(escapeRegex).join("|");
+  const notCalculatedLineRegex = new RegExp(
+    `^\\s*(?:[-*+]\\s*)?(?:${micronutrientPattern})\\s*:?\\s*Não calculado por falta de dados\\.?\\s*$`,
+    "i",
+  );
+
+  return content
+    .split("\n")
+    .filter((line) => !notCalculatedLineRegex.test(line.trim()))
+    .join("\n");
+};
 
 export function buildRecommendationDocumentViews({
   reportText,
@@ -288,15 +313,16 @@ function RecommendationDocumentPanel({
   const showShoppingStructuredContent =
     selectedDocument?.key === "shopping" &&
     hasStructuredRecommendationContent(shoppingListDocument);
+  const displayDocumentContent = getDisplayDocumentContent(selectedDocument, summaryRecommendationDocument);
   const shouldRenderTextContent =
-    selectedDocument?.content.trim() && !(selectedDocument.key === "shopping" && showShoppingStructuredContent);
+    displayDocumentContent.trim() && !(selectedDocument?.key === "shopping" && showShoppingStructuredContent);
 
   return (
     <Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">
       {selectedDocument?.status === "generated" ? (
         <VStack align="stretch" gap={4}>
           {shouldRenderTextContent ? (
-            <RecommendationReportViewer reportText={selectedDocument.content} />
+            <RecommendationReportViewer reportText={displayDocumentContent} />
           ) : null}
           {showSummaryStructuredContent ? (
             <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
@@ -357,6 +383,11 @@ export default function RecommendationFolderDocuments({
   onPrintRecommendation,
   onFullscreenOpenChange,
 }: RecommendationFolderDocumentsProps) {
+  const fullscreenDisplayDocumentContent = getDisplayDocumentContent(
+    selectedDocument,
+    summaryRecommendationDocument,
+  );
+
   return (
     <>
       <Box borderWidth="1px" borderRadius="lg" p={6}>
@@ -460,10 +491,10 @@ export default function RecommendationFolderDocuments({
             >
               {selectedDocument?.status === "generated" ? (
                 <VStack align="stretch" gap={4}>
-                  {selectedDocument.content.trim() &&
+                  {fullscreenDisplayDocumentContent.trim() &&
                   !(selectedDocument.key === "shopping" &&
                     hasStructuredRecommendationContent(shoppingListDocument)) ? (
-                    <RecommendationReportViewer reportText={selectedDocument.content} />
+                    <RecommendationReportViewer reportText={fullscreenDisplayDocumentContent} />
                   ) : null}
                   {selectedDocument.key === "summary" &&
                   hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (

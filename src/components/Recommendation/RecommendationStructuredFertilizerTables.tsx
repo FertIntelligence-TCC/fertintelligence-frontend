@@ -472,7 +472,10 @@ export default function RecommendationStructuredFertilizerTables({
       ) : null}
       <FormulatedPlantingFertilizerTable directRecommendation={document} />
       <FormulatedTopDressingFertilizerTable directRecommendation={document} />
-      <MicronutrientFertilizerTable directRecommendation={document} />
+      <MicronutrientFertilizerTable
+        directRecommendation={document}
+        variant={showShoppingListHeader ? "shopping" : "recommendation"}
+      />
       <AlternativeFertilizerTables document={document} />
     </VStack>
   );
