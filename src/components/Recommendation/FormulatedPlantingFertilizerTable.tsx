@@ -253,11 +253,11 @@ const buildFormulatedFertilizerTableModel = <TLine extends FormulatedFertilizerL
     title,
     headers: [
       "Formulado",
-      "Formula N-P2O5-K2O",
-      "Relacao",
+      "Fórmula N-P2O5-K2O",
+      "Relação",
       "kg/ha",
       localizedColumnLabel,
-      "Observacao",
+      "Observação",
     ],
     rows: fertilizerLines.map((line, index) => {
       const localizedDose = localizedDoses[index];
@@ -334,11 +334,11 @@ function FormulatedFertilizerTable<TLine extends FormulatedFertilizerLine>({
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Formulado</Table.ColumnHeader>
-                <Table.ColumnHeader>Formula N-P2O5-K2O</Table.ColumnHeader>
-                <Table.ColumnHeader>Relacao</Table.ColumnHeader>
+                <Table.ColumnHeader>Fórmula N-P2O5-K2O</Table.ColumnHeader>
+                <Table.ColumnHeader>Relação</Table.ColumnHeader>
                 <Table.ColumnHeader>kg/ha</Table.ColumnHeader>
                 <Table.ColumnHeader>{localizedColumnLabel}</Table.ColumnHeader>
-                <Table.ColumnHeader>Observacao</Table.ColumnHeader>
+                <Table.ColumnHeader>Observação</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>

@@ -66,6 +66,9 @@ const parseDisplayNumber = (value: string): number => {
   return Number(normalizedValue);
 };
 
+const isInvalidDisplayText = (value: string): boolean =>
+  /^(?:nan|null|undefined|[-+]?infinity)$/i.test(value.trim());
+
 const getFirstPresentValue = (
   document: ShoppingListResponse,
   fields: readonly (keyof ShoppingListResponse)[],
@@ -86,7 +89,7 @@ const formatShoppingListArea = (value: unknown): string => {
   if (typeof value !== "string") return "";
 
   const text = value.trim();
-  if (!text) return "";
+  if (!text || isInvalidDisplayText(text)) return "";
 
   const normalizedNumber = parseDisplayNumber(text);
   if (Number.isFinite(normalizedNumber)) return `${areaFormatter.format(normalizedNumber)} ha`;
