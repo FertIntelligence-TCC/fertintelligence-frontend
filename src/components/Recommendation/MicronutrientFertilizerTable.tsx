@@ -22,6 +22,9 @@ export type RecommendationPrintTableModel = {
   rows: string[][];
 };
 
+const DEFAULT_MICRONUTRIENT_TECHNICAL_OBSERVATION =
+  "Observação técnica não informada pelo backend.";
+
 const lineArrayFields = [
   "adubos_solidos_micronutrientes",
   "adubosSolidosMicronutrientes",
@@ -83,6 +86,10 @@ export const hasMicronutrientFertilizerRows = (
 const getLineLocalizedDose = (line: SolidFertilizerWithMicronutrientsLine) =>
   getLocalizedDose(line, valueFields);
 
+const getMicronutrientTechnicalObservation = (
+  line: SolidFertilizerWithMicronutrientsLine,
+): string => getFirstText(line, valueFields.observation) || DEFAULT_MICRONUTRIENT_TECHNICAL_OBSERVATION;
+
 export const buildMicronutrientFertilizerTableModel = (
   directRecommendation?: DirectRecommendationResponse | RecommendationStructuredFertilizerLines | null,
 ): RecommendationPrintTableModel | null => {
@@ -112,7 +119,7 @@ export const buildMicronutrientFertilizerTableModel = (
     rows: lines.map((line, index) => {
       const localizedDose = localizedDoses[index];
       const message = getFirstText(line, valueFields.message);
-      const observation = getFirstText(line, valueFields.observation);
+      const observation = getMicronutrientTechnicalObservation(line);
       const fertilizerType = getFirstText(line, valueFields.fertilizerType);
       const phase = getFirstText(line, valueFields.phase);
       const fertilizer = getFirstText(line, valueFields.fertilizer) || "-";
@@ -131,7 +138,7 @@ export const buildMicronutrientFertilizerTableModel = (
         getFirstText(line, valueFields.content) || "-",
         getFirstText(line, valueFields.micronutrientDose) || "-",
         getFirstText(line, valueFields.fertilizerDose) || "-",
-        [localizedDoseText, observation].filter(Boolean).join("\n"),
+        [localizedDoseText, observation].join("\n"),
       ];
     }),
   };
@@ -173,7 +180,7 @@ export default function MicronutrientFertilizerTable({
             {lines.map((line, index) => {
               const localizedDose = localizedDoses[index];
               const message = getFirstText(line, valueFields.message);
-              const observation = getFirstText(line, valueFields.observation);
+              const observation = getMicronutrientTechnicalObservation(line);
               const fertilizerType = getFirstText(line, valueFields.fertilizerType);
               const phase = getFirstText(line, valueFields.phase);
 
@@ -205,11 +212,9 @@ export default function MicronutrientFertilizerTable({
                   <Table.Cell>{getFirstText(line, valueFields.fertilizerDose) || "-"}</Table.Cell>
                   <Table.Cell>
                     {formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel)}
-                    {observation ? (
-                      <Text color="fg.muted" fontSize="xs" mt={1}>
-                        {observation}
-                      </Text>
-                    ) : null}
+                    <Text color="fg.muted" fontSize="xs" mt={1}>
+                      {observation}
+                    </Text>
                   </Table.Cell>
                 </Table.Row>
               );
