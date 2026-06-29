@@ -5,6 +5,7 @@ export type RecommendationType =
 
 export type FertilizerSourceOption = "PRIVATE" | "PUBLIC" | "DEFAULT" | "ALL" | "BOTH" | "AMBAS";
 export type RecommendationTableGroup = "PRIVATE" | "PUBLIC" | "DEFAULT";
+export type OrganicFertilizerReferenceNutrient = "NITROGENIO" | "FOSFORO" | "POTASSIO";
 
 export type RecommendationLimingCriteria =
   | "SATURACAO_POR_BASES_TROCAVEIS"
@@ -240,6 +241,8 @@ export interface RecommendationCreatePayload {
   classificacao_textural: RecommendationTexturalClassification;
   origem_adubos: FertilizerSourceOption;
   nome_pasta_recomendacao?: string | null;
+  usar_adubo_organico?: boolean;
+  nutriente_referencia_adubo_organico?: OrganicFertilizerReferenceNutrient;
 }
 
 export interface RecommendationResponse {

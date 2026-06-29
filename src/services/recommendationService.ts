@@ -1,6 +1,7 @@
 import { ENDPOINT } from "@/constants/Endpoint";
 import {
   type FertilizerSourceOption,
+  type OrganicFertilizerReferenceNutrient,
   type RecommendationCreatePayload,
   type RecommendationLimingCriteria,
   type RecommendationPrintResponse,
@@ -33,6 +34,8 @@ type BuildRecommendationCreatePayloadParams = {
   fertilizerSourceOption: FertilizerSourceOption;
   recommendationFolderName?: string | null;
   texturalClassification?: RecommendationTexturalClassification | string | null;
+  useOrganicFertilizer?: boolean;
+  organicFertilizerReferenceNutrient?: OrganicFertilizerReferenceNutrient | "" | null;
 };
 
 const normalizeTexturalClassification = (
@@ -64,6 +67,8 @@ export function buildRecommendationCreatePayload({
   fertilizerSourceOption,
   recommendationFolderName,
   texturalClassification,
+  useOrganicFertilizer = false,
+  organicFertilizerReferenceNutrient,
 }: BuildRecommendationCreatePayloadParams): RecommendationCreatePayload {
   const normalizedPropertyId = Number(propertyId);
   const normalizedPlotId = Number(plotId);
@@ -78,7 +83,7 @@ export function buildRecommendationCreatePayload({
   const normalizedSoilFertilityInterpretationTableId = Number(soilFertilityInterpretationTableId);
   const normalizedCropFoliarAnalysisInterpretationTableId = Number(cropFoliarAnalysisInterpretationTableId);
 
-  return {
+  const payload: RecommendationCreatePayload = {
     tipo_recomendacao: recommendationType,
     propertyId: normalizedPropertyId,
     plotId: normalizedPlotId,
@@ -108,6 +113,15 @@ export function buildRecommendationCreatePayload({
     origem_adubos: fertilizerSourceOption,
     nome_pasta_recomendacao: recommendationFolderName?.trim() || null,
   };
+
+  if (useOrganicFertilizer) {
+    payload.usar_adubo_organico = true;
+    if (organicFertilizerReferenceNutrient) {
+      payload.nutriente_referencia_adubo_organico = organicFertilizerReferenceNutrient;
+    }
+  }
+
+  return payload;
 }
 
 export async function generateRecommendation(

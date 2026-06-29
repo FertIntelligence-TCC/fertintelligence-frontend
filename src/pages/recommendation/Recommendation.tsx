@@ -26,6 +26,7 @@ import { TipoExtrato, type SoilAnalysisResponse } from "@/interfaces/SoilAnalysi
 import {
   type RecommendationLimingCriteria,
   type FertilizerSourceOption,
+  type OrganicFertilizerReferenceNutrient,
   type DirectRecommendationResponse,
   type RecommendationResponse,
   type ShoppingListResponse,
@@ -222,6 +223,15 @@ const fertilizerOriginOptions: { value: FertilizerSourceOption; label: string }[
   { value: "ALL", label: "Todos" },
 ];
 
+const organicFertilizerReferenceNutrientOptions: {
+  value: OrganicFertilizerReferenceNutrient;
+  label: string;
+}[] = [
+  { value: "NITROGENIO", label: "Nitrogênio (N)" },
+  { value: "FOSFORO", label: "Fósforo (P2O5)" },
+  { value: "POTASSIO", label: "Potássio (K2O)" },
+];
+
 const initialCropSpacingForm: CropSpacingFormState = {
   rowDistance: "",
   plantSpacingMode: "plants_per_meter",
@@ -392,6 +402,9 @@ export default function Recommendation() {
   const [soilFertilityInterpretationTableId, setSoilFertilityInterpretationTableId] = useState("");
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
   const [fertilizerSourceOption, setFertilizerSourceOption] = useState<FertilizerSourceOption>("ALL");
+  const [useOrganicFertilizer, setUseOrganicFertilizer] = useState(false);
+  const [organicFertilizerReferenceNutrient, setOrganicFertilizerReferenceNutrient] =
+    useState<OrganicFertilizerReferenceNutrient | "">("");
   const [textureClassificationSystem, setTextureClassificationSystem] =
     useState<TextureClassificationSystem>("BRASILEIRO");
   const [recommendationFolderName, setRecommendationFolderName] = useState("");
@@ -732,6 +745,15 @@ export default function Recommendation() {
   	return;
 	}
 
+	if (useOrganicFertilizer && !organicFertilizerReferenceNutrient) {
+  	toaster.create({
+    	title: "Nutriente de referência obrigatório.",
+    	description: "Selecione o nutriente que será usado como referência para o adubo orgânico.",
+    	type: "warning",
+  	});
+  	return;
+	}
+
 	setGenerating(true);
 	try {
   	const payload = buildRecommendationCreatePayload({
@@ -753,6 +775,8 @@ export default function Recommendation() {
     	fertilizerSourceOption: validation.fertilizerSourceOption,
     	recommendationFolderName,
     	texturalClassification: validation.texturalClassification,
+    	useOrganicFertilizer,
+    	organicFertilizerReferenceNutrient,
   	});
   	const result = await generateRecommendation(payload);
   	setSelectedRecommendation(result);
@@ -1161,6 +1185,42 @@ export default function Recommendation() {
             	<Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
             	<NativeSelect value={normalizeFertilizerSourceOption(fertilizerSourceOption)} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
           	</Box>
+          	<Box>
+            	<Text fontSize="sm" mb={1}>Utilizar adubo orgânico?</Text>
+            	<NativeSelect
+              	value={useOrganicFertilizer ? "true" : "false"}
+              	onChange={(e) => {
+                	const shouldUseOrganicFertilizer = e.target.value === "true";
+                	setUseOrganicFertilizer(shouldUseOrganicFertilizer);
+                	if (!shouldUseOrganicFertilizer) {
+                  	setOrganicFertilizerReferenceNutrient("");
+                	}
+              	}}
+              	aria-label="Utilizar adubo orgânico?"
+            	>
+              	<option value="false">Não</option>
+              	<option value="true">Sim</option>
+            	</NativeSelect>
+          	</Box>
+          	{useOrganicFertilizer ? (
+            	<Box>
+              	<Text fontSize="sm" mb={1}>Nutriente de referência do adubo orgânico</Text>
+              	<NativeSelect
+                	value={organicFertilizerReferenceNutrient}
+                	onChange={(e) =>
+                  	setOrganicFertilizerReferenceNutrient(e.target.value as OrganicFertilizerReferenceNutrient | "")
+                	}
+                	aria-label="Nutriente de referência do adubo orgânico"
+              	>
+                	<option value="">Selecione o nutriente de referência</option>
+                	{organicFertilizerReferenceNutrientOptions.map((option) => (
+                  	<option key={option.value} value={option.value}>
+                    	{option.label}
+                  	</option>
+                	))}
+              	</NativeSelect>
+            	</Box>
+          	) : null}
           	<Box>
             	<Text fontSize="sm" mb={1}>Nome da pasta de recomendação?</Text>
             	<Input
