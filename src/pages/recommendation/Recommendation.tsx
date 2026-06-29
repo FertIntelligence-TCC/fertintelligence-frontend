@@ -417,6 +417,7 @@ export default function Recommendation() {
   const [organicFertilizerReferenceNutrient, setOrganicFertilizerReferenceNutrient] =
     useState<OrganicFertilizerReferenceNutrient | "">("");
   const [useOrganoMineralFertilizer, setUseOrganoMineralFertilizer] = useState(false);
+  const [useBioFertilizer, setUseBioFertilizer] = useState(false);
   const [useGreenFertilizer, setUseGreenFertilizer] = useState(false);
   const [greenFertilizerId, setGreenFertilizerId] = useState("");
   const [textureClassificationSystem, setTextureClassificationSystem] =
@@ -848,6 +849,7 @@ export default function Recommendation() {
     	useOrganicFertilizer,
     	organicFertilizerReferenceNutrient,
     	useOrganoMineralFertilizer,
+    	useBioFertilizer,
     	useGreenFertilizer,
     	greenFertilizerId,
   	});
@@ -1300,6 +1302,17 @@ export default function Recommendation() {
               	value={useOrganoMineralFertilizer ? "true" : "false"}
               	onChange={(e) => setUseOrganoMineralFertilizer(e.target.value === "true")}
               	aria-label="Utilizar fertilizante organomineral?"
+            	>
+              	<option value="false">Não</option>
+              	<option value="true">Sim</option>
+            	</NativeSelect>
+          	</Box>
+          	<Box>
+            	<Text fontSize="sm" mb={1}>Utilizar biofertilizante?</Text>
+            	<NativeSelect
+              	value={useBioFertilizer ? "true" : "false"}
+              	onChange={(e) => setUseBioFertilizer(e.target.value === "true")}
+              	aria-label="Utilizar biofertilizante?"
             	>
               	<option value="false">Não</option>
               	<option value="true">Sim</option>

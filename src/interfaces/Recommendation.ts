@@ -244,6 +244,7 @@ export interface RecommendationCreatePayload {
   usar_adubo_organico?: boolean;
   nutriente_referencia_adubo_organico?: OrganicFertilizerReferenceNutrient;
   usar_adubo_organomineral?: boolean;
+  usar_biofertilizante?: boolean;
   usar_adubo_verde?: boolean;
   greenFertilizerId?: number;
   id_adubo_verde?: number;

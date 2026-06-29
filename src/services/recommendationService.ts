@@ -37,6 +37,7 @@ type BuildRecommendationCreatePayloadParams = {
   useOrganicFertilizer?: boolean;
   organicFertilizerReferenceNutrient?: OrganicFertilizerReferenceNutrient | "" | null;
   useOrganoMineralFertilizer?: boolean;
+  useBioFertilizer?: boolean;
   useGreenFertilizer?: boolean;
   greenFertilizerId?: string | number | null;
 };
@@ -73,6 +74,7 @@ export function buildRecommendationCreatePayload({
   useOrganicFertilizer = false,
   organicFertilizerReferenceNutrient,
   useOrganoMineralFertilizer = false,
+  useBioFertilizer = false,
   useGreenFertilizer = false,
   greenFertilizerId,
 }: BuildRecommendationCreatePayloadParams): RecommendationCreatePayload {
@@ -129,6 +131,10 @@ export function buildRecommendationCreatePayload({
 
   if (useOrganoMineralFertilizer) {
     payload.usar_adubo_organomineral = true;
+  }
+
+  if (useBioFertilizer) {
+    payload.usar_biofertilizante = true;
   }
 
   if (useGreenFertilizer && greenFertilizerId) {
