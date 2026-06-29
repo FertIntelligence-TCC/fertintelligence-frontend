@@ -9,14 +9,8 @@ import {
   buildMicronutrientFertilizerTableModel,
   type RecommendationPrintTableModel,
 } from "./MicronutrientFertilizerTable";
-import {
-  detectRecommendationSpacingMode,
-  parseRecommendationReportBlocks,
-} from "./RecommendationReportViewer";
-import {
-  formatRecommendationTableCell,
-  getRecommendationTableDisplay,
-} from "./recommendationColumnDecision";
+import { parseRecommendationReportBlocks } from "./RecommendationReportViewer";
+import { formatRecommendationTableCell } from "./recommendationColumnDecision";
 
 type StructuredPrintTableModel =
   | RecommendationPrintTableModel
@@ -64,29 +58,11 @@ const renderStructuredTableHtml = (model: StructuredPrintTableModel) => {
 
 const renderReportTextHtml = (text: string) => {
   const blocks = parseRecommendationReportBlocks(text);
-  const spacingMode = detectRecommendationSpacingMode(text);
 
   return blocks
     .map((block) => {
       if (block.type === "spacing") {
         return '<div class="spacing"></div>';
-      }
-
-      if (block.type === "heading") {
-        return `<h2>${escapeHtml(block.content)}</h2>`;
-      }
-
-      if (block.type === "table") {
-        const display = getRecommendationTableDisplay(block.rows, spacingMode);
-        const [headerRow, ...bodyRows] = display.rows;
-        const headerHtml = headerRow
-          ? `<thead><tr>${headerRow.map((cell) => `<th>${escapeHtml(formatRecommendationTableCell(cell))}</th>`).join("")}</tr></thead>`
-          : "";
-        const bodyHtml = `<tbody>${bodyRows
-          .map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(formatRecommendationTableCell(cell))}</td>`).join("")}</tr>`)
-          .join("")}</tbody>`;
-        const warningHtml = display.warning ? `<p class="technical-warning">${escapeHtml(display.warning)}</p>` : "";
-        return `${warningHtml}<table>${headerHtml}${bodyHtml}</table>`;
       }
 
       return `<p>${escapeHtml(block.content)}</p>`;
