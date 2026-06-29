@@ -52,6 +52,13 @@ const normalizeTexturalClassification = (
   return DEFAULT_TEXTURAL_CLASSIFICATION;
 };
 
+const normalizeOptionalNumericId = (value?: string | number | null): number | null => {
+  if (value === null || value === undefined || value === "") return null;
+
+  const normalizedValue = Number(value);
+  return Number.isFinite(normalizedValue) ? normalizedValue : null;
+};
+
 export function buildRecommendationCreatePayload({
   recommendationType,
   propertyId,
@@ -137,8 +144,8 @@ export function buildRecommendationCreatePayload({
     payload.usar_biofertilizante = true;
   }
 
-  if (useGreenFertilizer && greenFertilizerId) {
-    const normalizedGreenFertilizerId = Number(greenFertilizerId);
+  const normalizedGreenFertilizerId = normalizeOptionalNumericId(greenFertilizerId);
+  if (useGreenFertilizer && normalizedGreenFertilizerId !== null) {
     payload.usar_adubo_verde = true;
     payload.greenFertilizerId = normalizedGreenFertilizerId;
     payload.id_adubo_verde = normalizedGreenFertilizerId;

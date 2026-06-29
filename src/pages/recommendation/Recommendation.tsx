@@ -798,30 +798,16 @@ export default function Recommendation() {
   	cropFoliarAnalysisInterpretationTableGroup,
   	fertilizerSourceOption,
   	texturalClassification: textureClassificationSystem,
+  	useOrganicFertilizer,
+  	organicFertilizerReferenceNutrient,
+  	useGreenFertilizer,
+  	greenFertilizerId,
   	selectedCrop,
   	selectedCropFertilizationTable,
 	});
 
 	if (!validation.isValid) {
   	toaster.create({ title: validation.title, description: validation.description, type: "warning" });
-  	return;
-	}
-
-	if (useOrganicFertilizer && !organicFertilizerReferenceNutrient) {
-  	toaster.create({
-    	title: "Nutriente de referência obrigatório.",
-    	description: "Selecione o nutriente que será usado como referência para o adubo orgânico.",
-    	type: "warning",
-  	});
-  	return;
-	}
-
-	if (useGreenFertilizer && !greenFertilizerId) {
-  	toaster.create({
-    	title: "Adubo verde obrigatório.",
-    	description: "Selecione o adubo verde que será usado na recomendação.",
-    	type: "warning",
-  	});
   	return;
 	}
 

@@ -212,7 +212,17 @@ export function withEmptyRecommendationStructuredArrays<T extends Recommendation
   return normalized;
 }
 
-export interface RecommendationCreatePayload {
+export interface RecommendationFertilizerModalityPayload {
+  usar_adubo_organico?: boolean;
+  nutriente_referencia_adubo_organico?: OrganicFertilizerReferenceNutrient;
+  usar_adubo_organomineral?: boolean;
+  usar_biofertilizante?: boolean;
+  usar_adubo_verde?: boolean;
+  greenFertilizerId?: number;
+  id_adubo_verde?: number;
+}
+
+export interface RecommendationCreatePayload extends RecommendationFertilizerModalityPayload {
   tipo_recomendacao: RecommendationType;
   propertyId: number;
   plotId: number;
@@ -241,13 +251,6 @@ export interface RecommendationCreatePayload {
   classificacao_textural: RecommendationTexturalClassification;
   origem_adubos: FertilizerSourceOption;
   nome_pasta_recomendacao?: string | null;
-  usar_adubo_organico?: boolean;
-  nutriente_referencia_adubo_organico?: OrganicFertilizerReferenceNutrient;
-  usar_adubo_organomineral?: boolean;
-  usar_biofertilizante?: boolean;
-  usar_adubo_verde?: boolean;
-  greenFertilizerId?: number;
-  id_adubo_verde?: number;
 }
 
 export interface RecommendationResponse {

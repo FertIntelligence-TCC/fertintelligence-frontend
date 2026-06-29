@@ -1,6 +1,7 @@
 import type { CropResponseDto } from "@/interfaces/Crop";
 import type {
   FertilizerSourceOption,
+  OrganicFertilizerReferenceNutrient,
   RecommendationTableGroup,
   RecommendationTexturalClassification,
   RecommendationType,
@@ -18,6 +19,11 @@ const recommendationTypeValues: RecommendationType[] = [
 const fertilizerSourceValues: FertilizerSourceOption[] = ["PRIVATE", "PUBLIC", "DEFAULT", "ALL"];
 const legacyFertilizerSourceValues: FertilizerSourceOption[] = ["BOTH", "AMBAS"];
 const tableGroupValues: RecommendationTableGroup[] = ["PRIVATE", "PUBLIC", "DEFAULT"];
+const organicFertilizerReferenceNutrientValues: OrganicFertilizerReferenceNutrient[] = [
+  "NITROGENIO",
+  "FOSFORO",
+  "POTASSIO",
+];
 
 type FertilizationTableReference = {
   cropName?: string | null;
@@ -39,6 +45,10 @@ type GenerationValidationInput = {
   cropFoliarAnalysisInterpretationTableGroup: string;
   fertilizerSourceOption: FertilizerSourceOption | string;
   texturalClassification: RecommendationTexturalClassification | string | null | undefined;
+  useOrganicFertilizer?: boolean;
+  organicFertilizerReferenceNutrient?: OrganicFertilizerReferenceNutrient | "" | null;
+  useGreenFertilizer?: boolean;
+  greenFertilizerId?: string | number | null;
   selectedCrop?: CropResponseDto | null;
   selectedCropFertilizationTable?: FertilizationTableReference | null;
 };
@@ -76,6 +86,16 @@ const isFertilizerSourceOption = (value: string): value is FertilizerSourceOptio
 
 const isRecommendationTableGroup = (value: string): value is RecommendationTableGroup =>
   tableGroupValues.includes(value as RecommendationTableGroup);
+
+const isOrganicFertilizerReferenceNutrient = (
+  value: string,
+): value is OrganicFertilizerReferenceNutrient =>
+  organicFertilizerReferenceNutrientValues.includes(value as OrganicFertilizerReferenceNutrient);
+
+const isFilledNumericId = (value: string | number | null | undefined) => {
+  if (value === null || value === undefined || value === "") return false;
+  return Number.isFinite(Number(value));
+};
 
 const normalizeTexturalClassification = (
   value: RecommendationTexturalClassification | string | null | undefined,
@@ -118,6 +138,10 @@ export function validateRecommendationGeneration({
   cropFoliarAnalysisInterpretationTableGroup,
   fertilizerSourceOption,
   texturalClassification,
+  useOrganicFertilizer = false,
+  organicFertilizerReferenceNutrient,
+  useGreenFertilizer = false,
+  greenFertilizerId,
   selectedCrop,
   selectedCropFertilizationTable,
 }: GenerationValidationInput): GenerationValidationResult {
@@ -152,6 +176,27 @@ export function validateRecommendationGeneration({
       isValid: false,
       title: "Parâmetros inválidos",
       description: "Revise tipo de recomendação, grupos de tabelas e origem dos adubos antes de gerar.",
+    };
+  }
+
+  if (useOrganicFertilizer) {
+    if (
+      !organicFertilizerReferenceNutrient ||
+      !isOrganicFertilizerReferenceNutrient(organicFertilizerReferenceNutrient)
+    ) {
+      return {
+        isValid: false,
+        title: "Nutriente de referência obrigatório.",
+        description: "Selecione o nutriente que será usado como referência para o adubo orgânico.",
+      };
+    }
+  }
+
+  if (useGreenFertilizer && !isFilledNumericId(greenFertilizerId)) {
+    return {
+      isValid: false,
+      title: "Adubo verde obrigatório.",
+      description: "Selecione o adubo verde que será usado na recomendação.",
     };
   }
 
