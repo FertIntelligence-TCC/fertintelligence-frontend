@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type {
+  DirectRecommendationResponse,
   RecommendationResponse,
   ShoppingListResponse,
   SummaryRecommendationResponse,
@@ -64,6 +65,7 @@ type RecommendationFolderDocumentsProps = {
   recommendationDocuments: RecommendationDocumentView[];
   selectedDocumentError?: string;
   summaryRecommendationDocument?: SummaryRecommendationResponse | null;
+  directRecommendationDocument?: DirectRecommendationResponse | null;
   shoppingListDocument?: ShoppingListResponse | null;
   loadingDocumentKey: RecommendationDocumentKey | null;
   userCanPrint: boolean;
@@ -93,6 +95,30 @@ const getDocumentStatusColor = (status: RecommendationDocumentStatus) => {
   if (status === "error") return "red";
   return "gray";
 };
+
+const fertilizationObservationFields = [
+  "observacoes_adubacao",
+  "observacoesAdubacao",
+  "fertilizationObservations",
+  "fertilizationObservation",
+] as const satisfies readonly (keyof DirectRecommendationResponse)[];
+
+const getDirectFertilizationObservations = (
+  directRecommendationDocument?: DirectRecommendationResponse | null,
+): string => {
+  if (!directRecommendationDocument) return "";
+
+  for (const field of fertilizationObservationFields) {
+    const value = directRecommendationDocument[field];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+
+  return "";
+};
+
+export const hasDirectFertilizationObservations = (
+  directRecommendationDocument?: DirectRecommendationResponse | null,
+): boolean => Boolean(getDirectFertilizationObservations(directRecommendationDocument));
 
 export function buildRecommendationDocumentViews({
   reportText,
@@ -236,16 +262,22 @@ function RecommendationDocumentPanel({
   selectedDocument,
   selectedDocumentError,
   summaryRecommendationDocument,
+  directRecommendationDocument,
   shoppingListDocument,
 }: {
   selectedDocument?: RecommendationDocumentView;
   selectedDocumentError?: string;
   summaryRecommendationDocument?: SummaryRecommendationResponse | null;
+  directRecommendationDocument?: DirectRecommendationResponse | null;
   shoppingListDocument?: ShoppingListResponse | null;
 }) {
+  const directFertilizationObservations = getDirectFertilizationObservations(directRecommendationDocument);
   const showSummaryStructuredContent =
     selectedDocument?.key === "summary" &&
     hasMicronutrientFertilizerRows(summaryRecommendationDocument);
+  const showDirectFertilizationObservations =
+    selectedDocument?.key === "direct" &&
+    Boolean(directFertilizationObservations);
   const showShoppingStructuredContent =
     selectedDocument?.key === "shopping" &&
     hasStructuredRecommendationContent(shoppingListDocument);
@@ -261,6 +293,12 @@ function RecommendationDocumentPanel({
           ) : null}
           {showSummaryStructuredContent ? (
             <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
+          ) : null}
+          {showDirectFertilizationObservations ? (
+            <VStack align="stretch" gap={2}>
+              <Heading size="sm">Observações sobre adubação</Heading>
+              <RecommendationReportViewer reportText={directFertilizationObservations} />
+            </VStack>
           ) : null}
           {showShoppingStructuredContent ? (
             <RecommendationStructuredFertilizerTables document={shoppingListDocument} />
@@ -293,6 +331,7 @@ export default function RecommendationFolderDocuments({
   recommendationDocuments,
   selectedDocumentError,
   summaryRecommendationDocument,
+  directRecommendationDocument,
   shoppingListDocument,
   loadingDocumentKey,
   userCanPrint,
@@ -369,6 +408,7 @@ export default function RecommendationFolderDocuments({
               selectedDocument={selectedDocument}
               selectedDocumentError={selectedDocumentError}
               summaryRecommendationDocument={summaryRecommendationDocument}
+              directRecommendationDocument={directRecommendationDocument}
               shoppingListDocument={shoppingListDocument}
             />
             <Text fontSize="xs" color="fg.muted">
@@ -418,6 +458,15 @@ export default function RecommendationFolderDocuments({
                   {selectedDocument.key === "summary" &&
                   hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (
                     <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
+                  ) : null}
+                  {selectedDocument.key === "direct" &&
+                  getDirectFertilizationObservations(directRecommendationDocument) ? (
+                    <VStack align="stretch" gap={2}>
+                      <Heading size="sm">Observações sobre adubação</Heading>
+                      <RecommendationReportViewer
+                        reportText={getDirectFertilizationObservations(directRecommendationDocument)}
+                      />
+                    </VStack>
                   ) : null}
                   {selectedDocument.key === "shopping" &&
                   hasStructuredRecommendationContent(shoppingListDocument) ? (

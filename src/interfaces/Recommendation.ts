@@ -334,6 +334,10 @@ export interface DirectRecommendationResponse
   recomendacaoDireta?: string | null;
   direct?: string | null;
   directRecommendation?: string | null;
+  observacoes_adubacao?: string | null;
+  observacoesAdubacao?: string | null;
+  fertilizationObservations?: string | null;
+  fertilizationObservation?: string | null;
 }
 
 export interface ShoppingListResponse
