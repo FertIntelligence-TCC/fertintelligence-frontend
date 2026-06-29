@@ -36,6 +36,8 @@ type BuildRecommendationCreatePayloadParams = {
   texturalClassification?: RecommendationTexturalClassification | string | null;
   useOrganicFertilizer?: boolean;
   organicFertilizerReferenceNutrient?: OrganicFertilizerReferenceNutrient | "" | null;
+  useGreenFertilizer?: boolean;
+  greenFertilizerId?: string | number | null;
 };
 
 const normalizeTexturalClassification = (
@@ -69,6 +71,8 @@ export function buildRecommendationCreatePayload({
   texturalClassification,
   useOrganicFertilizer = false,
   organicFertilizerReferenceNutrient,
+  useGreenFertilizer = false,
+  greenFertilizerId,
 }: BuildRecommendationCreatePayloadParams): RecommendationCreatePayload {
   const normalizedPropertyId = Number(propertyId);
   const normalizedPlotId = Number(plotId);
@@ -119,6 +123,13 @@ export function buildRecommendationCreatePayload({
     if (organicFertilizerReferenceNutrient) {
       payload.nutriente_referencia_adubo_organico = organicFertilizerReferenceNutrient;
     }
+  }
+
+  if (useGreenFertilizer && greenFertilizerId) {
+    const normalizedGreenFertilizerId = Number(greenFertilizerId);
+    payload.usar_adubo_verde = true;
+    payload.greenFertilizerId = normalizedGreenFertilizerId;
+    payload.id_adubo_verde = normalizedGreenFertilizerId;
   }
 
   return payload;

@@ -19,6 +19,7 @@ import { toaster } from "@/components/ui/toaster";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
+import type { GreenFertilizerResponseDto } from "@/interfaces/Fertilizer";
 import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
 import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
 import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/SaturationExtractAnalysisExtract";
@@ -60,6 +61,11 @@ import {
   fetchFoliarTables,
   fetchPublicFoliarTables,
 } from "@/services/foliarAnalysisInterpretationTableService";
+import {
+  fetchDefaultGreenFertilizers,
+  fetchGreenFertilizers,
+  fetchPublicGreenFertilizers,
+} from "@/services/greenFertilizerService";
 import {
   buildRecommendationCreatePayload,
   deleteRecommendation,
@@ -231,6 +237,11 @@ const organicFertilizerReferenceNutrientOptions: {
   { value: "FOSFORO", label: "Fósforo (P2O5)" },
   { value: "POTASSIO", label: "Potássio (K2O)" },
 ];
+
+const getGreenFertilizerLabel = (fertilizer: GreenFertilizerResponseDto) => fertilizer.nome_adubo;
+
+const deduplicateGreenFertilizers = (fertilizers: GreenFertilizerResponseDto[]) =>
+  Array.from(new Map(fertilizers.map((fertilizer) => [fertilizer.id, fertilizer])).values());
 
 const initialCropSpacingForm: CropSpacingFormState = {
   rowDistance: "",
@@ -405,6 +416,8 @@ export default function Recommendation() {
   const [useOrganicFertilizer, setUseOrganicFertilizer] = useState(false);
   const [organicFertilizerReferenceNutrient, setOrganicFertilizerReferenceNutrient] =
     useState<OrganicFertilizerReferenceNutrient | "">("");
+  const [useGreenFertilizer, setUseGreenFertilizer] = useState(false);
+  const [greenFertilizerId, setGreenFertilizerId] = useState("");
   const [textureClassificationSystem, setTextureClassificationSystem] =
     useState<TextureClassificationSystem>("BRASILEIRO");
   const [recommendationFolderName, setRecommendationFolderName] = useState("");
@@ -419,6 +432,7 @@ export default function Recommendation() {
   const [cropFertilizationTables, setCropFertilizationTables] = useState<TableOption[]>([]);
   const [soilFertilityTables, setSoilFertilityTables] = useState<TableOption[]>([]);
   const [foliarInterpretationTables, setFoliarInterpretationTables] = useState<TableOption[]>([]);
+  const [greenFertilizers, setGreenFertilizers] = useState<GreenFertilizerResponseDto[]>([]);
   const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendationResponse | null>(null);
   const [recommendationsHistory, setRecommendationsHistory] = useState<RecommendationResponse[]>([]);
 
@@ -427,6 +441,7 @@ export default function Recommendation() {
   const [loadingPlotAnalyses, setLoadingPlotAnalyses] = useState(false);
   const [loadingAnnualCropFolders, setLoadingAnnualCropFolders] = useState(false);
   const [loadingTables, setLoadingTables] = useState(false);
+  const [loadingGreenFertilizers, setLoadingGreenFertilizers] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyErrorMessage, setHistoryErrorMessage] = useState<string | null>(null);
@@ -612,6 +627,51 @@ export default function Recommendation() {
   }, [cropFoliarAnalysisInterpretationTableGroup]);
 
   useEffect(() => {
+	const loadGreenFertilizers = async () => {
+  	if (!useGreenFertilizer) {
+    	setGreenFertilizers([]);
+    	setGreenFertilizerId("");
+    	return;
+  	}
+
+  	setLoadingGreenFertilizers(true);
+  	setGreenFertilizerId("");
+
+  	try {
+    	const normalizedSource = normalizeFertilizerSourceOption(fertilizerSourceOption);
+    	const fertilizers =
+      	normalizedSource === "PUBLIC"
+        	? await fetchPublicGreenFertilizers()
+        	: normalizedSource === "DEFAULT"
+          	? await fetchDefaultGreenFertilizers()
+          	: normalizedSource === "PRIVATE"
+            	? await fetchGreenFertilizers()
+            	: deduplicateGreenFertilizers(
+                	(await Promise.all([
+                  	fetchGreenFertilizers(),
+                  	fetchPublicGreenFertilizers(),
+                  	fetchDefaultGreenFertilizers(),
+                	])).flat(),
+              	);
+
+    	setGreenFertilizers(fertilizers ?? []);
+  	} catch (error) {
+    	console.error(error);
+    	setGreenFertilizers([]);
+    	toaster.create({
+      	title: "Falha ao carregar adubos verdes.",
+      	description: "Não foi possível listar os adubos verdes disponíveis para a origem selecionada.",
+      	type: "error",
+    	});
+  	} finally {
+    	setLoadingGreenFertilizers(false);
+  	}
+	};
+
+	void loadGreenFertilizers();
+  }, [fertilizerSourceOption, useGreenFertilizer]);
+
+  useEffect(() => {
 	const loadPlots = async () => {
   	if (!selectedPropertyId) {
     	setPlots([]);
@@ -754,6 +814,15 @@ export default function Recommendation() {
   	return;
 	}
 
+	if (useGreenFertilizer && !greenFertilizerId) {
+  	toaster.create({
+    	title: "Adubo verde obrigatório.",
+    	description: "Selecione o adubo verde que será usado na recomendação.",
+    	type: "warning",
+  	});
+  	return;
+	}
+
 	setGenerating(true);
 	try {
   	const payload = buildRecommendationCreatePayload({
@@ -777,6 +846,8 @@ export default function Recommendation() {
     	texturalClassification: validation.texturalClassification,
     	useOrganicFertilizer,
     	organicFertilizerReferenceNutrient,
+    	useGreenFertilizer,
+    	greenFertilizerId,
   	});
   	const result = await generateRecommendation(payload);
   	setSelectedRecommendation(result);
@@ -1216,6 +1287,47 @@ export default function Recommendation() {
                 	{organicFertilizerReferenceNutrientOptions.map((option) => (
                   	<option key={option.value} value={option.value}>
                     	{option.label}
+                  	</option>
+                	))}
+              	</NativeSelect>
+            	</Box>
+          	) : null}
+          	<Box>
+            	<Text fontSize="sm" mb={1}>Utilizar adubação verde?</Text>
+            	<NativeSelect
+              	value={useGreenFertilizer ? "true" : "false"}
+              	onChange={(e) => {
+                	const shouldUseGreenFertilizer = e.target.value === "true";
+                	setUseGreenFertilizer(shouldUseGreenFertilizer);
+                	if (!shouldUseGreenFertilizer) {
+                  	setGreenFertilizerId("");
+                	}
+              	}}
+              	aria-label="Utilizar adubação verde?"
+            	>
+              	<option value="false">Não</option>
+              	<option value="true">Sim</option>
+            	</NativeSelect>
+          	</Box>
+          	{useGreenFertilizer ? (
+            	<Box>
+              	<Text fontSize="sm" mb={1}>Adubo verde</Text>
+              	<NativeSelect
+                	value={greenFertilizerId}
+                	onChange={(e) => setGreenFertilizerId(e.target.value)}
+                	disabled={loadingGreenFertilizers || !greenFertilizers.length}
+                	aria-label="Adubo verde"
+              	>
+                	<option value="">
+                  	{loadingGreenFertilizers
+                    	? "Carregando adubos verdes..."
+                    	: greenFertilizers.length
+                      	? "Selecione o adubo verde"
+                      	: "Nenhum adubo verde disponível para a origem selecionada"}
+                	</option>
+                	{greenFertilizers.map((fertilizer) => (
+                  	<option key={fertilizer.id} value={fertilizer.id}>
+                    	{getGreenFertilizerLabel(fertilizer)}
                   	</option>
                 	))}
               	</NativeSelect>

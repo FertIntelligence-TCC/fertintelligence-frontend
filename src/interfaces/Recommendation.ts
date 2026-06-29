@@ -243,6 +243,9 @@ export interface RecommendationCreatePayload {
   nome_pasta_recomendacao?: string | null;
   usar_adubo_organico?: boolean;
   nutriente_referencia_adubo_organico?: OrganicFertilizerReferenceNutrient;
+  usar_adubo_verde?: boolean;
+  greenFertilizerId?: number;
+  id_adubo_verde?: number;
 }
 
 export interface RecommendationResponse {
