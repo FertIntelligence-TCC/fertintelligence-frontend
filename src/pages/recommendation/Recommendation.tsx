@@ -91,6 +91,7 @@ import RecommendationHistoryList from "@/components/Recommendation/Recommendatio
 import { writePrintableReport } from "@/components/Recommendation/RecommendationPrintDocument";
 import { hasStructuredRecommendationContent } from "@/components/Recommendation/RecommendationStructuredFertilizerTables";
 import { hasMicronutrientFertilizerRows } from "@/components/Recommendation/MicronutrientFertilizerTable";
+import { hasRecommendationFertigramCharts } from "@/components/Recommendation/RecommendationFertigramCharts";
 import TextureClassificationSystemSelect, {
   type TextureClassificationSystem,
 } from "@/components/Recommendation/TextureClassificationSystemSelect";
@@ -967,7 +968,9 @@ export default function Recommendation() {
   const reportText = getRecommendationReportText(selectedRecommendation);
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
-  	summary: hasMicronutrientFertilizerRows(summaryRecommendationDocument),
+  	summary:
+      hasMicronutrientFertilizerRows(summaryRecommendationDocument) ||
+      hasRecommendationFertigramCharts(summaryRecommendationDocument, "chemical"),
   	direct:
       hasDirectFertilizationObservations(directRecommendationDocument) ||
       hasDirectNpkFertilizerRows(directRecommendationDocument),
@@ -1094,9 +1097,14 @@ export default function Recommendation() {
   	const hasSummaryMicronutrients = hasMicronutrientFertilizerRows(
         loadedDocument.summaryRecommendationDocument,
   	);
+  	const hasSummaryFertigramCharts = hasRecommendationFertigramCharts(
+        loadedDocument.summaryRecommendationDocument,
+        "chemical",
+  	);
 	if (
       loadedDocument.text.trim() ||
       hasSummaryMicronutrients ||
+      hasSummaryFertigramCharts ||
       hasDirectNpkStructuredContent ||
       hasDirectFertilizationObservationContent ||
       hasShoppingStructuredContent

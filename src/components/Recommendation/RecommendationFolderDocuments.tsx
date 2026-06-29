@@ -37,6 +37,7 @@ import MicronutrientFertilizerTable, {
   getCalculatedMicronutrientLabels,
   hasMicronutrientFertilizerRows,
 } from "./MicronutrientFertilizerTable";
+import RecommendationFertigramCharts from "./RecommendationFertigramCharts";
 
 export type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
 export type RecommendationDocumentStatus = "generated" | "not_generated" | "loading" | "error";
@@ -288,12 +289,14 @@ function RecommendationDocumentCard({
 }
 
 function RecommendationDocumentPanel({
+  selectedRecommendation,
   selectedDocument,
   selectedDocumentError,
   summaryRecommendationDocument,
   directRecommendationDocument,
   shoppingListDocument,
 }: {
+  selectedRecommendation?: RecommendationResponse | null;
   selectedDocument?: RecommendationDocumentView;
   selectedDocumentError?: string;
   summaryRecommendationDocument?: SummaryRecommendationResponse | null;
@@ -314,6 +317,19 @@ function RecommendationDocumentPanel({
     selectedDocument?.key === "shopping" &&
     hasStructuredRecommendationContent(shoppingListDocument);
   const displayDocumentContent = getDisplayDocumentContent(selectedDocument, summaryRecommendationDocument);
+  const recommendationReportSectionExtras =
+    selectedDocument?.key === "general"
+      ? {
+          chemicalDiagnosis: <RecommendationFertigramCharts document={selectedRecommendation} source="chemical" />,
+          foliarDiagnosis: <RecommendationFertigramCharts document={selectedRecommendation} source="foliar" />,
+        }
+      : selectedDocument?.key === "summary"
+        ? {
+            summarySoilDiagnosis: (
+              <RecommendationFertigramCharts document={summaryRecommendationDocument} source="chemical" />
+            ),
+          }
+        : undefined;
   const shouldRenderTextContent =
     displayDocumentContent.trim() && !(selectedDocument?.key === "shopping" && showShoppingStructuredContent);
 
@@ -322,7 +338,10 @@ function RecommendationDocumentPanel({
       {selectedDocument?.status === "generated" ? (
         <VStack align="stretch" gap={4}>
           {shouldRenderTextContent ? (
-            <RecommendationReportViewer reportText={displayDocumentContent} />
+            <RecommendationReportViewer
+              reportText={displayDocumentContent}
+              sectionExtras={recommendationReportSectionExtras}
+            />
           ) : null}
           {showSummaryStructuredContent ? (
             <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
@@ -387,6 +406,19 @@ export default function RecommendationFolderDocuments({
     selectedDocument,
     summaryRecommendationDocument,
   );
+  const fullscreenReportSectionExtras =
+    selectedDocument?.key === "general"
+      ? {
+          chemicalDiagnosis: <RecommendationFertigramCharts document={selectedRecommendation} source="chemical" />,
+          foliarDiagnosis: <RecommendationFertigramCharts document={selectedRecommendation} source="foliar" />,
+        }
+      : selectedDocument?.key === "summary"
+        ? {
+            summarySoilDiagnosis: (
+              <RecommendationFertigramCharts document={summaryRecommendationDocument} source="chemical" />
+            ),
+          }
+        : undefined;
 
   return (
     <>
@@ -446,6 +478,7 @@ export default function RecommendationFolderDocuments({
               ))}
             </SimpleGrid>
             <RecommendationDocumentPanel
+              selectedRecommendation={selectedRecommendation}
               selectedDocument={selectedDocument}
               selectedDocumentError={selectedDocumentError}
               summaryRecommendationDocument={summaryRecommendationDocument}
@@ -494,7 +527,10 @@ export default function RecommendationFolderDocuments({
                   {fullscreenDisplayDocumentContent.trim() &&
                   !(selectedDocument.key === "shopping" &&
                     hasStructuredRecommendationContent(shoppingListDocument)) ? (
-                    <RecommendationReportViewer reportText={fullscreenDisplayDocumentContent} />
+                    <RecommendationReportViewer
+                      reportText={fullscreenDisplayDocumentContent}
+                      sectionExtras={fullscreenReportSectionExtras}
+                    />
                   ) : null}
                   {selectedDocument.key === "summary" &&
                   hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (

@@ -388,7 +388,7 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   nome_pasta_recomendacao?: string | null;
 }
 
-export interface RecommendationResponse {
+export interface RecommendationResponse extends RecommendationFertigramFields {
   id: number;
 
   id_usuario_criador?: number;
@@ -448,9 +448,39 @@ export interface RecommendationResponse {
   updatedAt?: string;
 }
 
+export interface RecommendationFertigramItem {
+  label?: string | null;
+  shortLabel?: string | null;
+  analyzedValue?: number | string | null;
+  unit?: string | null;
+  normalizedValue?: number | string | null;
+  normalizedAdequateMin?: number | string | null;
+  normalizedAdequateMax?: number | string | null;
+  interpretation?: string | null;
+  rangeLabel?: string | null;
+  observation?: string | null;
+}
+
+export interface RecommendationFertigramGroup {
+  title?: string | null;
+  groupKey?: string | null;
+  sourceSection?: string | null;
+  items?: RecommendationFertigramItem[] | null;
+}
+
+export interface RecommendationFertigramFields {
+  fertigramas?: RecommendationFertigramGroup[] | null;
+  fertigramasRecomendacao?: RecommendationFertigramGroup[] | null;
+  recommendationFertigramas?: RecommendationFertigramGroup[] | null;
+  recommendationFertigramCharts?: RecommendationFertigramGroup[] | null;
+  chemicalDiagnosisFertigramas?: RecommendationFertigramGroup[] | null;
+  foliarDiagnosisFertigramas?: RecommendationFertigramGroup[] | null;
+}
+
 export interface RecommendationPrintResponse
   extends RecommendationResponse,
-    RecommendationStructuredFertilizerLines {}
+    RecommendationStructuredFertilizerLines,
+    RecommendationFertigramFields {}
 
 interface RecommendationDocumentTextFields {
   id?: number;
@@ -469,7 +499,8 @@ interface RecommendationDocumentTextFields {
 
 export interface SummaryRecommendationResponse
   extends RecommendationDocumentTextFields,
-    RecommendationStructuredFertilizerLines {
+    RecommendationStructuredFertilizerLines,
+    RecommendationFertigramFields {
   resumo?: string | null;
   summary?: string | null;
   recomendacao_resumida?: string | null;
@@ -479,7 +510,8 @@ export interface SummaryRecommendationResponse
 
 export interface DirectRecommendationResponse
   extends RecommendationDocumentTextFields,
-    RecommendationStructuredFertilizerLines {
+    RecommendationStructuredFertilizerLines,
+    RecommendationFertigramFields {
   recomendacao_direta?: string | null;
   recomendacaoDireta?: string | null;
   direct?: string | null;

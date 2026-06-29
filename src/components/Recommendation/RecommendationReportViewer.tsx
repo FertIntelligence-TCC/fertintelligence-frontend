@@ -1,10 +1,14 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
+import type { ReactNode } from "react";
 
 import RecommendationTable, { type RecommendationTableColumn } from "./RecommendationTable";
 
 type RecommendationReportViewerProps = {
   reportText: string;
+  sectionExtras?: Partial<Record<RecommendationReportSectionKey, ReactNode>>;
 };
+
+type RecommendationReportSectionKey = "chemicalDiagnosis" | "foliarDiagnosis" | "summarySoilDiagnosis";
 
 export type ReportBlock =
   | { type: "spacing" }
@@ -18,6 +22,35 @@ const recommendationDocumentBaseFontSize = "10pt";
 const markdownHeadingRegex = /^#{1,6}\s+/;
 const markdownTableSeparatorRegex = /^:?-{3,}:?$/;
 const tableLikeLineRegex = /^\s*\|.*\|\s*$/;
+
+const normalizeSectionText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const getSectionKeyFromText = (content: string): RecommendationReportSectionKey | null => {
+  const normalizedContent = normalizeSectionText(content);
+
+  if (normalizedContent.includes("diagnostico") && normalizedContent.includes("foliar")) {
+    return "foliarDiagnosis";
+  }
+
+  if (
+    normalizedContent.includes("diagnostico") &&
+    normalizedContent.includes("fertilidade") &&
+    normalizedContent.includes("solo") &&
+    normalizedContent.includes("area avaliada")
+  ) {
+    return "summarySoilDiagnosis";
+  }
+
+  if (normalizedContent.includes("diagnostico") && normalizedContent.includes("quimic")) {
+    return "chemicalDiagnosis";
+  }
+
+  return null;
+};
 
 const isMarkdownTableLine = (line: string) => {
   const trimmedLine = line.trim();
@@ -146,12 +179,15 @@ export const parseRecommendationReportBlocks = (reportText: string): ReportBlock
 
 export default function RecommendationReportViewer({
   reportText,
+  sectionExtras = {},
 }: RecommendationReportViewerProps) {
   if (!reportText?.trim()) {
     return <Text>Nenhum laudo retornado.</Text>;
   }
 
   const blocks = parseRecommendationReportBlocks(reportText);
+  let activeSectionKey: RecommendationReportSectionKey | null = null;
+  const renderedSectionExtras = new Set<RecommendationReportSectionKey>();
 
   return (
     <VStack
@@ -181,21 +217,33 @@ export default function RecommendationReportViewer({
             header: header || "-",
             minW: header.length > 18 ? "180px" : "120px",
           }));
+          const extra =
+            activeSectionKey && !renderedSectionExtras.has(activeSectionKey)
+              ? sectionExtras[activeSectionKey]
+              : null;
+
+          if (activeSectionKey && extra) {
+            renderedSectionExtras.add(activeSectionKey);
+          }
 
           return (
-            <RecommendationTable
-              key={`table-${blockIndex}`}
-              columns={columns}
-              rows={block.rows}
-              minW={`${Math.max(block.headers.length * 150, 720)}px`}
-              renderCell={(row, _column, _rowIndex, columnIndex) => (
-                <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
-                  {row[columnIndex] || "-"}
-                </Text>
-              )}
-            />
+            <VStack key={`table-${blockIndex}`} align="stretch" gap={3}>
+              <RecommendationTable
+                columns={columns}
+                rows={block.rows}
+                minW={`${Math.max(block.headers.length * 150, 720)}px`}
+                renderCell={(row, _column, _rowIndex, columnIndex) => (
+                  <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
+                    {row[columnIndex] || "-"}
+                  </Text>
+                )}
+              />
+              {extra}
+            </VStack>
           );
         }
+
+        activeSectionKey = getSectionKeyFromText(block.content) ?? activeSectionKey;
 
         return (
           <Text key={`text-${blockIndex}`} fontSize={recommendationDocumentBaseFontSize} lineHeight="1.55" whiteSpace="pre-wrap">
