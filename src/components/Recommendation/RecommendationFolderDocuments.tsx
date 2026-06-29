@@ -23,7 +23,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type {
-  DirectRecommendationResponse,
   RecommendationResponse,
   ShoppingListResponse,
   SummaryRecommendationResponse,
@@ -65,7 +64,6 @@ type RecommendationFolderDocumentsProps = {
   recommendationDocuments: RecommendationDocumentView[];
   selectedDocumentError?: string;
   summaryRecommendationDocument?: SummaryRecommendationResponse | null;
-  directRecommendationDocument?: DirectRecommendationResponse | null;
   shoppingListDocument?: ShoppingListResponse | null;
   loadingDocumentKey: RecommendationDocumentKey | null;
   userCanPrint: boolean;
@@ -238,19 +236,16 @@ function RecommendationDocumentPanel({
   selectedDocument,
   selectedDocumentError,
   summaryRecommendationDocument,
-  directRecommendationDocument,
   shoppingListDocument,
 }: {
   selectedDocument?: RecommendationDocumentView;
   selectedDocumentError?: string;
   summaryRecommendationDocument?: SummaryRecommendationResponse | null;
-  directRecommendationDocument?: DirectRecommendationResponse | null;
   shoppingListDocument?: ShoppingListResponse | null;
 }) {
   const showSummaryStructuredContent =
     selectedDocument?.key === "summary" &&
     hasMicronutrientFertilizerRows(summaryRecommendationDocument);
-  const showDirectStructuredContent = selectedDocument?.key === "direct";
   const showShoppingStructuredContent =
     selectedDocument?.key === "shopping" &&
     hasStructuredRecommendationContent(shoppingListDocument);
@@ -266,9 +261,6 @@ function RecommendationDocumentPanel({
           ) : null}
           {showSummaryStructuredContent ? (
             <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
-          ) : null}
-          {showDirectStructuredContent ? (
-            <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
           ) : null}
           {showShoppingStructuredContent ? (
             <RecommendationStructuredFertilizerTables document={shoppingListDocument} />
@@ -301,7 +293,6 @@ export default function RecommendationFolderDocuments({
   recommendationDocuments,
   selectedDocumentError,
   summaryRecommendationDocument,
-  directRecommendationDocument,
   shoppingListDocument,
   loadingDocumentKey,
   userCanPrint,
@@ -378,7 +369,6 @@ export default function RecommendationFolderDocuments({
               selectedDocument={selectedDocument}
               selectedDocumentError={selectedDocumentError}
               summaryRecommendationDocument={summaryRecommendationDocument}
-              directRecommendationDocument={directRecommendationDocument}
               shoppingListDocument={shoppingListDocument}
             />
             <Text fontSize="xs" color="fg.muted">
@@ -428,9 +418,6 @@ export default function RecommendationFolderDocuments({
                   {selectedDocument.key === "summary" &&
                   hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (
                     <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
-                  ) : null}
-                  {selectedDocument.key === "direct" ? (
-                    <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
                   ) : null}
                   {selectedDocument.key === "shopping" &&
                   hasStructuredRecommendationContent(shoppingListDocument) ? (

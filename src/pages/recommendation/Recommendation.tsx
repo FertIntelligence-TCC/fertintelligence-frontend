@@ -324,7 +324,6 @@ type RecommendationDocumentResponse =
 type LoadedRecommendationFolderDocument = {
   text: string;
   summaryRecommendationDocument?: SummaryRecommendationResponse;
-  directRecommendationDocument?: DirectRecommendationResponse;
   shoppingListDocument?: ShoppingListResponse;
 };
 
@@ -421,8 +420,6 @@ export default function Recommendation() {
   const [loadedDocuments, setLoadedDocuments] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
   const [summaryRecommendationDocument, setSummaryRecommendationDocument] =
     useState<SummaryRecommendationResponse | null>(null);
-  const [directRecommendationDocument, setDirectRecommendationDocument] =
-    useState<DirectRecommendationResponse | null>(null);
   const [shoppingListDocument, setShoppingListDocument] = useState<ShoppingListResponse | null>(null);
   const [notGeneratedDocuments, setNotGeneratedDocuments] = useState<Partial<Record<RecommendationDocumentKey, boolean>>>({});
   const [documentErrors, setDocumentErrors] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
@@ -472,7 +469,6 @@ export default function Recommendation() {
 	setSelectedDocumentKey("general");
 	setLoadedDocuments({});
 	setSummaryRecommendationDocument(null);
-	setDirectRecommendationDocument(null);
 	setShoppingListDocument(null);
 	setNotGeneratedDocuments({});
 	setDocumentErrors({});
@@ -866,7 +862,6 @@ export default function Recommendation() {
   	const document = await getDirectRecommendationByRecommendation(recommendationId);
   	return {
     	text: getRecommendationDocumentText(document, key),
-    	directRecommendationDocument: document,
   	};
 	}
 
@@ -881,10 +876,9 @@ export default function Recommendation() {
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
   	summary: hasMicronutrientFertilizerRows(summaryRecommendationDocument),
-  	direct: hasStructuredRecommendationContent(directRecommendationDocument),
   	shopping: hasStructuredRecommendationContent(shoppingListDocument),
 	}),
-	[directRecommendationDocument, shoppingListDocument, summaryRecommendationDocument],
+	[shoppingListDocument, summaryRecommendationDocument],
   );
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
 	return buildRecommendationDocumentViews({
@@ -988,20 +982,15 @@ export default function Recommendation() {
   	if (loadedDocument.summaryRecommendationDocument) {
     	setSummaryRecommendationDocument(loadedDocument.summaryRecommendationDocument);
   	}
-  	if (loadedDocument.directRecommendationDocument) {
-    	setDirectRecommendationDocument(loadedDocument.directRecommendationDocument);
-  	}
   	if (loadedDocument.shoppingListDocument) {
     	setShoppingListDocument(loadedDocument.shoppingListDocument);
   	}
 
-  	const hasStructuredContent = hasStructuredRecommendationContent(
-        loadedDocument.directRecommendationDocument ?? loadedDocument.shoppingListDocument,
-  	);
+	const hasShoppingStructuredContent = hasStructuredRecommendationContent(loadedDocument.shoppingListDocument);
   	const hasSummaryMicronutrients = hasMicronutrientFertilizerRows(
         loadedDocument.summaryRecommendationDocument,
   	);
-  	if (loadedDocument.text.trim() || hasSummaryMicronutrients || hasStructuredContent) {
+	if (loadedDocument.text.trim() || hasSummaryMicronutrients || hasShoppingStructuredContent) {
     	setLoadedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: loadedDocument.text }));
     	return;
   	}
@@ -1165,7 +1154,6 @@ export default function Recommendation() {
         	recommendationDocuments={recommendationDocuments}
         	selectedDocumentError={selectedDocumentError}
         	summaryRecommendationDocument={summaryRecommendationDocument}
-        	directRecommendationDocument={directRecommendationDocument}
         	shoppingListDocument={shoppingListDocument}
         	loadingDocumentKey={loadingDocumentKey}
         	userCanPrint={userCanPrint}
