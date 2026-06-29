@@ -243,14 +243,31 @@ export default function RecommendationReportViewer({
           );
         }
 
-        activeSectionKey = getSectionKeyFromText(block.content) ?? activeSectionKey;
+        const nextSectionKey = getSectionKeyFromText(block.content);
+        const previousSectionExtra =
+          nextSectionKey &&
+          activeSectionKey &&
+          nextSectionKey !== activeSectionKey &&
+          !renderedSectionExtras.has(activeSectionKey)
+            ? sectionExtras[activeSectionKey]
+            : null;
+
+        if (previousSectionExtra && activeSectionKey) {
+          renderedSectionExtras.add(activeSectionKey);
+        }
+
+        activeSectionKey = nextSectionKey ?? activeSectionKey;
 
         return (
-          <Text key={`text-${blockIndex}`} fontSize={recommendationDocumentBaseFontSize} lineHeight="1.55" whiteSpace="pre-wrap">
-            {block.content}
-          </Text>
+          <VStack key={`text-${blockIndex}`} align="stretch" gap={3}>
+            {previousSectionExtra}
+            <Text fontSize={recommendationDocumentBaseFontSize} lineHeight="1.55" whiteSpace="pre-wrap">
+              {block.content}
+            </Text>
+          </VStack>
         );
       })}
+      {activeSectionKey && !renderedSectionExtras.has(activeSectionKey) ? sectionExtras[activeSectionKey] : null}
     </VStack>
   );
 }

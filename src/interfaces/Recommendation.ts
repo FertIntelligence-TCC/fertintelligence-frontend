@@ -449,31 +449,61 @@ export interface RecommendationResponse extends RecommendationFertigramFields {
 }
 
 export interface RecommendationFertigramItem {
+  [key: string]: unknown;
   label?: string | null;
+  rotulo?: string | null;
   shortLabel?: string | null;
+  rotulo_curto?: string | null;
+  valor_analisado?: number | string | null;
   analyzedValue?: number | string | null;
+  valor?: number | string | null;
   unit?: string | null;
+  unidade?: string | null;
+  valor_normalizado?: number | string | null;
   normalizedValue?: number | string | null;
+  minimo_normalizado?: number | string | null;
   normalizedAdequateMin?: number | string | null;
+  maximo_normalizado?: number | string | null;
   normalizedAdequateMax?: number | string | null;
+  minimo_adequado?: number | string | null;
+  maximo_adequado?: number | string | null;
+  recommendedMin?: number | string | null;
+  recommendedMax?: number | string | null;
+  interpretacao?: string | null;
   interpretation?: string | null;
+  faixa?: string | null;
+  faixa_adequada?: string | null;
   rangeLabel?: string | null;
+  observacao?: string | null;
   observation?: string | null;
 }
 
 export interface RecommendationFertigramGroup {
+  [key: string]: unknown;
   title?: string | null;
+  titulo?: string | null;
   groupKey?: string | null;
+  chave_grupo?: string | null;
   sourceSection?: string | null;
+  secao_origem?: string | null;
   items?: RecommendationFertigramItem[] | null;
+  itens?: RecommendationFertigramItem[] | null;
+  nutrientes?: RecommendationFertigramItem[] | null;
+  parametros?: RecommendationFertigramItem[] | null;
 }
 
 export interface RecommendationFertigramFields {
   fertigramas?: RecommendationFertigramGroup[] | null;
+  fertigrams?: RecommendationFertigramGroup[] | null;
+  fertigramas_recomendacao?: RecommendationFertigramGroup[] | null;
   fertigramasRecomendacao?: RecommendationFertigramGroup[] | null;
   recommendationFertigramas?: RecommendationFertigramGroup[] | null;
   recommendationFertigramCharts?: RecommendationFertigramGroup[] | null;
+  fertigramas_diagnostico_quimico?: RecommendationFertigramGroup[] | null;
+  diagnostico_quimico_fertigramas?: RecommendationFertigramGroup[] | null;
   chemicalDiagnosisFertigramas?: RecommendationFertigramGroup[] | null;
+  fertigramas_diagnostico_foliar?: RecommendationFertigramGroup[] | null;
+  diagnostico_foliar_fertigramas?: RecommendationFertigramGroup[] | null;
   foliarDiagnosisFertigramas?: RecommendationFertigramGroup[] | null;
 }
 
