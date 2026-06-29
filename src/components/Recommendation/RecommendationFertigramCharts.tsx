@@ -1,4 +1,4 @@
-import { Box, SimpleGrid } from "@chakra-ui/react";
+import { Box, SimpleGrid, Text } from "@chakra-ui/react";
 
 import FertigramRadarChart, {
   type FertigramRadarChartNutrient,
@@ -72,6 +72,15 @@ const getFirstValue = (...values: unknown[]) => {
   return null;
 };
 
+const toNumberOrNull = (value?: number | string | null) => {
+  if (typeof value === "string" && value.trim()) {
+    const normalizedValue = Number(value.replace(",", "."));
+    return Number.isFinite(normalizedValue) ? normalizedValue : null;
+  }
+
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+};
+
 const getGroupItems = (group: RecommendationFertigramGroup): RecommendationFertigramItem[] => {
   const candidates = [group.items, group.itens, group.nutrientes, group.parametros];
   const items = candidates.find(Array.isArray);
@@ -106,17 +115,44 @@ const hasChemicalReference = (text: string) =>
   text.includes("soil") ||
   text.includes("fertilidade");
 
-const getGenericGroups = (document?: RecommendationFertigramFields | null) => {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const getNestedFertigramDocuments = (
+  document?: RecommendationFertigramFields | null,
+): RecommendationFertigramFields[] => {
   if (!document) return [];
 
-  return [
-    ...(Array.isArray(document.fertigramas) ? document.fertigramas : []),
-    ...(Array.isArray(document.fertigrams) ? document.fertigrams : []),
-    ...(Array.isArray(document.fertigramas_recomendacao) ? document.fertigramas_recomendacao : []),
-    ...(Array.isArray(document.fertigramasRecomendacao) ? document.fertigramasRecomendacao : []),
-    ...(Array.isArray(document.recommendationFertigramas) ? document.recommendationFertigramas : []),
-    ...(Array.isArray(document.recommendationFertigramCharts) ? document.recommendationFertigramCharts : []),
-  ];
+  const candidates: RecommendationFertigramFields[] = [document];
+  const record = document as Record<string, unknown>;
+
+  [
+    "recomendacao_geral",
+    "recomendacao_resumida",
+    "summaryRecommendation",
+    "generalRecommendation",
+    "selectedRecommendation",
+    "selectedSummaryRecommendation",
+    "selectedGeneralRecommendation",
+  ].forEach((field) => {
+    const value = record[field];
+    if (isRecord(value)) candidates.push(value as RecommendationFertigramFields);
+  });
+
+  return candidates;
+};
+
+const getGenericGroups = (document?: RecommendationFertigramFields | null) => {
+  const documents = getNestedFertigramDocuments(document);
+
+  return documents.flatMap((candidate) => [
+    ...(Array.isArray(candidate.fertigramas) ? candidate.fertigramas : []),
+    ...(Array.isArray(candidate.fertigrams) ? candidate.fertigrams : []),
+    ...(Array.isArray(candidate.fertigramas_recomendacao) ? candidate.fertigramas_recomendacao : []),
+    ...(Array.isArray(candidate.fertigramasRecomendacao) ? candidate.fertigramasRecomendacao : []),
+    ...(Array.isArray(candidate.recommendationFertigramas) ? candidate.recommendationFertigramas : []),
+    ...(Array.isArray(candidate.recommendationFertigramCharts) ? candidate.recommendationFertigramCharts : []),
+  ]);
 };
 
 const getSourceGroups = (
@@ -124,34 +160,40 @@ const getSourceGroups = (
   source: RecommendationFertigramSource,
 ) => {
   const genericGroups = getGenericGroups(document);
-  const sourceReferencedGroups = genericGroups.filter((group) => {
+  const referencedGroups = genericGroups.filter((group) => {
     const text = getText(group);
     return hasChemicalReference(text) || hasFoliarReference(text);
   });
-  const sourceGroups = sourceReferencedGroups.length > 0 ? sourceReferencedGroups : genericGroups;
-  const filteredGroups = sourceGroups.filter((group) => {
+  const unreferencedGroups = genericGroups.filter((group) => {
+    const text = getText(group);
+    return !hasChemicalReference(text) && !hasFoliarReference(text);
+  });
+  const filteredGroups = referencedGroups.filter((group) => {
     const text = getText(group);
 
     if (source === "foliar") return hasFoliarReference(text);
-    if (sourceReferencedGroups.length === 0) return !hasFoliarReference(text);
     return hasChemicalReference(text) && !hasFoliarReference(text);
   });
 
   if (source === "foliar") {
     return [
       ...filteredGroups,
-      ...(sourceReferencedGroups.length === 0 ? genericGroups.slice(4) : []),
-      ...(Array.isArray(document?.fertigramas_diagnostico_foliar) ? document.fertigramas_diagnostico_foliar : []),
-      ...(Array.isArray(document?.diagnostico_foliar_fertigramas) ? document.diagnostico_foliar_fertigramas : []),
-      ...(Array.isArray(document?.foliarDiagnosisFertigramas) ? document.foliarDiagnosisFertigramas : []),
+      ...(referencedGroups.length === 0 ? genericGroups.slice(4) : unreferencedGroups),
+      ...getNestedFertigramDocuments(document).flatMap((candidate) => [
+        ...(Array.isArray(candidate.fertigramas_diagnostico_foliar) ? candidate.fertigramas_diagnostico_foliar : []),
+        ...(Array.isArray(candidate.diagnostico_foliar_fertigramas) ? candidate.diagnostico_foliar_fertigramas : []),
+        ...(Array.isArray(candidate.foliarDiagnosisFertigramas) ? candidate.foliarDiagnosisFertigramas : []),
+      ]),
     ];
   }
 
   return [
-    ...(sourceReferencedGroups.length === 0 ? filteredGroups.slice(0, 4) : filteredGroups),
-    ...(Array.isArray(document?.fertigramas_diagnostico_quimico) ? document.fertigramas_diagnostico_quimico : []),
-    ...(Array.isArray(document?.diagnostico_quimico_fertigramas) ? document.diagnostico_quimico_fertigramas : []),
-    ...(Array.isArray(document?.chemicalDiagnosisFertigramas) ? document.chemicalDiagnosisFertigramas : []),
+    ...(referencedGroups.length === 0 ? genericGroups.slice(0, 4) : [...filteredGroups, ...unreferencedGroups]),
+    ...getNestedFertigramDocuments(document).flatMap((candidate) => [
+      ...(Array.isArray(candidate.fertigramas_diagnostico_quimico) ? candidate.fertigramas_diagnostico_quimico : []),
+      ...(Array.isArray(candidate.diagnostico_quimico_fertigramas) ? candidate.diagnostico_quimico_fertigramas : []),
+      ...(Array.isArray(candidate.chemicalDiagnosisFertigramas) ? candidate.chemicalDiagnosisFertigramas : []),
+    ]),
   ];
 };
 
@@ -189,24 +231,72 @@ const toRadarNutrient = (item: RecommendationFertigramItem): FertigramRadarChart
   observation: getFirstString(item.observation, item.observacao) || null,
 });
 
+const hasRenderableRadarValues = (item: FertigramRadarChartNutrient) => {
+  const normalizedValue = toNumberOrNull(item.normalizedValue);
+  const normalizedAdequateMin = toNumberOrNull(item.normalizedAdequateMin);
+  const normalizedAdequateMax = toNumberOrNull(item.normalizedAdequateMax);
+
+  if (
+    normalizedValue !== null &&
+    normalizedAdequateMin !== null &&
+    normalizedAdequateMax !== null &&
+    normalizedAdequateMax >= normalizedAdequateMin
+  ) {
+    return true;
+  }
+
+  return (
+    toNumberOrNull(item.measuredValue) !== null &&
+    toNumberOrNull(item.recommendedMin) !== null &&
+    toNumberOrNull(item.recommendedMax) !== null
+  );
+};
+
 const getGroupsToRender = (
   document: RecommendationFertigramFields | null | undefined,
   source: RecommendationFertigramSource,
 ) => {
   const groups = getSourceGroups(document, source);
   const orderedGroups = source === "foliar" ? foliarFertigramOrder : chemicalFertigramOrder;
-
-  return orderedGroups
-    .map(({ kind, fallbackTitle }) => {
-      const group = groups.find((candidate) => hasGroupKind(candidate, kind));
-      if (!group) return null;
+  const usedGroups = new Set<RecommendationFertigramGroup>();
+  const validGroups = groups
+    .map((group) => {
+      const allItems = getGroupItems(group).map(toRadarNutrient);
+      const items = allItems.filter(hasRenderableRadarValues);
 
       return {
-        title: getGroupTitle(group, fallbackTitle),
-        items: getGroupItems(group).map(toRadarNutrient),
+        group,
+        allItemsCount: allItems.length,
+        items,
       };
     })
-    .filter((group): group is { title: string; items: FertigramRadarChartNutrient[] } => group !== null);
+    .filter((group) => group.items.length >= 3);
+
+  return orderedGroups
+    .map(({ kind, fallbackTitle }, index) => {
+      const matchedGroup =
+        validGroups.find((candidate) => !usedGroups.has(candidate.group) && hasGroupKind(candidate.group, kind)) ??
+        validGroups.find((candidate) => !usedGroups.has(candidate.group));
+
+      if (!matchedGroup) return null;
+
+      usedGroups.add(matchedGroup.group);
+
+      return {
+        title: getGroupTitle(matchedGroup.group, fallbackTitle),
+        items: matchedGroup.items,
+        droppedItemCount: Math.max(matchedGroup.allItemsCount - matchedGroup.items.length, 0),
+        order: index,
+      };
+    })
+    .filter(
+      (group): group is {
+        title: string;
+        items: FertigramRadarChartNutrient[];
+        droppedItemCount: number;
+        order: number;
+      } => group !== null,
+    );
 };
 
 export const hasRecommendationFertigramCharts = (
@@ -226,7 +316,7 @@ export default function RecommendationFertigramCharts({
     <SimpleGrid columns={{ base: 1, lg: 2 }} gap={4}>
       {groups.map((group) => (
         <Box
-          key={`${source}-${group.title}`}
+          key={`${source}-${group.order}-${group.title}`}
           borderWidth="1px"
           borderColor="whiteAlpha.200"
           borderRadius="md"
@@ -241,6 +331,12 @@ export default function RecommendationFertigramCharts({
             compact
             dark
           />
+          {import.meta.env.DEV && group.droppedItemCount > 0 ? (
+            <Text mt={2} fontSize="xs" color="orange.300">
+              Aviso técnico: {group.droppedItemCount} item(ns) do fertigrama foram ignorados por dados numéricos
+              incompletos.
+            </Text>
+          ) : null}
         </Box>
       ))}
     </SimpleGrid>

@@ -505,6 +505,13 @@ export interface RecommendationFertigramFields {
   fertigramas_diagnostico_foliar?: RecommendationFertigramGroup[] | null;
   diagnostico_foliar_fertigramas?: RecommendationFertigramGroup[] | null;
   foliarDiagnosisFertigramas?: RecommendationFertigramGroup[] | null;
+  recomendacao_geral?: RecommendationFertigramFields | string | null;
+  recomendacao_resumida?: RecommendationFertigramFields | string | null;
+  summaryRecommendation?: RecommendationFertigramFields | string | null;
+  generalRecommendation?: RecommendationFertigramFields | string | null;
+  selectedRecommendation?: RecommendationFertigramFields | null;
+  selectedSummaryRecommendation?: RecommendationFertigramFields | null;
+  selectedGeneralRecommendation?: RecommendationFertigramFields | null;
 }
 
 export interface RecommendationPrintResponse

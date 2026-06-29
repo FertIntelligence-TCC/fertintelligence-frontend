@@ -267,7 +267,13 @@ export default function RecommendationReportViewer({
           </VStack>
         );
       })}
-      {activeSectionKey && !renderedSectionExtras.has(activeSectionKey) ? sectionExtras[activeSectionKey] : null}
+      {Object.entries(sectionExtras).map(([sectionKey, extra]) => {
+        const typedSectionKey = sectionKey as RecommendationReportSectionKey;
+        if (!extra || renderedSectionExtras.has(typedSectionKey)) return null;
+
+        renderedSectionExtras.add(typedSectionKey);
+        return <Box key={`section-extra-fallback-${sectionKey}`}>{extra}</Box>;
+      })}
     </VStack>
   );
 }
