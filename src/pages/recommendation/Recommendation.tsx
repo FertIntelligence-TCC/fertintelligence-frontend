@@ -416,6 +416,7 @@ export default function Recommendation() {
   const [useOrganicFertilizer, setUseOrganicFertilizer] = useState(false);
   const [organicFertilizerReferenceNutrient, setOrganicFertilizerReferenceNutrient] =
     useState<OrganicFertilizerReferenceNutrient | "">("");
+  const [useOrganoMineralFertilizer, setUseOrganoMineralFertilizer] = useState(false);
   const [useGreenFertilizer, setUseGreenFertilizer] = useState(false);
   const [greenFertilizerId, setGreenFertilizerId] = useState("");
   const [textureClassificationSystem, setTextureClassificationSystem] =
@@ -846,6 +847,7 @@ export default function Recommendation() {
     	texturalClassification: validation.texturalClassification,
     	useOrganicFertilizer,
     	organicFertilizerReferenceNutrient,
+    	useOrganoMineralFertilizer,
     	useGreenFertilizer,
     	greenFertilizerId,
   	});
@@ -1292,6 +1294,17 @@ export default function Recommendation() {
               	</NativeSelect>
             	</Box>
           	) : null}
+          	<Box>
+            	<Text fontSize="sm" mb={1}>Utilizar fertilizante organomineral?</Text>
+            	<NativeSelect
+              	value={useOrganoMineralFertilizer ? "true" : "false"}
+              	onChange={(e) => setUseOrganoMineralFertilizer(e.target.value === "true")}
+              	aria-label="Utilizar fertilizante organomineral?"
+            	>
+              	<option value="false">Não</option>
+              	<option value="true">Sim</option>
+            	</NativeSelect>
+          	</Box>
           	<Box>
             	<Text fontSize="sm" mb={1}>Utilizar adubação verde?</Text>
             	<NativeSelect
