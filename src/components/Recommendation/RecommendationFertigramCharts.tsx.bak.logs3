@@ -257,8 +257,6 @@ const getGroupsToRender = (
   source: RecommendationFertigramSource,
 ) => {
   const groups = getSourceGroups(document, source);
-  console.log("🔍 getGroupsToRender - sourceGroups:", groups);
-  console.log("🔍 getGroupsToRender - sourceGroups length:", groups.length);
   const orderedGroups = source === "foliar" ? foliarFertigramOrder : chemicalFertigramOrder;
   const usedGroups = new Set<RecommendationFertigramGroup>();
   const validGroups = groups
