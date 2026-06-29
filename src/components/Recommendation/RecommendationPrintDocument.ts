@@ -6,6 +6,10 @@ import {
   type FormulatedFertilizerPrintTableModel,
 } from "./FormulatedPlantingFertilizerTable";
 import {
+  buildAlternativeFertilizerTableModels,
+  type AlternativeFertilizerPrintTableModel,
+} from "./RecommendationStructuredFertilizerTables";
+import {
   buildMicronutrientFertilizerTableModel,
   type RecommendationPrintTableModel,
 } from "./MicronutrientFertilizerTable";
@@ -14,7 +18,8 @@ import { formatRecommendationTableCell } from "./recommendationColumnDecision";
 
 type StructuredPrintTableModel =
   | RecommendationPrintTableModel
-  | FormulatedFertilizerPrintTableModel;
+  | FormulatedFertilizerPrintTableModel
+  | AlternativeFertilizerPrintTableModel;
 
 const escapeHtml = (value: string) =>
   value
@@ -32,6 +37,7 @@ const getStructuredPrintTableModels = (
   return [
     ...buildFormulatedPlantingFertilizerTableModels(recommendation),
     ...buildFormulatedTopDressingFertilizerTableModels(recommendation),
+    ...buildAlternativeFertilizerTableModels(recommendation),
     ...(micronutrientTable ? [micronutrientTable] : []),
   ];
 };

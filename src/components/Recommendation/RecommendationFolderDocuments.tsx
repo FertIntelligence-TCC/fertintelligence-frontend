@@ -36,11 +36,6 @@ import RecommendationStructuredFertilizerTables, {
 import MicronutrientFertilizerTable, {
   hasMicronutrientFertilizerRows,
 } from "./MicronutrientFertilizerTable";
-import FormulatedPlantingFertilizerTable, {
-  FormulatedTopDressingFertilizerTable,
-  hasFormulatedPlantingFertilizerRows,
-  hasFormulatedTopDressingFertilizerRows,
-} from "./FormulatedPlantingFertilizerTable";
 
 export type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
 export type RecommendationDocumentStatus = "generated" | "not_generated" | "loading" | "error";
@@ -127,9 +122,7 @@ export const hasDirectFertilizationObservations = (
 
 export const hasDirectNpkFertilizerRows = (
   directRecommendationDocument?: DirectRecommendationResponse | null,
-): boolean =>
-  hasFormulatedPlantingFertilizerRows(directRecommendationDocument) ||
-  hasFormulatedTopDressingFertilizerRows(directRecommendationDocument);
+): boolean => hasStructuredRecommendationContent(directRecommendationDocument);
 
 export function buildRecommendationDocumentViews({
   reportText,
@@ -309,10 +302,7 @@ function RecommendationDocumentPanel({
             <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
           ) : null}
           {showDirectStructuredNpkContent ? (
-            <VStack align="stretch" gap={4}>
-              <FormulatedPlantingFertilizerTable directRecommendation={directRecommendationDocument} />
-              <FormulatedTopDressingFertilizerTable directRecommendation={directRecommendationDocument} />
-            </VStack>
+            <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
           ) : null}
           {showDirectFertilizationObservations ? (
             <VStack align="stretch" gap={2}>
@@ -481,10 +471,7 @@ export default function RecommendationFolderDocuments({
                   ) : null}
                   {selectedDocument.key === "direct" &&
                   hasDirectNpkFertilizerRows(directRecommendationDocument) ? (
-                    <VStack align="stretch" gap={4}>
-                      <FormulatedPlantingFertilizerTable directRecommendation={directRecommendationDocument} />
-                      <FormulatedTopDressingFertilizerTable directRecommendation={directRecommendationDocument} />
-                    </VStack>
+                    <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
                   ) : null}
                   {selectedDocument.key === "direct" &&
                   getDirectFertilizationObservations(directRecommendationDocument) ? (

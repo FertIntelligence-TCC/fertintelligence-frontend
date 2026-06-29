@@ -105,11 +105,60 @@ export interface RecommendationFertilizerLine {
   teorUsado?: number | string | null;
   usedContent?: number | string | null;
   contentUsed?: number | string | null;
+  c?: number | string | null;
+  teor_umidade?: number | string | null;
+  teorUmidade?: number | string | null;
+  teor_materia_organica?: number | string | null;
+  teorMateriaOrganica?: number | string | null;
+  teor_cinzas?: number | string | null;
+  teorCinzas?: number | string | null;
+  produtividade_esperada?: number | string | null;
+  produtividadeEsperada?: number | string | null;
+  taxa_mineralizacao_ano_1?: number | string | null;
+  taxaMineralizacaoAno1?: number | string | null;
+  taxa_mineralizacao_ano_2?: number | string | null;
+  taxaMineralizacaoAno2?: number | string | null;
+  taxa_mineralizacao_ano_3?: number | string | null;
+  taxaMineralizacaoAno3?: number | string | null;
+  densidade_g_ml?: number | string | null;
+  densidadeGMl?: number | string | null;
+  concentracao_volume_g_l?: number | string | null;
+  concentracaoVolumeGL?: number | string | null;
+  concentracao_massa_g_kg?: number | string | null;
+  concentracaoMassaGKg?: number | string | null;
+  proteinas_g_l?: number | string | null;
+  proteinasGL?: number | string | null;
+  aminoacidos_g_l?: number | string | null;
+  aminoacidosGL?: number | string | null;
+  amidos_g_l?: number | string | null;
+  amidosGL?: number | string | null;
+  acucares_g_l?: number | string | null;
+  acucaresGL?: number | string | null;
+  compostos_diversos_g_l?: number | string | null;
+  compostosDiversosGL?: number | string | null;
+  indice_salino?: number | string | null;
+  indiceSalino?: number | string | null;
+  indice_acidez?: number | string | null;
+  indiceAcidez?: number | string | null;
 
   dose_kg_ha?: number | string | null;
   doseKgHa?: number | string | null;
   kg_ha?: number | string | null;
   kgHa?: number | string | null;
+  dose_l_ha?: number | string | null;
+  doseLHa?: number | string | null;
+  l_ha?: number | string | null;
+  lHa?: number | string | null;
+  litros_ha?: number | string | null;
+  litrosHa?: number | string | null;
+  quantidade?: number | string | null;
+  quantidade_total?: number | string | null;
+  quantidadeTotal?: number | string | null;
+  quantity?: number | string | null;
+  totalQuantity?: number | string | null;
+  unidade_quantidade?: string | null;
+  unidadeQuantidade?: string | null;
+  quantityUnit?: string | null;
 
   g_m_linear?: number | string | null;
   gMLinear?: number | string | null;
@@ -158,6 +207,10 @@ export interface RecommendationFertilizerLine {
 export type SolidFertilizerWithMicronutrientsLine = RecommendationFertilizerLine;
 export type PlantingFormulatedFertilizerLine = RecommendationFertilizerLine;
 export type TopDressingFormulatedFertilizerLine = RecommendationFertilizerLine;
+export type OrganicFertilizerRecommendationLine = RecommendationFertilizerLine;
+export type GreenFertilizerRecommendationLine = RecommendationFertilizerLine;
+export type OrganoMineralFertilizerRecommendationLine = RecommendationFertilizerLine;
+export type BioFertilizerRecommendationLine = RecommendationFertilizerLine;
 type NullableRecommendationLineArray<T> = T[] | null;
 
 export interface RecommendationStructuredFertilizerLines {
@@ -178,6 +231,30 @@ export interface RecommendationStructuredFertilizerLines {
   topDressingFormulatedFertilizers?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
   linhas_formulados_cobertura?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
   linhasFormuladosCobertura?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+
+  adubos_organicos?: NullableRecommendationLineArray<OrganicFertilizerRecommendationLine>;
+  adubosOrganicos?: NullableRecommendationLineArray<OrganicFertilizerRecommendationLine>;
+  organicFertilizers?: NullableRecommendationLineArray<OrganicFertilizerRecommendationLine>;
+  linhas_adubos_organicos?: NullableRecommendationLineArray<OrganicFertilizerRecommendationLine>;
+  linhasAdubosOrganicos?: NullableRecommendationLineArray<OrganicFertilizerRecommendationLine>;
+
+  adubos_verdes?: NullableRecommendationLineArray<GreenFertilizerRecommendationLine>;
+  adubosVerdes?: NullableRecommendationLineArray<GreenFertilizerRecommendationLine>;
+  greenFertilizers?: NullableRecommendationLineArray<GreenFertilizerRecommendationLine>;
+  linhas_adubos_verdes?: NullableRecommendationLineArray<GreenFertilizerRecommendationLine>;
+  linhasAdubosVerdes?: NullableRecommendationLineArray<GreenFertilizerRecommendationLine>;
+
+  adubos_organominerais?: NullableRecommendationLineArray<OrganoMineralFertilizerRecommendationLine>;
+  adubosOrganominerais?: NullableRecommendationLineArray<OrganoMineralFertilizerRecommendationLine>;
+  organoMineralFertilizers?: NullableRecommendationLineArray<OrganoMineralFertilizerRecommendationLine>;
+  linhas_adubos_organominerais?: NullableRecommendationLineArray<OrganoMineralFertilizerRecommendationLine>;
+  linhasAdubosOrganominerais?: NullableRecommendationLineArray<OrganoMineralFertilizerRecommendationLine>;
+
+  biofertilizantes?: NullableRecommendationLineArray<BioFertilizerRecommendationLine>;
+  bioFertilizantes?: NullableRecommendationLineArray<BioFertilizerRecommendationLine>;
+  bioFertilizers?: NullableRecommendationLineArray<BioFertilizerRecommendationLine>;
+  linhas_biofertilizantes?: NullableRecommendationLineArray<BioFertilizerRecommendationLine>;
+  linhasBiofertilizantes?: NullableRecommendationLineArray<BioFertilizerRecommendationLine>;
 }
 
 const recommendationStructuredArrayFields = [
@@ -196,6 +273,26 @@ const recommendationStructuredArrayFields = [
   "topDressingFormulatedFertilizers",
   "linhas_formulados_cobertura",
   "linhasFormuladosCobertura",
+  "adubos_organicos",
+  "adubosOrganicos",
+  "organicFertilizers",
+  "linhas_adubos_organicos",
+  "linhasAdubosOrganicos",
+  "adubos_verdes",
+  "adubosVerdes",
+  "greenFertilizers",
+  "linhas_adubos_verdes",
+  "linhasAdubosVerdes",
+  "adubos_organominerais",
+  "adubosOrganominerais",
+  "organoMineralFertilizers",
+  "linhas_adubos_organominerais",
+  "linhasAdubosOrganominerais",
+  "biofertilizantes",
+  "bioFertilizantes",
+  "bioFertilizers",
+  "linhas_biofertilizantes",
+  "linhasBiofertilizantes",
 ] as const satisfies readonly (keyof RecommendationStructuredFertilizerLines)[];
 
 export function withEmptyRecommendationStructuredArrays<T extends RecommendationStructuredFertilizerLines>(
