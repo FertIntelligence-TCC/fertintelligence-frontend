@@ -1,4 +1,4 @@
-import { Box, Heading, Table, Text, VStack } from "@chakra-ui/react";
+import { Heading, Text, VStack } from "@chakra-ui/react";
 
 import type {
   DirectRecommendationResponse,
@@ -11,6 +11,8 @@ import {
   getLocalizedColumnLabel,
   getLocalizedDose,
 } from "@/utils/recommendationLocalizedDose";
+
+import RecommendationTable, { type RecommendationTableColumn } from "./RecommendationTable";
 
 type MicronutrientFertilizerTableProps = {
   directRecommendation?: RecommendationStructuredFertilizerLines | null;
@@ -160,68 +162,67 @@ export default function MicronutrientFertilizerTable({
   const localizedDoses = lines.map(getLineLocalizedDose);
   const tableModel = buildMicronutrientFertilizerTableModel(directRecommendation);
   const localizedColumnLabel = tableModel?.headers[5] ?? getLocalizedColumnLabel(localizedDoses);
+  const columns: RecommendationTableColumn[] = [
+    { key: "micronutrient", header: "Micronutriente", minW: "140px" },
+    { key: "fertilizer", header: "Fonte/adubo", minW: "220px" },
+    { key: "content", header: "Teor", minW: "100px" },
+    { key: "micronutrientDose", header: "kg/ha micronutriente", minW: "150px" },
+    { key: "fertilizerDose", header: "kg/ha adubo", minW: "120px" },
+    { key: "localizedDose", header: localizedColumnLabel, minW: "180px" },
+  ];
 
   return (
     <VStack align="stretch" gap={3}>
       <Heading size="sm">Adubos sólidos com micronutrientes</Heading>
-      <Box overflowX="auto">
-        <Table.Root size="sm" variant="outline" minW="760px">
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeader>Micronutriente</Table.ColumnHeader>
-              <Table.ColumnHeader>Fonte/adubo</Table.ColumnHeader>
-              <Table.ColumnHeader>Teor</Table.ColumnHeader>
-              <Table.ColumnHeader>kg/ha micronutriente</Table.ColumnHeader>
-              <Table.ColumnHeader>kg/ha adubo</Table.ColumnHeader>
-              <Table.ColumnHeader>{localizedColumnLabel}</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {lines.map((line, index) => {
-              const localizedDose = localizedDoses[index];
-              const message = getFirstText(line, valueFields.message);
-              const observation = getMicronutrientTechnicalObservation(line);
-              const fertilizerType = getFirstText(line, valueFields.fertilizerType);
-              const phase = getFirstText(line, valueFields.phase);
+      <RecommendationTable
+        columns={columns}
+        rows={lines}
+        minW="920px"
+        getRowKey={(line, index) => String(line.id ?? index)}
+        renderCell={(line, column, rowIndex) => {
+          const localizedDose = localizedDoses[rowIndex];
+          const message = getFirstText(line, valueFields.message);
+          const observation = getMicronutrientTechnicalObservation(line);
+          const fertilizerType = getFirstText(line, valueFields.fertilizerType);
+          const phase = getFirstText(line, valueFields.phase);
 
-              return (
-                <Table.Row key={String(line.id ?? index)}>
-                  <Table.Cell>{getFirstText(line, valueFields.micronutrient) || "-"}</Table.Cell>
-                  <Table.Cell>
-                    <VStack align="start" gap={1}>
-                      <Text>{getFirstText(line, valueFields.fertilizer) || "-"}</Text>
-                      {fertilizerType ? (
-                        <Text color="fg.muted" fontSize="xs">
-                          Tipo/grupo: {fertilizerType}
-                        </Text>
-                      ) : null}
-                      {phase ? (
-                        <Text color="fg.muted" fontSize="xs">
-                          Fase: {phase}
-                        </Text>
-                      ) : null}
-                      {message ? (
-                        <Text color="orange.600" fontSize="xs">
-                          {message}
-                        </Text>
-                      ) : null}
-                    </VStack>
-                  </Table.Cell>
-                  <Table.Cell>{getFirstText(line, valueFields.content) || "-"}</Table.Cell>
-                  <Table.Cell>{getFirstText(line, valueFields.micronutrientDose) || "-"}</Table.Cell>
-                  <Table.Cell>{getFirstText(line, valueFields.fertilizerDose) || "-"}</Table.Cell>
-                  <Table.Cell>
-                    {formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel)}
-                    <Text color="fg.muted" fontSize="xs" mt={1}>
-                      {observation}
-                    </Text>
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </Table.Body>
-        </Table.Root>
-      </Box>
+          if (column.key === "micronutrient") return getFirstText(line, valueFields.micronutrient) || "-";
+          if (column.key === "content") return getFirstText(line, valueFields.content) || "-";
+          if (column.key === "micronutrientDose") return getFirstText(line, valueFields.micronutrientDose) || "-";
+          if (column.key === "fertilizerDose") return getFirstText(line, valueFields.fertilizerDose) || "-";
+          if (column.key === "localizedDose") {
+            return (
+              <>
+                {formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel)}
+                <Text color="fg.muted" fontSize="xs" mt={1} whiteSpace="pre-wrap" overflowWrap="anywhere">
+                  {observation}
+                </Text>
+              </>
+            );
+          }
+
+          return (
+            <VStack align="start" gap={1}>
+              <Text>{getFirstText(line, valueFields.fertilizer) || "-"}</Text>
+              {fertilizerType ? (
+                <Text color="fg.muted" fontSize="xs">
+                  Tipo/grupo: {fertilizerType}
+                </Text>
+              ) : null}
+              {phase ? (
+                <Text color="fg.muted" fontSize="xs">
+                  Fase: {phase}
+                </Text>
+              ) : null}
+              {message ? (
+                <Text color="orange.600" fontSize="xs">
+                  {message}
+                </Text>
+              ) : null}
+            </VStack>
+          );
+        }}
+      />
     </VStack>
   );
 }

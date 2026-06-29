@@ -1,4 +1,4 @@
-import { Badge, Box, Heading, HStack, Table, Text, VStack } from "@chakra-ui/react";
+import { Badge, Box, Heading, HStack, Text, VStack } from "@chakra-ui/react";
 
 import type {
   DirectRecommendationResponse,
@@ -14,6 +14,8 @@ import {
   getLocalizedDose,
   normalizeRecommendationText,
 } from "@/utils/recommendationLocalizedDose";
+
+import RecommendationTable, { type RecommendationTableColumn } from "./RecommendationTable";
 
 type FormulatedPlantingFertilizerTableProps = {
   directRecommendation?: RecommendationStructuredFertilizerLines | null;
@@ -324,82 +326,77 @@ function FormulatedFertilizerTable<TLine extends FormulatedFertilizerLine>({
 
   const localizedDoses = fertilizerLines.map(getLineLocalizedDose);
   const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
+  const columns: RecommendationTableColumn[] = [
+    { key: "fertilizer", header: "Formulado", minW: "240px" },
+    { key: "formula", header: "Fórmula N-P2O5-K2O", minW: "150px" },
+    { key: "relation", header: "Relação", minW: "120px" },
+    { key: "fertilizerDose", header: "kg/ha", minW: "110px" },
+    { key: "localizedDose", header: localizedColumnLabel, minW: "150px" },
+    { key: "observation", header: "Observação", minW: "240px" },
+  ];
 
   return (
     <VStack align="stretch" gap={3}>
       <Heading size="sm">{title}</Heading>
       {fertilizerLines.length > 0 ? (
-        <Box overflowX="auto">
-          <Table.Root size="sm" variant="outline" minW="860px">
-            <Table.Header>
-              <Table.Row>
-                <Table.ColumnHeader>Formulado</Table.ColumnHeader>
-                <Table.ColumnHeader>Fórmula N-P2O5-K2O</Table.ColumnHeader>
-                <Table.ColumnHeader>Relação</Table.ColumnHeader>
-                <Table.ColumnHeader>kg/ha</Table.ColumnHeader>
-                <Table.ColumnHeader>{localizedColumnLabel}</Table.ColumnHeader>
-                <Table.ColumnHeader>Observação</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {fertilizerLines.map((line, index) => {
-                const localizedDose = localizedDoses[index];
-                const selectionType = normalizeSelectionType(getFirstText(line, valueFields.selectionType));
-                const fertilizerType = getFirstText(line, valueFields.fertilizerType);
-                const phase = getFirstText(line, valueFields.phase);
-                const message = getFirstText(line, valueFields.message);
-                const observation = getFirstText(line, valueFields.observation);
+        <RecommendationTable
+          columns={columns}
+          rows={fertilizerLines}
+          minW="980px"
+          getRowKey={(line, index) => String(line.id ?? index)}
+          renderCell={(line, column, rowIndex) => {
+            const localizedDose = localizedDoses[rowIndex];
+            const selectionType = normalizeSelectionType(getFirstText(line, valueFields.selectionType));
+            const fertilizerType = getFirstText(line, valueFields.fertilizerType);
+            const phase = getFirstText(line, valueFields.phase);
+            const message = getFirstText(line, valueFields.message);
+            const observation = getFirstText(line, valueFields.observation);
 
-                return (
-                  <Table.Row key={String(line.id ?? index)}>
-                    <Table.Cell>
-                      <VStack align="start" gap={1}>
-                        <HStack gap={2} wrap="wrap">
-                          <Text>{getFirstText(line, valueFields.fertilizer) || "-"}</Text>
-                          {selectionType ? (
-                            <Badge colorPalette={isApproximateSelection(selectionType) ? "orange" : "green"}>
-                              {selectionType}
-                            </Badge>
-                          ) : null}
-                        </HStack>
-                        {fertilizerType ? (
-                          <Text color="fg.muted" fontSize="xs">
-                            Tipo/grupo: {fertilizerType}
-                          </Text>
-                        ) : null}
-                        {phase ? (
-                          <Text color="fg.muted" fontSize="xs">
-                            Fase: {phase}
-                          </Text>
-                        ) : null}
-                        {message ? (
-                          <Text color="orange.600" fontSize="xs">
-                            {message}
-                          </Text>
-                        ) : null}
-                      </VStack>
-                    </Table.Cell>
-                    <Table.Cell>{getFormulaText(line) || "-"}</Table.Cell>
-                    <Table.Cell>{getRelationText(line) || "-"}</Table.Cell>
-                    <Table.Cell>{getFirstText(line, valueFields.fertilizerDose) || "-"}</Table.Cell>
-                    <Table.Cell>
-                      {formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel)}
-                    </Table.Cell>
-                    <Table.Cell>
-                      {observation ? (
-                        <Text color="fg.muted" fontSize="xs">
-                          {observation}
-                        </Text>
-                      ) : (
-                        "-"
-                      )}
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </Table.Body>
-          </Table.Root>
-        </Box>
+            if (column.key === "formula") return getFormulaText(line) || "-";
+            if (column.key === "relation") return getRelationText(line) || "-";
+            if (column.key === "fertilizerDose") return getFirstText(line, valueFields.fertilizerDose) || "-";
+            if (column.key === "localizedDose") {
+              return formatLocalizedDoseForColumn(localizedDose, localizedColumnLabel);
+            }
+            if (column.key === "observation") {
+              return observation ? (
+                <Text color="fg.muted" fontSize="xs" whiteSpace="pre-wrap" overflowWrap="anywhere">
+                  {observation}
+                </Text>
+              ) : (
+                "-"
+              );
+            }
+
+            return (
+              <VStack align="start" gap={1}>
+                <HStack gap={2} wrap="wrap">
+                  <Text>{getFirstText(line, valueFields.fertilizer) || "-"}</Text>
+                  {selectionType ? (
+                    <Badge colorPalette={isApproximateSelection(selectionType) ? "orange" : "green"}>
+                      {selectionType}
+                    </Badge>
+                  ) : null}
+                </HStack>
+                {fertilizerType ? (
+                  <Text color="fg.muted" fontSize="xs">
+                    Tipo/grupo: {fertilizerType}
+                  </Text>
+                ) : null}
+                {phase ? (
+                  <Text color="fg.muted" fontSize="xs">
+                    Fase: {phase}
+                  </Text>
+                ) : null}
+                {message ? (
+                  <Text color="orange.600" fontSize="xs">
+                    {message}
+                  </Text>
+                ) : null}
+              </VStack>
+            );
+          }}
+        />
       ) : null}
       {warnings.map((warning, index) => (
         <Box key={`${warning}-${index}`} borderWidth="1px" borderRadius="md" borderColor="orange.200" p={3}>

@@ -62,6 +62,21 @@ const renderStructuredTableHtml = (model: StructuredPrintTableModel) => {
   return `<h2>${escapeHtml(model.title)}</h2><table>${headerHtml}${bodyHtml}</table>${warningsHtml}`;
 };
 
+const renderLegacyTableHtml = (headers: string[], rows: string[][]) => {
+  const headerHtml = `<thead><tr>${headers
+    .map((header) => `<th>${escapeHtml(formatRecommendationTableCell(header))}</th>`)
+    .join("")}</tr></thead>`;
+  const bodyHtml = `<tbody>${rows
+    .map((row) =>
+      `<tr>${row
+        .map((cell) => `<td>${escapeHtml(formatRecommendationTableCell(cell))}</td>`)
+        .join("")}</tr>`,
+    )
+    .join("")}</tbody>`;
+
+  return `<table>${headerHtml}${bodyHtml}</table>`;
+};
+
 const renderReportTextHtml = (text: string) => {
   const blocks = parseRecommendationReportBlocks(text);
 
@@ -69,6 +84,14 @@ const renderReportTextHtml = (text: string) => {
     .map((block) => {
       if (block.type === "spacing") {
         return '<div class="spacing"></div>';
+      }
+
+      if (block.type === "table") {
+        return renderLegacyTableHtml(block.headers, block.rows);
+      }
+
+      if (block.type === "warning") {
+        return `<p class="technical-warning">${escapeHtml(block.content)}</p>`;
       }
 
       return `<p>${escapeHtml(block.content)}</p>`;

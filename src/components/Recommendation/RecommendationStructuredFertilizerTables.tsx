@@ -1,4 +1,4 @@
-import { Box, Heading, SimpleGrid, Table, Text, VStack } from "@chakra-ui/react";
+import { Box, Heading, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 
 import type {
   BioFertilizerRecommendationLine,
@@ -20,6 +20,7 @@ import FormulatedPlantingFertilizerTable, {
   hasFormulatedTopDressingFertilizerRows,
 } from "./FormulatedPlantingFertilizerTable";
 import MicronutrientFertilizerTable, { hasMicronutrientFertilizerRows } from "./MicronutrientFertilizerTable";
+import RecommendationTable, { type RecommendationTableColumn } from "./RecommendationTable";
 
 type RecommendationStructuredFertilizerTablesProps = {
   document?: RecommendationStructuredFertilizerLines | null;
@@ -425,6 +426,14 @@ function AlternativeFertilizerTables({
   document?: RecommendationStructuredFertilizerLines | null;
 }) {
   const tableModels = buildAlternativeFertilizerTableModels(document);
+  const columns: RecommendationTableColumn[] = [
+    { key: "fertilizer", header: "Adubo", minW: "240px" },
+    { key: "npk", header: "N-P2O5-K2O", minW: "130px" },
+    { key: "dose", header: "Dose", minW: "130px" },
+    { key: "quantity", header: "Quantidade", minW: "140px" },
+    { key: "details", header: "Detalhes", minW: "220px" },
+    { key: "observation", header: "Observação", minW: "240px" },
+  ];
 
   if (tableModels.length === 0) return null;
 
@@ -433,30 +442,17 @@ function AlternativeFertilizerTables({
       {tableModels.map((model) => (
         <VStack key={model.title} align="stretch" gap={3}>
           <Heading size="sm">{model.title}</Heading>
-          <Box overflowX="auto">
-            <Table.Root size="sm" variant="outline" minW="860px">
-              <Table.Header>
-                <Table.Row>
-                  {model.headers.map((header) => (
-                    <Table.ColumnHeader key={header}>{header}</Table.ColumnHeader>
-                  ))}
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {model.rows.map((row, rowIndex) => (
-                  <Table.Row key={`${model.title}-${rowIndex}`}>
-                    {row.map((cell, cellIndex) => (
-                      <Table.Cell key={`${model.title}-${rowIndex}-${cellIndex}`}>
-                        <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
-                          {cell}
-                        </Text>
-                      </Table.Cell>
-                    ))}
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
-          </Box>
+          <RecommendationTable
+            columns={columns}
+            rows={model.rows}
+            minW="980px"
+            getRowKey={(_row, rowIndex) => `${model.title}-${rowIndex}`}
+            renderCell={(row, _column, _rowIndex, columnIndex) => (
+              <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
+                {row[columnIndex] || "-"}
+              </Text>
+            )}
+          />
         </VStack>
       ))}
     </VStack>
