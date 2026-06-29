@@ -76,6 +76,7 @@ import { LuArrowLeft } from "react-icons/lu";
 import RecommendationFolderDocuments, {
   buildRecommendationDocumentViews,
   hasDirectFertilizationObservations,
+  hasDirectNpkFertilizerRows,
   type RecommendationDocumentKey,
   type RecommendationDocumentView,
 } from "@/components/Recommendation/RecommendationFolderDocuments";
@@ -882,7 +883,9 @@ export default function Recommendation() {
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
   	summary: hasMicronutrientFertilizerRows(summaryRecommendationDocument),
-  	direct: hasDirectFertilizationObservations(directRecommendationDocument),
+  	direct:
+      hasDirectFertilizationObservations(directRecommendationDocument) ||
+      hasDirectNpkFertilizerRows(directRecommendationDocument),
   	shopping: hasStructuredRecommendationContent(shoppingListDocument),
 	}),
 	[directRecommendationDocument, shoppingListDocument, summaryRecommendationDocument],
@@ -997,6 +1000,9 @@ export default function Recommendation() {
   	}
 
 	const hasShoppingStructuredContent = hasStructuredRecommendationContent(loadedDocument.shoppingListDocument);
+  	const hasDirectNpkStructuredContent = hasDirectNpkFertilizerRows(
+    	loadedDocument.directRecommendationDocument,
+  	);
   	const hasDirectFertilizationObservationContent = hasDirectFertilizationObservations(
     	loadedDocument.directRecommendationDocument,
   	);
@@ -1006,6 +1012,7 @@ export default function Recommendation() {
 	if (
       loadedDocument.text.trim() ||
       hasSummaryMicronutrients ||
+      hasDirectNpkStructuredContent ||
       hasDirectFertilizationObservationContent ||
       hasShoppingStructuredContent
     ) {
