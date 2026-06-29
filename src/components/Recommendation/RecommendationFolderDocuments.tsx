@@ -26,12 +26,16 @@ import type {
   DirectRecommendationResponse,
   RecommendationResponse,
   ShoppingListResponse,
+  SummaryRecommendationResponse,
 } from "@/interfaces/Recommendation";
 
 import RecommendationReportViewer from "./RecommendationReportViewer";
 import RecommendationStructuredFertilizerTables, {
   hasStructuredRecommendationContent,
 } from "./RecommendationStructuredFertilizerTables";
+import MicronutrientFertilizerTable, {
+  hasMicronutrientFertilizerRows,
+} from "./MicronutrientFertilizerTable";
 
 export type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
 export type RecommendationDocumentStatus = "generated" | "not_generated" | "loading" | "error";
@@ -60,6 +64,7 @@ type RecommendationFolderDocumentsProps = {
   selectedDocumentKey: RecommendationDocumentKey;
   recommendationDocuments: RecommendationDocumentView[];
   selectedDocumentError?: string;
+  summaryRecommendationDocument?: SummaryRecommendationResponse | null;
   directRecommendationDocument?: DirectRecommendationResponse | null;
   shoppingListDocument?: ShoppingListResponse | null;
   loadingDocumentKey: RecommendationDocumentKey | null;
@@ -127,7 +132,7 @@ export function buildRecommendationDocumentViews({
     {
       key: "summary",
       title: "Recomendação Resumida",
-      description: summaryText.trim()
+      description: summaryText.trim() || structuredDocuments.summary
         ? "Documento da pasta carregado."
         : summaryNotGenerated
           ? "Documento ainda não gerado."
@@ -136,7 +141,7 @@ export function buildRecommendationDocumentViews({
         ? "loading"
         : documentErrors.summary
           ? "error"
-          : summaryText.trim()
+          : summaryText.trim() || structuredDocuments.summary
             ? "generated"
             : "not_generated",
       content: summaryText,
@@ -232,14 +237,19 @@ function RecommendationDocumentCard({
 function RecommendationDocumentPanel({
   selectedDocument,
   selectedDocumentError,
+  summaryRecommendationDocument,
   directRecommendationDocument,
   shoppingListDocument,
 }: {
   selectedDocument?: RecommendationDocumentView;
   selectedDocumentError?: string;
+  summaryRecommendationDocument?: SummaryRecommendationResponse | null;
   directRecommendationDocument?: DirectRecommendationResponse | null;
   shoppingListDocument?: ShoppingListResponse | null;
 }) {
+  const showSummaryStructuredContent =
+    selectedDocument?.key === "summary" &&
+    hasMicronutrientFertilizerRows(summaryRecommendationDocument);
   const showDirectStructuredContent = selectedDocument?.key === "direct";
   const showShoppingStructuredContent =
     selectedDocument?.key === "shopping" &&
@@ -253,6 +263,9 @@ function RecommendationDocumentPanel({
         <VStack align="stretch" gap={4}>
           {shouldRenderTextContent ? (
             <RecommendationReportViewer reportText={selectedDocument.content} />
+          ) : null}
+          {showSummaryStructuredContent ? (
+            <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
           ) : null}
           {showDirectStructuredContent ? (
             <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
@@ -287,6 +300,7 @@ export default function RecommendationFolderDocuments({
   selectedDocumentKey,
   recommendationDocuments,
   selectedDocumentError,
+  summaryRecommendationDocument,
   directRecommendationDocument,
   shoppingListDocument,
   loadingDocumentKey,
@@ -363,6 +377,7 @@ export default function RecommendationFolderDocuments({
             <RecommendationDocumentPanel
               selectedDocument={selectedDocument}
               selectedDocumentError={selectedDocumentError}
+              summaryRecommendationDocument={summaryRecommendationDocument}
               directRecommendationDocument={directRecommendationDocument}
               shoppingListDocument={shoppingListDocument}
             />
@@ -409,6 +424,10 @@ export default function RecommendationFolderDocuments({
                   !(selectedDocument.key === "shopping" &&
                     hasStructuredRecommendationContent(shoppingListDocument)) ? (
                     <RecommendationReportViewer reportText={selectedDocument.content} />
+                  ) : null}
+                  {selectedDocument.key === "summary" &&
+                  hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (
+                    <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
                   ) : null}
                   {selectedDocument.key === "direct" ? (
                     <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />

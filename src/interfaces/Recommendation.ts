@@ -317,7 +317,9 @@ interface RecommendationDocumentTextFields {
   report?: string | null;
 }
 
-export interface SummaryRecommendationResponse extends RecommendationDocumentTextFields {
+export interface SummaryRecommendationResponse
+  extends RecommendationDocumentTextFields,
+    RecommendationStructuredFertilizerLines {
   resumo?: string | null;
   summary?: string | null;
   recomendacao_resumida?: string | null;

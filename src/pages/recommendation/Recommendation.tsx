@@ -81,6 +81,7 @@ import RecommendationFolderDocuments, {
 import RecommendationHistoryList from "@/components/Recommendation/RecommendationHistoryList";
 import { writePrintableReport } from "@/components/Recommendation/RecommendationPrintDocument";
 import { hasStructuredRecommendationContent } from "@/components/Recommendation/RecommendationStructuredFertilizerTables";
+import { hasMicronutrientFertilizerRows } from "@/components/Recommendation/MicronutrientFertilizerTable";
 import TextureClassificationSystemSelect, {
   type TextureClassificationSystem,
 } from "@/components/Recommendation/TextureClassificationSystemSelect";
@@ -322,6 +323,7 @@ type RecommendationDocumentResponse =
 
 type LoadedRecommendationFolderDocument = {
   text: string;
+  summaryRecommendationDocument?: SummaryRecommendationResponse;
   directRecommendationDocument?: DirectRecommendationResponse;
   shoppingListDocument?: ShoppingListResponse;
 };
@@ -417,6 +419,8 @@ export default function Recommendation() {
   const [openingRecommendationId, setOpeningRecommendationId] = useState<number | null>(null);
   const [selectedDocumentKey, setSelectedDocumentKey] = useState<RecommendationDocumentKey>("general");
   const [loadedDocuments, setLoadedDocuments] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
+  const [summaryRecommendationDocument, setSummaryRecommendationDocument] =
+    useState<SummaryRecommendationResponse | null>(null);
   const [directRecommendationDocument, setDirectRecommendationDocument] =
     useState<DirectRecommendationResponse | null>(null);
   const [shoppingListDocument, setShoppingListDocument] = useState<ShoppingListResponse | null>(null);
@@ -467,6 +471,7 @@ export default function Recommendation() {
   useEffect(() => {
 	setSelectedDocumentKey("general");
 	setLoadedDocuments({});
+	setSummaryRecommendationDocument(null);
 	setDirectRecommendationDocument(null);
 	setShoppingListDocument(null);
 	setNotGeneratedDocuments({});
@@ -851,7 +856,10 @@ export default function Recommendation() {
   ): Promise<LoadedRecommendationFolderDocument> => {
 	if (key === "summary") {
   	const document = await getSummaryRecommendationByRecommendation(recommendationId);
-  	return { text: getRecommendationDocumentText(document, key) };
+  	return {
+    	text: getRecommendationDocumentText(document, key),
+    	summaryRecommendationDocument: document,
+  	};
 	}
 
 	if (key === "direct") {
@@ -872,10 +880,11 @@ export default function Recommendation() {
   const reportText = getRecommendationReportText(selectedRecommendation);
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
+  	summary: hasMicronutrientFertilizerRows(summaryRecommendationDocument),
   	direct: hasStructuredRecommendationContent(directRecommendationDocument),
   	shopping: hasStructuredRecommendationContent(shoppingListDocument),
 	}),
-	[directRecommendationDocument, shoppingListDocument],
+	[directRecommendationDocument, shoppingListDocument, summaryRecommendationDocument],
   );
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
 	return buildRecommendationDocumentViews({
@@ -976,6 +985,9 @@ export default function Recommendation() {
   	}
 
   	const loadedDocument = await loadRecommendationFolderDocument(document.key, selectedRecommendation.id);
+  	if (loadedDocument.summaryRecommendationDocument) {
+    	setSummaryRecommendationDocument(loadedDocument.summaryRecommendationDocument);
+  	}
   	if (loadedDocument.directRecommendationDocument) {
     	setDirectRecommendationDocument(loadedDocument.directRecommendationDocument);
   	}
@@ -986,7 +998,10 @@ export default function Recommendation() {
   	const hasStructuredContent = hasStructuredRecommendationContent(
         loadedDocument.directRecommendationDocument ?? loadedDocument.shoppingListDocument,
   	);
-  	if (loadedDocument.text.trim() || hasStructuredContent) {
+  	const hasSummaryMicronutrients = hasMicronutrientFertilizerRows(
+        loadedDocument.summaryRecommendationDocument,
+  	);
+  	if (loadedDocument.text.trim() || hasSummaryMicronutrients || hasStructuredContent) {
     	setLoadedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: loadedDocument.text }));
     	return;
   	}
@@ -1149,6 +1164,7 @@ export default function Recommendation() {
         	selectedDocumentKey={selectedDocumentKey}
         	recommendationDocuments={recommendationDocuments}
         	selectedDocumentError={selectedDocumentError}
+        	summaryRecommendationDocument={summaryRecommendationDocument}
         	directRecommendationDocument={directRecommendationDocument}
         	shoppingListDocument={shoppingListDocument}
         	loadingDocumentKey={loadingDocumentKey}
