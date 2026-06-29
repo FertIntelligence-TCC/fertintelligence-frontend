@@ -316,9 +316,6 @@ console.log("🔍 document.recomendacao_resumida:", document?.recomendacao_resum
 console.log("🔍 document.summaryRecommendation:", document?.summaryRecommendation);
 console.log("🔍 document.generalRecommendation:", document?.generalRecommendation);
 const groups = getGroupsToRender(document, source);
-  console.log("🔍 groups encontrados (após getGroupsToRender):", groups);
-  console.log("🔍 grupos detalhados:", groups.map(g => ({title: g.title, itemsCount: g.items.length})));
-
 
   if (groups.length === 0) return null;
 
