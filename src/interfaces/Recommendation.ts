@@ -346,6 +346,14 @@ export interface ShoppingListResponse
   lista_compras?: string | null;
   listaCompras?: string | null;
   shoppingList?: string | null;
+  area?: number | string | null;
+  area_ha?: number | string | null;
+  areaHa?: number | string | null;
+  area_usada_no_talhao?: number | string | null;
+  areaUsadaNoTalhao?: number | string | null;
+  data_plantio?: { day?: number | string; month?: number | string; year?: number | string } | string | null;
+  dataPlantio?: { day?: number | string; month?: number | string; year?: number | string } | string | null;
+  plantingDate?: { day?: number | string; month?: number | string; year?: number | string } | string | null;
 }
 
 export const getRecommendationReportText = (

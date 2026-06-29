@@ -321,7 +321,7 @@ function RecommendationDocumentPanel({
             </VStack>
           ) : null}
           {showShoppingStructuredContent ? (
-            <RecommendationStructuredFertilizerTables document={shoppingListDocument} />
+            <RecommendationStructuredFertilizerTables document={shoppingListDocument} showShoppingListHeader />
           ) : null}
         </VStack>
       ) : selectedDocument?.status === "loading" ? (
@@ -497,7 +497,7 @@ export default function RecommendationFolderDocuments({
                   ) : null}
                   {selectedDocument.key === "shopping" &&
                   hasStructuredRecommendationContent(shoppingListDocument) ? (
-                    <RecommendationStructuredFertilizerTables document={shoppingListDocument} />
+                    <RecommendationStructuredFertilizerTables document={shoppingListDocument} showShoppingListHeader />
                   ) : null}
                 </VStack>
               ) : (
