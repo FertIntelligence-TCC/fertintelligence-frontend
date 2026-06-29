@@ -37,7 +37,7 @@ const valueFields = {
   micronutrient: ["micronutriente", "micronutrient", "nutrient"],
   fertilizer: ["adubo", "nome_adubo", "nomeAdubo", "fertilizer", "fertilizerName"],
   fertilizerType: ["tipo_adubo", "tipoAdubo", "fertilizerType", "grupo_adubo", "grupoAdubo", "fertilizerGroup"],
-  phase: ["fase", "phase"],
+  phase: ["fase_aplicacao", "faseAplicacao", "fase", "phase"],
   content: ["teor", "teor_usado", "teorUsado", "usedContent", "contentUsed"],
   micronutrientDose: [
     "dose_micronutriente_kg_ha",
@@ -49,7 +49,7 @@ const valueFields = {
   fertilizerDose: ["dose_kg_ha", "doseKgHa", "kg_ha", "kgHa"],
   linearDose: ["g_m_linear", "gMLinear", "gramas_m_linear", "gramasMLinear", "gramsPerLinearMeter"],
   holeDose: ["g_cova", "gCova", "gramas_cova", "gramasCova", "gramsPerHole"],
-  unit: ["unidade_aplicavel", "unidadeAplicavel", "applicableUnit"],
+  unit: ["unidade_localizada", "unidadeLocalizada", "unidade_aplicavel", "unidadeAplicavel", "applicableUnit"],
   observation: ["observacao_tecnica", "observacaoTecnica", "technicalObservation", "technicalNote"],
   message: ["mensagem", "mensagem_tecnica", "mensagemTecnica", "message", "technicalMessage"],
 } as const;

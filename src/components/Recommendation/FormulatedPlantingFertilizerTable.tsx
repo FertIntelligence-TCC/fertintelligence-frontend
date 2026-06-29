@@ -55,7 +55,7 @@ const topDressingLineArrayFields = [
 ] as const;
 
 const valueFields = {
-  phase: ["fase", "phase"],
+  phase: ["fase_aplicacao", "faseAplicacao", "fase", "phase"],
   coverage: [
     "cobertura",
     "identificacao_cobertura",
@@ -96,7 +96,7 @@ const valueFields = {
   fertilizerDose: ["dose_kg_ha", "doseKgHa", "kg_ha", "kgHa"],
   linearDose: ["g_m_linear", "gMLinear", "gramas_m_linear", "gramasMLinear", "gramsPerLinearMeter"],
   holeDose: ["g_cova", "gCova", "gramas_cova", "gramasCova", "gramsPerHole"],
-  unit: ["unidade_aplicavel", "unidadeAplicavel", "applicableUnit"],
+  unit: ["unidade_localizada", "unidadeLocalizada", "unidade_aplicavel", "unidadeAplicavel", "applicableUnit"],
   selectionType: ["tipo_selecao", "tipoSelecao", "selectionType"],
   observation: ["observacao_tecnica", "observacaoTecnica", "technicalObservation", "technicalNote"],
   message: ["mensagem", "mensagem_tecnica", "mensagemTecnica", "message", "technicalMessage"],

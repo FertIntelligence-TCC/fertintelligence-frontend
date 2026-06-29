@@ -124,9 +124,13 @@ export interface RecommendationFertilizerLine {
 
   unidade_aplicavel?: RecommendationApplicationUnit | null;
   unidadeAplicavel?: RecommendationApplicationUnit | null;
+  unidade_localizada?: RecommendationApplicationUnit | string | null;
+  unidadeLocalizada?: RecommendationApplicationUnit | string | null;
   applicableUnit?: RecommendationApplicationUnit | null;
 
   fase?: DirectRecommendationPhase | null;
+  fase_aplicacao?: DirectRecommendationPhase | string | null;
+  faseAplicacao?: DirectRecommendationPhase | string | null;
   phase?: DirectRecommendationPhase | null;
 
   tipo_selecao?: DirectRecommendationSelectionType | null;
