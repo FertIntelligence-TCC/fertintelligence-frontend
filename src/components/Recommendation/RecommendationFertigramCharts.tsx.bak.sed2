@@ -252,41 +252,53 @@ const hasRenderableRadarValues = (item: FertigramRadarChartNutrient) => {
   );
 };
 
-const getGroupsToRender = (document: RecommendationFertigramFields | null | undefined, source: RecommendationFertigramSource) => {
-  console.log("🔍 getGroupsToRender - INICIO (ordem)", { document, source });
+const getGroupsToRender = (
+  document: RecommendationFertigramFields | null | undefined,
+  source: RecommendationFertigramSource,
+) => {
   const groups = getSourceGroups(document, source);
   console.log("🔍 getGroupsToRender - sourceGroups:", groups);
   console.log("🔍 getGroupsToRender - sourceGroups length:", groups.length);
-
+  const orderedGroups = source === "foliar" ? foliarFertigramOrder : chemicalFertigramOrder;
+  const usedGroups = new Set<RecommendationFertigramGroup>();
   const validGroups = groups
     .map((group) => {
       const allItems = getGroupItems(group).map(toRadarNutrient);
       const items = allItems.filter(hasRenderableRadarValues);
-      return { group, allItems, items };
+
+      return {
+        group,
+        allItemsCount: allItems.length,
+        items,
+      };
     })
-    .filter((g) => g.items.length >= 3);
+    .filter((group) => group.items.length >= 3);
 
-  console.log("🔍 validGroups:", validGroups.length);
+  return orderedGroups
+    .map(({ kind, fallbackTitle }, index) => {
+      const matchedGroup =
+        validGroups.find((candidate) => !usedGroups.has(candidate.group) && hasGroupKind(candidate.group, kind)) ??
+        validGroups.find((candidate) => !usedGroups.has(candidate.group));
 
-  const seenTitles = new Set();
-  const uniqueGroups = validGroups.filter((g) => {
-    const title = getGroupTitle(g.group, "");
-    if (seenTitles.has(title)) return false;
-    seenTitles.add(title);
-    return true;
-  });
+      if (!matchedGroup) return null;
 
-  console.log("🔍 uniqueGroups:", uniqueGroups.length);
+      usedGroups.add(matchedGroup.group);
 
-  const selectedGroups = uniqueGroups.slice(0, 4).map((g, index) => ({
-    title: getGroupTitle(g.group, "Fertigrama"),
-    items: g.items,
-    droppedItemCount: g.allItems.length - g.items.length,
-    order: index,
-  }));
-
-  console.log("🔍 resultado final:", selectedGroups);
-  return selectedGroups;
+      return {
+        title: getGroupTitle(matchedGroup.group, fallbackTitle),
+        items: matchedGroup.items,
+        droppedItemCount: Math.max(matchedGroup.allItemsCount - matchedGroup.items.length, 0),
+        order: index,
+      };
+    })
+    .filter(
+      (group): group is {
+        title: string;
+        items: FertigramRadarChartNutrient[];
+        droppedItemCount: number;
+        order: number;
+      } => group !== null,
+    );
 };
 
 export const hasRecommendationFertigramCharts = (
