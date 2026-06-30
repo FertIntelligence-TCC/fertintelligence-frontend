@@ -18,36 +18,6 @@ type RecommendationFertigramChartsProps = {
 
 const unavailableMessage = "Fertigrama indisponível por falta de faixa adequada estruturada";
 
-const chemicalFertigramOrder = [
-  {
-    kind: "macro",
-    fallbackTitle: "Fertigrama dos macronutrientes",
-  },
-  {
-    kind: "micro",
-    fallbackTitle: "Fertigrama dos micronutrientes",
-  },
-  {
-    kind: "remaining-1",
-    fallbackTitle: "Fertigrama dos parâmetros químicos restantes I",
-  },
-  {
-    kind: "remaining-2",
-    fallbackTitle: "Fertigrama dos parâmetros químicos restantes II",
-  },
-] as const;
-
-const foliarFertigramOrder = [
-  {
-    kind: "macro",
-    fallbackTitle: "Fertigrama foliar dos macronutrientes",
-  },
-  {
-    kind: "micro",
-    fallbackTitle: "Fertigrama foliar dos micronutrientes",
-  },
-] as const;
-
 const normalizeToken = (value?: string | null) =>
   (value ?? "")
     .normalize("NFD")
@@ -73,12 +43,17 @@ const getFirstValue = (...values: unknown[]) => {
 };
 
 const toNumberOrNull = (value?: number | string | null) => {
-  if (typeof value === "string" && value.trim()) {
-    const normalizedValue = Number(value.replace(",", "."));
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+
+  if (typeof value === "string") {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) return null;
+
+    const normalizedValue = Number(trimmedValue.replace(",", "."));
     return Number.isFinite(normalizedValue) ? normalizedValue : null;
   }
 
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+  return null;
 };
 
 const getGroupItems = (group: RecommendationFertigramGroup): RecommendationFertigramItem[] => {
@@ -197,34 +172,23 @@ const getSourceGroups = (
   ];
 };
 
-const hasGroupKind = (group: RecommendationFertigramGroup, kind: string) => {
-  const text = getText(group);
-
-  if (kind === "macro") return text.includes("macro");
-  if (kind === "micro") return text.includes("micro");
-
-  if (kind === "remaining-1") {
-    return (
-      (text.includes("restante") || text.includes("remaining") || text.includes("parametro")) &&
-      (text.includes(" i") || text.includes(" 1") || text.includes("primeir") || text.endsWith("i"))
-    );
-  }
-
-  return (
-    (text.includes("restante") || text.includes("remaining") || text.includes("parametro")) &&
-    (text.includes(" ii") || text.includes(" 2") || text.includes("segund") || text.endsWith("ii"))
-  );
-};
-
 const toRadarNutrient = (item: RecommendationFertigramItem): FertigramRadarChartNutrient => ({
   name: getFirstString(item.label, item.rotulo, item.name, item.nutrient, item.nutriente, item.shortLabel, item.rotulo_curto) || "-",
   shortName: getFirstString(item.shortLabel, item.rotulo_curto, item.label, item.rotulo) || "-",
   measuredValue: getFirstValue(item.analyzedValue, item.valor_analisado, item.measuredValue, item.valor),
-  recommendedMin: getFirstValue(item.recommendedMin, item.minimo_adequado),
-  recommendedMax: getFirstValue(item.recommendedMax, item.maximo_adequado),
+  recommendedMin: getFirstValue(item.recommendedMin, item.minimo_adequado, item.adequado_min),
+  recommendedMax: getFirstValue(item.recommendedMax, item.maximo_adequado, item.adequado_max),
   normalizedValue: getFirstValue(item.normalizedValue, item.valor_normalizado),
-  normalizedAdequateMin: getFirstValue(item.normalizedAdequateMin, item.minimo_normalizado),
-  normalizedAdequateMax: getFirstValue(item.normalizedAdequateMax, item.maximo_normalizado),
+  normalizedAdequateMin: getFirstValue(
+    item.normalizedAdequateMin,
+    item.minimo_normalizado,
+    item.adequado_min_normalizado,
+  ),
+  normalizedAdequateMax: getFirstValue(
+    item.normalizedAdequateMax,
+    item.maximo_normalizado,
+    item.adequado_max_normalizado,
+  ),
   unit: getFirstString(item.unit, item.unidade) || null,
   interpretation: getFirstString(item.interpretation, item.interpretacao) || null,
   rangeLabel: getFirstString(item.rangeLabel, item.faixa, item.faixa_adequada) || null,

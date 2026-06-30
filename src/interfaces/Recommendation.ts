@@ -462,11 +462,15 @@ export interface RecommendationFertigramItem {
   valor_normalizado?: number | string | null;
   normalizedValue?: number | string | null;
   minimo_normalizado?: number | string | null;
+  adequado_min_normalizado?: number | string | null;
   normalizedAdequateMin?: number | string | null;
   maximo_normalizado?: number | string | null;
+  adequado_max_normalizado?: number | string | null;
   normalizedAdequateMax?: number | string | null;
   minimo_adequado?: number | string | null;
+  adequado_min?: number | string | null;
   maximo_adequado?: number | string | null;
+  adequado_max?: number | string | null;
   recommendedMin?: number | string | null;
   recommendedMax?: number | string | null;
   interpretacao?: string | null;
