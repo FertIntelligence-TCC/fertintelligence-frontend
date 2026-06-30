@@ -110,6 +110,21 @@ const getGroupItems = (group: RecommendationFertigramGroup): RecommendationFerti
 const getGroupTitle = (group: RecommendationFertigramGroup, fallbackTitle: string) =>
   getFirstString(group.title, group.titulo, group.rotulo, group.label) || fallbackTitle;
 
+const getGroupIdentity = (group: RecommendationFertigramGroup, fallbackIndex: number) =>
+  [
+    group.sourceSection,
+    group.secao_origem,
+    group.groupKey,
+    group.chave_grupo,
+    group.title,
+    group.titulo,
+    group.rotulo,
+    group.label,
+  ]
+    .map((value) => (typeof value === "string" ? normalizeToken(value) : ""))
+    .filter(Boolean)
+    .join("|") || `fertigrama-${fallbackIndex}`;
+
 const getText = (group: RecommendationFertigramGroup) =>
   normalizeToken(
     [
@@ -208,7 +223,7 @@ const getSourceGroups = (
   }
 
   return [
-    ...(referencedGroups.length === 0 ? genericGroups.slice(0, 4) : [...filteredGroups, ...unreferencedGroups]),
+    ...(referencedGroups.length === 0 ? genericGroups : [...filteredGroups, ...unreferencedGroups]),
     ...getNestedFertigramDocuments(document).flatMap((candidate) => [
       ...(Array.isArray(candidate.fertigramas_diagnostico_quimico) ? candidate.fertigramas_diagnostico_quimico : []),
       ...(Array.isArray(candidate.diagnostico_quimico_fertigramas) ? candidate.diagnostico_quimico_fertigramas : []),
@@ -277,22 +292,21 @@ const getGroupsToRender = (document: RecommendationFertigramFields | null | unde
   const groups = getSourceGroups(document, source);
 
   const validGroups = groups
-    .map((group) => {
+    .map((group, index) => {
       const allItems = getGroupItems(group).map(toRadarNutrient);
       const items = allItems.filter(hasRenderableRadarValues);
-      return { group, allItems, items };
+      return { group, allItems, items, identity: getGroupIdentity(group, index) };
     })
-    .filter((g) => g.items.length >= 3);
+    .filter((g) => g.items.length > 0);
 
-  const seenTitles = new Set();
+  const seenGroups = new Set<string>();
   const uniqueGroups = validGroups.filter((g) => {
-    const title = getGroupTitle(g.group, "");
-    if (seenTitles.has(title)) return false;
-    seenTitles.add(title);
+    if (seenGroups.has(g.identity)) return false;
+    seenGroups.add(g.identity);
     return true;
   });
 
-  return uniqueGroups.slice(0, 4).map((g, index) => ({
+  return uniqueGroups.map((g, index) => ({
     title: getGroupTitle(g.group, "Fertigrama"),
     items: g.items,
     droppedItemCount: g.allItems.length - g.items.length,
