@@ -17,6 +17,7 @@ type RecommendationFertigramChartsProps = {
 };
 
 const unavailableMessage = "Fertigrama indisponível por falta de faixa adequada estruturada";
+const radarOuterScale = 3;
 
 const normalizeToken = (value?: string | null) =>
   (value ?? "")
@@ -54,6 +55,50 @@ const toNumberOrNull = (value?: number | string | null) => {
   }
 
   return null;
+};
+
+const hasRawRadarRange = (
+  measuredValue: number | string | null,
+  recommendedMin: number | string | null,
+  recommendedMax: number | string | null,
+) =>
+  toNumberOrNull(measuredValue) !== null &&
+  toNumberOrNull(recommendedMin) !== null &&
+  toNumberOrNull(recommendedMax) !== null;
+
+const scaleUnitNormalizedValue = (value: number | string | null) => {
+  const numericValue = toNumberOrNull(value);
+  if (numericValue === null) return value;
+
+  return numericValue * radarOuterScale;
+};
+
+const normalizeVisualScale = (
+  normalizedValue: number | string | null,
+  normalizedAdequateMin: number | string | null,
+  normalizedAdequateMax: number | string | null,
+) => {
+  const values = [
+    toNumberOrNull(normalizedValue),
+    toNumberOrNull(normalizedAdequateMin),
+    toNumberOrNull(normalizedAdequateMax),
+  ];
+
+  const usesUnitScale = values.every((value) => value !== null && value >= 0 && value <= 1);
+
+  if (!usesUnitScale) {
+    return {
+      normalizedValue,
+      normalizedAdequateMin,
+      normalizedAdequateMax,
+    };
+  }
+
+  return {
+    normalizedValue: scaleUnitNormalizedValue(normalizedValue),
+    normalizedAdequateMin: scaleUnitNormalizedValue(normalizedAdequateMin),
+    normalizedAdequateMax: scaleUnitNormalizedValue(normalizedAdequateMax),
+  };
 };
 
 const getGroupItems = (group: RecommendationFertigramGroup): RecommendationFertigramItem[] => {
@@ -172,28 +217,40 @@ const getSourceGroups = (
   ];
 };
 
-const toRadarNutrient = (item: RecommendationFertigramItem): FertigramRadarChartNutrient => ({
-  name: getFirstString(item.label, item.rotulo, item.name, item.nutrient, item.nutriente, item.shortLabel, item.rotulo_curto) || "-",
-  shortName: getFirstString(item.shortLabel, item.rotulo_curto, item.label, item.rotulo) || "-",
-  measuredValue: getFirstValue(item.analyzedValue, item.valor_analisado, item.measuredValue, item.valor),
-  recommendedMin: getFirstValue(item.recommendedMin, item.minimo_adequado, item.adequado_min),
-  recommendedMax: getFirstValue(item.recommendedMax, item.maximo_adequado, item.adequado_max),
-  normalizedValue: getFirstValue(item.normalizedValue, item.valor_normalizado),
-  normalizedAdequateMin: getFirstValue(
-    item.normalizedAdequateMin,
-    item.minimo_normalizado,
-    item.adequado_min_normalizado,
-  ),
-  normalizedAdequateMax: getFirstValue(
-    item.normalizedAdequateMax,
-    item.maximo_normalizado,
-    item.adequado_max_normalizado,
-  ),
-  unit: getFirstString(item.unit, item.unidade) || null,
-  interpretation: getFirstString(item.interpretation, item.interpretacao) || null,
-  rangeLabel: getFirstString(item.rangeLabel, item.faixa, item.faixa_adequada) || null,
-  observation: getFirstString(item.observation, item.observacao) || null,
-});
+const toRadarNutrient = (item: RecommendationFertigramItem): FertigramRadarChartNutrient => {
+  const measuredValue = getFirstValue(item.analyzedValue, item.valor_analisado, item.measuredValue, item.valor);
+  const recommendedMin = getFirstValue(item.recommendedMin, item.minimo_adequado, item.adequado_min);
+  const recommendedMax = getFirstValue(item.recommendedMax, item.maximo_adequado, item.adequado_max);
+  const normalizedScale = normalizeVisualScale(
+    getFirstValue(item.normalizedValue, item.valor_normalizado),
+    getFirstValue(
+      item.normalizedAdequateMin,
+      item.minimo_normalizado,
+      item.adequado_min_normalizado,
+    ),
+    getFirstValue(
+      item.normalizedAdequateMax,
+      item.maximo_normalizado,
+      item.adequado_max_normalizado,
+    ),
+  );
+  const useRawValues = hasRawRadarRange(measuredValue, recommendedMin, recommendedMax);
+
+  return {
+    name: getFirstString(item.label, item.rotulo, item.name, item.nutrient, item.nutriente, item.shortLabel, item.rotulo_curto) || "-",
+    shortName: getFirstString(item.shortLabel, item.rotulo_curto, item.label, item.rotulo) || "-",
+    measuredValue,
+    recommendedMin,
+    recommendedMax,
+    normalizedValue: useRawValues ? null : normalizedScale.normalizedValue,
+    normalizedAdequateMin: useRawValues ? null : normalizedScale.normalizedAdequateMin,
+    normalizedAdequateMax: useRawValues ? null : normalizedScale.normalizedAdequateMax,
+    unit: getFirstString(item.unit, item.unidade) || null,
+    interpretation: getFirstString(item.interpretation, item.interpretacao) || null,
+    rangeLabel: getFirstString(item.rangeLabel, item.faixa, item.faixa_adequada) || null,
+    observation: getFirstString(item.observation, item.observacao) || null,
+  };
+};
 
 const hasRenderableRadarValues = (item: FertigramRadarChartNutrient) => {
   const normalizedValue = toNumberOrNull(item.normalizedValue);
@@ -217,10 +274,7 @@ const hasRenderableRadarValues = (item: FertigramRadarChartNutrient) => {
 };
 
 const getGroupsToRender = (document: RecommendationFertigramFields | null | undefined, source: RecommendationFertigramSource) => {
-  console.log("🔍 getGroupsToRender - INICIO (ordem)", { document, source });
   const groups = getSourceGroups(document, source);
-  console.log("🔍 getGroupsToRender - sourceGroups:", groups);
-  console.log("🔍 getGroupsToRender - sourceGroups length:", groups.length);
 
   const validGroups = groups
     .map((group) => {
@@ -230,8 +284,6 @@ const getGroupsToRender = (document: RecommendationFertigramFields | null | unde
     })
     .filter((g) => g.items.length >= 3);
 
-  console.log("🔍 validGroups:", validGroups.length);
-
   const seenTitles = new Set();
   const uniqueGroups = validGroups.filter((g) => {
     const title = getGroupTitle(g.group, "");
@@ -240,17 +292,12 @@ const getGroupsToRender = (document: RecommendationFertigramFields | null | unde
     return true;
   });
 
-  console.log("🔍 uniqueGroups:", uniqueGroups.length);
-
-  const selectedGroups = uniqueGroups.slice(0, 4).map((g, index) => ({
+  return uniqueGroups.slice(0, 4).map((g, index) => ({
     title: getGroupTitle(g.group, "Fertigrama"),
     items: g.items,
     droppedItemCount: g.allItems.length - g.items.length,
     order: index,
   }));
-
-  console.log("🔍 resultado final:", selectedGroups);
-  return selectedGroups;
 };
 
 export const hasRecommendationFertigramCharts = (
@@ -262,17 +309,7 @@ export default function RecommendationFertigramCharts({
   document,
   source,
 }: RecommendationFertigramChartsProps) {
-  console.log("🔍 RecommendationFertigramCharts recebeu:", { document, source });
-console.log("🔍 document keys:", Object.keys(document || {}));
-console.log("🔍 document.fertigramas:", document?.fertigramas);
-console.log("🔍 document.recomendacao_geral:", document?.recomendacao_geral);
-console.log("🔍 document.recomendacao_resumida:", document?.recomendacao_resumida);
-console.log("🔍 document.summaryRecommendation:", document?.summaryRecommendation);
-console.log("🔍 document.generalRecommendation:", document?.generalRecommendation);
-const groups = getGroupsToRender(document, source);
-  console.log("🔍 groups encontrados (após getGroupsToRender):", groups);
-  console.log("🔍 grupos detalhados:", groups.map(g => ({title: g.title, itemsCount: g.items.length})));
-
+  const groups = getGroupsToRender(document, source);
 
   if (groups.length === 0) return null;
 
