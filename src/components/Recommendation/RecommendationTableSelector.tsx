@@ -12,6 +12,7 @@ type RecommendationTableSelectorProps = {
   tableId: string;
   tables: TableOption[];
   loadingTables: boolean;
+  optional?: boolean;
   onGroupChange: (value: TableGroupValue) => void;
   onTableChange: (value: string) => void;
 };
@@ -22,8 +23,8 @@ const tableGroupOptions: { value: Exclude<TableGroupValue, "">; label: string }[
   { value: "DEFAULT", label: "Padrão" },
 ];
 
-const getTableChoicePlaceholder = (group: TableGroupValue, tables: TableOption[]) => {
-  if (!group) return "Selecione o grupo da tabela";
+const getTableChoicePlaceholder = (group: TableGroupValue, tables: TableOption[], optional?: boolean) => {
+  if (!group) return optional ? "Opcional: selecione um grupo" : "Selecione o grupo da tabela";
   return tables.length ? "Escolha da tabela" : "Nenhuma tabela encontrada";
 };
 
@@ -33,6 +34,7 @@ export default function RecommendationTableSelector({
   tableId,
   tables,
   loadingTables,
+  optional = false,
   onGroupChange,
   onTableChange,
 }: RecommendationTableSelectorProps) {
@@ -60,7 +62,7 @@ export default function RecommendationTableSelector({
           disabled={loadingTables || !group || tables.length === 0}
           aria-label={`${label}: escolha da tabela`}
         >
-          <option value="">{getTableChoicePlaceholder(group, tables)}</option>
+          <option value="">{getTableChoicePlaceholder(group, tables, optional)}</option>
           {tables.map((table) => (
             <option key={`${table.source}-${table.id}`} value={table.id}>{table.label}</option>
           ))}
@@ -69,4 +71,3 @@ export default function RecommendationTableSelector({
     </Box>
   );
 }
-

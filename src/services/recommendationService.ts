@@ -26,10 +26,10 @@ type BuildRecommendationCreatePayloadParams = {
   cropId: string | number;
   cropFertilizationTableId: string | number;
   soilFertilityInterpretationTableId: string | number;
-  cropFoliarAnalysisInterpretationTableId: string | number;
+  cropFoliarAnalysisInterpretationTableId?: string | number | null;
   cropFertilizationTableGroup: RecommendationTableGroup;
   soilFertilityInterpretationTableGroup: RecommendationTableGroup;
-  cropFoliarAnalysisInterpretationTableGroup: RecommendationTableGroup;
+  cropFoliarAnalysisInterpretationTableGroup?: RecommendationTableGroup | null;
   limingCriteria?: RecommendationLimingCriteria | null;
   fertilizerSourceOption: FertilizerSourceOption;
   recommendationFolderName?: string | null;
@@ -96,7 +96,9 @@ export function buildRecommendationCreatePayload({
   const normalizedCropId = Number(cropId);
   const normalizedCropFertilizationTableId = Number(cropFertilizationTableId);
   const normalizedSoilFertilityInterpretationTableId = Number(soilFertilityInterpretationTableId);
-  const normalizedCropFoliarAnalysisInterpretationTableId = Number(cropFoliarAnalysisInterpretationTableId);
+  const normalizedCropFoliarAnalysisInterpretationTableId = normalizeOptionalNumericId(
+    cropFoliarAnalysisInterpretationTableId,
+  );
 
   const payload: RecommendationCreatePayload = {
     tipo_recomendacao: recommendationType,
@@ -122,7 +124,9 @@ export function buildRecommendationCreatePayload({
     id_tabela_interpretacao_analise_foliar: normalizedCropFoliarAnalysisInterpretationTableId,
     cropFertilizationTableGroup,
     soilFertilityInterpretationCriteriaTableGroup: soilFertilityInterpretationTableGroup,
-    cropFoliarAnalysisInterpretationTableGroup,
+    cropFoliarAnalysisInterpretationTableGroup: normalizedCropFoliarAnalysisInterpretationTableId
+      ? cropFoliarAnalysisInterpretationTableGroup ?? null
+      : null,
     criterio_calagem: limingCriteria,
     classificacao_textural: normalizeTexturalClassification(texturalClassification),
     origem_adubos: fertilizerSourceOption,

@@ -128,11 +128,12 @@ export default function CropTableSelectors({
         onTableChange={onSoilFertilityInterpretationTableChange}
       />
       <RecommendationTableSelector
-        label="Tabela de interpretação de análise foliar"
+        label="Tabela de interpretação de análise foliar (opcional)"
         group={cropFoliarAnalysisInterpretationTableGroup}
         tableId={cropFoliarAnalysisInterpretationTableId}
         tables={foliarInterpretationTables}
         loadingTables={loadingTables}
+        optional
         onGroupChange={onCropFoliarAnalysisInterpretationTableGroupChange}
         onTableChange={onCropFoliarAnalysisInterpretationTableChange}
       />

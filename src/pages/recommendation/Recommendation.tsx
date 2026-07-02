@@ -1264,8 +1264,8 @@ export default function Recommendation() {
   const saturationExtractAnalysisPlaceholder = !selectedPlotId
 	? "Selecione um talhão para ver análises de extrato de saturação"
 	: saturationExtractAnalysisOptions.length
-  	? "Análise de extrato de saturação do talhão"
-  	: "Nenhuma análise encontrada";
+  	? "Opcional: análise de extrato de saturação do talhão"
+  	: "Opcional: nenhuma análise encontrada";
   const annualCropFolderPlaceholder = !selectedPlotId
 	? "Selecione um talhão para ver pastas anuais"
 	: annualCropFolders.length

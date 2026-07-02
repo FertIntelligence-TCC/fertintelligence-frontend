@@ -58,7 +58,7 @@ type ValidGenerationValidation = {
   recommendationType: RecommendationType;
   cropFertilizationTableGroup: RecommendationTableGroup;
   soilFertilityInterpretationTableGroup: RecommendationTableGroup;
-  cropFoliarAnalysisInterpretationTableGroup: RecommendationTableGroup;
+  cropFoliarAnalysisInterpretationTableGroup: RecommendationTableGroup | null;
   fertilizerSourceOption: FertilizerSourceOption;
   texturalClassification: RecommendationTexturalClassification;
 };
@@ -155,7 +155,6 @@ export function validateRecommendationGeneration({
     !cropId ||
     !cropFertilizationTableId ||
     !soilFertilityInterpretationTableId ||
-    !cropFoliarAnalysisInterpretationTableId ||
     !fertilizerSourceOption
   ) {
     return {
@@ -165,11 +164,13 @@ export function validateRecommendationGeneration({
     };
   }
 
+  const hasFoliarInterpretationTable = isFilledNumericId(cropFoliarAnalysisInterpretationTableId);
+
   if (
     !isRecommendationType(recommendationType) ||
     !isRecommendationTableGroup(cropFertilizationTableGroup) ||
     !isRecommendationTableGroup(soilFertilityInterpretationTableGroup) ||
-    !isRecommendationTableGroup(cropFoliarAnalysisInterpretationTableGroup) ||
+    (hasFoliarInterpretationTable && !isRecommendationTableGroup(cropFoliarAnalysisInterpretationTableGroup)) ||
     !isFertilizerSourceOption(fertilizerSourceOption)
   ) {
     return {
@@ -220,7 +221,9 @@ export function validateRecommendationGeneration({
     recommendationType,
     cropFertilizationTableGroup,
     soilFertilityInterpretationTableGroup,
-    cropFoliarAnalysisInterpretationTableGroup,
+    cropFoliarAnalysisInterpretationTableGroup: hasFoliarInterpretationTable
+      ? cropFoliarAnalysisInterpretationTableGroup as RecommendationTableGroup
+      : null,
     fertilizerSourceOption: normalizeFertilizerSourceOption(fertilizerSourceOption),
     texturalClassification: normalizeTexturalClassification(texturalClassification),
   };

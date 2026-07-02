@@ -368,7 +368,7 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   cropId: number;
   cropFertilizationTableId: number;
   soilFertilityInterpretationTableId: number;
-  cropFoliarAnalysisInterpretationTableId: number;
+  cropFoliarAnalysisInterpretationTableId: number | null;
   id_propriedade: number;
   id_talhao: number;
   id_analise_fisica: number;
@@ -378,10 +378,10 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   id_cultura: number;
   id_tabela_adubacao_cultura: number;
   id_tabela_interpretacao_fertilidade_solo: number;
-  id_tabela_interpretacao_analise_foliar: number;
+  id_tabela_interpretacao_analise_foliar: number | null;
   cropFertilizationTableGroup: RecommendationTableGroup;
   soilFertilityInterpretationCriteriaTableGroup: RecommendationTableGroup;
-  cropFoliarAnalysisInterpretationTableGroup: RecommendationTableGroup;
+  cropFoliarAnalysisInterpretationTableGroup: RecommendationTableGroup | null;
   criterio_calagem?: RecommendationLimingCriteria | null;
   classificacao_textural: RecommendationTexturalClassification;
   origem_adubos: FertilizerSourceOption;
