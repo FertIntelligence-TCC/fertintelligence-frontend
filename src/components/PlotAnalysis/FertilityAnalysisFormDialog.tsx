@@ -627,12 +627,6 @@ export const FertilityAnalysisFormDialog = ({
                                                 <Field label="m%" value={formatBackendCalculatedValue(ext.saturacaoAluminioM, "%")} readOnly />
                                                 <Field label="PST (%)" value={formatBackendCalculatedValue(ext.pst, "%")} readOnly />
                                             </Grid>
-                                            {!isReadOnly && (
-                                                <Text color="orange.600" fontSize="xs" mb={4}>
-                                                    Aviso técnico: SB, CTC(t), V%, m% e PST são calculados pelo backend após salvar; saturações da CTC(T) e relações são pré-visualizadas localmente.
-                                                </Text>
-                                            )}
-
                                             <SectionHeader title="Saturação do Complexo de Troca ou CTC(T)" colorPalette="orange" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
                                                 <Field label="%K (%)" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.saturacaoPotassioCtc, ext.saturacaoPotassioCtc, "%")} readOnly />
