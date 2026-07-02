@@ -96,6 +96,63 @@ const formatBackendCalculatedValue = (value?: number | null, suffix = "") => {
     })}${suffix}`;
 };
 
+const fieldsThatRefreshCalculatedPreview = new Set<keyof FertilityExtractFormData>([
+    "potassio",
+    "sodio",
+    "calcio",
+    "magnesio",
+    "aluminio",
+    "aluminioMaisHidrogenio",
+    "ctcPh7",
+]);
+
+const toFiniteNumber = (value: unknown): number | null => {
+    const numericValue = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numericValue) ? numericValue : null;
+};
+
+const divideOrNull = (dividend: number | null, divisor: number | null) => {
+    if (dividend === null || divisor === null || divisor === 0) return null;
+
+    const result = dividend / divisor;
+    return Number.isFinite(result) ? result : null;
+};
+
+const percentageOfCtcOrNull = (value: number | null, ctcPh7: number | null) => {
+    const ratio = divideOrNull(value, ctcPh7);
+    return ratio === null ? null : ratio * 100;
+};
+
+const recalculateCalculatedPreview = (extract: FertilityExtractFormData): FertilityExtractFormData => {
+    const potassio = toFiniteNumber(extract.potassio);
+    const sodio = toFiniteNumber(extract.sodio);
+    const calcio = toFiniteNumber(extract.calcio);
+    const magnesio = toFiniteNumber(extract.magnesio);
+    const aluminio = toFiniteNumber(extract.aluminio);
+    const aluminioMaisHidrogenio = toFiniteNumber(extract.aluminioMaisHidrogenio);
+    const ctcPh7 = toFiniteNumber(extract.ctcPh7);
+    const hidrogenio = aluminioMaisHidrogenio !== null && aluminio !== null
+        ? aluminioMaisHidrogenio - aluminio
+        : null;
+
+    return {
+        ...extract,
+        saturacaoPotassioCtc: percentageOfCtcOrNull(potassio, ctcPh7),
+        saturacaoSodioCtc: percentageOfCtcOrNull(sodio, ctcPh7),
+        saturacaoCalcioCtc: percentageOfCtcOrNull(calcio, ctcPh7),
+        saturacaoMagnesioCtc: percentageOfCtcOrNull(magnesio, ctcPh7),
+        saturacaoHidrogenioCtc: percentageOfCtcOrNull(hidrogenio, ctcPh7),
+        saturacaoAluminioCtc: percentageOfCtcOrNull(aluminio, ctcPh7),
+        relacaoCalcioMagnesio: divideOrNull(calcio, magnesio),
+        relacaoCalcioPotassio: divideOrNull(calcio, potassio),
+        relacaoMagnesioPotassio: divideOrNull(magnesio, potassio),
+        relacaoCalcioMagnesioPotassio: divideOrNull(
+            calcio !== null && magnesio !== null ? calcio + magnesio : null,
+            potassio
+        ),
+    };
+};
+
 interface Props {
     isOpen: boolean;
     onClose: () => void;
@@ -186,7 +243,14 @@ export const FertilityAnalysisFormDialog = ({
     };
 
     const handleChangeExtract = (tempId: string, field: keyof FertilityExtractFormData, value: any) => {
-        const updated = extracts.map(e => e.tempId === tempId ? { ...e, [field]: value } : e);
+        const updated = extracts.map(e => {
+            if (e.tempId !== tempId) return e;
+
+            const changedExtract = { ...e, [field]: value };
+            return fieldsThatRefreshCalculatedPreview.has(field)
+                ? recalculateCalculatedPreview(changedExtract)
+                : changedExtract;
+        });
         if (mode === 'LAYER' && field === 'camada') {
             recalculateSubLayers(updated);
         } else {
