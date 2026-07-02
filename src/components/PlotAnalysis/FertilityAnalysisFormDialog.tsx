@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     DialogRoot,
     DialogContent,
@@ -85,6 +85,20 @@ const camadaCollection = createListCollection({
 
 const NOT_CALCULATED_LABEL = "Não calculado";
 
+type RuntimeFertilityDerivedValues = Pick<
+    FertilityExtractFormData,
+    | "saturacaoPotassioCtc"
+    | "saturacaoSodioCtc"
+    | "saturacaoCalcioCtc"
+    | "saturacaoMagnesioCtc"
+    | "saturacaoHidrogenioCtc"
+    | "saturacaoAluminioCtc"
+    | "relacaoCalcioMagnesio"
+    | "relacaoCalcioPotassio"
+    | "relacaoMagnesioPotassio"
+    | "relacaoCalcioMagnesioPotassio"
+>;
+
 const formatBackendCalculatedValue = (value?: number | null, suffix = "") => {
     if (value === undefined || value === null) return NOT_CALCULATED_LABEL;
 
@@ -96,20 +110,16 @@ const formatBackendCalculatedValue = (value?: number | null, suffix = "") => {
     })}${suffix}`;
 };
 
-const fieldsThatRefreshCalculatedPreview = new Set<keyof FertilityExtractFormData>([
-    "potassio",
-    "sodio",
-    "calcio",
-    "magnesio",
-    "aluminio",
-    "aluminioMaisHidrogenio",
-    "ctcPh7",
-]);
+const parseDecimalInputOrNull = (value: unknown): number | null => {
+    if (value === undefined || value === null) return null;
+    if (typeof value === "string" && value.trim() === "") return null;
 
-const toFiniteNumber = (value: unknown): number | null => {
-    const numericValue = typeof value === "number" ? value : Number(value);
+    const normalizedValue = typeof value === "string" ? value.trim().replace(",", ".") : value;
+    const numericValue = typeof normalizedValue === "number" ? normalizedValue : Number(normalizedValue);
     return Number.isFinite(numericValue) ? numericValue : null;
 };
+
+const numberForPayload = (value: unknown) => parseDecimalInputOrNull(value) ?? 0;
 
 const divideOrNull = (dividend: number | null, divisor: number | null) => {
     if (dividend === null || divisor === null || divisor === 0) return null;
@@ -123,20 +133,19 @@ const percentageOfCtcOrNull = (value: number | null, ctcPh7: number | null) => {
     return ratio === null ? null : ratio * 100;
 };
 
-const recalculateCalculatedPreview = (extract: FertilityExtractFormData): FertilityExtractFormData => {
-    const potassio = toFiniteNumber(extract.potassio);
-    const sodio = toFiniteNumber(extract.sodio);
-    const calcio = toFiniteNumber(extract.calcio);
-    const magnesio = toFiniteNumber(extract.magnesio);
-    const aluminio = toFiniteNumber(extract.aluminio);
-    const aluminioMaisHidrogenio = toFiniteNumber(extract.aluminioMaisHidrogenio);
-    const ctcPh7 = toFiniteNumber(extract.ctcPh7);
+const calculateRuntimeFertilityDerivedValues = (formState: FertilityExtractFormData): RuntimeFertilityDerivedValues => {
+    const potassio = parseDecimalInputOrNull(formState.potassio);
+    const sodio = parseDecimalInputOrNull(formState.sodio);
+    const calcio = parseDecimalInputOrNull(formState.calcio);
+    const magnesio = parseDecimalInputOrNull(formState.magnesio);
+    const aluminio = parseDecimalInputOrNull(formState.aluminio);
+    const aluminioMaisHidrogenio = parseDecimalInputOrNull(formState.aluminioMaisHidrogenio);
+    const ctcPh7 = parseDecimalInputOrNull(formState.ctcPh7);
     const hidrogenio = aluminioMaisHidrogenio !== null && aluminio !== null
         ? aluminioMaisHidrogenio - aluminio
         : null;
 
     return {
-        ...extract,
         saturacaoPotassioCtc: percentageOfCtcOrNull(potassio, ctcPh7),
         saturacaoSodioCtc: percentageOfCtcOrNull(sodio, ctcPh7),
         saturacaoCalcioCtc: percentageOfCtcOrNull(calcio, ctcPh7),
@@ -152,6 +161,17 @@ const recalculateCalculatedPreview = (extract: FertilityExtractFormData): Fertil
         ),
     };
 };
+
+const formatEditableNumericValue = (value: unknown) => {
+    const numericValue = parseDecimalInputOrNull(value);
+    return numericValue === null ? "" : String(value);
+};
+
+const formatCalculatedValueWithRuntimeFallback = (
+    runtimeValue: number | null | undefined,
+    backendValue: number | null | undefined,
+    suffix = ""
+) => formatBackendCalculatedValue(runtimeValue ?? backendValue, suffix);
 
 interface Props {
     isOpen: boolean;
@@ -182,11 +202,35 @@ export const FertilityAnalysisFormDialog = ({
     const [itemsToDelete, setItemsToDelete] = useState<ItemToDelete[]>([]);
     
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [numericDrafts, setNumericDrafts] = useState<Record<string, string>>({});
+
+    const runtimeFertilityBaseSignature = extracts
+        .map((extract) => [
+            extract.tempId,
+            extract.potassio,
+            extract.sodio,
+            extract.calcio,
+            extract.magnesio,
+            extract.aluminio,
+            extract.aluminioMaisHidrogenio,
+            extract.ctcPh7,
+        ].join(":"))
+        .join("|");
+
+    const runtimeDerivedValuesByTempId = useMemo(() => {
+        return new Map(
+            extracts.map((extract) => [
+                extract.tempId,
+                calculateRuntimeFertilityDerivedValues(extract),
+            ])
+        );
+    }, [runtimeFertilityBaseSignature]);
 
     // Efeito de Inicialização
     useEffect(() => {
         if (isOpen) {
             setItemsToDelete([]); // Limpa lista de exclusão
+            setNumericDrafts({});
 
             if (initialData) {
                 // --- MODO EDIÇÃO / VISUALIZAÇÃO ---
@@ -243,19 +287,39 @@ export const FertilityAnalysisFormDialog = ({
     };
 
     const handleChangeExtract = (tempId: string, field: keyof FertilityExtractFormData, value: any) => {
-        const updated = extracts.map(e => {
-            if (e.tempId !== tempId) return e;
-
-            const changedExtract = { ...e, [field]: value };
-            return fieldsThatRefreshCalculatedPreview.has(field)
-                ? recalculateCalculatedPreview(changedExtract)
-                : changedExtract;
-        });
+        const updated = extracts.map(e => e.tempId === tempId ? { ...e, [field]: value } : e);
         if (mode === 'LAYER' && field === 'camada') {
             recalculateSubLayers(updated);
         } else {
             setExtracts(updated);
         }
+    };
+
+    const NumericField = ({ extract, field, label }: { extract: FertilityExtractFormData, field: keyof FertilityExtractFormData, label: string }) => {
+        const draftKey = `${extract.tempId}:${String(field)}`;
+        const displayValue = numericDrafts[draftKey] ?? formatEditableNumericValue(extract[field]);
+
+        return (
+            <Field
+                label={label}
+                type="text"
+                inputMode="decimal"
+                value={displayValue}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    setNumericDrafts((prev) => ({ ...prev, [draftKey]: value }));
+                    handleChangeExtract(extract.tempId, field, value);
+                }}
+                onBlur={() => {
+                    setNumericDrafts((prev) => {
+                        const next = { ...prev };
+                        delete next[draftKey];
+                        return next;
+                    });
+                }}
+                readOnly={isReadOnly}
+            />
+        );
     };
 
     const recalculateSubLayers = (list: FertilityExtractFormData[]) => {
@@ -351,23 +415,23 @@ export const FertilityAnalysisFormDialog = ({
             for (const ext of extracts) {
                 // Mapeamento dos campos para DTO
                 const payloadQuimico = {
-                    ph_agua: ext.phAgua, 
-                    ph_cacl2: ext.phCacl2, 
-                    calcio: ext.calcio, 
-                    magnesio: ext.magnesio, 
-                    potassio: ext.potassio, 
-                    sodio: ext.sodio,
-                    aluminio: ext.aluminio, 
-                    aluminio_mais_hidrogenio: ext.aluminioMaisHidrogenio, 
-                    fosforo_mehlich1: ext.fosforoMehlich1, 
-                    fosforo_resina: ext.fosforoResina, 
-                    enxofre: ext.enxofre, 
-                    materia_organica: ext.materiaOrganica, 
-                    boro: ext.boro, 
-                    cobre: ext.cobre, 
-                    ferro: ext.ferro, 
-                    manganes: ext.manganes, 
-                    zinco: ext.zinco
+                    ph_agua: numberForPayload(ext.phAgua), 
+                    ph_cacl2: numberForPayload(ext.phCacl2), 
+                    calcio: numberForPayload(ext.calcio), 
+                    magnesio: numberForPayload(ext.magnesio), 
+                    potassio: numberForPayload(ext.potassio), 
+                    sodio: numberForPayload(ext.sodio),
+                    aluminio: numberForPayload(ext.aluminio), 
+                    aluminio_mais_hidrogenio: numberForPayload(ext.aluminioMaisHidrogenio), 
+                    fosforo_mehlich1: numberForPayload(ext.fosforoMehlich1), 
+                    fosforo_resina: numberForPayload(ext.fosforoResina), 
+                    enxofre: numberForPayload(ext.enxofre), 
+                    materia_organica: numberForPayload(ext.materiaOrganica), 
+                    boro: numberForPayload(ext.boro), 
+                    cobre: numberForPayload(ext.cobre), 
+                    ferro: numberForPayload(ext.ferro), 
+                    manganes: numberForPayload(ext.manganes), 
+                    zinco: numberForPayload(ext.zinco)
                 };
 
                 if (ext.databaseId) {
@@ -388,15 +452,15 @@ export const FertilityAnalysisFormDialog = ({
                     if (ext.containerId) {
                         if (mode === 'LAYER') {
                             await layerExtractService.update(ext.containerId, {
-                                nova_profundidade_inicial: ext.profundidadeInicial,
-                                nova_profundidade_final: ext.profundidadeFinal,
+                                nova_profundidade_inicial: numberForPayload(ext.profundidadeInicial),
+                                nova_profundidade_final: numberForPayload(ext.profundidadeFinal),
                                 nova_camada: ext.camada,
                                 nova_subcamada: ext.subcamada
                             });
                         } else {
                             await rangeExtractService.update(ext.containerId, {
-                                nova_profundidade_inicial: ext.profundidadeInicial,
-                                nova_profundidade_final: ext.profundidadeFinal
+                                nova_profundidade_inicial: numberForPayload(ext.profundidadeInicial),
+                                nova_profundidade_final: numberForPayload(ext.profundidadeFinal)
                             });
                         }
                     }
@@ -407,16 +471,16 @@ export const FertilityAnalysisFormDialog = ({
                     
                     if (mode === 'LAYER') {
                         const res = await layerExtractService.create(analysisId, {
-                            profundidade_inicial: ext.profundidadeInicial, 
-                            profundidade_final: ext.profundidadeFinal,
+                            profundidade_inicial: numberForPayload(ext.profundidadeInicial), 
+                            profundidade_final: numberForPayload(ext.profundidadeFinal),
                             camada: ext.camada!, 
                             subcamada: ext.subcamada || 1
                         });
                         extractId = res.id;
                     } else {
                         const res = await rangeExtractService.create(analysisId, {
-                            profundidade_inicial: ext.profundidadeInicial, 
-                            profundidade_final: ext.profundidadeFinal
+                            profundidade_inicial: numberForPayload(ext.profundidadeInicial), 
+                            profundidade_final: numberForPayload(ext.profundidadeFinal)
                         });
                         extractId = res.id;
                     }
@@ -498,6 +562,7 @@ export const FertilityAnalysisFormDialog = ({
                                 </Flex>
                                 <VStack gap={4} align="stretch">
                                     {extracts.map((ext, idx) => {
+                                        const runtimeDerivedValues = runtimeDerivedValuesByTempId.get(ext.tempId);
                                         return (
                                         <Box key={ext.tempId} p={5} borderWidth="1px" borderColor="gray.300" _dark={{ bg: "gray.800", borderColor: "gray.600" }} borderRadius="lg" bg="white" shadow="sm">
                                             <Flex justify="space-between" mb={4} align="center">
@@ -533,72 +598,72 @@ export const FertilityAnalysisFormDialog = ({
                                                         </SelectRoot>
                                                     </Box>
                                                 )}
-                                                <Box gridColumn="span 2"><Field label="Prof. Inicial (cm)" type="number" value={ext.profundidadeInicial} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeInicial', parseFloat(e.target.value))} readOnly={isReadOnly} /></Box>
-                                                <Box gridColumn="span 2"><Field label="Prof. Final (cm)" type="number" value={ext.profundidadeFinal} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeFinal', parseFloat(e.target.value))} readOnly={isReadOnly} /></Box>
+                                                <Box gridColumn="span 2"><NumericField label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
+                                                <Box gridColumn="span 2"><NumericField label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
                                             </Grid>
 
                                             <SectionHeader title="Acidez & Alumínio" colorPalette="red" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="pH H₂O" type="number" value={ext.phAgua} onChange={e => handleChangeExtract(ext.tempId, 'phAgua', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="pH CaCl₂" type="number" value={ext.phCacl2} onChange={e => handleChangeExtract(ext.tempId, 'phCacl2', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Al3+ (mmolc/dm³)" type="number" value={ext.aluminio} onChange={e => handleChangeExtract(ext.tempId, 'aluminio', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="H+Al (mmolc/dm³)" type="number" value={ext.aluminioMaisHidrogenio} onChange={e => handleChangeExtract(ext.tempId, 'aluminioMaisHidrogenio', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField label="pH H₂O" extract={ext} field="phAgua" />
+                                                <NumericField label="pH CaCl₂" extract={ext} field="phCacl2" />
+                                                <NumericField label="Al3+ (mmolc/dm³)" extract={ext} field="aluminio" />
+                                                <NumericField label="H+Al (mmolc/dm³)" extract={ext} field="aluminioMaisHidrogenio" />
                                             </Grid>
 
                                             <SectionHeader title="Bases Trocáveis" colorPalette="blue" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Ca2+ (mmolc/dm³)" type="number" value={ext.calcio} onChange={e => handleChangeExtract(ext.tempId, 'calcio', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Mg2+ (mmolc/dm³)" type="number" value={ext.magnesio} onChange={e => handleChangeExtract(ext.tempId, 'magnesio', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="K+ (mmolc/dm³)" type="number" value={ext.potassio} onChange={e => handleChangeExtract(ext.tempId, 'potassio', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Na+ (mmolc/dm³)" type="number" value={ext.sodio} onChange={e => handleChangeExtract(ext.tempId, 'sodio', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField label="Ca2+ (mmolc/dm³)" extract={ext} field="calcio" />
+                                                <NumericField label="Mg2+ (mmolc/dm³)" extract={ext} field="magnesio" />
+                                                <NumericField label="K+ (mmolc/dm³)" extract={ext} field="potassio" />
+                                                <NumericField label="Na+ (mmolc/dm³)" extract={ext} field="sodio" />
                                             </Grid>
 
                                             <SectionHeader title="Complexo de Troca" colorPalette="purple" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
                                                 <Field label="SB (mmolc/dm³)" value={formatBackendCalculatedValue(ext.somaBases)} readOnly />
                                                 <Field label="CTC(t) (mmolc/dm³)" value={formatBackendCalculatedValue(ext.ctcEfetiva)} readOnly />
-                                                <Field label="CTC(T) (mmolc/dm³)" value={formatBackendCalculatedValue(ext.ctcPh7)} readOnly />
+                                                <NumericField label="CTC(T) (mmolc/dm³)" extract={ext} field="ctcPh7" />
                                                 <Field label="V%" value={formatBackendCalculatedValue(ext.saturacaoBasesV, "%")} readOnly />
                                                 <Field label="m%" value={formatBackendCalculatedValue(ext.saturacaoAluminioM, "%")} readOnly />
                                                 <Field label="PST (%)" value={formatBackendCalculatedValue(ext.pst, "%")} readOnly />
                                             </Grid>
                                             {!isReadOnly && (
                                                 <Text color="orange.600" fontSize="xs" mb={4}>
-                                                    Aviso técnico: complexo de troca, saturações e PST são calculados pelo backend após salvar.
+                                                    Aviso técnico: SB, CTC(t), V%, m% e PST são calculados pelo backend após salvar; saturações da CTC(T) e relações são pré-visualizadas localmente.
                                                 </Text>
                                             )}
 
                                             <SectionHeader title="Saturação do Complexo de Troca ou CTC(T)" colorPalette="orange" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
-                                                <Field label="%K (%)" value={formatBackendCalculatedValue(ext.saturacaoPotassioCtc, "%")} readOnly />
-                                                <Field label="%Na (%)" value={formatBackendCalculatedValue(ext.saturacaoSodioCtc, "%")} readOnly />
-                                                <Field label="%Ca (%)" value={formatBackendCalculatedValue(ext.saturacaoCalcioCtc, "%")} readOnly />
-                                                <Field label="%Mg (%)" value={formatBackendCalculatedValue(ext.saturacaoMagnesioCtc, "%")} readOnly />
-                                                <Field label="%H (%)" value={formatBackendCalculatedValue(ext.saturacaoHidrogenioCtc, "%")} readOnly />
-                                                <Field label="%Al (%)" value={formatBackendCalculatedValue(ext.saturacaoAluminioCtc, "%")} readOnly />
+                                                <Field label="%K (%)" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.saturacaoPotassioCtc, ext.saturacaoPotassioCtc, "%")} readOnly />
+                                                <Field label="%Na (%)" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.saturacaoSodioCtc, ext.saturacaoSodioCtc, "%")} readOnly />
+                                                <Field label="%Ca (%)" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.saturacaoCalcioCtc, ext.saturacaoCalcioCtc, "%")} readOnly />
+                                                <Field label="%Mg (%)" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.saturacaoMagnesioCtc, ext.saturacaoMagnesioCtc, "%")} readOnly />
+                                                <Field label="%H (%)" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.saturacaoHidrogenioCtc, ext.saturacaoHidrogenioCtc, "%")} readOnly />
+                                                <Field label="%Al (%)" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.saturacaoAluminioCtc, ext.saturacaoAluminioCtc, "%")} readOnly />
                                             </Grid>
 
                                             <SectionHeader title="Relações entre Cátions Básicos" colorPalette="cyan" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Ca/Mg" value={formatBackendCalculatedValue(ext.relacaoCalcioMagnesio)} readOnly />
-                                                <Field label="Ca/K" value={formatBackendCalculatedValue(ext.relacaoCalcioPotassio)} readOnly />
-                                                <Field label="Mg/K" value={formatBackendCalculatedValue(ext.relacaoMagnesioPotassio)} readOnly />
-                                                <Field label="(Ca + Mg)/K" value={formatBackendCalculatedValue(ext.relacaoCalcioMagnesioPotassio)} readOnly />
+                                                <Field label="Ca/Mg" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.relacaoCalcioMagnesio, ext.relacaoCalcioMagnesio)} readOnly />
+                                                <Field label="Ca/K" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.relacaoCalcioPotassio, ext.relacaoCalcioPotassio)} readOnly />
+                                                <Field label="Mg/K" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.relacaoMagnesioPotassio, ext.relacaoMagnesioPotassio)} readOnly />
+                                                <Field label="(Ca + Mg)/K" value={formatCalculatedValueWithRuntimeFallback(runtimeDerivedValues?.relacaoCalcioMagnesioPotassio, ext.relacaoCalcioMagnesioPotassio)} readOnly />
                                             </Grid>
 
                                             <SectionHeader title="Micronutrientes e Outros" colorPalette="green" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="P (Meh) (mg/dm³)" type="number" value={ext.fosforoMehlich1} onChange={e => handleChangeExtract(ext.tempId, 'fosforoMehlich1', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="P (Res) (mg/dm³)" type="number" value={ext.fosforoResina} onChange={e => handleChangeExtract(ext.tempId, 'fosforoResina', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="S (mg/dm³)" type="number" value={ext.enxofre} onChange={e => handleChangeExtract(ext.tempId, 'enxofre', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Matéria Orgânica (g/dm³)" type="number" value={ext.materiaOrganica} onChange={e => handleChangeExtract(ext.tempId, 'materiaOrganica', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField label="P (Meh) (mg/dm³)" extract={ext} field="fosforoMehlich1" />
+                                                <NumericField label="P (Res) (mg/dm³)" extract={ext} field="fosforoResina" />
+                                                <NumericField label="S (mg/dm³)" extract={ext} field="enxofre" />
+                                                <NumericField label="Matéria Orgânica (g/dm³)" extract={ext} field="materiaOrganica" />
                                             </Grid>
                                             <Grid templateColumns="repeat(5, 1fr)" gap={4}>
-                                                <Field label="Boro (mg/dm³)" type="number" value={ext.boro} onChange={e => handleChangeExtract(ext.tempId, 'boro', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Cobre (mg/dm³)" type="number" value={ext.cobre} onChange={e => handleChangeExtract(ext.tempId, 'cobre', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Ferro (mg/dm³)" type="number" value={ext.ferro} onChange={e => handleChangeExtract(ext.tempId, 'ferro', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Manganês (mg/dm³)" type="number" value={ext.manganes} onChange={e => handleChangeExtract(ext.tempId, 'manganes', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Zinco (mg/dm³)" type="number" value={ext.zinco} onChange={e => handleChangeExtract(ext.tempId, 'zinco', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField label="Boro (mg/dm³)" extract={ext} field="boro" />
+                                                <NumericField label="Cobre (mg/dm³)" extract={ext} field="cobre" />
+                                                <NumericField label="Ferro (mg/dm³)" extract={ext} field="ferro" />
+                                                <NumericField label="Manganês (mg/dm³)" extract={ext} field="manganes" />
+                                                <NumericField label="Zinco (mg/dm³)" extract={ext} field="zinco" />
                                             </Grid>
                                         </Box>
                                         );
