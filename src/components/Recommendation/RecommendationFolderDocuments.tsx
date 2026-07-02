@@ -450,12 +450,6 @@ export default function RecommendationFolderDocuments({
         : undefined;
   const handleFullscreenOpenChange = (open: boolean) => {
     onFullscreenOpenChange(open);
-
-    if (!open) {
-      window.requestAnimationFrame(() => {
-        fullscreenTriggerRef.current?.focus();
-      });
-    }
   };
 
   return (
@@ -546,93 +540,95 @@ export default function RecommendationFolderDocuments({
         )}
       </Box>
 
-      <DialogRoot
-        open={isFullscreenOpen}
-        onOpenChange={(event) => handleFullscreenOpenChange(event.open)}
-        lazyMount
-        unmountOnExit
-        finalFocusEl={() => fullscreenTriggerRef.current}
-        size="cover"
-        placement="center"
-      >
-        <DialogContent w="85vw" maxW="85vw" h="85vh">
-          <DialogHeader>
-            <DialogTitle>{selectedDocument?.title ?? "Documento da recomendação"}</DialogTitle>
-          </DialogHeader>
-          <DialogBody overflow="hidden" pb={4}>
-            <Box
-              fontSize="sm"
-              borderWidth="1px"
-              borderRadius="md"
-              p={4}
-              h="100%"
-              overflowY="auto"
-              overflowX="auto"
-            >
-              {selectedDocument?.status === "generated" ? (
-                <VStack align="stretch" gap={4}>
-                  {fullscreenDisplayDocumentContent.trim() &&
-                  !(selectedDocument.key === "shopping" &&
-                    hasStructuredRecommendationContent(shoppingListDocument)) ? (
-                    <RecommendationReportViewer
-                      reportText={fullscreenDisplayDocumentContent}
-                      sectionExtras={fullscreenReportSectionExtras}
-                    />
-                  ) : null}
-                  {fullscreenDocumentTechnicalWarnings.map((warning) => (
-                    <Box
-                      key={warning}
-                      borderWidth="1px"
-                      borderColor="orange.200"
-                      bg="orange.50"
-                      p={3}
-                      borderRadius="md"
-                    >
-                      <Text color="orange.700" fontSize="sm" fontWeight="semibold">
-                        Aviso técnico
-                      </Text>
-                      <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
-                        {warning}
-                      </Text>
-                    </Box>
-                  ))}
-                  {selectedDocument.key === "summary" &&
-                  hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (
-                    <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
-                  ) : null}
-                  {selectedDocument.key === "direct" &&
-                  hasDirectNpkFertilizerRows(directRecommendationDocument) ? (
-                    <RecommendationStructuredFertilizerTables
-                      document={directRecommendationDocument}
-                      technicalWarnings={fullscreenDocumentTechnicalWarnings}
-                    />
-                  ) : null}
-                  {selectedDocument.key === "direct" &&
-                  getDirectFertilizationObservations(directRecommendationDocument) ? (
-                    <VStack align="stretch" gap={2}>
-                      <Heading size="sm">Observações sobre adubação</Heading>
+      {isFullscreenOpen ? (
+        <DialogRoot
+          open={isFullscreenOpen}
+          onOpenChange={(event) => handleFullscreenOpenChange(event.open)}
+          lazyMount
+          unmountOnExit
+          finalFocusEl={() => fullscreenTriggerRef.current}
+          size="cover"
+          placement="center"
+        >
+          <DialogContent w="85vw" maxW="85vw" h="85vh">
+            <DialogHeader>
+              <DialogTitle>{selectedDocument?.title ?? "Documento da recomendação"}</DialogTitle>
+            </DialogHeader>
+            <DialogBody overflow="hidden" pb={4}>
+              <Box
+                fontSize="sm"
+                borderWidth="1px"
+                borderRadius="md"
+                p={4}
+                h="100%"
+                overflowY="auto"
+                overflowX="auto"
+              >
+                {selectedDocument?.status === "generated" ? (
+                  <VStack align="stretch" gap={4}>
+                    {fullscreenDisplayDocumentContent.trim() &&
+                    !(selectedDocument.key === "shopping" &&
+                      hasStructuredRecommendationContent(shoppingListDocument)) ? (
                       <RecommendationReportViewer
-                        reportText={getDirectFertilizationObservations(directRecommendationDocument)}
+                        reportText={fullscreenDisplayDocumentContent}
+                        sectionExtras={fullscreenReportSectionExtras}
                       />
-                    </VStack>
-                  ) : null}
-                  {selectedDocument.key === "shopping" &&
-                  hasStructuredRecommendationContent(shoppingListDocument) ? (
-                    <RecommendationStructuredFertilizerTables
-                      document={shoppingListDocument}
-                      showShoppingListHeader
-                      technicalWarnings={fullscreenDocumentTechnicalWarnings}
-                    />
-                  ) : null}
-                </VStack>
-              ) : (
-                <Text color="fg.muted">Documento ainda não gerado para esta pasta.</Text>
-              )}
-            </Box>
-          </DialogBody>
-          <DialogCloseTrigger />
-        </DialogContent>
-      </DialogRoot>
+                    ) : null}
+                    {fullscreenDocumentTechnicalWarnings.map((warning) => (
+                      <Box
+                        key={warning}
+                        borderWidth="1px"
+                        borderColor="orange.200"
+                        bg="orange.50"
+                        p={3}
+                        borderRadius="md"
+                      >
+                        <Text color="orange.700" fontSize="sm" fontWeight="semibold">
+                          Aviso técnico
+                        </Text>
+                        <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
+                          {warning}
+                        </Text>
+                      </Box>
+                    ))}
+                    {selectedDocument.key === "summary" &&
+                    hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (
+                      <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
+                    ) : null}
+                    {selectedDocument.key === "direct" &&
+                    hasDirectNpkFertilizerRows(directRecommendationDocument) ? (
+                      <RecommendationStructuredFertilizerTables
+                        document={directRecommendationDocument}
+                        technicalWarnings={fullscreenDocumentTechnicalWarnings}
+                      />
+                    ) : null}
+                    {selectedDocument.key === "direct" &&
+                    getDirectFertilizationObservations(directRecommendationDocument) ? (
+                      <VStack align="stretch" gap={2}>
+                        <Heading size="sm">Observações sobre adubação</Heading>
+                        <RecommendationReportViewer
+                          reportText={getDirectFertilizationObservations(directRecommendationDocument)}
+                        />
+                      </VStack>
+                    ) : null}
+                    {selectedDocument.key === "shopping" &&
+                    hasStructuredRecommendationContent(shoppingListDocument) ? (
+                      <RecommendationStructuredFertilizerTables
+                        document={shoppingListDocument}
+                        showShoppingListHeader
+                        technicalWarnings={fullscreenDocumentTechnicalWarnings}
+                      />
+                    ) : null}
+                  </VStack>
+                ) : (
+                  <Text color="fg.muted">Documento ainda não gerado para esta pasta.</Text>
+                )}
+              </Box>
+            </DialogBody>
+            <DialogCloseTrigger onClick={() => handleFullscreenOpenChange(false)} />
+          </DialogContent>
+        </DialogRoot>
+      ) : null}
     </>
   );
 }

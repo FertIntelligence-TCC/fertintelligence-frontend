@@ -440,6 +440,44 @@ export default function Recommendation() {
   const [limingCriterionPreview, setLimingCriterionPreview] =
     useState<LimingCriterionPreview>(defaultLimingCriterionPreview);
 
+  const restorePageInteractionStyles = useCallback(() => {
+	if (typeof document === "undefined") return;
+
+	document.body.style.overflow = "";
+	document.body.style.pointerEvents = "";
+	document.documentElement.style.overflow = "";
+  }, []);
+
+  const closeFullscreenRecommendation = useCallback(() => {
+	setIsFullscreenOpen(false);
+	setSelectedDocumentKey("general");
+	setLoadingDocumentKey(null);
+	restorePageInteractionStyles();
+  }, [restorePageInteractionStyles]);
+
+  const handleFullscreenOpenChange = useCallback(
+	(open: boolean) => {
+  	if (open) {
+    	setIsFullscreenOpen(true);
+    	return;
+  	}
+
+  	closeFullscreenRecommendation();
+	},
+	[closeFullscreenRecommendation],
+  );
+
+  useEffect(() => {
+	if (!isFullscreenOpen) {
+  	restorePageInteractionStyles();
+  	return undefined;
+	}
+
+	return () => {
+  	restorePageInteractionStyles();
+	};
+  }, [isFullscreenOpen, restorePageInteractionStyles]);
+
   const selectedProperty = useMemo(() => properties.find((p) => String(p.id) === selectedPropertyId), [properties, selectedPropertyId]);
   const selectedPlot = useMemo(() => plots.find((p) => String(p.id) === selectedPlotId), [plots, selectedPlotId]);
   const filteredCropFertilizationTables = useMemo(
@@ -1463,7 +1501,7 @@ export default function Recommendation() {
         	onCopyDocument={() => { void handleCopySelectedDocument(); }}
         	onImproveNarrative={handleImproveNarrative}
         	onPrintRecommendation={handlePrintRecommendation}
-        	onFullscreenOpenChange={setIsFullscreenOpen}
+        	onFullscreenOpenChange={handleFullscreenOpenChange}
       	/>
     	</SimpleGrid>
 
