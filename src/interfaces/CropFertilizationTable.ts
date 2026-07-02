@@ -219,6 +219,13 @@ export interface CropFertilizationTemporaryLimingCriterionRequest {
     plotId: number;
     physicalAnalysisId?: number | null;
     fertilityAnalysisId: number;
+    saturationExtractAnalysisId?: number | null;
+    id_propriedade?: number;
+    id_talhao?: number;
+    id_analise_fisica?: number | null;
+    id_analise_fertilidade?: number;
+    id_analise_extrato_saturacao?: number | null;
+    id_tabela_adubacao_cultura?: number;
 }
 
 export interface CropFertilizationTemporaryLimingCriterionResponse {
@@ -227,4 +234,10 @@ export interface CropFertilizationTemporaryLimingCriterionResponse {
     criterio_calagem_indicado?: string | null;
     criterio_de_calagem?: string | null;
     criterioCalagemIndicado?: string | null;
+    message?: string | null;
+    mensagem?: string | null;
+    mensagem_tecnica?: string | null;
+    mensagemTecnica?: string | null;
+    error?: string | null;
+    detail?: string | null;
 }

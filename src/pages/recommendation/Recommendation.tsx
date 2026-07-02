@@ -44,6 +44,7 @@ import { physicalAnalysisExtractService } from "@/services/physicalAnalysisExtra
 import { fertilityAnalysisExtractService } from "@/services/fertilityAnalysisExtractService";
 import { saturationExtractAnalysisExtractService } from "@/services/saturationExtractAnalysisExtractService";
 import {
+  calculateTemporaryLimingCriterion,
   fetchCropFertilizationTables,
   fetchDefaultCropFertilizationTables,
   fetchPublicCropFertilizationTables,
@@ -151,10 +152,49 @@ const adjustedLimingNeedFormatter = new Intl.NumberFormat("pt-BR", {
 const formatAdjustedLimingNeed = (value: number): string =>
   adjustedLimingNeedFormatter.format(value);
 
-const limingCriterionPreview: LimingCriterionPreview = {
+const defaultLimingCriterionPreview: LimingCriterionPreview = {
   criterionLabel: "Calculado pelo backend",
   limingNeed: null,
   warning: "O critério e a necessidade de calagem são definidos durante a geração, usando a análise completa selecionada.",
+};
+
+const limingCriterionLabels: Record<string, string> = {
+  SATURACAO_POR_BASES_TROCAVEIS: "SATURAÇÃO POR BASES TROCÁVEIS",
+  PORCENTAGEM_DE_SATURACAO_DAS_BASES: "SATURAÇÃO POR BASES TROCÁVEIS",
+  NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL: "Neutralização do Al trocável",
+  NEUTRALIZACAO_ALUMINIO_TROCAVEL: "Neutralização do Al trocável",
+  ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO: "Elevação dos teores de Ca + Mg",
+  ELEVACAO__DO_TEOR_DE_CALCIO_MAIS_MAGNESIO: "Elevação dos teores de Ca + Mg",
+  NEUTRALIZACAO_POR_ALUMINIO_TROCAVEL_MAIS_ELEVACAO_DO_TEOR_DE_CALCIO_MAIS_MAGNESIO:
+    "Neutralização por Al trocável + elevação de Ca + Mg",
+};
+
+const getLimingCriterionPreviewText = (value: unknown): string | null => {
+  if (!value) return null;
+  const text = String(value).trim();
+  return text ? limingCriterionLabels[text] ?? text : null;
+};
+
+const getApiErrorMessage = (error: unknown): string | null => {
+  if (!(error instanceof AxiosError)) return null;
+
+  const data = error.response?.data;
+  if (typeof data === "string") return data;
+  if (!data || typeof data !== "object") return null;
+
+  const record = data as Record<string, unknown>;
+  for (const field of ["message", "mensagem", "mensagem_tecnica", "mensagemTecnica", "error", "detail"]) {
+    const message = getLimingCriterionPreviewText(record[field]);
+    if (message) return message;
+  }
+
+  return null;
+};
+
+const toRequiredNumericId = (value: string): number | null => {
+  if (!value) return null;
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
 };
 
 const recommendationTypeOptions: { value: RecommendationType; label: string }[] = [
@@ -368,6 +408,8 @@ export default function Recommendation() {
   const [printing, setPrinting] = useState(false);
   const [improvingNarrative, setImprovingNarrative] = useState(false);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const [limingCriterionPreview, setLimingCriterionPreview] =
+    useState<LimingCriterionPreview>(defaultLimingCriterionPreview);
 
   const selectedProperty = useMemo(() => properties.find((p) => String(p.id) === selectedPropertyId), [properties, selectedPropertyId]);
   const selectedPlot = useMemo(() => plots.find((p) => String(p.id) === selectedPlotId), [plots, selectedPlotId]);
@@ -562,6 +604,101 @@ export default function Recommendation() {
 
 	void loadGreenFertilizers();
   }, [fertilizerSourceOption, useGreenFertilizer]);
+
+  useEffect(() => {
+	let isCurrent = true;
+
+	const requiredIds = {
+  	cropFertilizationTableId: toRequiredNumericId(cropFertilizationTableId),
+  	propertyId: toRequiredNumericId(selectedPropertyId),
+  	plotId: toRequiredNumericId(selectedPlotId),
+  	fertilityAnalysisId: toRequiredNumericId(fertilityAnalysisId),
+	};
+
+	const canResolveLimingCriterion = Object.values(requiredIds).every((id) => id !== null);
+
+	if (!canResolveLimingCriterion) {
+  	setLimingCriterionPreview(defaultLimingCriterionPreview);
+  	return () => { isCurrent = false; };
+	}
+
+	const physicalAnalysisNumber = physicalAnalysisId ? Number(physicalAnalysisId) : null;
+	const saturationExtractAnalysisNumber = saturationExtractAnalysisId ? Number(saturationExtractAnalysisId) : null;
+
+	setLimingCriterionPreview({
+  	criterionLabel: "Consultando backend...",
+  	limingNeed: null,
+  	warning: "O critério de calagem será resolvido pelo backend a partir das análises completas selecionadas.",
+	});
+
+	const loadLimingCriterionPreview = async () => {
+  	try {
+    	const response = await calculateTemporaryLimingCriterion({
+      	cropFertilizationTableId: requiredIds.cropFertilizationTableId as number,
+      	propertyId: requiredIds.propertyId as number,
+      	plotId: requiredIds.plotId as number,
+      	physicalAnalysisId: physicalAnalysisNumber,
+      	fertilityAnalysisId: requiredIds.fertilityAnalysisId as number,
+      	saturationExtractAnalysisId: saturationExtractAnalysisNumber,
+      	id_propriedade: requiredIds.propertyId as number,
+      	id_talhao: requiredIds.plotId as number,
+      	id_analise_fisica: physicalAnalysisNumber,
+      	id_analise_fertilidade: requiredIds.fertilityAnalysisId as number,
+      	id_analise_extrato_saturacao: saturationExtractAnalysisNumber,
+      	id_tabela_adubacao_cultura: requiredIds.cropFertilizationTableId as number,
+    	});
+
+    	if (!isCurrent) return;
+
+    	const criterionLabel = getLimingCriterionPreviewText(
+      	response.indicatedLimingCriterion ??
+      	response.criterio_de_calagem_indicado ??
+      	response.criterio_calagem_indicado ??
+      	response.criterioCalagemIndicado ??
+      	response.criterio_de_calagem
+    	);
+    	const backendMessage = getLimingCriterionPreviewText(
+      	response.message ??
+      	response.mensagem ??
+      	response.mensagem_tecnica ??
+      	response.mensagemTecnica ??
+      	response.error ??
+      	response.detail
+    	);
+
+    	setLimingCriterionPreview({
+      	criterionLabel: criterionLabel ?? backendMessage ?? "Critério não informado pelo backend",
+      	limingNeed: null,
+      	warning: criterionLabel
+        	? backendMessage ?? "Critério informado pelo backend para as análises completas selecionadas."
+        	: "O backend não retornou um critério válido para as análises completas selecionadas.",
+    	});
+  	} catch (error) {
+    	console.error(error);
+    	if (!isCurrent) return;
+
+    	const backendMessage = getApiErrorMessage(error);
+    	setLimingCriterionPreview({
+      	criterionLabel: backendMessage ?? "Critério não informado pelo backend",
+      	limingNeed: null,
+      	warning: backendMessage
+        	? "Mensagem retornada pelo backend ao resolver o critério temporário."
+        	: "Não foi possível consultar o backend para resolver o critério temporário.",
+    	});
+  	}
+	};
+
+	void loadLimingCriterionPreview();
+
+	return () => { isCurrent = false; };
+  }, [
+	cropFertilizationTableId,
+	fertilityAnalysisId,
+	physicalAnalysisId,
+	saturationExtractAnalysisId,
+	selectedPlotId,
+	selectedPropertyId,
+  ]);
 
   useEffect(() => {
 	const loadPlots = async () => {
