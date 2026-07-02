@@ -38,13 +38,6 @@ import { Camada } from "@/interfaces/LayerExtract";
 import { FertilityExtractFormData } from "@/interfaces/FertilityAnalysisFormTypes";
 import { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
 
-const calculatePstFallback = (sodio?: number | null, ctcPh7?: number | null): number => {
-    const na = Number(sodio ?? 0);
-    const ctc = Number(ctcPh7 ?? 0);
-    if (!Number.isFinite(na) || !Number.isFinite(ctc) || ctc === 0) return 0;
-    return Math.round((100 * na / ctc) * 10) / 10;
-};
-
 
 interface GroupedAnalysis {
     analysisId: number;
@@ -54,7 +47,10 @@ interface GroupedAnalysis {
     extracts: FertilityExtractFormData[]; 
 }
 
-const formatPstValue = (value?: number) => (value ?? 0).toFixed(1);
+const formatBackendCalculatedValue = (value?: number | null, suffix = "") => {
+    if (value === undefined || value === null) return "Não calculado";
+    return `${value}${suffix}`;
+};
 
 export const FertilityAnalysis = () => {
     const { plotId } = useParams();
@@ -129,7 +125,7 @@ export const FertilityAnalysis = () => {
             ctcPh7: c.ctc_ph7,
             saturacaoBasesV: c.saturacao_bases_v,
             saturacaoAluminioM: c.saturacao_aluminio_m,
-            pst: c.pst ?? calculatePstFallback(c.sodio, c.ctc_ph7),
+            pst: c.pst,
             saturacaoPotassioCtc: c.saturacao_potassio_ctc,
             saturacaoSodioCtc: c.saturacao_sodio_ctc,
             saturacaoCalcioCtc: c.saturacao_calcio_ctc,
@@ -322,8 +318,8 @@ export const FertilityAnalysis = () => {
                                                     <Text>K: <b>{ext.potassio}</b></Text>
                                                     <Text>Ca: <b>{ext.calcio}</b></Text>
                                                     <Text>Mg: <b>{ext.magnesio}</b></Text>
-                                                    <Text>V%: <b>{ext.saturacaoBasesV}</b></Text>
-                                                    <Text>PST: <b>{formatPstValue(ext.pst)}%</b></Text>
+                                                    <Text>V%: <b>{formatBackendCalculatedValue(ext.saturacaoBasesV, "%")}</b></Text>
+                                                    <Text>PST: <b>{formatBackendCalculatedValue(ext.pst, "%")}</b></Text>
                                                 </Grid>
                                             </Box>
                                         ))}

@@ -7,7 +7,6 @@ import {
 } from "./FormulatedPlantingFertilizerTable";
 import {
   buildAlternativeFertilizerTableModels,
-  removeGypsumOperationalLines,
   type AlternativeFertilizerPrintTableModel,
 } from "./RecommendationStructuredFertilizerTables";
 import {
@@ -56,14 +55,12 @@ const getPrintableTechnicalWarnings = (recommendation: RecommendationPrintRespon
 const getStructuredPrintTableModels = (
   recommendation: RecommendationPrintResponse,
 ): StructuredPrintTableModel[] => {
-  const technicalWarnings = getPrintableTechnicalWarnings(recommendation);
-  const displayRecommendation = removeGypsumOperationalLines(recommendation, technicalWarnings) ?? recommendation;
-  const micronutrientTable = buildMicronutrientFertilizerTableModel(displayRecommendation);
+  const micronutrientTable = buildMicronutrientFertilizerTableModel(recommendation);
 
   return [
-    ...buildFormulatedPlantingFertilizerTableModels(displayRecommendation),
-    ...buildFormulatedTopDressingFertilizerTableModels(displayRecommendation),
-    ...buildAlternativeFertilizerTableModels(displayRecommendation),
+    ...buildFormulatedPlantingFertilizerTableModels(recommendation),
+    ...buildFormulatedTopDressingFertilizerTableModels(recommendation),
+    ...buildAlternativeFertilizerTableModels(recommendation),
     ...(micronutrientTable ? [micronutrientTable] : []),
   ];
 };

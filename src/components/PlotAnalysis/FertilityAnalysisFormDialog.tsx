@@ -83,14 +83,6 @@ const camadaCollection = createListCollection({
     items: Object.values(Camada).map((c) => ({ label: c, value: c }))
 });
 
-const toSafeNumber = (value: unknown) => {
-    const numericValue = typeof value === "number" ? value : parseFloat(String(value));
-    return Number.isFinite(numericValue) ? numericValue : 0;
-};
-
-const roundCalculatedValue = (value: number) => Number(value.toFixed(2));
-const roundPstValue = (value: number) => Number(value.toFixed(1));
-const formatPstValue = (value: number) => value.toFixed(1);
 const NOT_CALCULATED_LABEL = "Não calculado";
 
 const formatBackendCalculatedValue = (value?: number | null, suffix = "") => {
@@ -102,27 +94,6 @@ const formatBackendCalculatedValue = (value?: number | null, suffix = "") => {
     return `${numericValue.toLocaleString("pt-BR", {
         maximumFractionDigits: 2,
     })}${suffix}`;
-};
-
-const calculateExchangeComplex = (extract: FertilityExtractFormData) => {
-    const somaBases = roundCalculatedValue(
-        toSafeNumber(extract.calcio) +
-        toSafeNumber(extract.magnesio) +
-        toSafeNumber(extract.potassio) +
-        toSafeNumber(extract.sodio)
-    );
-    const aluminio = toSafeNumber(extract.aluminio);
-    const ctcEfetiva = roundCalculatedValue(somaBases + aluminio);
-    const ctcPh7 = roundCalculatedValue(somaBases + toSafeNumber(extract.aluminioMaisHidrogenio));
-
-    return {
-        somaBases,
-        ctcEfetiva,
-        ctcPh7,
-        saturacaoBasesV: ctcPh7 > 0 ? roundCalculatedValue((100 * somaBases) / ctcPh7) : 0,
-        saturacaoAluminioM: ctcEfetiva > 0 ? roundCalculatedValue((100 * aluminio) / ctcEfetiva) : 0,
-        pst: ctcPh7 > 0 ? roundPstValue((100 * toSafeNumber(extract.sodio)) / ctcPh7) : 0,
-    };
 };
 
 interface Props {
@@ -189,8 +160,8 @@ export const FertilityAnalysisFormDialog = ({
             
             // Campos de Fertilidade
             phAgua: 0, phCacl2: 0, calcio: 0, magnesio: 0, potassio: 0, enxofre: 0, sodio: 0, 
-            aluminio: 0, aluminioMaisHidrogenio: 0, somaBases: 0, ctcEfetiva: 0, ctcPh7: 0, 
-            saturacaoBasesV: 0, saturacaoAluminioM: 0, pst: 0, fosforoMehlich1: 0, fosforoResina: 0, 
+            aluminio: 0, aluminioMaisHidrogenio: 0, somaBases: null, ctcEfetiva: null, ctcPh7: null, 
+            saturacaoBasesV: null, saturacaoAluminioM: null, pst: null, fosforoMehlich1: 0, fosforoResina: 0, 
             materiaOrganica: 0, boro: 0, cobre: 0, ferro: 0, manganes: 0, zinco: 0
         };
         const updated = [...extracts, newExtract];
@@ -314,8 +285,6 @@ export const FertilityAnalysisFormDialog = ({
             // 2. GERENCIAMENTO DOS EXTRATOS (UPSERT)
             // =========================================================
             for (const ext of extracts) {
-                const exchangeComplex = calculateExchangeComplex(ext);
-                
                 // Mapeamento dos campos para DTO
                 const payloadQuimico = {
                     ph_agua: ext.phAgua, 
@@ -326,12 +295,6 @@ export const FertilityAnalysisFormDialog = ({
                     sodio: ext.sodio,
                     aluminio: ext.aluminio, 
                     aluminio_mais_hidrogenio: ext.aluminioMaisHidrogenio, 
-                    soma_bases: exchangeComplex.somaBases, 
-                    ctc_efetiva: exchangeComplex.ctcEfetiva, 
-                    ctc_ph7: exchangeComplex.ctcPh7, 
-                    saturacao_bases_v: exchangeComplex.saturacaoBasesV, 
-                    saturacao_aluminio_m: exchangeComplex.saturacaoAluminioM, 
-                    pst: exchangeComplex.pst,
                     fosforo_mehlich1: ext.fosforoMehlich1, 
                     fosforo_resina: ext.fosforoResina, 
                     enxofre: ext.enxofre, 
@@ -471,8 +434,6 @@ export const FertilityAnalysisFormDialog = ({
                                 </Flex>
                                 <VStack gap={4} align="stretch">
                                     {extracts.map((ext, idx) => {
-                                        const exchangeComplex = calculateExchangeComplex(ext);
-
                                         return (
                                         <Box key={ext.tempId} p={5} borderWidth="1px" borderColor="gray.300" _dark={{ bg: "gray.800", borderColor: "gray.600" }} borderRadius="lg" bg="white" shadow="sm">
                                             <Flex justify="space-between" mb={4} align="center">
@@ -530,13 +491,18 @@ export const FertilityAnalysisFormDialog = ({
 
                                             <SectionHeader title="Complexo de Troca" colorPalette="purple" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
-                                                <Field label="SB (mmolc/dm³)" type="number" value={exchangeComplex.somaBases} readOnly />
-                                                <Field label="CTC(t) (mmolc/dm³)" type="number" value={exchangeComplex.ctcEfetiva} readOnly />
-                                                <Field label="CTC(T) (mmolc/dm³)" type="number" value={exchangeComplex.ctcPh7} readOnly />
-                                                <Field label="V%" type="number" value={exchangeComplex.saturacaoBasesV} readOnly />
-                                                <Field label="m%" type="number" value={exchangeComplex.saturacaoAluminioM} readOnly />
-                                                <Field label="PST (%)" type="number" value={formatPstValue(exchangeComplex.pst)} readOnly />
+                                                <Field label="SB (mmolc/dm³)" value={formatBackendCalculatedValue(ext.somaBases)} readOnly />
+                                                <Field label="CTC(t) (mmolc/dm³)" value={formatBackendCalculatedValue(ext.ctcEfetiva)} readOnly />
+                                                <Field label="CTC(T) (mmolc/dm³)" value={formatBackendCalculatedValue(ext.ctcPh7)} readOnly />
+                                                <Field label="V%" value={formatBackendCalculatedValue(ext.saturacaoBasesV, "%")} readOnly />
+                                                <Field label="m%" value={formatBackendCalculatedValue(ext.saturacaoAluminioM, "%")} readOnly />
+                                                <Field label="PST (%)" value={formatBackendCalculatedValue(ext.pst, "%")} readOnly />
                                             </Grid>
+                                            {!isReadOnly && (
+                                                <Text color="orange.600" fontSize="xs" mb={4}>
+                                                    Aviso técnico: complexo de troca, saturações e PST são calculados pelo backend após salvar.
+                                                </Text>
+                                            )}
 
                                             <SectionHeader title="Saturação do Complexo de Troca ou CTC(T)" colorPalette="orange" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>

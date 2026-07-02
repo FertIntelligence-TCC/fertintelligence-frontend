@@ -34,13 +34,13 @@ export interface FertilityExtractFormData {
     aluminio: number;
     aluminioMaisHidrogenio: number;
     
-    // Complexo de Troca / Calculados
-    somaBases: number;
-    ctcEfetiva: number;
-    ctcPh7: number;
-    saturacaoBasesV: number;
-    saturacaoAluminioM: number;
-    pst: number;
+    // Complexo de Troca / valores calculados pelo backend
+    somaBases?: number | null;
+    ctcEfetiva?: number | null;
+    ctcPh7?: number | null;
+    saturacaoBasesV?: number | null;
+    saturacaoAluminioM?: number | null;
+    pst?: number | null;
     saturacaoPotassioCtc?: number | null;
     saturacaoSodioCtc?: number | null;
     saturacaoCalcioCtc?: number | null;

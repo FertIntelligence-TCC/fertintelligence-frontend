@@ -32,13 +32,6 @@ import { physicalAnalysisExtractService } from "@/services/physicalAnalysisExtra
 import { fertilityAnalysisExtractService } from "@/services/fertilityAnalysisExtractService";
 import { saturationExtractAnalysisExtractService } from "@/services/saturationExtractAnalysisExtractService";
 
-const calculatePstFallback = (sodio?: number | null, ctcPh7?: number | null): number => {
-    const na = Number(sodio ?? 0);
-    const ctc = Number(ctcPh7 ?? 0);
-    if (!Number.isFinite(na) || !Number.isFinite(ctc) || ctc === 0) return 0;
-    return Math.round((100 * na / ctc) * 10) / 10;
-};
-
 
 type Props = {
     isOpen: boolean;
@@ -148,7 +141,7 @@ const mapFertilityToFormData = (
     ctcPh7: data.ctc_ph7,
     saturacaoBasesV: data.saturacao_bases_v,
     saturacaoAluminioM: data.saturacao_aluminio_m,
-    pst: data.pst ?? calculatePstFallback(data.sodio, data.ctc_ph7),
+    pst: data.pst,
     saturacaoPotassioCtc: data.saturacao_potassio_ctc,
     saturacaoSodioCtc: data.saturacao_sodio_ctc,
     saturacaoCalcioCtc: data.saturacao_calcio_ctc,
