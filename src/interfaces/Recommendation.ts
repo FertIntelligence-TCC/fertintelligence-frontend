@@ -361,9 +361,9 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   tipo_recomendacao: RecommendationType;
   propertyId: number;
   plotId: number;
-  physicalAnalysisExtractId: number;
-  soilFertilityAnalysisId: number;
-  saturationExtractAnalysisExtractId: number | null;
+  physicalAnalysisId: number;
+  fertilityAnalysisId: number;
+  saturationExtractAnalysisId: number | null;
   annualCropFolderId: number;
   cropId: number;
   cropFertilizationTableId: number;
@@ -371,9 +371,9 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   cropFoliarAnalysisInterpretationTableId: number;
   id_propriedade: number;
   id_talhao: number;
-  id_extrato_analise_fisica: number;
-  id_analise_fertilidade_solo: number;
-  id_extrato_analise_extrato_saturacao: number | null;
+  id_analise_fisica: number;
+  id_analise_fertilidade: number;
+  id_analise_extrato_saturacao: number | null;
   id_pasta_cultura_anual: number;
   id_cultura: number;
   id_tabela_adubacao_cultura: number;

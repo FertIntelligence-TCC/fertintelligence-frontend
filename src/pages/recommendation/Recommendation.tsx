@@ -20,9 +20,6 @@ import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
 import type { GreenFertilizerResponseDto } from "@/interfaces/Fertilizer";
-import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
-import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
-import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/SaturationExtractAnalysisExtract";
 import { TipoExtrato, type SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import {
   type RecommendationLimingCriteria,
@@ -101,7 +98,7 @@ import LimingPreviewFields from "@/components/Recommendation/LimingPreviewFields
 import PropertyPlotSelectors from "@/components/Recommendation/PropertyPlotSelectors";
 import SpacingSection from "@/components/Recommendation/SpacingSection";
 import {
-  type AnalysisExtractOption,
+  type AnalysisOption,
   type TableGroupValue,
   type TableOption,
   NativeSelect,
@@ -140,23 +137,10 @@ type RecommendationTableApiResponse = {
 };
 
 
-const LIMING_UNDEFINED_LABEL = "Não é possível definir um critério de calagem";
-const BASE_SATURATION_LABEL = "SATURAÇÃO POR BASES TROCÁVEIS";
-const ALUMINUM_NEUTRALIZATION_LABEL = "Neutralização do Al trocável";
-const CALCIUM_MAGNESIUM_LABEL = "Elevação dos teores de Ca + Mg";
-const PRNT_WARNING = "Se o calcário comprado tiver PRNT diferente de 100%, corrija o valor de NC multiplicando-o pela expressão 100/PRNT.";
-
 type LimingCriterionPreview = {
   criterionLabel: string;
   limingNeed: number | null;
   warning?: string;
-};
-
-const toNullableNumber = (value: unknown): number | null => {
-  if (value === null || value === undefined || value === "") return null;
-  const normalized = typeof value === "string" ? value.trim().replace(",", ".") : value;
-  const parsed = typeof normalized === "number" ? normalized : Number(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
 };
 
 const adjustedLimingNeedFormatter = new Intl.NumberFormat("pt-BR", {
@@ -167,54 +151,10 @@ const adjustedLimingNeedFormatter = new Intl.NumberFormat("pt-BR", {
 const formatAdjustedLimingNeed = (value: number): string =>
   adjustedLimingNeedFormatter.format(value);
 
-const calculateBaseSaturationLiming = (fertilityExtract?: FertilityAnalysisExtractResponse | null): LimingCriterionPreview => {
-  const ctcPh7 = toNullableNumber(fertilityExtract?.ctc_ph7);
-  const baseSaturation = toNullableNumber(fertilityExtract?.saturacao_bases_v);
-
-  if (ctcPh7 === null || baseSaturation === null) {
-	return { criterionLabel: LIMING_UNDEFINED_LABEL, limingNeed: null };
-  }
-
-  return {
-	criterionLabel: BASE_SATURATION_LABEL,
-	limingNeed: Math.max(0, (ctcPh7 * (70 - baseSaturation)) / 1000),
-	warning: PRNT_WARNING,
-  };
-};
-
-const calculateClientLimingCriterion = ({
-  physicalExtract,
-  fertilityExtract,
-}: {
-  physicalExtract?: PhysicalAnalysisExtractResponse | null;
-  fertilityExtract?: FertilityAnalysisExtractResponse | null;
-}): LimingCriterionPreview => {
-  if (!fertilityExtract) {
-	return { criterionLabel: LIMING_UNDEFINED_LABEL, limingNeed: null };
-  }
-
-  const clayContent = toNullableNumber(physicalExtract?.teor_argila);
-  if (!physicalExtract || clayContent === null) {
-	return calculateBaseSaturationLiming(fertilityExtract);
-  }
-
-  const aluminum = toNullableNumber(fertilityExtract.aluminio);
-  const calcium = toNullableNumber(fertilityExtract.calcio);
-  const magnesium = toNullableNumber(fertilityExtract.magnesio);
-
-  if (aluminum === null || calcium === null || magnesium === null) {
-	return calculateBaseSaturationLiming(fertilityExtract);
-  }
-
-  const factor = clayContent < 150 ? 1.5 : clayContent <= 350 ? 2 : 2.5;
-  const aluminumNeed = Math.max(0, factor * aluminum * 0.1);
-  const calciumMagnesiumNeed = Math.max(0, factor * (2 - (calcium + magnesium) * 0.1));
-
-  if (aluminumNeed >= calciumMagnesiumNeed) {
-	return { criterionLabel: ALUMINUM_NEUTRALIZATION_LABEL, limingNeed: aluminumNeed };
-  }
-
-  return { criterionLabel: CALCIUM_MAGNESIUM_LABEL, limingNeed: calciumMagnesiumNeed };
+const limingCriterionPreview: LimingCriterionPreview = {
+  criterionLabel: "Calculado pelo backend",
+  limingNeed: null,
+  warning: "O critério e a necessidade de calagem são definidos durante a geração, usando a análise completa selecionada.",
 };
 
 const recommendationTypeOptions: { value: RecommendationType; label: string }[] = [
@@ -291,48 +231,13 @@ const loadTableOptionsByGroup = async (
 	.filter(Boolean) as TableOption[];
 };
 
-const formatExtractPosition = (extract: {
-  profundidade_inicial?: number;
-  profundidade_final?: number;
-  camada?: string;
-  subcamada?: number;
-}) => {
-  const depth =
-	extract.profundidade_inicial !== undefined && extract.profundidade_final !== undefined
-  	? `${extract.profundidade_inicial}-${extract.profundidade_final} cm`
-  	: undefined;
-  const layer = extract.camada ? `Camada ${extract.camada}${extract.subcamada ? `.${extract.subcamada}` : ""}` : undefined;
-  return [layer, depth].filter(Boolean).join(" • ");
-};
-
 const getAnalysisLabelPrefix = (analysis: SoilAnalysisResponse) =>
   `Análise ${analysis.ano_analise} • ${analysis.laboratorio_responsavel}`;
 
-const mapPhysicalAnalysisOption = (
-  extract: PhysicalAnalysisExtractResponse,
-  analysis: SoilAnalysisResponse,
-): AnalysisExtractOption<PhysicalAnalysisExtractResponse> => ({
-  id: extract.id,
-  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
-  extract,
-});
-
-const mapFertilityAnalysisOption = (
-  extract: FertilityAnalysisExtractResponse,
-  analysis: SoilAnalysisResponse,
-): AnalysisExtractOption<FertilityAnalysisExtractResponse> => ({
-  id: extract.id,
-  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
-  extract,
-});
-
-const mapSaturationAnalysisOption = (
-  extract: SaturationExtractAnalysisExtractResponse,
-  analysis: SoilAnalysisResponse,
-): AnalysisExtractOption<SaturationExtractAnalysisExtractResponse> => ({
-  id: extract.id,
-  label: `${getAnalysisLabelPrefix(analysis)}${formatExtractPosition(extract) ? ` • ${formatExtractPosition(extract)}` : ""}`,
-  extract,
+const mapAnalysisOption = (analysis: SoilAnalysisResponse): AnalysisOption<SoilAnalysisResponse> => ({
+  id: analysis.id,
+  label: `${getAnalysisLabelPrefix(analysis)} • ${analysis.tipo_extrato}`,
+  analysis,
 });
 
 const getRecommendationFolderName = (recommendation: RecommendationResponse) =>
@@ -402,9 +307,9 @@ export default function Recommendation() {
   const [recommendationType, setRecommendationType] = useState("");
   const [selectedPropertyId, setSelectedPropertyId] = useState("");
   const [selectedPlotId, setSelectedPlotId] = useState("");
-  const [physicalAnalysisExtractId, setPhysicalAnalysisExtractId] = useState("");
-  const [soilFertilityAnalysisId, setSoilFertilityAnalysisId] = useState("");
-  const [saturationExtractAnalysisExtractId, setSaturationExtractAnalysisExtractId] = useState("");
+  const [physicalAnalysisId, setPhysicalAnalysisId] = useState("");
+  const [fertilityAnalysisId, setFertilityAnalysisId] = useState("");
+  const [saturationExtractAnalysisId, setSaturationExtractAnalysisId] = useState("");
   const [annualCropFolderId, setAnnualCropFolderId] = useState("");
   const [cropId, setCropId] = useState("");
   const [cropFertilizationTableGroup, setCropFertilizationTableGroup] = useState<TableGroupValue>("");
@@ -428,9 +333,9 @@ export default function Recommendation() {
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
   const [plots, setPlots] = useState<PlotResponse[]>([]);
-  const [physicalAnalysisOptions, setPhysicalAnalysisOptions] = useState<AnalysisExtractOption<PhysicalAnalysisExtractResponse>[]>([]);
-  const [soilFertilityAnalysisOptions, setSoilFertilityAnalysisOptions] = useState<AnalysisExtractOption<FertilityAnalysisExtractResponse>[]>([]);
-  const [saturationExtractAnalysisOptions, setSaturationExtractAnalysisOptions] = useState<AnalysisExtractOption<SaturationExtractAnalysisExtractResponse>[]>([]);
+  const [physicalAnalysisOptions, setPhysicalAnalysisOptions] = useState<AnalysisOption<SoilAnalysisResponse>[]>([]);
+  const [fertilityAnalysisOptions, setFertilityAnalysisOptions] = useState<AnalysisOption<SoilAnalysisResponse>[]>([]);
+  const [saturationExtractAnalysisOptions, setSaturationExtractAnalysisOptions] = useState<AnalysisOption<SoilAnalysisResponse>[]>([]);
   const [annualCropFolders, setAnnualCropFolders] = useState<AnnualCropFolderResponseDto[]>([]);
   const [cropFertilizationTables, setCropFertilizationTables] = useState<TableOption[]>([]);
   const [soilFertilityTables, setSoilFertilityTables] = useState<TableOption[]>([]);
@@ -511,22 +416,6 @@ export default function Recommendation() {
 	setDocumentErrors({});
 	setLoadingDocumentKey(null);
   }, [selectedRecommendation?.id]);
-  const selectedPhysicalAnalysisExtract = useMemo(
-	() => physicalAnalysisOptions.find((analysis) => String(analysis.id) === physicalAnalysisExtractId)?.extract ?? null,
-	[physicalAnalysisOptions, physicalAnalysisExtractId],
-  );
-  const selectedSoilFertilityAnalysisExtract = useMemo(
-	() => soilFertilityAnalysisOptions.find((analysis) => String(analysis.id) === soilFertilityAnalysisId)?.extract ?? null,
-	[soilFertilityAnalysisOptions, soilFertilityAnalysisId],
-  );
-  const limingCriterionPreview = useMemo(
-	() => calculateClientLimingCriterion({
-  	physicalExtract: selectedPhysicalAnalysisExtract,
-  	fertilityExtract: selectedSoilFertilityAnalysisExtract,
-	}),
-	[selectedPhysicalAnalysisExtract, selectedSoilFertilityAnalysisExtract],
-  );
-
   const loadHistory = async () => {
 	setLoadingHistory(true);
 	try {
@@ -699,13 +588,13 @@ export default function Recommendation() {
 	let isCurrent = true;
 
 	const resetPlotDependencies = () => {
-  	setPhysicalAnalysisExtractId("");
-  	setSoilFertilityAnalysisId("");
-  	setSaturationExtractAnalysisExtractId("");
+  	setPhysicalAnalysisId("");
+  	setFertilityAnalysisId("");
+  	setSaturationExtractAnalysisId("");
   	setAnnualCropFolderId("");
   	setCropId("");
   	setPhysicalAnalysisOptions([]);
-  	setSoilFertilityAnalysisOptions([]);
+  	setFertilityAnalysisOptions([]);
   	setSaturationExtractAnalysisOptions([]);
   	setAnnualCropFolders([]);
 	};
@@ -727,9 +616,9 @@ export default function Recommendation() {
 
     	if (!isCurrent) return;
 
-    	const physicalOptions: AnalysisExtractOption<PhysicalAnalysisExtractResponse>[] = [];
-    	const fertilityOptions: AnalysisExtractOption<FertilityAnalysisExtractResponse>[] = [];
-    	const saturationOptions: AnalysisExtractOption<SaturationExtractAnalysisExtractResponse>[] = [];
+    	const physicalOptions: AnalysisOption<SoilAnalysisResponse>[] = [];
+    	const fertilityOptions: AnalysisOption<SoilAnalysisResponse>[] = [];
+    	const saturationOptions: AnalysisOption<SoilAnalysisResponse>[] = [];
 
     	for (const analysis of soilAnalyses ?? []) {
       	const isLayerAnalysis = analysis.tipo_extrato === TipoExtrato.CAMADAS;
@@ -738,6 +627,10 @@ export default function Recommendation() {
         	: await rangeExtractService.getByAnalysisId(analysis.id);
 
       	if (!isCurrent) return;
+
+      	let hasPhysicalExtract = false;
+      	let hasFertilityExtract = false;
+      	let hasSaturationExtract = false;
 
       	for (const container of containers ?? []) {
         	const containerId = container.id;
@@ -753,16 +646,20 @@ export default function Recommendation() {
             	: saturationExtractAnalysisExtractService.getByRangeExtractId(containerId),
         	]);
 
-        	physicalOptions.push(...(physicalExtracts ?? []).map((extract) => mapPhysicalAnalysisOption(extract, analysis)));
-        	fertilityOptions.push(...(fertilityExtracts ?? []).map((extract) => mapFertilityAnalysisOption(extract, analysis)));
-        	saturationOptions.push(...(saturationExtracts ?? []).map((extract) => mapSaturationAnalysisOption(extract, analysis)));
+        	hasPhysicalExtract = hasPhysicalExtract || Boolean(physicalExtracts?.length);
+        	hasFertilityExtract = hasFertilityExtract || Boolean(fertilityExtracts?.length);
+        	hasSaturationExtract = hasSaturationExtract || Boolean(saturationExtracts?.length);
       	}
+
+      	if (hasPhysicalExtract) physicalOptions.push(mapAnalysisOption(analysis));
+      	if (hasFertilityExtract) fertilityOptions.push(mapAnalysisOption(analysis));
+      	if (hasSaturationExtract) saturationOptions.push(mapAnalysisOption(analysis));
     	}
 
     	if (!isCurrent) return;
 
     	setPhysicalAnalysisOptions(physicalOptions);
-    	setSoilFertilityAnalysisOptions(fertilityOptions);
+    	setFertilityAnalysisOptions(fertilityOptions);
     	setSaturationExtractAnalysisOptions(saturationOptions);
     	setAnnualCropFolders(folders ?? []);
   	} catch (error) {
@@ -787,8 +684,8 @@ export default function Recommendation() {
   	recommendationType,
   	propertyId: selectedPropertyId,
   	plotId: selectedPlotId,
-  	physicalAnalysisExtractId,
-  	soilFertilityAnalysisId,
+  	physicalAnalysisId,
+  	fertilityAnalysisId,
   	annualCropFolderId,
   	cropId,
   	cropFertilizationTableId,
@@ -818,9 +715,9 @@ export default function Recommendation() {
     	recommendationType: validation.recommendationType,
     	propertyId: selectedPropertyId,
     	plotId: selectedPlotId,
-    	physicalAnalysisExtractId,
-    	soilFertilityAnalysisId,
-    	saturationExtractAnalysisExtractId,
+    	physicalAnalysisId,
+    	fertilityAnalysisId,
+    	saturationExtractAnalysisId,
     	annualCropFolderId,
     	cropId,
     	cropFertilizationTableId,
@@ -1143,7 +1040,7 @@ export default function Recommendation() {
   	: "Nenhuma análise encontrada";
   const soilFertilityAnalysisPlaceholder = !selectedPlotId
 	? "Selecione um talhão para ver análises de fertilidade"
-	: soilFertilityAnalysisOptions.length
+	: fertilityAnalysisOptions.length
   	? "Análise de fertilidade do talhão"
   	: "Nenhuma análise encontrada";
   const saturationExtractAnalysisPlaceholder = !selectedPlotId
@@ -1186,18 +1083,18 @@ export default function Recommendation() {
           	<AnalysisSelectors
             	selectedPlotId={selectedPlotId}
             	loadingPlotAnalyses={loadingPlotAnalyses}
-            	physicalAnalysisExtractId={physicalAnalysisExtractId}
-            	soilFertilityAnalysisId={soilFertilityAnalysisId}
-            	saturationExtractAnalysisExtractId={saturationExtractAnalysisExtractId}
+            	physicalAnalysisId={physicalAnalysisId}
+            	fertilityAnalysisId={fertilityAnalysisId}
+            	saturationExtractAnalysisId={saturationExtractAnalysisId}
             	physicalAnalysisOptions={physicalAnalysisOptions}
-            	soilFertilityAnalysisOptions={soilFertilityAnalysisOptions}
+            	fertilityAnalysisOptions={fertilityAnalysisOptions}
             	saturationExtractAnalysisOptions={saturationExtractAnalysisOptions}
             	physicalAnalysisPlaceholder={physicalAnalysisPlaceholder}
-            	soilFertilityAnalysisPlaceholder={soilFertilityAnalysisPlaceholder}
+            	fertilityAnalysisPlaceholder={soilFertilityAnalysisPlaceholder}
             	saturationExtractAnalysisPlaceholder={saturationExtractAnalysisPlaceholder}
-            	onPhysicalAnalysisChange={setPhysicalAnalysisExtractId}
-            	onSoilFertilityAnalysisChange={setSoilFertilityAnalysisId}
-            	onSaturationExtractAnalysisChange={setSaturationExtractAnalysisExtractId}
+            	onPhysicalAnalysisChange={setPhysicalAnalysisId}
+            	onFertilityAnalysisChange={setFertilityAnalysisId}
+            	onSaturationExtractAnalysisChange={setSaturationExtractAnalysisId}
           	/>
           	<CropTableSelectors
             	selectedPlotId={selectedPlotId}

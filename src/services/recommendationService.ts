@@ -19,9 +19,9 @@ type BuildRecommendationCreatePayloadParams = {
   recommendationType: RecommendationType;
   propertyId: string | number;
   plotId: string | number;
-  physicalAnalysisExtractId: string | number;
-  soilFertilityAnalysisId: string | number;
-  saturationExtractAnalysisExtractId?: string | number | null;
+  physicalAnalysisId: string | number;
+  fertilityAnalysisId: string | number;
+  saturationExtractAnalysisId?: string | number | null;
   annualCropFolderId: string | number;
   cropId: string | number;
   cropFertilizationTableId: string | number;
@@ -63,9 +63,9 @@ export function buildRecommendationCreatePayload({
   recommendationType,
   propertyId,
   plotId,
-  physicalAnalysisExtractId,
-  soilFertilityAnalysisId,
-  saturationExtractAnalysisExtractId,
+  physicalAnalysisId,
+  fertilityAnalysisId,
+  saturationExtractAnalysisId,
   annualCropFolderId,
   cropId,
   cropFertilizationTableId,
@@ -87,10 +87,10 @@ export function buildRecommendationCreatePayload({
 }: BuildRecommendationCreatePayloadParams): RecommendationCreatePayload {
   const normalizedPropertyId = Number(propertyId);
   const normalizedPlotId = Number(plotId);
-  const normalizedPhysicalAnalysisExtractId = Number(physicalAnalysisExtractId);
-  const normalizedSoilFertilityAnalysisId = Number(soilFertilityAnalysisId);
-  const normalizedSaturationExtractAnalysisExtractId = saturationExtractAnalysisExtractId
-    ? Number(saturationExtractAnalysisExtractId)
+  const normalizedPhysicalAnalysisId = Number(physicalAnalysisId);
+  const normalizedFertilityAnalysisId = Number(fertilityAnalysisId);
+  const normalizedSaturationExtractAnalysisId = saturationExtractAnalysisId
+    ? Number(saturationExtractAnalysisId)
     : null;
   const normalizedAnnualCropFolderId = Number(annualCropFolderId);
   const normalizedCropId = Number(cropId);
@@ -102,9 +102,9 @@ export function buildRecommendationCreatePayload({
     tipo_recomendacao: recommendationType,
     propertyId: normalizedPropertyId,
     plotId: normalizedPlotId,
-    physicalAnalysisExtractId: normalizedPhysicalAnalysisExtractId,
-    soilFertilityAnalysisId: normalizedSoilFertilityAnalysisId,
-    saturationExtractAnalysisExtractId: normalizedSaturationExtractAnalysisExtractId,
+    physicalAnalysisId: normalizedPhysicalAnalysisId,
+    fertilityAnalysisId: normalizedFertilityAnalysisId,
+    saturationExtractAnalysisId: normalizedSaturationExtractAnalysisId,
     annualCropFolderId: normalizedAnnualCropFolderId,
     cropId: normalizedCropId,
     cropFertilizationTableId: normalizedCropFertilizationTableId,
@@ -112,9 +112,9 @@ export function buildRecommendationCreatePayload({
     cropFoliarAnalysisInterpretationTableId: normalizedCropFoliarAnalysisInterpretationTableId,
     id_propriedade: normalizedPropertyId,
     id_talhao: normalizedPlotId,
-    id_extrato_analise_fisica: normalizedPhysicalAnalysisExtractId,
-    id_analise_fertilidade_solo: normalizedSoilFertilityAnalysisId,
-    id_extrato_analise_extrato_saturacao: normalizedSaturationExtractAnalysisExtractId,
+    id_analise_fisica: normalizedPhysicalAnalysisId,
+    id_analise_fertilidade: normalizedFertilityAnalysisId,
+    id_analise_extrato_saturacao: normalizedSaturationExtractAnalysisId,
     id_pasta_cultura_anual: normalizedAnnualCropFolderId,
     id_cultura: normalizedCropId,
     id_tabela_adubacao_cultura: normalizedCropFertilizationTableId,

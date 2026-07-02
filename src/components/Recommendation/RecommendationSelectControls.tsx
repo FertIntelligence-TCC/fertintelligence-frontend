@@ -16,6 +16,12 @@ export type AnalysisExtractOption<TExtract = unknown> = {
   extract: TExtract;
 };
 
+export type AnalysisOption<TAnalysis = unknown> = {
+  id: number;
+  label: string;
+  analysis: TAnalysis;
+};
+
 export const NativeSelect = chakra("select", {
   base: {
     borderWidth: "1px",
@@ -26,4 +32,3 @@ export const NativeSelect = chakra("select", {
     bg: "bg.panel",
   },
 });
-

@@ -1,49 +1,47 @@
-import type { FertilityAnalysisExtractResponse } from "@/interfaces/FertilityAnalysisExtract";
-import type { PhysicalAnalysisExtractResponse } from "@/interfaces/PhysicalAnalysisExtract";
-import type { SaturationExtractAnalysisExtractResponse } from "@/interfaces/SaturationExtractAnalysisExtract";
+import type { SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 
 import {
-  type AnalysisExtractOption,
+  type AnalysisOption,
   NativeSelect,
 } from "./RecommendationSelectControls";
 
 type AnalysisSelectorsProps = {
   selectedPlotId: string;
   loadingPlotAnalyses: boolean;
-  physicalAnalysisExtractId: string;
-  soilFertilityAnalysisId: string;
-  saturationExtractAnalysisExtractId: string;
-  physicalAnalysisOptions: AnalysisExtractOption<PhysicalAnalysisExtractResponse>[];
-  soilFertilityAnalysisOptions: AnalysisExtractOption<FertilityAnalysisExtractResponse>[];
-  saturationExtractAnalysisOptions: AnalysisExtractOption<SaturationExtractAnalysisExtractResponse>[];
+  physicalAnalysisId: string;
+  fertilityAnalysisId: string;
+  saturationExtractAnalysisId: string;
+  physicalAnalysisOptions: AnalysisOption<SoilAnalysisResponse>[];
+  fertilityAnalysisOptions: AnalysisOption<SoilAnalysisResponse>[];
+  saturationExtractAnalysisOptions: AnalysisOption<SoilAnalysisResponse>[];
   physicalAnalysisPlaceholder: string;
-  soilFertilityAnalysisPlaceholder: string;
+  fertilityAnalysisPlaceholder: string;
   saturationExtractAnalysisPlaceholder: string;
   onPhysicalAnalysisChange: (analysisId: string) => void;
-  onSoilFertilityAnalysisChange: (analysisId: string) => void;
+  onFertilityAnalysisChange: (analysisId: string) => void;
   onSaturationExtractAnalysisChange: (analysisId: string) => void;
 };
 
 export default function AnalysisSelectors({
   selectedPlotId,
   loadingPlotAnalyses,
-  physicalAnalysisExtractId,
-  soilFertilityAnalysisId,
-  saturationExtractAnalysisExtractId,
+  physicalAnalysisId,
+  fertilityAnalysisId,
+  saturationExtractAnalysisId,
   physicalAnalysisOptions,
-  soilFertilityAnalysisOptions,
+  fertilityAnalysisOptions,
   saturationExtractAnalysisOptions,
   physicalAnalysisPlaceholder,
-  soilFertilityAnalysisPlaceholder,
+  fertilityAnalysisPlaceholder,
   saturationExtractAnalysisPlaceholder,
   onPhysicalAnalysisChange,
-  onSoilFertilityAnalysisChange,
+  onFertilityAnalysisChange,
   onSaturationExtractAnalysisChange,
 }: AnalysisSelectorsProps) {
   return (
     <>
       <NativeSelect
-        value={physicalAnalysisExtractId}
+        value={physicalAnalysisId}
         onChange={(event) => onPhysicalAnalysisChange(event.target.value)}
         disabled={!selectedPlotId || loadingPlotAnalyses || physicalAnalysisOptions.length === 0}
       >
@@ -60,16 +58,16 @@ export default function AnalysisSelectors({
       </NativeSelect>
 
       <NativeSelect
-        value={soilFertilityAnalysisId}
-        onChange={(event) => onSoilFertilityAnalysisChange(event.target.value)}
-        disabled={!selectedPlotId || loadingPlotAnalyses || soilFertilityAnalysisOptions.length === 0}
+        value={fertilityAnalysisId}
+        onChange={(event) => onFertilityAnalysisChange(event.target.value)}
+        disabled={!selectedPlotId || loadingPlotAnalyses || fertilityAnalysisOptions.length === 0}
       >
         {loadingPlotAnalyses ? (
           <option>Carregando análises de fertilidade...</option>
         ) : (
           <>
-            <option value="">{soilFertilityAnalysisPlaceholder}</option>
-            {soilFertilityAnalysisOptions.map((analysis) => (
+            <option value="">{fertilityAnalysisPlaceholder}</option>
+            {fertilityAnalysisOptions.map((analysis) => (
               <option key={analysis.id} value={analysis.id}>{analysis.label}</option>
             ))}
           </>
@@ -77,7 +75,7 @@ export default function AnalysisSelectors({
       </NativeSelect>
 
       <NativeSelect
-        value={saturationExtractAnalysisExtractId}
+        value={saturationExtractAnalysisId}
         onChange={(event) => onSaturationExtractAnalysisChange(event.target.value)}
         disabled={!selectedPlotId || loadingPlotAnalyses || saturationExtractAnalysisOptions.length === 0}
       >
@@ -95,4 +93,3 @@ export default function AnalysisSelectors({
     </>
   );
 }
-

@@ -33,8 +33,8 @@ type GenerationValidationInput = {
   recommendationType: string;
   propertyId: string;
   plotId: string;
-  physicalAnalysisExtractId: string;
-  soilFertilityAnalysisId: string;
+  physicalAnalysisId: string;
+  fertilityAnalysisId: string;
   annualCropFolderId: string;
   cropId: string;
   cropFertilizationTableId: string;
@@ -126,8 +126,8 @@ export function validateRecommendationGeneration({
   recommendationType,
   propertyId,
   plotId,
-  physicalAnalysisExtractId,
-  soilFertilityAnalysisId,
+  physicalAnalysisId,
+  fertilityAnalysisId,
   annualCropFolderId,
   cropId,
   cropFertilizationTableId,
@@ -149,8 +149,8 @@ export function validateRecommendationGeneration({
     !recommendationType ||
     !propertyId ||
     !plotId ||
-    !physicalAnalysisExtractId ||
-    !soilFertilityAnalysisId ||
+    !physicalAnalysisId ||
+    !fertilityAnalysisId ||
     !annualCropFolderId ||
     !cropId ||
     !cropFertilizationTableId ||
