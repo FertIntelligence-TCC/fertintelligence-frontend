@@ -7,6 +7,7 @@ import {
 } from "./FormulatedPlantingFertilizerTable";
 import {
   buildAlternativeFertilizerTableModels,
+  removeGypsumOperationalLines,
   type AlternativeFertilizerPrintTableModel,
 } from "./RecommendationStructuredFertilizerTables";
 import {
@@ -29,15 +30,40 @@ const escapeHtml = (value: string) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+const technicalWarningFields = [
+  "mensagem_tecnica",
+  "mensagemTecnica",
+  "technicalMessage",
+  "mensagem",
+  "message",
+  "observacao_tecnica",
+  "observacaoTecnica",
+  "technicalObservation",
+] as const;
+
+const getPrintableTechnicalWarnings = (recommendation: RecommendationPrintResponse): string[] =>
+  Array.from(
+    new Set(
+      technicalWarningFields
+        .map((field) => {
+          const value = (recommendation as unknown as Record<string, unknown>)[field];
+          return typeof value === "string" ? value.trim() : "";
+        })
+        .filter(Boolean),
+    ),
+  );
+
 const getStructuredPrintTableModels = (
   recommendation: RecommendationPrintResponse,
 ): StructuredPrintTableModel[] => {
-  const micronutrientTable = buildMicronutrientFertilizerTableModel(recommendation);
+  const technicalWarnings = getPrintableTechnicalWarnings(recommendation);
+  const displayRecommendation = removeGypsumOperationalLines(recommendation, technicalWarnings) ?? recommendation;
+  const micronutrientTable = buildMicronutrientFertilizerTableModel(displayRecommendation);
 
   return [
-    ...buildFormulatedPlantingFertilizerTableModels(recommendation),
-    ...buildFormulatedTopDressingFertilizerTableModels(recommendation),
-    ...buildAlternativeFertilizerTableModels(recommendation),
+    ...buildFormulatedPlantingFertilizerTableModels(displayRecommendation),
+    ...buildFormulatedTopDressingFertilizerTableModels(displayRecommendation),
+    ...buildAlternativeFertilizerTableModels(displayRecommendation),
     ...(micronutrientTable ? [micronutrientTable] : []),
   ];
 };
@@ -105,6 +131,9 @@ export const writePrintableReport = (
   printableRecommendation: RecommendationPrintResponse,
 ) => {
   const contentHtml = renderReportTextHtml(text);
+  const technicalWarningsHtml = getPrintableTechnicalWarnings(printableRecommendation)
+    .map((warning) => `<p class="technical-warning"><strong>Aviso técnico:</strong> ${escapeHtml(warning)}</p>`)
+    .join("");
   const structuredTablesHtml = getStructuredPrintTableModels(printableRecommendation)
     .map(renderStructuredTableHtml)
     .join("");
@@ -139,7 +168,7 @@ export const writePrintableReport = (
   </head>
   <body>
     <h1>Laudo Técnico de Recomendação Agrícola</h1>
-    <div class="recommendation-print-document">${contentHtml}${structuredContentHtml}</div>
+    <div class="recommendation-print-document">${contentHtml}${technicalWarningsHtml}${structuredContentHtml}</div>
     <div class="footer">Documento emitido pelo sistema FertIntelligence.</div>
   </body>
 </html>`);

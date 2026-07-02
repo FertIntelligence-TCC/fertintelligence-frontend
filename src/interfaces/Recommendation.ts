@@ -536,6 +536,14 @@ interface RecommendationDocumentTextFields {
   markdown?: string | null;
   relatorio?: string | null;
   report?: string | null;
+  mensagem?: string | null;
+  mensagem_tecnica?: string | null;
+  mensagemTecnica?: string | null;
+  message?: string | null;
+  technicalMessage?: string | null;
+  observacao_tecnica?: string | null;
+  observacaoTecnica?: string | null;
+  technicalObservation?: string | null;
 }
 
 export interface SummaryRecommendationResponse

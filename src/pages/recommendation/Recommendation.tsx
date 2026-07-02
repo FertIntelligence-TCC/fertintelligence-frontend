@@ -292,6 +292,7 @@ type RecommendationDocumentResponse =
 
 type LoadedRecommendationFolderDocument = {
   text: string;
+  technicalWarnings: string[];
   summaryRecommendationDocument?: SummaryRecommendationResponse;
   directRecommendationDocument?: DirectRecommendationResponse;
   shoppingListDocument?: ShoppingListResponse;
@@ -315,9 +316,35 @@ const documentSpecificTextFields: Record<Exclude<RecommendationDocumentKey, "gen
   shopping: ["lista_compras", "listaCompras", "shoppingList"],
 };
 
+const technicalWarningFields = [
+  "mensagem_tecnica",
+  "mensagemTecnica",
+  "technicalMessage",
+  "mensagem",
+  "message",
+  "observacao_tecnica",
+  "observacaoTecnica",
+  "technicalObservation",
+] as const;
+
 const getTextField = (value: unknown): string => {
   if (typeof value !== "string") return "";
   return value.trim();
+};
+
+const getRecommendationDocumentTechnicalWarnings = (
+  document: RecommendationDocumentResponse | string | null | undefined,
+): string[] => {
+  if (!document || typeof document !== "object") return [];
+
+  const record = document as Record<string, unknown>;
+  return Array.from(
+    new Set(
+      technicalWarningFields
+        .map((field) => getTextField(record[field]))
+        .filter(Boolean),
+    ),
+  );
 };
 
 const getRecommendationDocumentText = (
@@ -404,6 +431,8 @@ export default function Recommendation() {
   const [shoppingListDocument, setShoppingListDocument] = useState<ShoppingListResponse | null>(null);
   const [notGeneratedDocuments, setNotGeneratedDocuments] = useState<Partial<Record<RecommendationDocumentKey, boolean>>>({});
   const [documentErrors, setDocumentErrors] = useState<Partial<Record<RecommendationDocumentKey, string>>>({});
+  const [documentTechnicalWarnings, setDocumentTechnicalWarnings] =
+    useState<Partial<Record<RecommendationDocumentKey, string[]>>>({});
   const [loadingDocumentKey, setLoadingDocumentKey] = useState<RecommendationDocumentKey | null>(null);
   const [printing, setPrinting] = useState(false);
   const [improvingNarrative, setImprovingNarrative] = useState(false);
@@ -456,6 +485,7 @@ export default function Recommendation() {
 	setShoppingListDocument(null);
 	setNotGeneratedDocuments({});
 	setDocumentErrors({});
+	setDocumentTechnicalWarnings({});
 	setLoadingDocumentKey(null);
   }, [selectedRecommendation?.id]);
   const loadHistory = async () => {
@@ -980,6 +1010,7 @@ export default function Recommendation() {
   	const document = await getSummaryRecommendationByRecommendation(recommendationId);
   	return {
     	text: getRecommendationDocumentText(document, key),
+    	technicalWarnings: getRecommendationDocumentTechnicalWarnings(document),
     	summaryRecommendationDocument: document,
   	};
 	}
@@ -988,6 +1019,7 @@ export default function Recommendation() {
   	const document = await getDirectRecommendationByRecommendation(recommendationId);
   	return {
     	text: getRecommendationDocumentText(document, key),
+    	technicalWarnings: getRecommendationDocumentTechnicalWarnings(document),
     	directRecommendationDocument: document,
   	};
 	}
@@ -995,6 +1027,7 @@ export default function Recommendation() {
 	const document = await getShoppingListByRecommendation(recommendationId);
 	return {
   	text: getRecommendationDocumentText(document, key),
+  	technicalWarnings: getRecommendationDocumentTechnicalWarnings(document),
   	shoppingListDocument: document,
 	};
   };
@@ -1004,13 +1037,17 @@ export default function Recommendation() {
 	() => ({
   	summary:
       hasMicronutrientFertilizerRows(summaryRecommendationDocument) ||
-      hasRecommendationFertigramCharts(summaryRecommendationDocument, "chemical"),
+      hasRecommendationFertigramCharts(summaryRecommendationDocument, "chemical") ||
+      Boolean(documentTechnicalWarnings.summary?.length),
   	direct:
       hasDirectFertilizationObservations(directRecommendationDocument) ||
-      hasDirectNpkFertilizerRows(directRecommendationDocument),
-  	shopping: hasStructuredRecommendationContent(shoppingListDocument),
+      hasDirectNpkFertilizerRows(directRecommendationDocument) ||
+      Boolean(documentTechnicalWarnings.direct?.length),
+  	shopping:
+      hasStructuredRecommendationContent(shoppingListDocument) ||
+      Boolean(documentTechnicalWarnings.shopping?.length),
 	}),
-	[directRecommendationDocument, shoppingListDocument, summaryRecommendationDocument],
+	[directRecommendationDocument, documentTechnicalWarnings, shoppingListDocument, summaryRecommendationDocument],
   );
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
 	return buildRecommendationDocumentViews({
@@ -1092,6 +1129,7 @@ export default function Recommendation() {
 	setLoadingDocumentKey(document.key);
 	setDocumentErrors((currentErrors) => ({ ...currentErrors, [document.key]: undefined }));
 	setNotGeneratedDocuments((currentDocuments) => ({ ...currentDocuments, [document.key]: false }));
+	setDocumentTechnicalWarnings((currentWarnings) => ({ ...currentWarnings, [document.key]: [] }));
 
 	try {
   	if (document.key === "general") {
@@ -1120,6 +1158,10 @@ export default function Recommendation() {
   	if (loadedDocument.shoppingListDocument) {
     	setShoppingListDocument(loadedDocument.shoppingListDocument);
   	}
+  	setDocumentTechnicalWarnings((currentWarnings) => ({
+    	...currentWarnings,
+    	[document.key]: loadedDocument.technicalWarnings,
+  	}));
 
 	const hasShoppingStructuredContent = hasStructuredRecommendationContent(loadedDocument.shoppingListDocument);
   	const hasDirectNpkStructuredContent = hasDirectNpkFertilizerRows(
@@ -1137,6 +1179,7 @@ export default function Recommendation() {
   	);
 	if (
       loadedDocument.text.trim() ||
+      loadedDocument.technicalWarnings.length > 0 ||
       hasSummaryMicronutrients ||
       hasSummaryFertigramCharts ||
       hasDirectNpkStructuredContent ||
@@ -1407,6 +1450,7 @@ export default function Recommendation() {
         	summaryRecommendationDocument={summaryRecommendationDocument}
         	directRecommendationDocument={directRecommendationDocument}
         	shoppingListDocument={shoppingListDocument}
+        	documentTechnicalWarnings={documentTechnicalWarnings}
         	loadingDocumentKey={loadingDocumentKey}
         	userCanPrint={userCanPrint}
         	printing={printing}

@@ -25,6 +25,7 @@ import RecommendationTable, { type RecommendationTableColumn } from "./Recommend
 type RecommendationStructuredFertilizerTablesProps = {
   document?: RecommendationStructuredFertilizerLines | null;
   showShoppingListHeader?: boolean;
+  technicalWarnings?: string[];
 };
 
 type ShoppingListDateValue = NonNullable<ShoppingListResponse["data_plantio"]>;
@@ -175,6 +176,50 @@ const bioFertilizerLineFields = [
   "linhasBiofertilizantes",
 ] as const satisfies readonly (keyof RecommendationStructuredFertilizerLines)[];
 
+const structuredLineArrayFields = [
+  "adubos_solidos_micronutrientes",
+  "adubosSolidosMicronutrientes",
+  "solidFertilizersWithMicronutrients",
+  "linhas_adubos_solidos_micronutrientes",
+  "linhasAdubosSolidosMicronutrientes",
+  "formulados_plantio",
+  "formuladosPlantio",
+  "plantingFormulatedFertilizers",
+  "linhas_formulados_plantio",
+  "linhasFormuladosPlantio",
+  "formulados_cobertura",
+  "formuladosCobertura",
+  "topDressingFormulatedFertilizers",
+  "linhas_formulados_cobertura",
+  "linhasFormuladosCobertura",
+  "adubos_organicos",
+  "adubosOrganicos",
+  "organicFertilizers",
+  "linhas_adubos_organicos",
+  "linhasAdubosOrganicos",
+  "adubos_verdes",
+  "adubosVerdes",
+  "greenFertilizers",
+  "linhas_adubos_verdes",
+  "linhasAdubosVerdes",
+  "adubos_organominerais",
+  "adubosOrganominerais",
+  "organoMineralFertilizers",
+  "linhas_adubos_organominerais",
+  "linhasAdubosOrganominerais",
+  "biofertilizantes",
+  "bioFertilizantes",
+  "bioFertilizers",
+  "linhas_biofertilizantes",
+  "linhasBiofertilizantes",
+  "linhas",
+  "linhas_recomendacao",
+  "linhasRecomendacao",
+  "recommendationLines",
+  "itens",
+  "items",
+] as const satisfies readonly (keyof RecommendationStructuredFertilizerLines)[];
+
 const alternativeValueFields = {
   fertilizer: [
     "adubo",
@@ -239,6 +284,51 @@ const bioFertilizerDetails: AlternativeFertilizerDetail[] = [
 
 const getFirstText = (line: RecommendationFertilizerLine, fields: readonly string[]): string =>
   getFirstRecommendationText(line, fields);
+
+const normalizeSearchText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const hasGypsumUnavailableWarning = (technicalWarnings: string[]): boolean =>
+  technicalWarnings.some((warning) => {
+    const normalizedWarning = normalizeSearchText(warning);
+    return (
+      normalizedWarning.includes("gessagem") &&
+      (normalizedWarning.includes("20-40") || normalizedWarning.includes("20 a 40")) &&
+      (normalizedWarning.includes("ausencia") ||
+        normalizedWarning.includes("sem camada") ||
+        normalizedWarning.includes("nao avaliada"))
+    );
+  });
+
+const isGypsumRecommendationLine = (line: RecommendationFertilizerLine): boolean =>
+  Object.values(line).some((value) => {
+    if (typeof value !== "string" && typeof value !== "number") return false;
+
+    const normalizedValue = normalizeSearchText(String(value));
+    return normalizedValue.includes("gessagem") || normalizedValue.includes("gesso") || normalizedValue.includes("gypsum");
+  });
+
+export const removeGypsumOperationalLines = (
+  document?: RecommendationStructuredFertilizerLines | null,
+  technicalWarnings: string[] = [],
+): RecommendationStructuredFertilizerLines | null | undefined => {
+  if (!document || !hasGypsumUnavailableWarning(technicalWarnings)) return document;
+
+  const filteredDocument = { ...document } as RecommendationStructuredFertilizerLines &
+    Record<keyof RecommendationStructuredFertilizerLines, unknown>;
+
+  for (const field of structuredLineArrayFields) {
+    const value = filteredDocument[field];
+    if (Array.isArray(value)) {
+      filteredDocument[field] = value.filter((line) => !isGypsumRecommendationLine(line));
+    }
+  }
+
+  return filteredDocument;
+};
 
 const getAlternativeFertilizerLines = <TLine extends AlternativeFertilizerLine>(
   document: RecommendationStructuredFertilizerLines | null | undefined,
@@ -462,21 +552,24 @@ function AlternativeFertilizerTables({
 export default function RecommendationStructuredFertilizerTables({
   document,
   showShoppingListHeader = false,
+  technicalWarnings = [],
 }: RecommendationStructuredFertilizerTablesProps) {
-  if (!hasStructuredRecommendationContent(document)) return null;
+  const displayDocument = removeGypsumOperationalLines(document, technicalWarnings);
+
+  if (!hasStructuredRecommendationContent(displayDocument)) return null;
 
   return (
     <VStack align="stretch" gap={4}>
-      {showShoppingListHeader && document ? (
-        <ShoppingListHeader document={document as ShoppingListResponse} />
+      {showShoppingListHeader && displayDocument ? (
+        <ShoppingListHeader document={displayDocument as ShoppingListResponse} />
       ) : null}
-      <FormulatedPlantingFertilizerTable directRecommendation={document} />
-      <FormulatedTopDressingFertilizerTable directRecommendation={document} />
+      <FormulatedPlantingFertilizerTable directRecommendation={displayDocument} />
+      <FormulatedTopDressingFertilizerTable directRecommendation={displayDocument} />
       <MicronutrientFertilizerTable
-        directRecommendation={document}
+        directRecommendation={displayDocument}
         variant={showShoppingListHeader ? "shopping" : "recommendation"}
       />
-      <AlternativeFertilizerTables document={document} />
+      <AlternativeFertilizerTables document={displayDocument} />
     </VStack>
   );
 }

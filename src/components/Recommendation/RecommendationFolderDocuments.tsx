@@ -69,6 +69,7 @@ type RecommendationFolderDocumentsProps = {
   summaryRecommendationDocument?: SummaryRecommendationResponse | null;
   directRecommendationDocument?: DirectRecommendationResponse | null;
   shoppingListDocument?: ShoppingListResponse | null;
+  documentTechnicalWarnings?: Partial<Record<RecommendationDocumentKey, string[]>>;
   loadingDocumentKey: RecommendationDocumentKey | null;
   userCanPrint: boolean;
   printing: boolean;
@@ -295,6 +296,7 @@ function RecommendationDocumentPanel({
   summaryRecommendationDocument,
   directRecommendationDocument,
   shoppingListDocument,
+  documentTechnicalWarnings = {},
 }: {
   selectedRecommendation?: RecommendationResponse | null;
   selectedDocument?: RecommendationDocumentView;
@@ -302,7 +304,11 @@ function RecommendationDocumentPanel({
   summaryRecommendationDocument?: SummaryRecommendationResponse | null;
   directRecommendationDocument?: DirectRecommendationResponse | null;
   shoppingListDocument?: ShoppingListResponse | null;
+  documentTechnicalWarnings?: Partial<Record<RecommendationDocumentKey, string[]>>;
 }) {
+  const selectedDocumentTechnicalWarnings = selectedDocument?.key
+    ? documentTechnicalWarnings[selectedDocument.key] ?? []
+    : [];
   const directFertilizationObservations = getDirectFertilizationObservations(directRecommendationDocument);
   const showSummaryStructuredContent =
     selectedDocument?.key === "summary" &&
@@ -343,11 +349,24 @@ function RecommendationDocumentPanel({
               sectionExtras={recommendationReportSectionExtras}
             />
           ) : null}
+          {selectedDocumentTechnicalWarnings.map((warning) => (
+            <Box key={warning} borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
+              <Text color="orange.700" fontSize="sm" fontWeight="semibold">
+                Aviso técnico
+              </Text>
+              <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
+                {warning}
+              </Text>
+            </Box>
+          ))}
           {showSummaryStructuredContent ? (
             <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
           ) : null}
           {showDirectStructuredNpkContent ? (
-            <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
+            <RecommendationStructuredFertilizerTables
+              document={directRecommendationDocument}
+              technicalWarnings={selectedDocumentTechnicalWarnings}
+            />
           ) : null}
           {showDirectFertilizationObservations ? (
             <VStack align="stretch" gap={2}>
@@ -356,7 +375,11 @@ function RecommendationDocumentPanel({
             </VStack>
           ) : null}
           {showShoppingStructuredContent ? (
-            <RecommendationStructuredFertilizerTables document={shoppingListDocument} showShoppingListHeader />
+            <RecommendationStructuredFertilizerTables
+              document={shoppingListDocument}
+              showShoppingListHeader
+              technicalWarnings={selectedDocumentTechnicalWarnings}
+            />
           ) : null}
         </VStack>
       ) : selectedDocument?.status === "loading" ? (
@@ -388,6 +411,7 @@ export default function RecommendationFolderDocuments({
   summaryRecommendationDocument,
   directRecommendationDocument,
   shoppingListDocument,
+  documentTechnicalWarnings = {},
   loadingDocumentKey,
   userCanPrint,
   printing,
@@ -406,6 +430,9 @@ export default function RecommendationFolderDocuments({
     selectedDocument,
     summaryRecommendationDocument,
   );
+  const fullscreenDocumentTechnicalWarnings = selectedDocument?.key
+    ? documentTechnicalWarnings[selectedDocument.key] ?? []
+    : [];
   const fullscreenReportSectionExtras =
     selectedDocument?.key === "general"
       ? {
@@ -484,6 +511,7 @@ export default function RecommendationFolderDocuments({
               summaryRecommendationDocument={summaryRecommendationDocument}
               directRecommendationDocument={directRecommendationDocument}
               shoppingListDocument={shoppingListDocument}
+              documentTechnicalWarnings={documentTechnicalWarnings}
             />
             <Text fontSize="xs" color="fg.muted">
               A Recomendação Geral usa o laudo técnico legado quando o backend retorna technicalReport, laudo_tecnico ou laudoTecnico. Os demais documentos são carregados dos endpoints próprios e não são montados no frontend.
@@ -532,13 +560,33 @@ export default function RecommendationFolderDocuments({
                       sectionExtras={fullscreenReportSectionExtras}
                     />
                   ) : null}
+                  {fullscreenDocumentTechnicalWarnings.map((warning) => (
+                    <Box
+                      key={warning}
+                      borderWidth="1px"
+                      borderColor="orange.200"
+                      bg="orange.50"
+                      p={3}
+                      borderRadius="md"
+                    >
+                      <Text color="orange.700" fontSize="sm" fontWeight="semibold">
+                        Aviso técnico
+                      </Text>
+                      <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
+                        {warning}
+                      </Text>
+                    </Box>
+                  ))}
                   {selectedDocument.key === "summary" &&
                   hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (
                     <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
                   ) : null}
                   {selectedDocument.key === "direct" &&
                   hasDirectNpkFertilizerRows(directRecommendationDocument) ? (
-                    <RecommendationStructuredFertilizerTables document={directRecommendationDocument} />
+                    <RecommendationStructuredFertilizerTables
+                      document={directRecommendationDocument}
+                      technicalWarnings={fullscreenDocumentTechnicalWarnings}
+                    />
                   ) : null}
                   {selectedDocument.key === "direct" &&
                   getDirectFertilizationObservations(directRecommendationDocument) ? (
@@ -551,7 +599,11 @@ export default function RecommendationFolderDocuments({
                   ) : null}
                   {selectedDocument.key === "shopping" &&
                   hasStructuredRecommendationContent(shoppingListDocument) ? (
-                    <RecommendationStructuredFertilizerTables document={shoppingListDocument} showShoppingListHeader />
+                    <RecommendationStructuredFertilizerTables
+                      document={shoppingListDocument}
+                      showShoppingListHeader
+                      technicalWarnings={fullscreenDocumentTechnicalWarnings}
+                    />
                   ) : null}
                 </VStack>
               ) : (
