@@ -41,6 +41,16 @@ export interface FertilityExtractFormData {
     saturacaoBasesV: number;
     saturacaoAluminioM: number;
     pst: number;
+    saturacaoPotassioCtc?: number | null;
+    saturacaoSodioCtc?: number | null;
+    saturacaoCalcioCtc?: number | null;
+    saturacaoMagnesioCtc?: number | null;
+    saturacaoHidrogenioCtc?: number | null;
+    saturacaoAluminioCtc?: number | null;
+    relacaoCalcioMagnesio?: number | null;
+    relacaoCalcioPotassio?: number | null;
+    relacaoMagnesioPotassio?: number | null;
+    relacaoCalcioMagnesioPotassio?: number | null;
     
     // Fósforo e MO
     fosforoMehlich1: number;

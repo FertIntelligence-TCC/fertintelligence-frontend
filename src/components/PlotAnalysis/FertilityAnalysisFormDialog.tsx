@@ -91,6 +91,18 @@ const toSafeNumber = (value: unknown) => {
 const roundCalculatedValue = (value: number) => Number(value.toFixed(2));
 const roundPstValue = (value: number) => Number(value.toFixed(1));
 const formatPstValue = (value: number) => value.toFixed(1);
+const NOT_CALCULATED_LABEL = "Não calculado";
+
+const formatBackendCalculatedValue = (value?: number | null, suffix = "") => {
+    if (value === undefined || value === null) return NOT_CALCULATED_LABEL;
+
+    const numericValue = typeof value === "number" ? value : Number(value);
+    if (!Number.isFinite(numericValue)) return NOT_CALCULATED_LABEL;
+
+    return `${numericValue.toLocaleString("pt-BR", {
+        maximumFractionDigits: 2,
+    })}${suffix}`;
+};
 
 const calculateExchangeComplex = (extract: FertilityExtractFormData) => {
     const somaBases = roundCalculatedValue(
@@ -524,6 +536,24 @@ export const FertilityAnalysisFormDialog = ({
                                                 <Field label="V%" type="number" value={exchangeComplex.saturacaoBasesV} readOnly />
                                                 <Field label="m%" type="number" value={exchangeComplex.saturacaoAluminioM} readOnly />
                                                 <Field label="PST (%)" type="number" value={formatPstValue(exchangeComplex.pst)} readOnly />
+                                            </Grid>
+
+                                            <SectionHeader title="Saturação do Complexo de Troca ou CTC(T)" colorPalette="orange" />
+                                            <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
+                                                <Field label="%K (%)" value={formatBackendCalculatedValue(ext.saturacaoPotassioCtc, "%")} readOnly />
+                                                <Field label="%Na (%)" value={formatBackendCalculatedValue(ext.saturacaoSodioCtc, "%")} readOnly />
+                                                <Field label="%Ca (%)" value={formatBackendCalculatedValue(ext.saturacaoCalcioCtc, "%")} readOnly />
+                                                <Field label="%Mg (%)" value={formatBackendCalculatedValue(ext.saturacaoMagnesioCtc, "%")} readOnly />
+                                                <Field label="%H (%)" value={formatBackendCalculatedValue(ext.saturacaoHidrogenioCtc, "%")} readOnly />
+                                                <Field label="%Al (%)" value={formatBackendCalculatedValue(ext.saturacaoAluminioCtc, "%")} readOnly />
+                                            </Grid>
+
+                                            <SectionHeader title="Relações entre Cátions Básicos" colorPalette="cyan" />
+                                            <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
+                                                <Field label="Ca/Mg" value={formatBackendCalculatedValue(ext.relacaoCalcioMagnesio)} readOnly />
+                                                <Field label="Ca/K" value={formatBackendCalculatedValue(ext.relacaoCalcioPotassio)} readOnly />
+                                                <Field label="Mg/K" value={formatBackendCalculatedValue(ext.relacaoMagnesioPotassio)} readOnly />
+                                                <Field label="(Ca + Mg)/K" value={formatBackendCalculatedValue(ext.relacaoCalcioMagnesioPotassio)} readOnly />
                                             </Grid>
 
                                             <SectionHeader title="Micronutrientes e Outros" colorPalette="green" />

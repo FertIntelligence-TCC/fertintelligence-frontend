@@ -26,6 +26,16 @@ export interface FertilityAnalysisExtractResponse {
     saturacao_bases_v: number;
     saturacao_aluminio_m: number;
     pst?: number;
+    saturacao_potassio_ctc?: number | null;
+    saturacao_sodio_ctc?: number | null;
+    saturacao_calcio_ctc?: number | null;
+    saturacao_magnesio_ctc?: number | null;
+    saturacao_hidrogenio_ctc?: number | null;
+    saturacao_aluminio_ctc?: number | null;
+    relacao_calcio_magnesio?: number | null;
+    relacao_calcio_potassio?: number | null;
+    relacao_magnesio_potassio?: number | null;
+    relacao_calcio_magnesio_potassio?: number | null;
     fosforo_mehlich1: number;
     fosforo_resina: number;
     enxofre: number;
