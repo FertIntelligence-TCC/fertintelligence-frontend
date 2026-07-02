@@ -11,6 +11,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { useRef } from "react";
 import type { IconType } from "react-icons";
 import { LuFileText, LuFolder, LuListChecks, LuShoppingCart } from "react-icons/lu";
 
@@ -426,6 +427,7 @@ export default function RecommendationFolderDocuments({
   onPrintRecommendation,
   onFullscreenOpenChange,
 }: RecommendationFolderDocumentsProps) {
+  const fullscreenTriggerRef = useRef<HTMLButtonElement>(null);
   const fullscreenDisplayDocumentContent = getDisplayDocumentContent(
     selectedDocument,
     summaryRecommendationDocument,
@@ -446,6 +448,15 @@ export default function RecommendationFolderDocuments({
             ),
           }
         : undefined;
+  const handleFullscreenOpenChange = (open: boolean) => {
+    onFullscreenOpenChange(open);
+
+    if (!open) {
+      window.requestAnimationFrame(() => {
+        fullscreenTriggerRef.current?.focus();
+      });
+    }
+  };
 
   return (
     <>
@@ -453,7 +464,12 @@ export default function RecommendationFolderDocuments({
         <Flex justify="space-between" align="center" mb={3} gap={2}>
           <Heading size="md">Pasta de Recomendações</Heading>
           {selectedRecommendation && selectedDocument?.status === "generated" ? (
-            <Button size="xs" variant="ghost" onClick={() => onFullscreenOpenChange(true)}>
+            <Button
+              ref={fullscreenTriggerRef}
+              size="xs"
+              variant="ghost"
+              onClick={() => handleFullscreenOpenChange(true)}
+            >
               Tela cheia
             </Button>
           ) : null}
@@ -532,7 +548,10 @@ export default function RecommendationFolderDocuments({
 
       <DialogRoot
         open={isFullscreenOpen}
-        onOpenChange={(event) => onFullscreenOpenChange(event.open)}
+        onOpenChange={(event) => handleFullscreenOpenChange(event.open)}
+        lazyMount
+        unmountOnExit
+        finalFocusEl={() => fullscreenTriggerRef.current}
         size="cover"
         placement="center"
       >
