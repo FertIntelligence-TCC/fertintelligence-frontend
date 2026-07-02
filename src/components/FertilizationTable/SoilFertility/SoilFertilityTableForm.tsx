@@ -31,6 +31,9 @@ import DiverseContentRangeModal from "./DiverseContentRangeModal";
 import ExchangeableSodiumModal from "./ExchangeableSodiumModal";
 import SulfurDoseModal from "./SulfurDoseModal";
 import MicronutrientDoseModal from "./MicronutrientDoseModal";
+import CtcSaturationModal from "./CtcSaturationModal";
+import ExchangeableBaseRatioModal from "./ExchangeableBaseRatioModal";
+import RecommendedLimestoneTypeModal from "./RecommendedLimestoneTypeModal";
 
 type Props = {
     form: SoilFertilityFormState;
@@ -52,6 +55,9 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
     const [isExchangeableSodiumOpen, setIsExchangeableSodiumOpen] = useState(false);
     const [isSulfurDoseOpen, setIsSulfurDoseOpen] = useState(false);
     const [isMicronutrientDoseOpen, setIsMicronutrientDoseOpen] = useState(false);
+    const [isCtcSaturationOpen, setIsCtcSaturationOpen] = useState(false);
+    const [isExchangeableBaseRatioOpen, setIsExchangeableBaseRatioOpen] = useState(false);
+    const [isRecommendedLimestoneTypeOpen, setIsRecommendedLimestoneTypeOpen] = useState(false);
 
     const regioesCollection = createListCollection({
         items: Object.keys(RegionEnum).map((k) => ({ label: k.replace(/_/g, ' '), value: k })),
@@ -66,7 +72,10 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
         "Doses de micronutrientes",
         "Teores Trocáveis de Potássio (K) - mmolc/dm³",
         "Teores de Nutrientes Diversos",
-        "Sódio Trocável (mmolc/dm³)"
+        "Sódio Trocável (mmolc/dm³)",
+        "Saturação na CTC(T), em %",
+        "Relações entre bases trocáveis",
+        "Tipos de calcário recomendados"
     ];
 
     return (
@@ -211,6 +220,9 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                                     // Nova lógica para Nutrientes Diversos
                                     else if (tableName === "Teores de Nutrientes Diversos") setIsDiverseContentOpen(true);
                                     else if (tableName === "Sódio Trocável (mmolc/dm³)") setIsExchangeableSodiumOpen(true);
+                                    else if (tableName === "Saturação na CTC(T), em %") setIsCtcSaturationOpen(true);
+                                    else if (tableName === "Relações entre bases trocáveis") setIsExchangeableBaseRatioOpen(true);
+                                    else if (tableName === "Tipos de calcário recomendados") setIsRecommendedLimestoneTypeOpen(true);
                                 }}
                             >
                                 <Center flexDirection="column" textAlign="center">
@@ -291,6 +303,27 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                     <ExchangeableSodiumModal
                         isOpen={isExchangeableSodiumOpen}
                         onClose={() => setIsExchangeableSodiumOpen(false)}
+                        tableId={tableId}
+                        isReadOnly={readOnly}
+                    />
+
+                    <CtcSaturationModal
+                        isOpen={isCtcSaturationOpen}
+                        onClose={() => setIsCtcSaturationOpen(false)}
+                        tableId={tableId}
+                        isReadOnly={readOnly}
+                    />
+
+                    <ExchangeableBaseRatioModal
+                        isOpen={isExchangeableBaseRatioOpen}
+                        onClose={() => setIsExchangeableBaseRatioOpen(false)}
+                        tableId={tableId}
+                        isReadOnly={readOnly}
+                    />
+
+                    <RecommendedLimestoneTypeModal
+                        isOpen={isRecommendedLimestoneTypeOpen}
+                        onClose={() => setIsRecommendedLimestoneTypeOpen(false)}
                         tableId={tableId}
                         isReadOnly={readOnly}
                     />

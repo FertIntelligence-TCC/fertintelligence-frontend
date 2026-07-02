@@ -74,6 +74,21 @@ export const ENDPOINT = {
   CREATE_MICRONUTRIENT_DOSE: "micronutrient-dose/register",
   UPDATE_MICRONUTRIENT_DOSE: "micronutrient-dose/update",
 
+  // --- CTC Saturation Endpoints ---
+  GET_BY_TABLE_CTC_SATURATION: "ctc-saturation/get-by-table",
+  CREATE_CTC_SATURATION: "ctc-saturation/register",
+  UPDATE_CTC_SATURATION: "ctc-saturation/update",
+
+  // --- Exchangeable Base Ratio Endpoints ---
+  GET_BY_TABLE_EXCHANGEABLE_BASE_RATIO: "exchangeable-base-ratio/get-by-table",
+  CREATE_EXCHANGEABLE_BASE_RATIO: "exchangeable-base-ratio/register",
+  UPDATE_EXCHANGEABLE_BASE_RATIO: "exchangeable-base-ratio/update",
+
+  // --- Recommended Limestone Type Endpoints ---
+  GET_BY_TABLE_RECOMMENDED_LIMESTONE_TYPE: "recommended-limestone-type/get-by-table",
+  CREATE_RECOMMENDED_LIMESTONE_TYPE: "recommended-limestone-type/register",
+  UPDATE_RECOMMENDED_LIMESTONE_TYPE: "recommended-limestone-type/update",
+
   // --- Bio Fertilizer Endpoints ---
   DELETE_BIO_FERTILIZER: "bio-fertilizer/delete",
   GET_ALL_BIO_FERTILIZER: "bio-fertilizer/get-all",
