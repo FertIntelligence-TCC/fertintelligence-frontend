@@ -79,6 +79,16 @@ export const ENDPOINT = {
   CREATE_PHOSPHORUS_CLAY_CONTENT_AND_PHOSPHATE_DOSE: "phosphorus-clay-content-and-phosphate-dose/register",
   UPDATE_PHOSPHORUS_CLAY_CONTENT_AND_PHOSPHATE_DOSE: "phosphorus-clay-content-and-phosphate-dose/update",
 
+  // --- Corrective P2O5 Fertilization Endpoints ---
+  GET_BY_TABLE_CORRECTIVE_P2O5_FERTILIZATION: "corrective-p2o5-fertilization/get-by-table",
+  CREATE_CORRECTIVE_P2O5_FERTILIZATION: "corrective-p2o5-fertilization/register",
+  UPDATE_CORRECTIVE_P2O5_FERTILIZATION: "corrective-p2o5-fertilization/update",
+
+  // --- Corrective K2O Fertilization Endpoints ---
+  GET_BY_TABLE_CORRECTIVE_K2O_FERTILIZATION: "corrective-k2o-fertilization/get-by-table",
+  CREATE_CORRECTIVE_K2O_FERTILIZATION: "corrective-k2o-fertilization/register",
+  UPDATE_CORRECTIVE_K2O_FERTILIZATION: "corrective-k2o-fertilization/update",
+
   // --- Micronutrient Dose Endpoints ---
   GET_BY_TABLE_MICRONUTRIENT_DOSE: "micronutrient-dose/get-by-table",
   CREATE_MICRONUTRIENT_DOSE: "micronutrient-dose/register",
