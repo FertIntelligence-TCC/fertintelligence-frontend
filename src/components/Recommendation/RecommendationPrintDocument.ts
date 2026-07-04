@@ -19,7 +19,11 @@ import {
   buildMicronutrientFertilizerTableModel,
   type RecommendationPrintTableModel,
 } from "./MicronutrientFertilizerTable";
-import { parseRecommendationReportBlocks } from "./RecommendationReportViewer";
+import {
+  cleanRecommendationDocumentText,
+  isRecommendationNonInformativeText,
+  parseRecommendationReportBlocks,
+} from "./RecommendationReportViewer";
 import { formatRecommendationTableCell } from "./recommendationColumnDecision";
 
 type StructuredPrintTableModel =
@@ -37,6 +41,60 @@ const escapeHtml = (value: string) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+const LONG_TABLE_CELL_LIMIT = 180;
+
+const normalizeComparableText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[.:;]+$/g, "")
+    .trim();
+
+const compactTextList = (values: string[]): string[] => {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const value of values) {
+    const text = cleanRecommendationDocumentText(value);
+    if (!text) continue;
+
+    const key = normalizeComparableText(text);
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    result.push(text);
+  }
+
+  return result;
+};
+
+const cleanPrintCell = (value: string) => {
+  const text = cleanRecommendationDocumentText(formatRecommendationTableCell(value));
+  return text && !isRecommendationNonInformativeText(text) ? text : "";
+};
+
+const compactPrintTable = (headers: string[], rows: string[][]) => {
+  const cleanedHeaders = headers.map(cleanPrintCell);
+  const cleanedRows = rows
+    .map((row) => row.map((cell) => cleanPrintCell(cell)))
+    .filter((row) => row.some(Boolean));
+
+  if (cleanedRows.length === 0) return null;
+
+  const keptIndexes = cleanedHeaders
+    .map((header, index) => ({ header, index }))
+    .filter(({ header, index }) => header || cleanedRows.some((row) => Boolean(row[index])));
+
+  if (keptIndexes.length === 0) return null;
+
+  return {
+    headers: keptIndexes.map(({ header }) => header),
+    rows: cleanedRows.map((row) => keptIndexes.map(({ index }) => row[index] ?? "")),
+  };
+};
+
 const technicalWarningFields = [
   "mensagem_tecnica",
   "mensagemTecnica",
@@ -49,15 +107,11 @@ const technicalWarningFields = [
 ] as const;
 
 const getPrintableTechnicalWarnings = (recommendation: RecommendationPrintResponse): string[] =>
-  Array.from(
-    new Set(
-      technicalWarningFields
-        .map((field) => {
-          const value = (recommendation as unknown as Record<string, unknown>)[field];
-          return typeof value === "string" ? value.trim() : "";
-        })
-        .filter(Boolean),
-    ),
+  compactTextList(
+    technicalWarningFields.map((field) => {
+      const value = (recommendation as unknown as Record<string, unknown>)[field];
+      return typeof value === "string" ? value : "";
+    }),
   );
 
 const getStructuredPrintTableModels = (
@@ -82,23 +136,47 @@ const getStructuredPrintTableModels = (
 };
 
 const renderStructuredTableHtml = (model: StructuredPrintTableModel) => {
-  const headerHtml = `<thead><tr>${model.headers
-    .map((header) => `<th>${escapeHtml(formatRecommendationTableCell(header))}</th>`)
+  const compactTable = compactPrintTable(model.headers, model.rows);
+  if (!compactTable) return "";
+
+  const notes: string[] = [];
+  const noteMap = new Map<string, number>();
+  const renderCell = (cell: string) => {
+    const cleanCell = cleanPrintCell(cell);
+    if (!cleanCell) return "";
+    if (cleanCell.length <= LONG_TABLE_CELL_LIMIT && !cleanCell.includes("\n")) return escapeHtml(cleanCell);
+
+    const key = normalizeComparableText(cleanCell);
+    const existingIndex = noteMap.get(key);
+    if (existingIndex) return `Ver observação ${existingIndex}`;
+
+    notes.push(cleanCell);
+    noteMap.set(key, notes.length);
+    return `Ver observação ${notes.length}`;
+  };
+
+  const headerHtml = `<thead><tr>${compactTable.headers
+    .map((header) => `<th>${escapeHtml(header)}</th>`)
     .join("")}</tr></thead>`;
-  const bodyHtml = `<tbody>${model.rows
+  const bodyHtml = `<tbody>${compactTable.rows
     .map((row) =>
       `<tr>${row
-        .map((cell) => `<td>${escapeHtml(formatRecommendationTableCell(cell))}</td>`)
+        .map((cell) => `<td>${renderCell(cell)}</td>`)
         .join("")}</tr>`,
     )
     .join("")}</tbody>`;
+  const notesHtml = notes.length
+    ? `<div class="table-notes">${notes
+        .map((note, index) => `<p><strong>Observação ${index + 1}:</strong> ${escapeHtml(note)}</p>`)
+        .join("")}</div>`
+    : "";
   const warningsHtml = "warnings" in model && model.warnings.length
-    ? model.warnings
+    ? compactTextList(model.warnings)
         .map((warning) => `<p class="technical-warning">${escapeHtml(warning)}</p>`)
         .join("")
     : "";
 
-  return `<h2>${escapeHtml(model.title)}</h2><table>${headerHtml}${bodyHtml}</table>${warningsHtml}`;
+  return `<h2>${escapeHtml(model.title)}</h2><table>${headerHtml}${bodyHtml}</table>${notesHtml}${warningsHtml}`;
 };
 
 const renderGypsumHtml = (recommendation: RecommendationPrintResponse) => {
@@ -130,13 +208,16 @@ const renderSulfurHtml = (recommendation: RecommendationPrintResponse) => {
 };
 
 const renderLegacyTableHtml = (headers: string[], rows: string[][]) => {
-  const headerHtml = `<thead><tr>${headers
-    .map((header) => `<th>${escapeHtml(formatRecommendationTableCell(header))}</th>`)
+  const compactTable = compactPrintTable(headers, rows);
+  if (!compactTable) return "";
+
+  const headerHtml = `<thead><tr>${compactTable.headers
+    .map((header) => `<th>${escapeHtml(header)}</th>`)
     .join("")}</tr></thead>`;
-  const bodyHtml = `<tbody>${rows
+  const bodyHtml = `<tbody>${compactTable.rows
     .map((row) =>
       `<tr>${row
-        .map((cell) => `<td>${escapeHtml(formatRecommendationTableCell(cell))}</td>`)
+        .map((cell) => `<td>${escapeHtml(cleanPrintCell(cell))}</td>`)
         .join("")}</tr>`,
     )
     .join("")}</tbody>`;
@@ -158,10 +239,12 @@ const renderReportTextHtml = (text: string) => {
       }
 
       if (block.type === "warning") {
-        return `<p class="technical-warning">${escapeHtml(block.content)}</p>`;
+        const content = cleanRecommendationDocumentText(block.content);
+        return content ? `<p class="technical-warning">${escapeHtml(content)}</p>` : "";
       }
 
-      return `<p>${escapeHtml(block.content)}</p>`;
+      const content = cleanRecommendationDocumentText(block.content);
+      return content ? `<p>${escapeHtml(content)}</p>` : "";
     })
     .join("");
 };
@@ -172,11 +255,18 @@ export const writePrintableReport = (
   printableRecommendation: RecommendationPrintResponse,
 ) => {
   const contentHtml = renderReportTextHtml(text);
+  const renderedReportWarningKeys = new Set(
+    parseRecommendationReportBlocks(text)
+      .filter((block) => block.type === "warning")
+      .map((block) => normalizeComparableText(block.content)),
+  );
   const technicalWarningsHtml = getPrintableTechnicalWarnings(printableRecommendation)
+    .filter((warning) => !renderedReportWarningKeys.has(normalizeComparableText(warning)))
     .map((warning) => `<p class="technical-warning"><strong>Aviso técnico:</strong> ${escapeHtml(warning)}</p>`)
     .join("");
   const structuredTablesHtml = getStructuredPrintTableModels(printableRecommendation)
     .map(renderStructuredTableHtml)
+    .filter(Boolean)
     .join("");
   const gypsumHtml = renderGypsumHtml(printableRecommendation);
   const sulfurHtml = renderSulfurHtml(printableRecommendation);
@@ -198,9 +288,11 @@ export const writePrintableReport = (
       h2 { margin: 20px 0 8px; font-size: 12pt; }
       p { margin: 0; white-space: pre-wrap; }
       .technical-warning { color: #c2410c; font-size: 9pt; margin: 6px 0; }
+      .table-notes { margin: 4px 0 8px; font-size: 9pt; }
+      .table-notes p { margin: 3px 0; }
       .spacing { height: 12px; }
-      table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
-      th, td { border: 1px solid #000; padding: 8px 10px; text-align: left; vertical-align: top; white-space: pre-wrap; }
+      table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9pt; }
+      th, td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top; white-space: pre-wrap; }
       th { font-weight: 700; background: #f2f2f2; }
       .footer { margin-top: 36px; }
       @media print {

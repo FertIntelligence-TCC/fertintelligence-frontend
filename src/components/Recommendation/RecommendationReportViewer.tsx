@@ -22,12 +22,46 @@ const recommendationDocumentBaseFontSize = "10pt";
 const markdownHeadingRegex = /^#{1,6}\s+/;
 const markdownTableSeparatorRegex = /^:?-{3,}:?$/;
 const tableLikeLineRegex = /^\s*\|.*\|\s*$/;
+const nonInformativeTextValues = new Set([
+  "-",
+  "nao informado",
+  "nao informada",
+  "nao informados",
+  "nao informadas",
+  "nao calculado",
+  "nao calculada",
+  "nao calculados",
+  "nao calculadas",
+  "nao aplicavel",
+  "nao aplicaveis",
+  "nao retornado",
+  "nao retornada",
+  "sem dados",
+  "sem dado",
+  "sem informacao",
+  "sem informacoes",
+]);
 
 const normalizeSectionText = (value: string) =>
   value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+
+const normalizeComparableText = (value: string) =>
+  normalizeSectionText(value)
+    .replace(/\s+/g, " ")
+    .replace(/[.:;]+$/g, "")
+    .trim();
+
+export const isRecommendationNonInformativeText = (value: string): boolean =>
+  nonInformativeTextValues.has(normalizeComparableText(value));
+
+export const cleanRecommendationDocumentText = (value: string): string => {
+  const text = value.trim();
+  if (!text || isRecommendationNonInformativeText(text)) return "";
+  return text;
+};
 
 const getSectionKeyFromText = (content: string): RecommendationReportSectionKey | null => {
   const normalizedContent = normalizeSectionText(content);
@@ -72,7 +106,27 @@ const parseTableLineCells = (line: string): string[] =>
     .trim()
     .slice(1, -1)
     .split("|")
-    .map((cell) => sanitizeRecommendationPlainTextLine(cell.trim()));
+    .map((cell) => cleanRecommendationDocumentText(sanitizeRecommendationPlainTextLine(cell.trim())));
+
+const compactParsedTable = (headers: string[], rows: string[][]): { headers: string[]; rows: string[][] } | null => {
+  const rowHasContent = (row: string[]) => row.some((cell) => Boolean(cleanRecommendationDocumentText(cell)));
+  const nonEmptyRows = rows.filter(rowHasContent);
+  if (nonEmptyRows.length === 0) return null;
+
+  const keptIndexes = headers
+    .map((header, index) => ({ header, index }))
+    .filter(({ header, index }) =>
+      Boolean(cleanRecommendationDocumentText(header)) ||
+      nonEmptyRows.some((row) => Boolean(cleanRecommendationDocumentText(row[index] ?? ""))),
+    );
+
+  if (keptIndexes.length === 0) return null;
+
+  return {
+    headers: keptIndexes.map(({ header }) => header),
+    rows: nonEmptyRows.map((row) => keptIndexes.map(({ index }) => row[index] ?? "")),
+  };
+};
 
 const isValidTableSeparator = (line: string, expectedColumnCount: number) => {
   if (!isMarkdownTableSeparatorLine(line)) return false;
@@ -108,10 +162,11 @@ const tryParseLegacyPipeTable = (
     cursor += 1;
   }
 
-  if (rows.length === 0) return null;
+  const compactTable = compactParsedTable(headers, rows);
+  if (!compactTable) return null;
 
   return {
-    block: { type: "table", headers, rows },
+    block: { type: "table", headers: compactTable.headers, rows: compactTable.rows },
     nextIndex: cursor,
   };
 };
@@ -154,7 +209,8 @@ export const parseRecommendationReportBlocks = (reportText: string): ReportBlock
 
     const line = lines[lineIndex];
     const sanitizedLine = sanitizeRecommendationPlainTextLine(line);
-    if (!sanitizedLine.trim()) {
+    const cleanLine = cleanRecommendationDocumentText(sanitizedLine);
+    if (!cleanLine) {
       blocks.push({ type: "spacing" });
       continue;
     }
@@ -163,7 +219,7 @@ export const parseRecommendationReportBlocks = (reportText: string): ReportBlock
       foundInvalidTableLikeContent = true;
     }
 
-    blocks.push({ type: "text", content: sanitizedLine });
+    blocks.push({ type: "text", content: cleanLine });
   }
 
   if (foundInvalidTableLikeContent) {

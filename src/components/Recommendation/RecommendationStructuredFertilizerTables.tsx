@@ -1505,6 +1505,9 @@ const recommendationOptionMetadata: Record<FertilizationOptionKey, Pick<Fertiliz
   },
 };
 
+const getOptionInputTypeLabel = (option: FertilizationOptionModel): string =>
+  option.key === "option1" ? "Adubos formulados" : "Adubos simples";
+
 const normalizeKgHaText = (value: string): string => {
   if (!value) return "";
   return /\bkg\s*\/?\s*ha\b/i.test(value) ? value : `${value} kg/ha`;
@@ -3158,9 +3161,15 @@ export const buildFertilizationOptionPrintTableModels = (
       .map((section) => {
         const rows = buildOptionSectionRows(option, section, mode);
         if (rows.length === 0) return null;
+        const sectionTitle = section === "planting" ? option.plantingTitle : option.topDressingTitle;
+        const shoppingTitle = [
+          option.title,
+          section === "planting" ? "Plantio" : "Cobertura",
+          getOptionInputTypeLabel(option),
+        ].join(" - ");
 
         return {
-          title: `${option.title} - ${section === "planting" ? option.plantingTitle : option.topDressingTitle}`,
+          title: mode === "shopping" ? shoppingTitle : `${option.title} - ${sectionTitle}`,
           headers: getOptionSectionColumns(section, mode).map((column) => String(column.header)),
           rows,
         } satisfies FertilizationOptionPrintTableModel;
@@ -3174,7 +3183,9 @@ export const buildFertilizationOptionPrintTableModels = (
         if (rows.length === 0 && !transferSummary && !micronutrientBalance && warnings.length === 0) return null;
 
         return {
-          title: `${option.title} - Complementos de S, micronutrientes e saldos`,
+          title: mode === "shopping"
+            ? `${option.title} - Complementos - Enxofre e micronutrientes`
+            : `${option.title} - Complementos de S, micronutrientes e saldos`,
           headers: ["Grupo", "Fonte/dose", "Detalhes"],
           rows: [
             ...rows.map((row) => [
@@ -4136,12 +4147,7 @@ export const buildCorrectiveSoilFertilizationPrintTableModels = (
   if (!model) return [];
 
   if (!model.applies) {
-    return [{
-      title: model.title,
-      headers: ["Aviso técnico"],
-      rows: [[model.notApplicableMessage]],
-      warnings: [model.notApplicableMessage],
-    }];
+    return [];
   }
 
   const warnings = [
