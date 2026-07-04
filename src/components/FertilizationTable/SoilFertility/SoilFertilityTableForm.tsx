@@ -30,6 +30,7 @@ import DiverseContentRangeModal from "./DiverseContentRangeModal";
 import ExchangeableSodiumModal from "./ExchangeableSodiumModal";
 import SulfurDoseModal from "./SulfurDoseModal";
 import PotassiumContentAndDoseModal from "./PotassiumContentAndDoseModal";
+import PhosphorusClayContentAndPhosphateDoseModal from "./PhosphorusClayContentAndPhosphateDoseModal";
 import MicronutrientDoseModal from "./MicronutrientDoseModal";
 import CtcSaturationModal from "./CtcSaturationModal";
 import ExchangeableBaseRatioModal from "./ExchangeableBaseRatioModal";
@@ -54,6 +55,7 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
     const [isExchangeableSodiumOpen, setIsExchangeableSodiumOpen] = useState(false);
     const [isSulfurDoseOpen, setIsSulfurDoseOpen] = useState(false);
     const [isPotassiumContentAndDoseOpen, setIsPotassiumContentAndDoseOpen] = useState(false);
+    const [isPhosphorusClayContentAndPhosphateDoseOpen, setIsPhosphorusClayContentAndPhosphateDoseOpen] = useState(false);
     const [isMicronutrientDoseOpen, setIsMicronutrientDoseOpen] = useState(false);
     const [isCtcSaturationOpen, setIsCtcSaturationOpen] = useState(false);
     const [isExchangeableBaseRatioOpen, setIsExchangeableBaseRatioOpen] = useState(false);
@@ -70,6 +72,7 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
         "S disponível",
         "Doses de S",
         "Teores e Doses de K",
+        "Teores de Fósforo e Argila, e Doses de Fosfato",
         "Doses de micronutrientes",
         "Teores de Nutrientes Diversos",
         "Sódio Trocável (mmolc/dm³)",
@@ -215,6 +218,7 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                                     else if (tableName === "S disponível") setIsAvailableSOpen(true);
                                     else if (tableName === "Doses de S") setIsSulfurDoseOpen(true);
                                     else if (tableName === "Teores e Doses de K") setIsPotassiumContentAndDoseOpen(true);
+                                    else if (tableName === "Teores de Fósforo e Argila, e Doses de Fosfato") setIsPhosphorusClayContentAndPhosphateDoseOpen(true);
                                     else if (tableName === "Doses de micronutrientes") setIsMicronutrientDoseOpen(true);
                                     
                                     // Nova lógica para Nutrientes Diversos
@@ -281,6 +285,13 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                     <PotassiumContentAndDoseModal
                         isOpen={isPotassiumContentAndDoseOpen}
                         onClose={() => setIsPotassiumContentAndDoseOpen(false)}
+                        tableId={tableId}
+                        isReadOnly={readOnly}
+                    />
+
+                    <PhosphorusClayContentAndPhosphateDoseModal
+                        isOpen={isPhosphorusClayContentAndPhosphateDoseOpen}
+                        onClose={() => setIsPhosphorusClayContentAndPhosphateDoseOpen(false)}
                         tableId={tableId}
                         isReadOnly={readOnly}
                     />

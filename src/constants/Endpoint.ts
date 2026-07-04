@@ -74,6 +74,11 @@ export const ENDPOINT = {
   CREATE_POTASSIUM_CONTENT_AND_DOSE: "potassium-content-and-dose/register",
   UPDATE_POTASSIUM_CONTENT_AND_DOSE: "potassium-content-and-dose/update",
 
+  // --- Phosphorus Clay Content and Phosphate Dose Endpoints ---
+  GET_BY_TABLE_PHOSPHORUS_CLAY_CONTENT_AND_PHOSPHATE_DOSE: "phosphorus-clay-content-and-phosphate-dose/get-by-table",
+  CREATE_PHOSPHORUS_CLAY_CONTENT_AND_PHOSPHATE_DOSE: "phosphorus-clay-content-and-phosphate-dose/register",
+  UPDATE_PHOSPHORUS_CLAY_CONTENT_AND_PHOSPHATE_DOSE: "phosphorus-clay-content-and-phosphate-dose/update",
+
   // --- Micronutrient Dose Endpoints ---
   GET_BY_TABLE_MICRONUTRIENT_DOSE: "micronutrient-dose/get-by-table",
   CREATE_MICRONUTRIENT_DOSE: "micronutrient-dose/register",
