@@ -1,8 +1,9 @@
-import { Box, Heading, SimpleGrid, Text, VStack } from "@chakra-ui/react";
+import { Badge, Box, Heading, HStack, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 
 import type {
   BioFertilizerRecommendationLine,
   GreenFertilizerRecommendationLine,
+  GypsumRecommendationFields,
   OrganicFertilizerRecommendationLine,
   OrganoMineralFertilizerRecommendationLine,
   RecommendationFertilizerLine,
@@ -51,6 +52,29 @@ type AlternativeFertilizerTableConfig<TLine extends AlternativeFertilizerLine> =
 type AlternativeFertilizerDetail = {
   label: string;
   fields: readonly string[];
+};
+
+type GypsumRecommendationViewMode = "general" | "summary" | "direct" | "shopping";
+
+export type GypsumRecommendationPrintModel = {
+  title: string;
+  lines: string[];
+  warning?: string;
+};
+
+type GypsumRecommendationModel = {
+  recommended: boolean;
+  insufficientSubsurfaceLayers: boolean;
+  dose: string;
+  criterion: string;
+  evaluatedLayers: string;
+  highestClayContent: string;
+  reasons: string[];
+  mainReason: string;
+  applicationGuidance: string;
+  notRecommendedJustification: string;
+  sulfurEquivalentAlternative: string;
+  rawText: string;
 };
 
 const areaFormatter = new Intl.NumberFormat("pt-BR", {
@@ -176,6 +200,114 @@ const bioFertilizerLineFields = [
   "linhasBiofertilizantes",
 ] as const satisfies readonly (keyof RecommendationStructuredFertilizerLines)[];
 
+const gypsumObjectFields = [
+  "gessagem",
+  "recomendacao_gessagem",
+  "recomendacaoGessagem",
+  "gypsumRecommendation",
+  "gesso_agricola",
+  "gessoAgricola",
+  "agriculturalGypsum",
+] as const;
+
+const gypsumRecommendedFields = [
+  "recomendar_gessagem",
+  "recomendarGessagem",
+  "gessagem_recomendada",
+  "gessagemRecomendada",
+  "recommended",
+  "isRecommended",
+  "recommendGypsum",
+  "gypsumRecommended",
+] as const;
+
+const gypsumInsufficientLayerFields = [
+  "camadas_subsuperficiais_insuficientes",
+  "camadasSubsuperficiaisInsuficientes",
+  "sem_camadas_subsuperficiais_suficientes",
+  "semCamadasSubsuperficiaisSuficientes",
+  "insufficientSubsurfaceLayers",
+  "missingSubsurfaceLayers",
+] as const;
+
+const gypsumSufficientLayerFields = [
+  "camadas_subsuperficiais_suficientes",
+  "camadasSubsuperficiaisSuficientes",
+  "subsurfaceLayersSufficient",
+] as const;
+
+const gypsumValueFields = {
+  dose: [
+    "dose_gesso_kg_ha",
+    "doseGessoKgHa",
+    "dose_gesso_agricola_kg_ha",
+    "doseGessoAgricolaKgHa",
+    "gypsumDoseKgHa",
+    "agriculturalGypsumDoseKgHa",
+    "dose_kg_ha",
+    "doseKgHa",
+    "kg_ha",
+    "kgHa",
+  ],
+  criterion: ["criterio", "criterio_gessagem", "criterioGessagem", "criterion", "gypsumCriterion"],
+  evaluatedLayers: [
+    "camadas_subsuperficiais_avaliadas",
+    "camadasSubsuperficiaisAvaliadas",
+    "camadas_avaliadas",
+    "camadasAvaliadas",
+    "evaluatedSubsurfaceLayers",
+    "evaluatedLayers",
+    "layers",
+  ],
+  highestClayContent: [
+    "maior_teor_argila_usado",
+    "maiorTeorArgilaUsado",
+    "maior_argila_usada",
+    "maiorArgilaUsada",
+    "highestClayContentUsed",
+    "maxClayContentUsed",
+  ],
+  calciumReason: ["justificativa_ca", "justificativaCa", "calciumJustification", "caJustification"],
+  aluminumReason: ["justificativa_al", "justificativaAl", "aluminumJustification", "alJustification"],
+  aluminumSaturationReason: [
+    "justificativa_m",
+    "justificativaM",
+    "justificativa_m_percentual",
+    "justificativaMPercentual",
+    "aluminumSaturationJustification",
+    "mPercentJustification",
+  ],
+  reasons: ["justificativas", "justificativas_tecnicas", "justificativasTecnicas", "reasons", "technicalReasons"],
+  mainReason: ["motivo_principal", "motivoPrincipal", "mainReason", "primaryReason"],
+  applicationGuidance: [
+    "orientacao_aplicacao",
+    "orientacaoAplicacao",
+    "orientacao",
+    "guidance",
+    "applicationGuidance",
+    "applicationOrientation",
+  ],
+  notRecommendedJustification: [
+    "justificativa_nao_recomendacao",
+    "justificativaNaoRecomendacao",
+    "motivo_nao_recomendacao",
+    "motivoNaoRecomendacao",
+    "notRecommendedJustification",
+    "noRecommendationReason",
+  ],
+  sulfurEquivalentAlternative: [
+    "alternativa_enxofre_equivalente",
+    "alternativaEnxofreEquivalente",
+    "enxofre_equivalente",
+    "enxofreEquivalente",
+    "sulfurEquivalentAlternative",
+    "equivalentSulfurAlternative",
+  ],
+} as const;
+
+const insufficientSubsurfaceLayersMessage =
+  "Não é possível recomendar gessagem sem análises das camadas subsuperficiais 21–40 cm e/ou 41–60 cm.";
+
 const alternativeValueFields = {
   fertilizer: [
     "adubo",
@@ -240,6 +372,154 @@ const bioFertilizerDetails: AlternativeFertilizerDetail[] = [
 
 const getFirstText = (line: RecommendationFertilizerLine, fields: readonly string[]): string =>
   getFirstRecommendationText(line, fields);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const getFirstBoolean = (line: Record<string, unknown>, fields: readonly string[]): boolean | null => {
+  for (const field of fields) {
+    const value = line[field];
+    if (typeof value === "boolean") return value;
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      if (["true", "sim", "yes", "1"].includes(normalized)) return true;
+      if (["false", "nao", "não", "no", "0"].includes(normalized)) return false;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) return value !== 0;
+  }
+
+  return null;
+};
+
+const normalizeTextList = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((item) => normalizeTextList(item))
+      .filter(Boolean);
+  }
+
+  if (isRecord(value)) {
+    return Object.entries(value)
+      .map(([key, item]) => {
+        const text = normalizeRecommendationText(item);
+        return text ? `${key}: ${text}` : "";
+      })
+      .filter(Boolean);
+  }
+
+  const text = normalizeRecommendationText(value);
+  return text ? [text] : [];
+};
+
+const getFirstTextList = (line: Record<string, unknown>, fields: readonly string[]): string[] => {
+  for (const field of fields) {
+    const values = normalizeTextList(line[field]);
+    if (values.length > 0) return values;
+  }
+
+  return [];
+};
+
+const getFirstAnyText = (line: Record<string, unknown>, fields: readonly string[]): string =>
+  getFirstRecommendationText(line, fields);
+
+const getGypsumPayload = (
+  document?: GypsumRecommendationFields | null,
+): Record<string, unknown> | string | null => {
+  if (!document) return null;
+
+  const record = document as Record<string, unknown>;
+  for (const field of gypsumObjectFields) {
+    const value = record[field];
+    if (isRecord(value)) return value;
+    if (Array.isArray(value)) {
+      const firstRecord = value.find(isRecord);
+      if (firstRecord) return firstRecord;
+
+      const firstText = value.map(normalizeRecommendationText).find(Boolean);
+      if (firstText) return firstText;
+    }
+    const text = normalizeRecommendationText(value);
+    if (text) return text;
+  }
+
+  const hasFlatGypsumField = [
+    ...gypsumRecommendedFields,
+    ...gypsumInsufficientLayerFields,
+    ...gypsumSufficientLayerFields,
+    ...Object.values(gypsumValueFields).flat(),
+  ].some((field) => record[field] !== null && record[field] !== undefined && record[field] !== "");
+
+  return hasFlatGypsumField ? record : null;
+};
+
+const normalizeDoseText = (value: string): string => {
+  if (!value) return "";
+  return /\bkg\s*\/?\s*ha\b/i.test(value) ? value : `${value} kg/ha`;
+};
+
+const normalizeHighestClayText = (value: string): string => {
+  if (!value) return "";
+  return /(%|g\s*\/?\s*kg|dag\s*\/?\s*kg)/i.test(value) ? value : `${value} g/kg`;
+};
+
+export const getGypsumRecommendationModel = (
+  document?: GypsumRecommendationFields | null,
+): GypsumRecommendationModel | null => {
+  const payload = getGypsumPayload(document);
+  if (!payload) return null;
+
+  if (typeof payload === "string") {
+    return {
+      recommended: false,
+      insufficientSubsurfaceLayers: false,
+      dose: "",
+      criterion: "",
+      evaluatedLayers: "",
+      highestClayContent: "",
+      reasons: [],
+      mainReason: "",
+      applicationGuidance: "",
+      notRecommendedJustification: "",
+      sulfurEquivalentAlternative: "",
+      rawText: payload,
+    };
+  }
+
+  const dose = normalizeDoseText(getFirstAnyText(payload, gypsumValueFields.dose));
+  const recommendedFlag = getFirstBoolean(payload, gypsumRecommendedFields);
+  const insufficientFlag = getFirstBoolean(payload, gypsumInsufficientLayerFields);
+  const sufficientFlag = getFirstBoolean(payload, gypsumSufficientLayerFields);
+  const evaluatedLayers = getFirstTextList(payload, gypsumValueFields.evaluatedLayers).join(", ");
+  const reasons = [
+    ...getFirstTextList(payload, gypsumValueFields.calciumReason),
+    ...getFirstTextList(payload, gypsumValueFields.aluminumReason),
+    ...getFirstTextList(payload, gypsumValueFields.aluminumSaturationReason),
+    ...getFirstTextList(payload, gypsumValueFields.reasons),
+  ];
+  const notRecommendedJustification = getFirstAnyText(payload, gypsumValueFields.notRecommendedJustification);
+  const recommended = recommendedFlag ?? Boolean(dose);
+  const insufficientSubsurfaceLayers = insufficientFlag === true || sufficientFlag === false;
+
+  return {
+    recommended,
+    insufficientSubsurfaceLayers,
+    dose,
+    criterion: getFirstAnyText(payload, gypsumValueFields.criterion),
+    evaluatedLayers,
+    highestClayContent: normalizeHighestClayText(getFirstAnyText(payload, gypsumValueFields.highestClayContent)),
+    reasons: Array.from(new Set(reasons)),
+    mainReason: getFirstAnyText(payload, gypsumValueFields.mainReason) || reasons[0] || notRecommendedJustification,
+    applicationGuidance: getFirstAnyText(payload, gypsumValueFields.applicationGuidance),
+    notRecommendedJustification,
+    sulfurEquivalentAlternative: getFirstTextList(payload, gypsumValueFields.sulfurEquivalentAlternative).join("\n"),
+    rawText: "",
+  };
+};
+
+export const hasGypsumRecommendationContent = (
+  document?: GypsumRecommendationFields | null,
+): boolean => Boolean(getGypsumRecommendationModel(document));
 
 const getAlternativeFertilizerLines = <TLine extends AlternativeFertilizerLine>(
   document: RecommendationStructuredFertilizerLines | null | undefined,
@@ -413,13 +693,241 @@ function ShoppingListHeader({ document }: { document: ShoppingListResponse }) {
   );
 }
 
+const getGypsumNotRecommendedText = (model: GypsumRecommendationModel): string => {
+  if (model.insufficientSubsurfaceLayers) return insufficientSubsurfaceLayersMessage;
+  return (
+    model.notRecommendedJustification ||
+    model.mainReason ||
+    "Camadas subsuperficiais avaliadas, sem condição crítica para recomendação de gessagem."
+  );
+};
+
+export const buildGypsumRecommendationPrintModel = (
+  document?: GypsumRecommendationFields | null,
+  mode: GypsumRecommendationViewMode = "general",
+): GypsumRecommendationPrintModel | null => {
+  const model = getGypsumRecommendationModel(document);
+  if (!model) return null;
+
+  if (model.rawText) {
+    return { title: "Gessagem", lines: [model.rawText] };
+  }
+
+  if (!model.recommended) {
+    return {
+      title: "Gessagem",
+      lines: [getGypsumNotRecommendedText(model)],
+      warning: model.insufficientSubsurfaceLayers ? insufficientSubsurfaceLayersMessage : undefined,
+    };
+  }
+
+  if (mode === "direct") {
+    return {
+      title: "Gessagem",
+      lines: [
+        `Aplicar ${model.dose || "dose retornada pelo backend"} de gesso agrícola${
+          model.applicationGuidance ? `. ${model.applicationGuidance}` : "."
+        }`,
+      ],
+    };
+  }
+
+  if (mode === "summary") {
+    return {
+      title: "Gessagem",
+      lines: [`Dose: ${model.dose || "-"}`, `Motivo principal: ${model.mainReason || model.criterion || "-"}`],
+    };
+  }
+
+  if (mode === "shopping") {
+    return {
+      title: "Gesso agrícola",
+      lines: [
+        `Dose: ${model.dose || "-"}`,
+        model.sulfurEquivalentAlternative
+          ? `Alternativa por enxofre equivalente: ${model.sulfurEquivalentAlternative}`
+          : "",
+      ].filter(Boolean),
+    };
+  }
+
+  return {
+    title: "Gessagem",
+    lines: [
+      `Dose de gesso agrícola: ${model.dose || "-"}`,
+      `Critério usado: ${model.criterion || "-"}`,
+      `Camada(s) subsuperficial(is) avaliadas: ${model.evaluatedLayers || "-"}`,
+      `Maior teor de argila usado: ${model.highestClayContent || "-"}`,
+      model.reasons.length ? `Justificativa: ${model.reasons.join("; ")}` : "",
+      `Orientação de aplicação: ${model.applicationGuidance || "-"}`,
+    ].filter(Boolean),
+  };
+};
+
+export function GypsumRecommendationSection({
+  document,
+  mode,
+}: {
+  document?: GypsumRecommendationFields | null;
+  mode: GypsumRecommendationViewMode;
+}) {
+  const model = getGypsumRecommendationModel(document);
+  if (!model) return null;
+
+  if (model.rawText) {
+    return (
+      <VStack align="stretch" gap={2}>
+        <Heading size="sm">Gessagem</Heading>
+        <Text whiteSpace="pre-wrap">{model.rawText}</Text>
+      </VStack>
+    );
+  }
+
+  if (!model.recommended) {
+    const isWarning = model.insufficientSubsurfaceLayers;
+    return (
+      <Box
+        borderWidth="1px"
+        borderColor={isWarning ? "orange.200" : undefined}
+        bg={isWarning ? "orange.50" : undefined}
+        p={3}
+        borderRadius="md"
+      >
+        <VStack align="stretch" gap={2}>
+          <HStack gap={2} wrap="wrap">
+            <Heading size="sm">Gessagem</Heading>
+            <Badge colorPalette={isWarning ? "orange" : "gray"}>
+              {isWarning ? "Aviso técnico" : "Não recomendada"}
+            </Badge>
+          </HStack>
+          <Text color={isWarning ? "orange.700" : undefined}>{getGypsumNotRecommendedText(model)}</Text>
+        </VStack>
+      </Box>
+    );
+  }
+
+  if (mode === "direct") {
+    return (
+      <Box borderWidth="1px" borderRadius="md" p={3}>
+        <VStack align="stretch" gap={2}>
+          <HStack gap={2} wrap="wrap">
+            <Heading size="sm">Gessagem</Heading>
+            <Badge colorPalette="green">Recomendada</Badge>
+          </HStack>
+          <Text fontWeight="medium">
+            Aplicar {model.dose || "a dose retornada pelo backend"} de gesso agrícola.
+          </Text>
+          {model.applicationGuidance ? <Text>{model.applicationGuidance}</Text> : null}
+        </VStack>
+      </Box>
+    );
+  }
+
+  if (mode === "summary") {
+    return (
+      <Box borderWidth="1px" borderRadius="md" p={3}>
+        <VStack align="stretch" gap={2}>
+          <HStack gap={2} wrap="wrap">
+            <Heading size="sm">Gessagem</Heading>
+            <Badge colorPalette="green">Recomendada</Badge>
+          </HStack>
+          <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Dose</Text>
+              <Text fontWeight="medium">{model.dose || "-"}</Text>
+            </Box>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Motivo principal</Text>
+              <Text>{model.mainReason || model.criterion || "-"}</Text>
+            </Box>
+          </SimpleGrid>
+        </VStack>
+      </Box>
+    );
+  }
+
+  if (mode === "shopping") {
+    return (
+      <VStack align="stretch" gap={3}>
+        <Heading size="sm">Gesso agrícola</Heading>
+        <RecommendationTable
+          columns={[
+            { key: "item", header: "Item", minW: "180px" },
+            { key: "dose", header: "Dose", minW: "140px" },
+            { key: "alternative", header: "Alternativa", minW: "260px" },
+          ]}
+          rows={[
+            [
+              "Gesso agrícola",
+              model.dose || "-",
+              model.sulfurEquivalentAlternative
+                ? `Enxofre equivalente: ${model.sulfurEquivalentAlternative}`
+                : "-",
+            ],
+          ]}
+          minW="620px"
+          renderCell={(row, _column, _rowIndex, columnIndex) => (
+            <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
+              {row[columnIndex] || "-"}
+            </Text>
+          )}
+        />
+      </VStack>
+    );
+  }
+
+  return (
+    <Box borderWidth="1px" borderRadius="md" p={3}>
+      <VStack align="stretch" gap={3}>
+        <HStack gap={2} wrap="wrap">
+          <Heading size="sm">Gessagem</Heading>
+          <Badge colorPalette="green">Recomendada</Badge>
+        </HStack>
+        <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Dose de gesso agrícola</Text>
+            <Text fontWeight="medium">{model.dose || "-"}</Text>
+          </Box>
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Critério usado</Text>
+            <Text>{model.criterion || "-"}</Text>
+          </Box>
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Camada(s) subsuperficial(is) avaliadas</Text>
+            <Text>{model.evaluatedLayers || "-"}</Text>
+          </Box>
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Maior teor de argila usado</Text>
+            <Text>{model.highestClayContent || "-"}</Text>
+          </Box>
+        </SimpleGrid>
+        {model.reasons.length > 0 ? (
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Justificativa por Ca2+, Al3+ e/ou m%</Text>
+            <VStack align="stretch" gap={1} mt={1}>
+              {model.reasons.map((reason) => (
+                <Text key={reason}>{reason}</Text>
+              ))}
+            </VStack>
+          </Box>
+        ) : null}
+        <Box>
+          <Text color="fg.muted" fontSize="xs">Orientação de aplicação</Text>
+          <Text>{model.applicationGuidance || "-"}</Text>
+        </Box>
+      </VStack>
+    </Box>
+  );
+}
+
 export const hasStructuredRecommendationContent = (
   document?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
   hasMicronutrientFertilizerRows(document) ||
   hasFormulatedPlantingFertilizerRows(document) ||
   hasFormulatedTopDressingFertilizerRows(document) ||
-  hasAlternativeFertilizerRows(document);
+  hasAlternativeFertilizerRows(document) ||
+  hasGypsumRecommendationContent(document);
 
 function AlternativeFertilizerTables({
   document,
@@ -480,6 +988,7 @@ export default function RecommendationStructuredFertilizerTables({
         variant={showShoppingListHeader ? "shopping" : "recommendation"}
       />
       <AlternativeFertilizerTables document={displayDocument} />
+      <GypsumRecommendationSection document={displayDocument} mode={showShoppingListHeader ? "shopping" : "direct"} />
     </VStack>
   );
 }

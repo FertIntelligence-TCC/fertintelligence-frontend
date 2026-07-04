@@ -87,7 +87,10 @@ import RecommendationFolderDocuments, {
 } from "@/components/Recommendation/RecommendationFolderDocuments";
 import RecommendationHistoryList from "@/components/Recommendation/RecommendationHistoryList";
 import { writePrintableReport } from "@/components/Recommendation/RecommendationPrintDocument";
-import { hasStructuredRecommendationContent } from "@/components/Recommendation/RecommendationStructuredFertilizerTables";
+import {
+  hasGypsumRecommendationContent,
+  hasStructuredRecommendationContent,
+} from "@/components/Recommendation/RecommendationStructuredFertilizerTables";
 import { hasMicronutrientFertilizerRows } from "@/components/Recommendation/MicronutrientFertilizerTable";
 import { hasRecommendationFertigramCharts } from "@/components/Recommendation/RecommendationFertigramCharts";
 import TextureClassificationSystemSelect, {
@@ -1091,9 +1094,11 @@ export default function Recommendation() {
   const reportText = getRecommendationReportText(selectedRecommendation);
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
+    general: hasGypsumRecommendationContent(selectedRecommendation),
   	summary:
       hasMicronutrientFertilizerRows(summaryRecommendationDocument) ||
       hasRecommendationFertigramCharts(summaryRecommendationDocument, "chemical") ||
+      hasGypsumRecommendationContent(summaryRecommendationDocument) ||
       Boolean(documentTechnicalWarnings.summary?.length),
   	direct:
       hasDirectFertilizationObservations(directRecommendationDocument) ||
@@ -1103,7 +1108,7 @@ export default function Recommendation() {
       hasStructuredRecommendationContent(shoppingListDocument) ||
       Boolean(documentTechnicalWarnings.shopping?.length),
 	}),
-	[directRecommendationDocument, documentTechnicalWarnings, shoppingListDocument, summaryRecommendationDocument],
+	[directRecommendationDocument, documentTechnicalWarnings, selectedRecommendation, shoppingListDocument, summaryRecommendationDocument],
   );
   const recommendationDocuments = useMemo<RecommendationDocumentView[]>(() => {
 	return buildRecommendationDocumentViews({

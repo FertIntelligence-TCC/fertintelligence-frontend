@@ -32,6 +32,7 @@ import type {
 
 import RecommendationReportViewer from "./RecommendationReportViewer";
 import RecommendationStructuredFertilizerTables, {
+  GypsumRecommendationSection,
   hasStructuredRecommendationContent,
 } from "./RecommendationStructuredFertilizerTables";
 import MicronutrientFertilizerTable, {
@@ -161,6 +162,7 @@ export function buildRecommendationDocumentViews({
   structuredDocuments = {},
 }: BuildRecommendationDocumentViewsParams): RecommendationDocumentView[] {
   const hasGeneralReport = Boolean(reportText?.trim());
+  const hasGeneralStructuredContent = structuredDocuments.general === true;
   const summaryText = loadedDocuments.summary ?? "";
   const directText = loadedDocuments.direct ?? "";
   const shoppingText = loadedDocuments.shopping ?? "";
@@ -174,12 +176,14 @@ export function buildRecommendationDocumentViews({
       title: "Recomendação Geral",
       description: hasGeneralReport
         ? "Documento principal da pasta."
+        : hasGeneralStructuredContent
+          ? "Documento da pasta carregado."
         : "Aguardando conteúdo retornado pelo backend.",
       status: loadingDocumentKey === "general"
         ? "loading"
         : documentErrors.general
           ? "error"
-          : hasGeneralReport
+          : hasGeneralReport || hasGeneralStructuredContent
             ? "generated"
             : "not_generated",
       content: reportText,
@@ -314,6 +318,8 @@ function RecommendationDocumentPanel({
   const showSummaryStructuredContent =
     selectedDocument?.key === "summary" &&
     hasMicronutrientFertilizerRows(summaryRecommendationDocument);
+  const showSummaryGypsumContent = selectedDocument?.key === "summary";
+  const showGeneralGypsumContent = selectedDocument?.key === "general";
   const showDirectFertilizationObservations =
     selectedDocument?.key === "direct" &&
     Boolean(directFertilizationObservations);
@@ -362,6 +368,12 @@ function RecommendationDocumentPanel({
           ))}
           {showSummaryStructuredContent ? (
             <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
+          ) : null}
+          {showSummaryGypsumContent ? (
+            <GypsumRecommendationSection document={summaryRecommendationDocument} mode="summary" />
+          ) : null}
+          {showGeneralGypsumContent ? (
+            <GypsumRecommendationSection document={selectedRecommendation} mode="general" />
           ) : null}
           {showDirectStructuredNpkContent ? (
             <RecommendationStructuredFertilizerTables
@@ -594,6 +606,12 @@ export default function RecommendationFolderDocuments({
                     {selectedDocument.key === "summary" &&
                     hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (
                       <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
+                    ) : null}
+                    {selectedDocument.key === "summary" ? (
+                      <GypsumRecommendationSection document={summaryRecommendationDocument} mode="summary" />
+                    ) : null}
+                    {selectedDocument.key === "general" ? (
+                      <GypsumRecommendationSection document={selectedRecommendation} mode="general" />
                     ) : null}
                     {selectedDocument.key === "direct" &&
                     hasDirectNpkFertilizerRows(directRecommendationDocument) ? (
