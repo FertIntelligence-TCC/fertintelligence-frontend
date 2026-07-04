@@ -1,6 +1,6 @@
 import { Box, Grid, Text, VStack } from "@chakra-ui/react";
 import { GreenFertilizerFormState } from "@/interfaces/Fertilizer";
-import { FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, ReadOnlyDisplay, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerCommercialPriceFields, FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, ReadOnlyDisplay, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 
 type Props = {
     form: GreenFertilizerFormState;
@@ -73,6 +73,8 @@ export default function GreenFertilizerFormFields({ form, onChange, readOnly }: 
                     <FertilizerInputField label="Zn" value={form.zn} onChange={(v) => onChange("zn", v)} readOnly={readOnly} colorScheme={color} />
                 </Grid>
             </Box>
+            <FertilizerCommercialPriceFields form={form} onChange={(field, value) => onChange(field, value)} readOnly={readOnly} colorScheme={color} />
+
 
             <Box>
                 <FormSectionHeader title="Informações adicionais" colorScheme={color} />

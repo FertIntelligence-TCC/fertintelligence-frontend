@@ -22,6 +22,7 @@ export default function BioFertilizerCard(props: Props) {
             badgeLabel="Biofertilizante"
             colorScheme="teal"
             photoIds={getFertilizerPhotoIds(item)}
+            commercialPrice={item}
             {...props}
         >
             <BioFertilizerTechnicalDetails item={item} />

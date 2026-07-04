@@ -26,6 +26,7 @@ export default function FormulatedMineralFertilizerCard(props: Props) {
             badgeLabel="Formulado"
             colorScheme="purple"
             photoIds={getFertilizerPhotoIds(item)}
+            commercialPrice={item}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

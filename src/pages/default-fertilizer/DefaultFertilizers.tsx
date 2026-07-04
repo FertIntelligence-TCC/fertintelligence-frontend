@@ -34,7 +34,7 @@ import {
   OrganoMineralFertilizerResponseDto,
   SimpleMineralFertilizerFormState,
   SimpleMineralFertilizerResponseDto,
-  getFertilizerPhotoIds,
+  getFertilizerPhotoIds, fertilizerCommercialPriceResponseToForm,
   getOrganicMatterContent,
 } from "@/interfaces/Fertilizer";
 import { fetchDefaultBioFertilizers } from "@/services/bioFertilizerService";
@@ -98,7 +98,7 @@ const publicValue = (publico?: boolean): "sim" | "nao" => (publico ? "sim" : "na
 const toBaseNutrientForm = <T extends BaseNutrientFertilizer>(item: T) => ({
   ...DEFAULT_SIMPLE_MINERAL_FORM_STATE,
   nome: item.nome_adubo,
-  fotoIds: getFertilizerPhotoIds(item),
+  fotoIds: getFertilizerPhotoIds(item), ...fertilizerCommercialPriceResponseToForm(item),
   observacao: item.observacao ?? "",
   fonte: item.fonte ?? "",
   n: String(item.n ?? 0),
@@ -155,7 +155,7 @@ const toBioForm = (item: BioFertilizerResponseDto): BioFertilizerFormState =>
 const toOrganoMineralForm = (item: OrganoMineralFertilizerResponseDto): OrganoMineralFertilizerFormState => ({
   ...DEFAULT_ORGANO_MINERAL_FORM_STATE,
   nome: item.nome_adubo,
-  fotoIds: getFertilizerPhotoIds(item),
+  fotoIds: getFertilizerPhotoIds(item), ...fertilizerCommercialPriceResponseToForm(item),
   observacao: item.observacao ?? "",
   fonte: item.fonte ?? "",
   c: String(item.c ?? 0),
@@ -179,7 +179,7 @@ const toOrganoMineralForm = (item: OrganoMineralFertilizerResponseDto): OrganoMi
 const toGreenForm = (item: GreenFertilizerResponseDto): GreenFertilizerFormState => ({
   ...DEFAULT_GREEN_FERTILIZER_FORM_STATE,
   nome: item.nome_adubo,
-  fotoIds: getFertilizerPhotoIds(item),
+  fotoIds: getFertilizerPhotoIds(item), ...fertilizerCommercialPriceResponseToForm(item),
   observacao: item.observacao ?? "",
   fonte: item.fonte ?? "",
   c: String(item.c ?? 0),
@@ -205,7 +205,7 @@ const toGreenForm = (item: GreenFertilizerResponseDto): GreenFertilizerFormState
 const toOrganicForm = (item: OrganicFertilizerResponseDto): OrganicFertilizerFormState => ({
   ...DEFAULT_ORGANIC_FERTILIZER_FORM_STATE,
   nome: item.nome_adubo,
-  fotoIds: getFertilizerPhotoIds(item),
+  fotoIds: getFertilizerPhotoIds(item), ...fertilizerCommercialPriceResponseToForm(item),
   observacao: item.observacao ?? "",
   fonte: item.fonte ?? "",
   teorUmidade: String(item.teor_umidade ?? 0),
@@ -233,7 +233,7 @@ const toFormulatedForm = (item: FormulatedMineralFertilizerResponseDto): Formula
 
   return {
     ...DEFAULT_FORMULATED_FORM_STATE,
-    fotoIds: getFertilizerPhotoIds(item),
+    fotoIds: getFertilizerPhotoIds(item), ...fertilizerCommercialPriceResponseToForm(item),
     observacao: item.observacao ?? "",
     fonte: item.fonte ?? "",
     formulaN: String(item.formula?.n ?? 0),

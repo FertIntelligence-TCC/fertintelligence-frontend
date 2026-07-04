@@ -2,6 +2,8 @@ import { Box, Text, HStack, IconButton, Badge, Flex } from "@chakra-ui/react";
 import { ReactNode } from "react";
 import { FiEye } from "react-icons/fi";
 import ImageThumb from "@/components/ImageThumb";
+import { FertilizerCommercialPriceSummary } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerCommercialPriceResponseFields } from "@/interfaces/Fertilizer";
 
 interface PublicFertilizerCardProps {
   fertilizerName: string;
@@ -11,6 +13,7 @@ interface PublicFertilizerCardProps {
   isSelected: boolean;
   onSelect: () => void;
   onView: () => void;
+  commercialPrice?: FertilizerCommercialPriceResponseFields;
   children?: ReactNode;
 }
 
@@ -22,6 +25,7 @@ export default function PublicFertilizerCard({
   isSelected,
   onSelect,
   onView,
+  commercialPrice,
   children,
 }: PublicFertilizerCardProps) {
   return (
@@ -58,6 +62,7 @@ export default function PublicFertilizerCard({
       )}
 
       {children}
+      <FertilizerCommercialPriceSummary item={commercialPrice} />
 
       {isSelected && (
         <HStack justify="flex-end" mt={3}>

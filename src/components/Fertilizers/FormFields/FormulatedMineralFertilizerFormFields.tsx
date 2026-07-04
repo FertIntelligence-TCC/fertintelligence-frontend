@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Box, Grid, VStack, Flex, Text } from "@chakra-ui/react";
 import { FormulatedFertilizerFormState } from "@/interfaces/Fertilizer";
-import { FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerCommercialPriceFields, FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 import { calculateNpkRelation, formatNpkRelation } from "@/utils/npkRelation";
 
 type Props = {
@@ -95,6 +95,8 @@ export default function FormulatedMineralFertilizerFormFields({ form, onChange, 
                 readOnly={readOnly}
                 colorScheme={color}
             />
+            <FertilizerCommercialPriceFields form={form} onChange={(field, value) => onChange(field, value)} readOnly={readOnly} colorScheme={color} />
+
 
             <Box>
                 <FormSectionHeader title="Informações adicionais" colorScheme={color} />

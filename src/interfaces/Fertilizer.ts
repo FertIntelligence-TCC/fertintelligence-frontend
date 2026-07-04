@@ -29,6 +29,112 @@ export const getOrganicMatterContent = (item: {
     c?: number | null;
 }): number => item.teor_materia_organica ?? item.teor_cinzas ?? ((item.c ?? 0) * 1.724);
 
+export interface FertilizerCommercialPriceResponseFields {
+    data_tomada_preco?: string | null;
+    preco_saco_5_kg?: number | null;
+    preco_saco_25_kg?: number | null;
+    preco_saco_50_kg?: number | null;
+    preco_saco_1000_kg?: number | null;
+}
+
+export interface FertilizerCommercialPriceCreateFields {
+    data_tomada_preco?: string | null;
+    preco_saco_5_kg?: number | null;
+    preco_saco_25_kg?: number | null;
+    preco_saco_50_kg?: number | null;
+    preco_saco_1000_kg?: number | null;
+}
+
+export interface FertilizerCommercialPriceUpdateFields {
+    nova_data_tomada_preco?: string | null;
+    novo_preco_saco_5_kg?: number | null;
+    novo_preco_saco_25_kg?: number | null;
+    novo_preco_saco_50_kg?: number | null;
+    novo_preco_saco_1000_kg?: number | null;
+}
+
+export interface FertilizerCommercialPriceFormFields {
+    dataTomadaPreco: string;
+    precoSaco5Kg: string;
+    precoSaco25Kg: string;
+    precoSaco50Kg: string;
+    precoSaco1000Kg: string;
+}
+
+export const DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS: FertilizerCommercialPriceFormFields = {
+    dataTomadaPreco: "",
+    precoSaco5Kg: "",
+    precoSaco25Kg: "",
+    precoSaco50Kg: "",
+    precoSaco1000Kg: "",
+};
+
+const normalizeDecimalText = (value: string): string => value.trim().replace(/\./g, "").replace(",", ".");
+
+export const optionalFertilizerDecimal = (value: string): number | null => {
+    const normalized = normalizeDecimalText(value);
+    if (!normalized) return null;
+
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
+export const formatFertilizerCommercialPriceDateForForm = (value?: string | null): string => {
+    if (!value) return "";
+
+    const [datePart] = String(value).split("T");
+    const isoMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+
+    const brMatch = datePart.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (brMatch) return datePart;
+
+    return String(value);
+};
+
+export const parseFertilizerCommercialPriceDateForPayload = (value: string): string | null => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const brMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (brMatch) return `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`;
+
+    const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) return trimmed;
+
+    return trimmed;
+};
+
+export const fertilizerCommercialPriceResponseToForm = (
+    item: FertilizerCommercialPriceResponseFields
+): FertilizerCommercialPriceFormFields => ({
+    dataTomadaPreco: formatFertilizerCommercialPriceDateForForm(item.data_tomada_preco),
+    precoSaco5Kg: item.preco_saco_5_kg == null ? "" : String(item.preco_saco_5_kg),
+    precoSaco25Kg: item.preco_saco_25_kg == null ? "" : String(item.preco_saco_25_kg),
+    precoSaco50Kg: item.preco_saco_50_kg == null ? "" : String(item.preco_saco_50_kg),
+    precoSaco1000Kg: item.preco_saco_1000_kg == null ? "" : String(item.preco_saco_1000_kg),
+});
+
+export const fertilizerCommercialPriceFormToCreatePayload = (
+    form: FertilizerCommercialPriceFormFields
+): FertilizerCommercialPriceCreateFields => ({
+    data_tomada_preco: parseFertilizerCommercialPriceDateForPayload(form.dataTomadaPreco),
+    preco_saco_5_kg: optionalFertilizerDecimal(form.precoSaco5Kg),
+    preco_saco_25_kg: optionalFertilizerDecimal(form.precoSaco25Kg),
+    preco_saco_50_kg: optionalFertilizerDecimal(form.precoSaco50Kg),
+    preco_saco_1000_kg: optionalFertilizerDecimal(form.precoSaco1000Kg),
+});
+
+export const fertilizerCommercialPriceFormToUpdatePayload = (
+    form: FertilizerCommercialPriceFormFields
+): FertilizerCommercialPriceUpdateFields => ({
+    nova_data_tomada_preco: parseFertilizerCommercialPriceDateForPayload(form.dataTomadaPreco),
+    novo_preco_saco_5_kg: optionalFertilizerDecimal(form.precoSaco5Kg),
+    novo_preco_saco_25_kg: optionalFertilizerDecimal(form.precoSaco25Kg),
+    novo_preco_saco_50_kg: optionalFertilizerDecimal(form.precoSaco50Kg),
+    novo_preco_saco_1000_kg: optionalFertilizerDecimal(form.precoSaco1000Kg),
+});
+
 // --- ADUBOS MINERAIS SIMPLES ---
 
 // GET /get-all
@@ -126,6 +232,7 @@ export interface SimpleMineralFertilizerFormState {
 }
 
 export const DEFAULT_SIMPLE_MINERAL_FORM_STATE: SimpleMineralFertilizerFormState = {
+    ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     nome: "",
     fotoIds: [],
     observacao: "",
@@ -255,6 +362,7 @@ export interface FormulatedFertilizerFormState {
 }
 
 export const DEFAULT_FORMULATED_FORM_STATE: FormulatedFertilizerFormState = {
+    ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     fotoIds: [],
     observacao: "",
     fonte: "",
@@ -568,6 +676,7 @@ export interface OrganoMineralFertilizerFormState {
 }
 
 export const DEFAULT_ORGANO_MINERAL_FORM_STATE: OrganoMineralFertilizerFormState = {
+    ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     nome: "",
     fotoIds: [],
     observacao: "",
@@ -688,6 +797,7 @@ export interface GreenFertilizerFormState {
 }
 
 export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
+    ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     nome: "",
     fotoIds: [],
     observacao: "",
@@ -816,6 +926,7 @@ export interface OrganicFertilizerFormState {
 }
 
 export const DEFAULT_ORGANIC_FERTILIZER_FORM_STATE: OrganicFertilizerFormState = {
+    ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     nome: "",
     fotoIds: [],
     observacao: "",
@@ -946,6 +1057,7 @@ export interface MineralFertilizerFormState {
 }
 
 export const DEFAULT_MINERAL_FERTILIZER_FORM_STATE: MineralFertilizerFormState = {
+    ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     nome: "",
     fotoIds: [],
     observacao: "",
@@ -1070,6 +1182,7 @@ export interface ChelatedFertilizerFormState {
 }
 
 export const DEFAULT_CHELATED_FERTILIZER_FORM_STATE: ChelatedFertilizerFormState = {
+    ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     nome: "",
     fotoIds: [],
     observacao: "",
@@ -1213,6 +1326,7 @@ export interface BioFertilizerFormState {
 }
 
 export const DEFAULT_BIO_FERTILIZER_FORM_STATE: BioFertilizerFormState = {
+    ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     nome: "",
     fotoIds: [],
     observacao: "",
@@ -1231,3 +1345,52 @@ export const DEFAULT_BIO_FERTILIZER_FORM_STATE: BioFertilizerFormState = {
     indiceSalino: "", indiceAcidez: "",
     publico: "nao"
 };
+
+export interface SimpleMineralFertilizerResponseDto extends FertilizerCommercialPriceResponseFields {}
+export interface SimpleMineralFertilizerCreateRequestDto extends FertilizerCommercialPriceCreateFields {}
+export interface SimpleMineralFertilizerPostRequestDto extends FertilizerCommercialPriceUpdateFields {}
+export interface SimpleMineralFertilizerFormState extends FertilizerCommercialPriceFormFields {}
+
+export interface FormulatedMineralFertilizerResponseDto extends FertilizerCommercialPriceResponseFields {
+    publico?: boolean;
+    nome_criador?: string;
+}
+export interface FormulatedMineralFertilizerCreateRequestDto extends FertilizerCommercialPriceCreateFields {
+    publico?: boolean;
+}
+export interface FormulatedMineralFertilizerPostRequestDto extends FertilizerCommercialPriceUpdateFields {
+    novo_publico?: boolean;
+}
+export interface FormulatedFertilizerFormState extends FertilizerCommercialPriceFormFields {
+    publico?: "sim" | "nao";
+}
+
+export interface OrganoMineralFertilizerResponseDto extends FertilizerCommercialPriceResponseFields {}
+export interface OrganoMineralFertilizerCreateRequestDto extends FertilizerCommercialPriceCreateFields {}
+export interface OrganoMineralFertilizerPostRequestDto extends FertilizerCommercialPriceUpdateFields {}
+export interface OrganoMineralFertilizerFormState extends FertilizerCommercialPriceFormFields {}
+
+export interface GreenFertilizerResponseDto extends FertilizerCommercialPriceResponseFields {}
+export interface GreenFertilizerCreateRequestDto extends FertilizerCommercialPriceCreateFields {}
+export interface GreenFertilizerPostRequestDto extends FertilizerCommercialPriceUpdateFields {}
+export interface GreenFertilizerFormState extends FertilizerCommercialPriceFormFields {}
+
+export interface OrganicFertilizerResponseDto extends FertilizerCommercialPriceResponseFields {}
+export interface OrganicFertilizerCreateRequestDto extends FertilizerCommercialPriceCreateFields {}
+export interface OrganicFertilizerPostRequestDto extends FertilizerCommercialPriceUpdateFields {}
+export interface OrganicFertilizerFormState extends FertilizerCommercialPriceFormFields {}
+
+export interface MineralFertilizerResponseDto extends FertilizerCommercialPriceResponseFields {}
+export interface MineralFertilizerCreateRequestDto extends FertilizerCommercialPriceCreateFields {}
+export interface MineralFertilizerPostRequestDto extends FertilizerCommercialPriceUpdateFields {}
+export interface MineralFertilizerFormState extends FertilizerCommercialPriceFormFields {}
+
+export interface ChelatedFertilizerResponseDto extends FertilizerCommercialPriceResponseFields {}
+export interface ChelatedFertilizerCreateRequestDto extends FertilizerCommercialPriceCreateFields {}
+export interface ChelatedFertilizerPostRequestDto extends FertilizerCommercialPriceUpdateFields {}
+export interface ChelatedFertilizerFormState extends FertilizerCommercialPriceFormFields {}
+
+export interface BioFertilizerResponseDto extends FertilizerCommercialPriceResponseFields {}
+export interface BioFertilizerCreateRequestDto extends FertilizerCommercialPriceCreateFields {}
+export interface BioFertilizerPostRequestDto extends FertilizerCommercialPriceUpdateFields {}
+export interface BioFertilizerFormState extends FertilizerCommercialPriceFormFields {}

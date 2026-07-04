@@ -27,6 +27,9 @@ import {
     OrganicFertilizerPostRequestDto,
     calculateOrganicCarbon,
     getFertilizerPhotoIds,
+    fertilizerCommercialPriceResponseToForm,
+    fertilizerCommercialPriceFormToCreatePayload,
+    fertilizerCommercialPriceFormToUpdatePayload,
     getOrganicMatterContent
 } from "@/interfaces/Fertilizer";
 
@@ -47,6 +50,7 @@ const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizer
   nome: dto.nome_adubo,
   c: String(calculateOrganicCarbon(getOrganicMatterContent(dto))),
   fotoIds: getFertilizerPhotoIds(dto),
+  ...fertilizerCommercialPriceResponseToForm(dto),
   observacao: dto.observacao ?? "",
   fonte: dto.fonte ?? "",
   teorUmidade: String(dto.teor_umidade ?? 0),
@@ -74,6 +78,7 @@ const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertil
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToCreatePayload(form),
     teor_umidade: num(form.teorUmidade),
     teor_materia_organica: num(form.teorMateriaOrganica),
     c: calculateOrganicCarbon(form.teorMateriaOrganica),
@@ -100,6 +105,7 @@ const mapFormToUpdatePayload = (form: OrganicFertilizerFormState): OrganicFertil
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
     novo_fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToUpdatePayload(form),
     novo_teor_umidade: num(form.teorUmidade),
     novo_teor_materia_organica: num(form.teorMateriaOrganica),
     novo_c: calculateOrganicCarbon(form.teorMateriaOrganica),

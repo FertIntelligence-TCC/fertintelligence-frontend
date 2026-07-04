@@ -25,7 +25,10 @@ import {
     DEFAULT_MINERAL_FERTILIZER_FORM_STATE,
     MineralFertilizerCreateRequestDto,
     MineralFertilizerPostRequestDto,
-    getFertilizerPhotoIds
+    getFertilizerPhotoIds,
+    fertilizerCommercialPriceResponseToForm,
+    fertilizerCommercialPriceFormToCreatePayload,
+    fertilizerCommercialPriceFormToUpdatePayload
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -46,6 +49,7 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 const mapResponseToForm = (dto: MineralFertilizerResponseDto): MineralFertilizerFormState => ({
   nome: dto.nome_adubo,
   fotoIds: getFertilizerPhotoIds(dto),
+  ...fertilizerCommercialPriceResponseToForm(dto),
   observacao: dto.observacao ?? "",
   fonte: dto.fonte ?? "",
   naturezaFisica: dto.natureza_fisica ?? "SOLIDO",
@@ -92,6 +96,7 @@ const mapFormToCreatePayload = (form: MineralFertilizerFormState): MineralFertil
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToCreatePayload(form),
     natureza_fisica: form.naturezaFisica,
     ...liquidCreateFields(form),
     n: num(form.n),
@@ -116,6 +121,7 @@ const mapFormToUpdatePayload = (form: MineralFertilizerFormState): MineralFertil
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
     novo_fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToUpdatePayload(form),
     nova_natureza_fisica: form.naturezaFisica,
     ...liquidUpdateFields(form),
     novo_n: num(form.n),

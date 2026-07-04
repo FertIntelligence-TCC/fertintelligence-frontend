@@ -1,6 +1,6 @@
 import { Box, Grid, Text, VStack, chakra } from "@chakra-ui/react";
 import { MineralFertilizerFormState } from "@/interfaces/Fertilizer";
-import { FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerCommercialPriceFields, FertilizerInputField, FertilizerPhotosSection, FormSectionHeader, PublicVisibilitySelector } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
 
 type Props = {
     form: MineralFertilizerFormState;
@@ -101,6 +101,8 @@ export default function FoliarMineralFertilizerFormFields({ form, onChange, read
                 readOnly={readOnly}
                 colorScheme={color}
             />
+            <FertilizerCommercialPriceFields form={form} onChange={(field, value) => onChange(field, value)} readOnly={readOnly} colorScheme={color} />
+
 
             <Box>
                 <FormSectionHeader title="Informações adicionais" colorScheme={color} />

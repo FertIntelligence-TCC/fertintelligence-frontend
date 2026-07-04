@@ -9,9 +9,9 @@ import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
 import PublicFertilizerCard from "@/components/Fertilizers/Shared/PublicFertilizerCard";
-import { FertilizerPhotoCarrier, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
+import { FertilizerCommercialPriceResponseFields, FertilizerPhotoCarrier, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
 
-interface PublicFertilizerListBaseProps<TItem extends FertilizerPhotoCarrier, TForm> {
+interface PublicFertilizerListBaseProps<TItem extends FertilizerPhotoCarrier & FertilizerCommercialPriceResponseFields, TForm> {
   subtitle: string;
   heading: string;
   typeLabel: string;
@@ -29,7 +29,7 @@ interface PublicFertilizerListBaseProps<TItem extends FertilizerPhotoCarrier, TF
   renderReadOnlyForm: (form: TForm) => ReactNode;
 }
 
-export default function PublicFertilizerListBase<TItem extends FertilizerPhotoCarrier, TForm>({
+export default function PublicFertilizerListBase<TItem extends FertilizerPhotoCarrier & FertilizerCommercialPriceResponseFields, TForm>({
   subtitle,
   heading,
   typeLabel,
@@ -86,6 +86,7 @@ export default function PublicFertilizerListBase<TItem extends FertilizerPhotoCa
                       creatorName={getCreatorName(fertilizer)}
                       typeLabel={typeLabel}
                       photoIds={getFertilizerPhotoIds(fertilizer)}
+                      commercialPrice={fertilizer}
                       isSelected={selectedId === id}
                       onSelect={() => setSelectedId(selectedId === id ? null : id)}
                       onView={() => setActiveItem(fertilizer)}

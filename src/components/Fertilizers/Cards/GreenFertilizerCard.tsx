@@ -21,6 +21,7 @@ export default function GreenFertilizerCard(props: Props) {
             badgeLabel="Adubo Verde"
             colorScheme="green"
             photoIds={getFertilizerPhotoIds(item)}
+            commercialPrice={item}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

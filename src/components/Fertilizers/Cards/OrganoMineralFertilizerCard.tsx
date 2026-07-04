@@ -20,6 +20,7 @@ export default function OrganoMineralFertilizerCard(props: Props) {
             badgeLabel="Organomineral"
             colorScheme="orange"
             photoIds={getFertilizerPhotoIds(item)}
+            commercialPrice={item}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

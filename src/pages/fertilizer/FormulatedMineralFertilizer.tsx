@@ -26,7 +26,10 @@ import {
     FormulatedMineralFertilizerCreateRequestDto,
     FormulatedMineralFertilizerPostRequestDto,
     FormulateDto,
-    getFertilizerPhotoIds
+    getFertilizerPhotoIds,
+    fertilizerCommercialPriceResponseToForm,
+    fertilizerCommercialPriceFormToCreatePayload,
+    fertilizerCommercialPriceFormToUpdatePayload
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -96,6 +99,7 @@ const mapResponseToForm = (dto: FormulatedMineralFertilizerResponseDto): Formula
 
   return {
     fotoIds: getFertilizerPhotoIds(dto),
+  ...fertilizerCommercialPriceResponseToForm(dto),
     observacao: dto.observacao ?? "",
     fonte: dto.fonte ?? "",
     formulaN: String(dto.formula?.n ?? 0),   // CORRIGIDO: 'formula'
@@ -131,6 +135,7 @@ const mapFormToCreatePayload = (form: FormulatedFertilizerFormState): Formulated
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToCreatePayload(form),
     n: num(form.n),
     p2o5: num(form.p2o5),
     k2o: num(form.k2o),
@@ -154,6 +159,7 @@ const mapFormToUpdatePayload = (form: FormulatedFertilizerFormState): Formulated
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
     novo_fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToUpdatePayload(form),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),

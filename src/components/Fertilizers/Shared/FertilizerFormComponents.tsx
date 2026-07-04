@@ -1,6 +1,11 @@
 // src/components/Fertilizers/Shared/FertilizerFormComponents.tsx
 import { Box, Input, Text, BoxProps, Button, HStack, SimpleGrid } from "@chakra-ui/react";
 import EntityImageUploader from "@/components/EntityImageUploader";
+import {
+    FertilizerCommercialPriceFormFields,
+    FertilizerCommercialPriceResponseFields,
+    formatFertilizerCommercialPriceDateForForm,
+} from "@/interfaces/Fertilizer";
 
 interface FertilizerInputFieldProps {
     label: string;
@@ -8,6 +13,8 @@ interface FertilizerInputFieldProps {
     onChange?: (value: string) => void;
     readOnly?: boolean;
     type?: string;
+    placeholder?: string;
+    inputMode?: "text" | "numeric" | "decimal" | "tel" | "search" | "email" | "url";
     colorScheme?: string;
     isCalc?: boolean;
 }
@@ -18,6 +25,8 @@ export const FertilizerInputField = ({
     onChange, 
     readOnly, 
     type = "number", 
+    placeholder,
+    inputMode,
     colorScheme = "green",
     isCalc = false 
 }: FertilizerInputFieldProps) => {
@@ -49,11 +58,118 @@ export const FertilizerInputField = ({
             <Input
                 type={type}
                 value={value}
+                placeholder={placeholder}
+                inputMode={inputMode}
                 onChange={(e) => onChange && onChange(e.target.value)}
                 readOnly={readOnly || isCalc}
                 disabled={readOnly || isCalc}
                 {...(isCalc ? styles.calcField : styles.field)}
             />
+        </Box>
+    );
+};
+
+type CommercialPriceFieldName = keyof FertilizerCommercialPriceFormFields;
+
+interface FertilizerCommercialPriceFieldsProps<TForm extends FertilizerCommercialPriceFormFields> {
+    form: TForm;
+    onChange: (field: CommercialPriceFieldName, value: string) => void;
+    readOnly?: boolean;
+    colorScheme?: string;
+}
+
+const commercialPriceFields: Array<{ field: CommercialPriceFieldName; label: string }> = [
+    { field: "precoSaco5Kg", label: "R$/saco 5 kg" },
+    { field: "precoSaco25Kg", label: "R$/saco 25 kg" },
+    { field: "precoSaco50Kg", label: "R$/saco 50 kg" },
+    { field: "precoSaco1000Kg", label: "R$/saco 1000 kg ou big bag" },
+];
+
+const onlyDateMaskCharacters = (value: string) =>
+    value
+        .replace(/\D/g, "")
+        .slice(0, 8)
+        .replace(/^(\d{2})(\d)/, "$1/$2")
+        .replace(/^(\d{2})\/(\d{2})(\d)/, "$1/$2/$3");
+
+export const FertilizerCommercialPriceFields = <TForm extends FertilizerCommercialPriceFormFields>({
+    form,
+    onChange,
+    readOnly,
+    colorScheme = "green",
+}: FertilizerCommercialPriceFieldsProps<TForm>) => (
+    <Box>
+        <FormSectionHeader title="Preços comerciais" colorScheme={colorScheme} />
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={3}>
+            <FertilizerInputField
+                label="Data de tomada de preço"
+                type="text"
+                placeholder="dd/mm/aaaa"
+                inputMode="numeric"
+                value={form.dataTomadaPreco}
+                onChange={(value) => onChange("dataTomadaPreco", onlyDateMaskCharacters(value))}
+                readOnly={readOnly}
+                colorScheme={colorScheme}
+            />
+            {commercialPriceFields.map(({ field, label }) => (
+                <FertilizerInputField
+                    key={field}
+                    label={label}
+                    type="text"
+                    inputMode="decimal"
+                    value={form[field]}
+                    onChange={(value) => onChange(field, value)}
+                    readOnly={readOnly}
+                    colorScheme={colorScheme}
+                />
+            ))}
+        </SimpleGrid>
+    </Box>
+);
+
+const formatCommercialPriceValue = (value?: number | null) =>
+    value == null
+        ? ""
+        : value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+export const hasFertilizerCommercialPrice = (item?: FertilizerCommercialPriceResponseFields) =>
+    Boolean(
+        item?.data_tomada_preco ||
+        item?.preco_saco_5_kg != null ||
+        item?.preco_saco_25_kg != null ||
+        item?.preco_saco_50_kg != null ||
+        item?.preco_saco_1000_kg != null
+    );
+
+export const FertilizerCommercialPriceSummary = ({
+    item,
+}: {
+    item?: FertilizerCommercialPriceResponseFields;
+}) => {
+    if (!hasFertilizerCommercialPrice(item)) return null;
+
+    const priceParts = [
+        item?.preco_saco_5_kg != null ? `5 kg: ${formatCommercialPriceValue(item.preco_saco_5_kg)}` : "",
+        item?.preco_saco_25_kg != null ? `25 kg: ${formatCommercialPriceValue(item.preco_saco_25_kg)}` : "",
+        item?.preco_saco_50_kg != null ? `50 kg: ${formatCommercialPriceValue(item.preco_saco_50_kg)}` : "",
+        item?.preco_saco_1000_kg != null ? `1000 kg/big bag: ${formatCommercialPriceValue(item.preco_saco_1000_kg)}` : "",
+    ].filter(Boolean);
+
+    return (
+        <Box mt={2}>
+            <Text fontSize="xs" color="gray.500">
+                Preços comerciais:
+            </Text>
+            {item?.data_tomada_preco && (
+                <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }}>
+                    Tomada: {formatFertilizerCommercialPriceDateForForm(item.data_tomada_preco)}
+                </Text>
+            )}
+            {priceParts.length > 0 && (
+                <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.400" }} lineClamp={2}>
+                    {priceParts.join(" | ")}
+                </Text>
+            )}
         </Box>
     );
 };

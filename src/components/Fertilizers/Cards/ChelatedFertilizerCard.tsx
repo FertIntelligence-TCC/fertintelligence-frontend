@@ -31,6 +31,7 @@ export default function ChelatedFertilizerCard(props: Props) {
             badgeLabel="Quelatado"
             colorScheme="purple"
             photoIds={getFertilizerPhotoIds(item)}
+            commercialPrice={item}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

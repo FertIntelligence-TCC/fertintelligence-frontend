@@ -2,6 +2,8 @@ import { Box, Text, HStack, IconButton, Badge, Flex } from "@chakra-ui/react";
 import { FiEye, FiEdit, FiTrash } from "react-icons/fi";
 import { ReactNode } from "react";
 import ImageThumb from "@/components/ImageThumb";
+import { FertilizerCommercialPriceSummary } from "@/components/Fertilizers/Shared/FertilizerFormComponents";
+import { FertilizerCommercialPriceResponseFields } from "@/interfaces/Fertilizer";
 
 interface FertilizerCardBaseProps {
     title: string;
@@ -13,6 +15,7 @@ interface FertilizerCardBaseProps {
     onView: () => void;
     onEdit: () => void;
     onDelete: () => void;
+    commercialPrice?: FertilizerCommercialPriceResponseFields;
     children: ReactNode; // O conteúdo específico (nutrientes, fórmulas) vai aqui
 }
 
@@ -26,6 +29,7 @@ export default function FertilizerCardBase({
     onView,
     onEdit,
     onDelete,
+    commercialPrice,
     children
 }: FertilizerCardBaseProps) {
     return (
@@ -57,6 +61,7 @@ export default function FertilizerCardBase({
             {/* Conteúdo Específico do Card Injetado Aqui */}
             <Box mb={2}>
                 {children}
+                <FertilizerCommercialPriceSummary item={commercialPrice} />
             </Box>
 
             {isSelected && (

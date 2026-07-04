@@ -20,6 +20,7 @@ export default function SimpleMineralFertilizerCard(props: Props) {
             badgeLabel="Simples"
             colorScheme="green"
             photoIds={getFertilizerPhotoIds(item)}
+            commercialPrice={item}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

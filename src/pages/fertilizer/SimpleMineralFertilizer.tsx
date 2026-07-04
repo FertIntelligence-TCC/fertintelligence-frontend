@@ -27,7 +27,10 @@ import {
     DEFAULT_SIMPLE_MINERAL_FORM_STATE,
     SimpleMineralFertilizerCreateRequestDto,
     SimpleMineralFertilizerPostRequestDto,
-    getFertilizerPhotoIds
+    getFertilizerPhotoIds,
+    fertilizerCommercialPriceResponseToForm,
+    fertilizerCommercialPriceFormToCreatePayload,
+    fertilizerCommercialPriceFormToUpdatePayload
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -47,6 +50,7 @@ import SimpleMineralFertilizerCard from "@/components/Fertilizers/Cards/SimpleMi
 const mapResponseToForm = (dto: SimpleMineralFertilizerResponseDto): SimpleMineralFertilizerFormState => ({
   nome: dto.nome_adubo, // Conciliado com @JsonProperty("nome_adubo")
   fotoIds: getFertilizerPhotoIds(dto),
+  ...fertilizerCommercialPriceResponseToForm(dto),
   observacao: dto.observacao ?? "",
   fonte: dto.fonte ?? "",
   n: String(dto.n ?? 0),
@@ -75,6 +79,7 @@ const mapFormToCreatePayload = (form: SimpleMineralFertilizerFormState): SimpleM
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToCreatePayload(form),
     n: num(form.n),
     p2o5: num(form.p2o5),
     k2o: num(form.k2o),
@@ -99,6 +104,7 @@ const mapFormToUpdatePayload = (form: SimpleMineralFertilizerFormState): SimpleM
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
     novo_fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToUpdatePayload(form),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),

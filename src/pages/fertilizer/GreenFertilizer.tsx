@@ -25,7 +25,10 @@ import {
     DEFAULT_GREEN_FERTILIZER_FORM_STATE,
     GreenFertilizerCreateRequestDto,
     GreenFertilizerPostRequestDto,
-    getFertilizerPhotoIds
+    getFertilizerPhotoIds,
+    fertilizerCommercialPriceResponseToForm,
+    fertilizerCommercialPriceFormToCreatePayload,
+    fertilizerCommercialPriceFormToUpdatePayload
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -46,6 +49,7 @@ const num = (val: string) => (val ? parseFloat(val) : 0.0);
 const mapResponseToForm = (dto: GreenFertilizerResponseDto): GreenFertilizerFormState => ({
   nome: dto.nome_adubo,
   fotoIds: getFertilizerPhotoIds(dto),
+  ...fertilizerCommercialPriceResponseToForm(dto),
   observacao: dto.observacao ?? "",
   fonte: dto.fonte ?? "",
   c: String(dto.c ?? 0),
@@ -74,6 +78,7 @@ const mapFormToCreatePayload = (form: GreenFertilizerFormState): GreenFertilizer
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToCreatePayload(form),
     c: num(form.c),
     n: num(form.n),
     p2o5: num(form.p2o5),
@@ -100,6 +105,7 @@ const mapFormToUpdatePayload = (form: GreenFertilizerFormState): GreenFertilizer
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
     novo_fonte: form.fonte,
+    ...fertilizerCommercialPriceFormToUpdatePayload(form),
     novo_c: num(form.c),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),

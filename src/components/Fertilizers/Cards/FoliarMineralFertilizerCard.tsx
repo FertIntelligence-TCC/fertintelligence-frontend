@@ -22,6 +22,7 @@ export default function FoliarMineralFertilizerCard(props: Props) {
             badgeLabel="Foliar Mineral"
             colorScheme="blue"
             photoIds={getFertilizerPhotoIds(item)}
+            commercialPrice={item}
             {...props}
         >
             <Text fontSize="xs" color="gray.500" mt={1}>

@@ -1,6 +1,6 @@
 import FormulatedMineralFertilizerFormFields from "@/components/Fertilizers/FormFields/FormulatedMineralFertilizerFormFields";
 import PublicFertilizerListBase from "../public-fertilizer/PublicFertilizerListBase";
-import { DEFAULT_FORMULATED_FORM_STATE, FormulatedFertilizerFormState, FormulatedMineralFertilizerResponseDto, getFertilizerPhotoIds } from "@/interfaces/Fertilizer";
+import { DEFAULT_FORMULATED_FORM_STATE, FormulatedFertilizerFormState, FormulatedMineralFertilizerResponseDto, getFertilizerPhotoIds, fertilizerCommercialPriceResponseToForm } from "@/interfaces/Fertilizer";
 import { fetchPublicFormulatedFertilizers } from "@/services/formulatedMineralFertilizerService";
 import { formatNpkRelation } from "@/utils/npkRelation";
 
@@ -9,7 +9,7 @@ const toForm = (item: FormulatedMineralFertilizerResponseDto): FormulatedFertili
 
   return {
     ...DEFAULT_FORMULATED_FORM_STATE,
-    fotoIds: getFertilizerPhotoIds(item),
+    fotoIds: getFertilizerPhotoIds(item), ...fertilizerCommercialPriceResponseToForm(item),
     observacao: item.observacao ?? "",
     fonte: item.fonte ?? "",
     formulaN: String(item.formula?.n ?? 0),
