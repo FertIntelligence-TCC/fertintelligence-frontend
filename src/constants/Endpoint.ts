@@ -222,11 +222,6 @@ export const ENDPOINT = {
   CREATE_GREEN_FERTILIZER: "green-fertilizer/register",
   UPDATE_GREEN_FERTILIZER: "green-fertilizer/update",
   
-  // --- K Exchangeable Content Endpoints ---
-  GET_BY_TABLE_K_EXCHANGEABLE_CONTENT: "k-exchangeable-content/get-by-table",
-  CREATE_K_EXCHANGEABLE_CONTENT: "k-exchangeable-content/register",
-  UPDATE_K_EXCHANGEABLE_CONTENT: "k-exchangeable-content/update",
-  
   // --- Layer Extract Endpoints ---
   DELETE_LAYER_EXTRACT: "layer-extract/delete",
   GET_BY_ANALYSIS_LAYER_EXTRACT: "layer-extract/get-by-analysis",

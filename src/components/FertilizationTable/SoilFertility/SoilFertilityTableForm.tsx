@@ -26,7 +26,6 @@ import SalinityTableModal from "./SalinityTableModal";
 import AvailablePMehlich1Modal from "./AvailablePMehlich1Modal";
 import AvailablePResinModal from "./AvailablePResinModal";
 import AvailableSModal from "./AvailableSModal";
-import KExchangeableContentModal from "./KExchangeableContentModal";
 import DiverseContentRangeModal from "./DiverseContentRangeModal";
 import ExchangeableSodiumModal from "./ExchangeableSodiumModal";
 import SulfurDoseModal from "./SulfurDoseModal";
@@ -50,7 +49,6 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
     const [isPMehlich1Open, setIsPMehlich1Open] = useState(false);
     const [isPResinOpen, setIsPResinOpen] = useState(false);
     const [isAvailableSOpen, setIsAvailableSOpen] = useState(false);
-    const [isKExchangeableOpen, setIsKExchangeableOpen] = useState(false);
     const [isDiverseContentOpen, setIsDiverseContentOpen] = useState(false);
     const [isExchangeableSodiumOpen, setIsExchangeableSodiumOpen] = useState(false);
     const [isSulfurDoseOpen, setIsSulfurDoseOpen] = useState(false);
@@ -70,7 +68,6 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
         "S disponível",
         "Doses de S",
         "Doses de micronutrientes",
-        "Teores Trocáveis de Potássio (K) - mmolc/dm³",
         "Teores de Nutrientes Diversos",
         "Sódio Trocável (mmolc/dm³)",
         "Saturação na CTC(T), em %",
@@ -215,7 +212,6 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                                     else if (tableName === "S disponível") setIsAvailableSOpen(true);
                                     else if (tableName === "Doses de S") setIsSulfurDoseOpen(true);
                                     else if (tableName === "Doses de micronutrientes") setIsMicronutrientDoseOpen(true);
-                                    else if (tableName === "Teores Trocáveis de Potássio (K) - mmolc/dm³") setIsKExchangeableOpen(true);
                                     
                                     // Nova lógica para Nutrientes Diversos
                                     else if (tableName === "Teores de Nutrientes Diversos") setIsDiverseContentOpen(true);
@@ -281,13 +277,6 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                     <MicronutrientDoseModal
                         isOpen={isMicronutrientDoseOpen}
                         onClose={() => setIsMicronutrientDoseOpen(false)}
-                        tableId={tableId}
-                        isReadOnly={readOnly}
-                    />
-
-                    <KExchangeableContentModal
-                        isOpen={isKExchangeableOpen}
-                        onClose={() => setIsKExchangeableOpen(false)}
                         tableId={tableId}
                         isReadOnly={readOnly}
                     />

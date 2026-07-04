@@ -261,14 +261,32 @@ const filterTablesByGroup = (tables: TableOption[], group: TableGroupValue) =>
 
 type TableFetchers = Record<Exclude<TableGroupValue, "">, () => Promise<RecommendationTableApiResponse[]>>;
 
+const normalizeTableResponse = (response: unknown): RecommendationTableApiResponse[] => {
+  if (Array.isArray(response)) return response as RecommendationTableApiResponse[];
+  if (!response || typeof response !== "object") return [];
+
+  const record = response as Record<string, unknown>;
+  if (Array.isArray(record.content)) return record.content as RecommendationTableApiResponse[];
+  if (Array.isArray(record.data)) return record.data as RecommendationTableApiResponse[];
+  return [];
+};
+
+const isNotFoundError = (error: unknown) =>
+  error instanceof AxiosError && error.response?.status === 404;
+
 const loadTableOptionsByGroup = async (
   group: TableGroupValue,
   fetchers: TableFetchers,
 ): Promise<TableOption[]> => {
   if (!group) return [];
-  return (await fetchers[group]())
+  try {
+    return normalizeTableResponse(await fetchers[group]())
 	.map((table) => normalizeTable(table, group))
 	.filter(Boolean) as TableOption[];
+  } catch (error) {
+    if (isNotFoundError(error)) return [];
+    throw error;
+  }
 };
 
 const getAnalysisLabelPrefix = (analysis: SoilAnalysisResponse) =>
