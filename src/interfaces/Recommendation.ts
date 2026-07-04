@@ -525,6 +525,14 @@ export interface RecommendationFertilizerModalityPayload {
   id_adubo_verde?: number;
 }
 
+export interface CorrectiveSoilFertilizationPayload {
+  adubacaoCorretivaSolo: boolean;
+  areaIncorporacaoConversaoRecente: boolean;
+  areaDegradadaMaisDeCincoAnosSemAdubacao: boolean;
+  areaErosaoLaminarSulcoEmRecuperacao: boolean;
+  cultivoAltaTecnologiaAltasProdutividades: boolean;
+}
+
 export interface RecommendationCreatePayload extends RecommendationFertilizerModalityPayload {
   tipo_recomendacao: RecommendationType;
   propertyId: number;
@@ -554,6 +562,11 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   classificacao_textural: RecommendationTexturalClassification;
   origem_adubos: FertilizerSourceOption;
   nome_pasta_recomendacao?: string | null;
+  adubacaoCorretivaSolo: CorrectiveSoilFertilizationPayload["adubacaoCorretivaSolo"];
+  areaIncorporacaoConversaoRecente: CorrectiveSoilFertilizationPayload["areaIncorporacaoConversaoRecente"];
+  areaDegradadaMaisDeCincoAnosSemAdubacao: CorrectiveSoilFertilizationPayload["areaDegradadaMaisDeCincoAnosSemAdubacao"];
+  areaErosaoLaminarSulcoEmRecuperacao: CorrectiveSoilFertilizationPayload["areaErosaoLaminarSulcoEmRecuperacao"];
+  cultivoAltaTecnologiaAltasProdutividades: CorrectiveSoilFertilizationPayload["cultivoAltaTecnologiaAltasProdutividades"];
 }
 
 export interface RecommendationResponse extends RecommendationFertigramFields, GypsumRecommendationFields, SulfurRecommendationFields, EconomicFertilizerDecisionFields {

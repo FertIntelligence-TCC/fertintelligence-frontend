@@ -40,6 +40,13 @@ type BuildRecommendationCreatePayloadParams = {
   useBioFertilizer?: boolean;
   useGreenFertilizer?: boolean;
   greenFertilizerId?: string | number | null;
+  correctiveSoilFertilization?: {
+    adubacaoCorretivaSolo: boolean;
+    areaIncorporacaoConversaoRecente: boolean;
+    areaDegradadaMaisDeCincoAnosSemAdubacao: boolean;
+    areaErosaoLaminarSulcoEmRecuperacao: boolean;
+    cultivoAltaTecnologiaAltasProdutividades: boolean;
+  };
 };
 
 const normalizeTexturalClassification = (
@@ -84,6 +91,7 @@ export function buildRecommendationCreatePayload({
   useBioFertilizer = false,
   useGreenFertilizer = false,
   greenFertilizerId,
+  correctiveSoilFertilization,
 }: BuildRecommendationCreatePayloadParams): RecommendationCreatePayload {
   const normalizedPropertyId = Number(propertyId);
   const normalizedPlotId = Number(plotId);
@@ -131,6 +139,14 @@ export function buildRecommendationCreatePayload({
     classificacao_textural: normalizeTexturalClassification(texturalClassification),
     origem_adubos: fertilizerSourceOption,
     nome_pasta_recomendacao: recommendationFolderName?.trim() || null,
+    adubacaoCorretivaSolo: correctiveSoilFertilization?.adubacaoCorretivaSolo ?? false,
+    areaIncorporacaoConversaoRecente: correctiveSoilFertilization?.areaIncorporacaoConversaoRecente ?? false,
+    areaDegradadaMaisDeCincoAnosSemAdubacao:
+      correctiveSoilFertilization?.areaDegradadaMaisDeCincoAnosSemAdubacao ?? false,
+    areaErosaoLaminarSulcoEmRecuperacao:
+      correctiveSoilFertilization?.areaErosaoLaminarSulcoEmRecuperacao ?? false,
+    cultivoAltaTecnologiaAltasProdutividades:
+      correctiveSoilFertilization?.cultivoAltaTecnologiaAltasProdutividades ?? false,
   };
 
   if (useOrganicFertilizer) {

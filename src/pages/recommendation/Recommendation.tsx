@@ -30,6 +30,7 @@ import {
   type ShoppingListResponse,
   type SummaryRecommendationResponse,
   type RecommendationType,
+  type CorrectiveSoilFertilizationPayload,
   getRecommendationReportText,
 } from "@/interfaces/Recommendation";
 import { getPlotsByProperty } from "@/services/plotService";
@@ -224,6 +225,38 @@ const organicFertilizerReferenceNutrientOptions: {
   { value: "POTASSIO", label: "Potássio (K2O)" },
 ];
 
+const correctiveSoilFertilizationQuestions: {
+  field: keyof Omit<CorrectiveSoilFertilizationPayload, "adubacaoCorretivaSolo">;
+  label: string;
+}[] = [
+  {
+    field: "areaIncorporacaoConversaoRecente",
+    label: "A área é de incorporação / conversão recente (1 a 2 anos) de área nativa ou pastagem?",
+  },
+  {
+    field: "areaDegradadaMaisDeCincoAnosSemAdubacao",
+    label: "A área está degradada por mais de 5 anos de cultivos sem adubação?",
+  },
+  {
+    field: "areaErosaoLaminarSulcoEmRecuperacao",
+    label:
+      "A área sofreu erosão laminar ou em sulco e está em recuperação após cuidados de Manejo e Conservação do Solo?",
+  },
+  {
+    field: "cultivoAltaTecnologiaAltasProdutividades",
+    label:
+      "Pretende fazer cultivo com alta tecnologia e obtenção de altas produtividades, com uso intensivo de capital?",
+  },
+];
+
+const defaultCorrectiveSoilFertilization: CorrectiveSoilFertilizationPayload = {
+  adubacaoCorretivaSolo: false,
+  areaIncorporacaoConversaoRecente: false,
+  areaDegradadaMaisDeCincoAnosSemAdubacao: false,
+  areaErosaoLaminarSulcoEmRecuperacao: false,
+  cultivoAltaTecnologiaAltasProdutividades: false,
+};
+
 const getGreenFertilizerLabel = (fertilizer: GreenFertilizerResponseDto) => fertilizer.nome_adubo;
 
 const deduplicateGreenFertilizers = (fertilizers: GreenFertilizerResponseDto[]) =>
@@ -416,6 +449,8 @@ export default function Recommendation() {
   const [useBioFertilizer, setUseBioFertilizer] = useState(false);
   const [useGreenFertilizer, setUseGreenFertilizer] = useState(false);
   const [greenFertilizerId, setGreenFertilizerId] = useState("");
+  const [correctiveSoilFertilization, setCorrectiveSoilFertilization] =
+    useState<CorrectiveSoilFertilizationPayload>(defaultCorrectiveSoilFertilization);
   const [textureClassificationSystem, setTextureClassificationSystem] =
     useState<TextureClassificationSystem>("BRASILEIRO");
   const [recommendationFolderName, setRecommendationFolderName] = useState("");
@@ -964,6 +999,7 @@ export default function Recommendation() {
     	useBioFertilizer,
     	useGreenFertilizer,
     	greenFertilizerId,
+    	correctiveSoilFertilization,
   	});
   	const result = await generateRecommendation(payload);
   	setSelectedRecommendation(result);
@@ -1400,6 +1436,44 @@ export default function Recommendation() {
             	warning={limingCriterionPreview.warning}
             	formatLimingNeed={formatAdjustedLimingNeed}
           	/>
+          	<Box>
+            	<Text fontSize="sm" mb={1}>Adubação Corretiva do Solo</Text>
+            	<NativeSelect
+              	value={correctiveSoilFertilization.adubacaoCorretivaSolo ? "true" : "false"}
+              	onChange={(e) => {
+                	const shouldUseCorrectiveFertilization = e.target.value === "true";
+                	setCorrectiveSoilFertilization((current) => ({
+                  	...defaultCorrectiveSoilFertilization,
+                  	...(shouldUseCorrectiveFertilization ? current : {}),
+                  	adubacaoCorretivaSolo: shouldUseCorrectiveFertilization,
+                	}));
+              	}}
+              	aria-label="Adubação Corretiva do Solo"
+            	>
+              	<option value="false">Não</option>
+              	<option value="true">Sim</option>
+            	</NativeSelect>
+          	</Box>
+          	{correctiveSoilFertilization.adubacaoCorretivaSolo
+            	? correctiveSoilFertilizationQuestions.map((question) => (
+              	<Box key={question.field}>
+                	<Text fontSize="sm" mb={1}>{question.label}</Text>
+                	<NativeSelect
+                  	value={correctiveSoilFertilization[question.field] ? "true" : "false"}
+                  	onChange={(e) =>
+                    	setCorrectiveSoilFertilization((current) => ({
+                      	...current,
+                      	[question.field]: e.target.value === "true",
+                    	}))
+                  	}
+                  	aria-label={question.label}
+                	>
+                  	<option value="false">Não</option>
+                  	<option value="true">Sim</option>
+                	</NativeSelect>
+              	</Box>
+            	))
+            	: null}
           	<Box>
             	<Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
             	<NativeSelect value={normalizeFertilizerSourceOption(fertilizerSourceOption)} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
