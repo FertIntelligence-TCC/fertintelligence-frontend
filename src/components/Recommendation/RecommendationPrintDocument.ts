@@ -7,8 +7,10 @@ import {
 } from "./FormulatedPlantingFertilizerTable";
 import {
   buildAlternativeFertilizerTableModels,
+  buildFertilizationOptionPrintTableModels,
   buildGypsumRecommendationPrintModel,
   buildSulfurRecommendationPrintModel,
+  hasFertilizationOptionContent,
   type AlternativeFertilizerPrintTableModel,
 } from "./RecommendationStructuredFertilizerTables";
 import {
@@ -21,7 +23,8 @@ import { formatRecommendationTableCell } from "./recommendationColumnDecision";
 type StructuredPrintTableModel =
   | RecommendationPrintTableModel
   | FormulatedFertilizerPrintTableModel
-  | AlternativeFertilizerPrintTableModel;
+  | AlternativeFertilizerPrintTableModel
+  | ReturnType<typeof buildFertilizationOptionPrintTableModels>[number];
 
 const escapeHtml = (value: string) =>
   value
@@ -58,6 +61,9 @@ const getStructuredPrintTableModels = (
   recommendation: RecommendationPrintResponse,
 ): StructuredPrintTableModel[] => {
   const micronutrientTable = buildMicronutrientFertilizerTableModel(recommendation);
+  if (hasFertilizationOptionContent(recommendation)) {
+    return buildFertilizationOptionPrintTableModels(recommendation, "general");
+  }
 
   return [
     ...buildFormulatedPlantingFertilizerTableModels(recommendation),

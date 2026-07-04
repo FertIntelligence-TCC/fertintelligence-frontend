@@ -33,6 +33,7 @@ import type {
 import RecommendationReportViewer from "./RecommendationReportViewer";
 import RecommendationStructuredFertilizerTables, {
   GypsumRecommendationSection,
+  hasFertilizationOptionContent,
   hasStructuredRecommendationContent,
   SulfurRecommendationSection,
 } from "./RecommendationStructuredFertilizerTables";
@@ -318,7 +319,11 @@ function RecommendationDocumentPanel({
   const directFertilizationObservations = getDirectFertilizationObservations(directRecommendationDocument);
   const showSummaryStructuredContent =
     selectedDocument?.key === "summary" &&
-    hasMicronutrientFertilizerRows(summaryRecommendationDocument);
+    (hasMicronutrientFertilizerRows(summaryRecommendationDocument) ||
+      hasFertilizationOptionContent(summaryRecommendationDocument));
+  const showGeneralStructuredContent =
+    selectedDocument?.key === "general" &&
+    hasFertilizationOptionContent(selectedRecommendation);
   const showSummaryGypsumContent = selectedDocument?.key === "summary";
   const showSummarySulfurContent = selectedDocument?.key === "summary";
   const showGeneralGypsumContent = selectedDocument?.key === "general";
@@ -370,7 +375,14 @@ function RecommendationDocumentPanel({
             </Box>
           ))}
           {showSummaryStructuredContent ? (
-            <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
+            hasFertilizationOptionContent(summaryRecommendationDocument) ? (
+              <RecommendationStructuredFertilizerTables
+                document={summaryRecommendationDocument}
+                mode="summary"
+              />
+            ) : (
+              <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
+            )
           ) : null}
           {showSummaryGypsumContent ? (
             <GypsumRecommendationSection document={summaryRecommendationDocument} mode="summary" />
@@ -384,10 +396,16 @@ function RecommendationDocumentPanel({
           {showGeneralSulfurContent ? (
             <SulfurRecommendationSection document={selectedRecommendation} mode="general" />
           ) : null}
+          {showGeneralStructuredContent ? (
+            <RecommendationStructuredFertilizerTables
+              document={selectedRecommendation}
+              mode="general"
+            />
+          ) : null}
           {showDirectStructuredNpkContent ? (
             <RecommendationStructuredFertilizerTables
               document={directRecommendationDocument}
-              technicalWarnings={selectedDocumentTechnicalWarnings}
+              mode="direct"
             />
           ) : null}
           {showDirectFertilizationObservations ? (
@@ -400,7 +418,7 @@ function RecommendationDocumentPanel({
             <RecommendationStructuredFertilizerTables
               document={shoppingListDocument}
               showShoppingListHeader
-              technicalWarnings={selectedDocumentTechnicalWarnings}
+              mode="shopping"
             />
           ) : null}
         </VStack>
@@ -613,8 +631,16 @@ export default function RecommendationFolderDocuments({
                       </Box>
                     ))}
                     {selectedDocument.key === "summary" &&
-                    hasMicronutrientFertilizerRows(summaryRecommendationDocument) ? (
+                    hasMicronutrientFertilizerRows(summaryRecommendationDocument) &&
+                    !hasFertilizationOptionContent(summaryRecommendationDocument) ? (
                       <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
+                    ) : null}
+                    {selectedDocument.key === "summary" &&
+                    hasFertilizationOptionContent(summaryRecommendationDocument) ? (
+                      <RecommendationStructuredFertilizerTables
+                        document={summaryRecommendationDocument}
+                        mode="summary"
+                      />
                     ) : null}
                     {selectedDocument.key === "summary" ? (
                       <GypsumRecommendationSection document={summaryRecommendationDocument} mode="summary" />
@@ -628,11 +654,18 @@ export default function RecommendationFolderDocuments({
                     {selectedDocument.key === "general" ? (
                       <SulfurRecommendationSection document={selectedRecommendation} mode="general" />
                     ) : null}
+                    {selectedDocument.key === "general" &&
+                    hasFertilizationOptionContent(selectedRecommendation) ? (
+                      <RecommendationStructuredFertilizerTables
+                        document={selectedRecommendation}
+                        mode="general"
+                      />
+                    ) : null}
                     {selectedDocument.key === "direct" &&
                     hasDirectNpkFertilizerRows(directRecommendationDocument) ? (
                       <RecommendationStructuredFertilizerTables
                         document={directRecommendationDocument}
-                        technicalWarnings={fullscreenDocumentTechnicalWarnings}
+                        mode="direct"
                       />
                     ) : null}
                     {selectedDocument.key === "direct" &&
@@ -649,7 +682,7 @@ export default function RecommendationFolderDocuments({
                       <RecommendationStructuredFertilizerTables
                         document={shoppingListDocument}
                         showShoppingListHeader
-                        technicalWarnings={fullscreenDocumentTechnicalWarnings}
+                        mode="shopping"
                       />
                     ) : null}
                   </VStack>

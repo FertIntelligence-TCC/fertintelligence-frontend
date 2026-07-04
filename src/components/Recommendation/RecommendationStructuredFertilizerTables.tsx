@@ -7,6 +7,7 @@ import type {
   OrganicFertilizerRecommendationLine,
   OrganoMineralFertilizerRecommendationLine,
   RecommendationFertilizerLine,
+  RecommendationOptionFertilizationPayload,
   RecommendationStructuredFertilizerLines,
   ShoppingListResponse,
   SulfurRecommendationFields,
@@ -18,16 +19,24 @@ import {
 
 import FormulatedPlantingFertilizerTable, {
   FormulatedTopDressingFertilizerTable,
+  getFormulatedPlantingFertilizerLines,
+  getFormulatedTopDressingFertilizerLines,
   hasFormulatedPlantingFertilizerRows,
   hasFormulatedTopDressingFertilizerRows,
 } from "./FormulatedPlantingFertilizerTable";
-import MicronutrientFertilizerTable, { hasMicronutrientFertilizerRows } from "./MicronutrientFertilizerTable";
+import MicronutrientFertilizerTable, {
+  getMicronutrientFertilizerLines,
+  hasMicronutrientFertilizerRows,
+} from "./MicronutrientFertilizerTable";
 import RecommendationTable, { type RecommendationTableColumn } from "./RecommendationTable";
+
+export type RecommendationStructuredViewMode = "general" | "summary" | "direct" | "shopping";
 
 type RecommendationStructuredFertilizerTablesProps = {
   document?: RecommendationStructuredFertilizerLines | null;
   showShoppingListHeader?: boolean;
   technicalWarnings?: string[];
+  mode?: RecommendationStructuredViewMode;
 };
 
 type ShoppingListDateValue = NonNullable<ShoppingListResponse["data_plantio"]>;
@@ -37,6 +46,26 @@ type AlternativeFertilizerLine =
   | GreenFertilizerRecommendationLine
   | OrganoMineralFertilizerRecommendationLine
   | BioFertilizerRecommendationLine;
+
+type FertilizationOptionKey = "option1" | "option2";
+
+type FertilizationOptionSection = "planting" | "topDressing";
+
+type FertilizationOptionModel = {
+  key: FertilizationOptionKey;
+  title: string;
+  description: string;
+  plantingTitle: string;
+  topDressingTitle: string;
+  plantingLines: RecommendationFertilizerLine[];
+  topDressingLines: RecommendationFertilizerLine[];
+};
+
+type FertilizationOptionPrintTableModel = {
+  title: string;
+  headers: string[];
+  rows: string[][];
+};
 
 export type AlternativeFertilizerPrintTableModel = {
   title: string;
@@ -546,6 +575,329 @@ const getFirstText = (line: RecommendationFertilizerLine, fields: readonly strin
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
 
+const optionObjectFields = {
+  option1: [
+    "opcao_1",
+    "opcao1",
+    "option1",
+    "option_1",
+    "adubacao_opcao_1",
+    "adubacaoOpcao1",
+    "fertilizationOption1",
+    "recomendacao_opcao_1",
+    "recomendacaoOpcao1",
+  ],
+  option2: [
+    "opcao_2",
+    "opcao2",
+    "option2",
+    "option_2",
+    "adubacao_opcao_2",
+    "adubacaoOpcao2",
+    "fertilizationOption2",
+    "recomendacao_opcao_2",
+    "recomendacaoOpcao2",
+  ],
+} as const;
+
+const optionLineFields = {
+  option1: {
+    planting: [
+      "plantio_opcao_1",
+      "plantioOpcao1",
+      "plantingOption1",
+      "formulados_plantio_opcao_1",
+      "formuladosPlantioOpcao1",
+      "formulados_plantio",
+      "formuladosPlantio",
+      "plantingFormulatedFertilizers",
+      "linhas_formulados_plantio",
+      "linhasFormuladosPlantio",
+    ],
+    topDressing: [
+      "cobertura_opcao_1",
+      "coberturaOpcao1",
+      "topDressingOption1",
+      "formulados_cobertura_opcao_1",
+      "formuladosCoberturaOpcao1",
+      "formulados_cobertura",
+      "formuladosCobertura",
+      "topDressingFormulatedFertilizers",
+      "linhas_formulados_cobertura",
+      "linhasFormuladosCobertura",
+    ],
+  },
+  option2: {
+    planting: [
+      "plantio_opcao_2",
+      "plantioOpcao2",
+      "plantingOption2",
+      "adubos_simples_plantio",
+      "adubosSimplesPlantio",
+    ],
+    topDressing: [
+      "cobertura_opcao_2",
+      "coberturaOpcao2",
+      "topDressingOption2",
+      "adubos_simples_cobertura",
+      "adubosSimplesCobertura",
+    ],
+  },
+} as const;
+
+const nestedSectionFields = {
+  planting: ["plantio", "planting", "adubacao_plantio", "adubacaoPlantio", "linhas_plantio", "plantingLines"],
+  topDressing: [
+    "cobertura",
+    "topDressing",
+    "adubacao_cobertura",
+    "adubacaoCobertura",
+    "linhas_cobertura",
+    "topDressingLines",
+  ],
+} as const;
+
+const optionValueFields = {
+  fertilizer: [
+    "formulado",
+    "nome_formulado",
+    "nomeFormulado",
+    "formulatedFertilizer",
+    "formulatedFertilizerName",
+    "fonte",
+    "source",
+    "insumo",
+    "input",
+    "adubo",
+    "nome_adubo",
+    "nomeAdubo",
+    "fertilizer",
+    "fertilizerName",
+    "nome",
+    "name",
+  ],
+  fertilizerDose: ["dose_kg_ha", "doseKgHa", "kg_ha", "kgHa", "dose_fonte_kg_ha", "doseFonteKgHa", "dose"],
+  quantity: ["quantidade_total", "quantidadeTotal", "totalQuantity", "total_area", "totalArea", "totalForArea", "quantidade", "quantity"],
+  quantityUnit: ["unidade_quantidade", "unidadeQuantidade", "quantityUnit", "unidade", "unit"],
+  phase: ["fase_aplicacao", "faseAplicacao", "fase", "phase"],
+  coverage: ["cobertura", "identificacao_cobertura", "identificacaoCobertura", "nome_cobertura", "coverage", "coverageName"],
+  nRecommended: ["n_recomendado_cobertura_kg_ha", "nRecomendadoCoberturaKgHa", "recommendedTopDressingNKgHa", "n_recomendado", "recommendedN"],
+  k2oRecommended: [
+    "k2o_recomendado_cobertura_kg_ha",
+    "k2oRecomendadoCoberturaKgHa",
+    "recommendedTopDressingK2oKgHa",
+    "k2o_recomendado",
+    "recommendedK2o",
+  ],
+  plantingBalanceN: ["saldo_plantio_n_kg_ha", "saldoPlantioNKgHa", "plantingBalanceNKgHa", "saldo_plantio_n", "saldoNPlantio"],
+  plantingBalanceK2o: [
+    "saldo_plantio_k2o_kg_ha",
+    "saldoPlantioK2oKgHa",
+    "plantingBalanceK2oKgHa",
+    "saldo_plantio_k2o",
+    "saldoK2oPlantio",
+  ],
+  plantingBalanceS: ["saldo_plantio_s_kg_ha", "saldoPlantioSKgHa", "plantingBalanceSKgHa", "saldo_plantio_s", "saldoSPlantio"],
+  suppliedN: ["n_fornecido_kg_ha", "nFornecidoKgHa", "suppliedNKgHa", "n_fornecido", "providedN"],
+  suppliedK2o: ["k2o_fornecido_kg_ha", "k2oFornecidoKgHa", "suppliedK2oKgHa", "k2o_fornecido", "providedK2o"],
+  suppliedS: [
+    "s_fornecido_kg_ha",
+    "sFornecidoKgHa",
+    "enxofre_fornecido_kg_ha",
+    "enxofreFornecidoKgHa",
+    "suppliedSKgHa",
+    "s_fornecido",
+    "providedS",
+  ],
+  finalBalanceN: ["saldo_final_n_kg_ha", "saldoFinalNKgHa", "finalBalanceNKgHa", "saldo_final_n", "final_n", "finalN"],
+  finalBalanceK2o: [
+    "saldo_final_k2o_kg_ha",
+    "saldoFinalK2oKgHa",
+    "finalBalanceK2oKgHa",
+    "saldo_final_k2o",
+    "final_k2o",
+    "finalK2o",
+  ],
+  finalBalanceS: [
+    "saldo_final_s_kg_ha",
+    "saldoFinalSKgHa",
+    "finalBalanceSKgHa",
+    "saldo_final_s",
+    "saldo_final_enxofre",
+    "final_s",
+    "finalS",
+  ],
+  observation: ["observacao_tecnica", "observacaoTecnica", "technicalObservation", "technicalNote", "observacao"],
+  message: ["mensagem", "mensagem_tecnica", "mensagemTecnica", "message", "technicalMessage", "aviso_tecnico", "technicalWarning"],
+} as const;
+
+const recommendationOptionMetadata: Record<FertilizationOptionKey, Pick<FertilizationOptionModel, "title" | "description" | "plantingTitle" | "topDressingTitle">> = {
+  option1: {
+    title: "Opção 1",
+    description: "Plantio com formulado e cobertura com formulado",
+    plantingTitle: "Plantio opção 1",
+    topDressingTitle: "Cobertura opção 1",
+  },
+  option2: {
+    title: "Opção 2",
+    description: "Plantio com adubos simples e cobertura com adubos simples",
+    plantingTitle: "Plantio opção 2",
+    topDressingTitle: "Cobertura opção 2",
+  },
+};
+
+const normalizeKgHaText = (value: string): string => {
+  if (!value) return "";
+  return /\bkg\s*\/?\s*ha\b/i.test(value) ? value : `${value} kg/ha`;
+};
+
+const getOptionText = (line: RecommendationFertilizerLine, fields: readonly string[]): string =>
+  getFirstRecommendationText(line, fields);
+
+const getOptionDoseText = (line: RecommendationFertilizerLine): string =>
+  normalizeKgHaText(getOptionText(line, optionValueFields.fertilizerDose));
+
+const getOptionQuantityText = (line: RecommendationFertilizerLine): string => {
+  const quantity = getOptionText(line, optionValueFields.quantity);
+  if (!quantity) return "";
+
+  const unit = getOptionText(line, optionValueFields.quantityUnit);
+  return unit ? `${quantity} ${unit}` : quantity;
+};
+
+const getOptionNutrientText = (line: RecommendationFertilizerLine, fields: readonly string[]): string =>
+  normalizeKgHaText(getOptionText(line, fields));
+
+const normalizeLineList = (value: unknown): RecommendationFertilizerLine[] => {
+  if (Array.isArray(value)) return value.filter(isRecord) as RecommendationFertilizerLine[];
+  if (isRecord(value)) return [value as RecommendationFertilizerLine];
+  return [];
+};
+
+const getNestedLineList = (
+  optionPayload: RecommendationOptionFertilizationPayload | Record<string, unknown> | null,
+  section: FertilizationOptionSection,
+): RecommendationFertilizerLine[] => {
+  if (!optionPayload) return [];
+
+  for (const field of nestedSectionFields[section]) {
+    const lines = normalizeLineList(optionPayload[field]);
+    if (lines.length > 0) return lines;
+  }
+
+  return [];
+};
+
+const getFirstLineList = (
+  document: RecommendationStructuredFertilizerLines,
+  fields: readonly string[],
+): RecommendationFertilizerLine[] => {
+  const record = document as Record<string, unknown>;
+  for (const field of fields) {
+    const lines = normalizeLineList(record[field]);
+    if (lines.length > 0) return lines;
+  }
+
+  return [];
+};
+
+const getOptionPayload = (
+  document: RecommendationStructuredFertilizerLines,
+  optionKey: FertilizationOptionKey,
+): RecommendationOptionFertilizationPayload | null => {
+  const record = document as Record<string, unknown>;
+  for (const field of optionObjectFields[optionKey]) {
+    const value = record[field];
+    if (isRecord(value)) return value as RecommendationOptionFertilizationPayload;
+  }
+
+  return null;
+};
+
+const hasExplicitFertilizationOptionStructure = (document?: RecommendationStructuredFertilizerLines | null): boolean => {
+  if (!document) return false;
+
+  const record = document as Record<string, unknown>;
+  return [
+    ...optionObjectFields.option1,
+    ...optionObjectFields.option2,
+    "plantio_opcao_1",
+    "plantioOpcao1",
+    "plantingOption1",
+    "formulados_plantio_opcao_1",
+    "formuladosPlantioOpcao1",
+    "cobertura_opcao_1",
+    "coberturaOpcao1",
+    "topDressingOption1",
+    "formulados_cobertura_opcao_1",
+    "formuladosCoberturaOpcao1",
+    ...optionLineFields.option2.planting,
+    ...optionLineFields.option2.topDressing,
+  ].some((field) => {
+    const value = record[field];
+    return isRecord(value) || (Array.isArray(value) && value.length > 0);
+  });
+};
+
+const getFallbackOption2PlantingLines = (
+  document?: RecommendationStructuredFertilizerLines | null,
+): RecommendationFertilizerLine[] => [
+  ...getMicronutrientFertilizerLines(document),
+  ...getAlternativeFertilizerTableConfigs(document).flatMap((config) => config.lines),
+];
+
+export const getFertilizationOptionModels = (
+  document?: RecommendationStructuredFertilizerLines | null,
+): FertilizationOptionModel[] => {
+  if (!document || !hasExplicitFertilizationOptionStructure(document)) return [];
+
+  const option1Payload = getOptionPayload(document, "option1");
+  const option2Payload = getOptionPayload(document, "option2");
+
+  const option1PlantingLines =
+    getNestedLineList(option1Payload, "planting").length > 0
+      ? getNestedLineList(option1Payload, "planting")
+      : getFirstLineList(document, optionLineFields.option1.planting);
+  const option1TopDressingLines =
+    getNestedLineList(option1Payload, "topDressing").length > 0
+      ? getNestedLineList(option1Payload, "topDressing")
+      : getFirstLineList(document, optionLineFields.option1.topDressing);
+  const option2PlantingLines =
+    getNestedLineList(option2Payload, "planting").length > 0
+      ? getNestedLineList(option2Payload, "planting")
+      : getFirstLineList(document, optionLineFields.option2.planting);
+  const option2TopDressingLines =
+    getNestedLineList(option2Payload, "topDressing").length > 0
+      ? getNestedLineList(option2Payload, "topDressing")
+      : getFirstLineList(document, optionLineFields.option2.topDressing);
+
+  const fallbackOption1Planting = getFormulatedPlantingFertilizerLines(document);
+  const fallbackOption1TopDressing = getFormulatedTopDressingFertilizerLines(document);
+  const fallbackOption2Planting = getFallbackOption2PlantingLines(document);
+
+  return [
+    {
+      key: "option1",
+      ...recommendationOptionMetadata.option1,
+      plantingLines: option1PlantingLines.length > 0 ? option1PlantingLines : fallbackOption1Planting,
+      topDressingLines: option1TopDressingLines.length > 0 ? option1TopDressingLines : fallbackOption1TopDressing,
+    },
+    {
+      key: "option2",
+      ...recommendationOptionMetadata.option2,
+      plantingLines: option2PlantingLines.length > 0 ? option2PlantingLines : fallbackOption2Planting,
+      topDressingLines: option2TopDressingLines,
+    },
+  ];
+};
+
+export const hasFertilizationOptionContent = (
+  document?: RecommendationStructuredFertilizerLines | null,
+): boolean =>
+  getFertilizationOptionModels(document).some(
+    (option) => option.plantingLines.length > 0 || option.topDressingLines.length > 0,
+  );
+
 const getFirstBoolean = (line: Record<string, unknown>, fields: readonly string[]): boolean | null => {
   for (const field of fields) {
     const value = line[field];
@@ -971,6 +1323,270 @@ export const buildAlternativeFertilizerTableModels = (
       } satisfies AlternativeFertilizerPrintTableModel;
     })
     .filter((model): model is AlternativeFertilizerPrintTableModel => Boolean(model));
+
+const getOptionLineWarning = (line: RecommendationFertilizerLine): string =>
+  getOptionText(line, optionValueFields.message) || getOptionText(line, optionValueFields.observation);
+
+const hasOptionLineContent = (line: RecommendationFertilizerLine): boolean =>
+  Boolean(
+    getOptionText(line, optionValueFields.fertilizer) ||
+      getOptionDoseText(line) ||
+      getOptionQuantityText(line) ||
+      getOptionNutrientText(line, optionValueFields.suppliedN) ||
+      getOptionNutrientText(line, optionValueFields.suppliedK2o) ||
+      getOptionNutrientText(line, optionValueFields.suppliedS) ||
+      getOptionLineWarning(line),
+  );
+
+const getOptionCriticalBalanceSummary = (lines: RecommendationFertilizerLine[]): string => {
+  const criticalBalances = lines
+    .flatMap((line) => [
+      getOptionNutrientText(line, optionValueFields.finalBalanceN)
+        ? `N ${getOptionNutrientText(line, optionValueFields.finalBalanceN)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.finalBalanceK2o)
+        ? `K2O ${getOptionNutrientText(line, optionValueFields.finalBalanceK2o)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.finalBalanceS)
+        ? `S ${getOptionNutrientText(line, optionValueFields.finalBalanceS)}`
+        : "",
+    ])
+    .filter(Boolean);
+
+  return Array.from(new Set(criticalBalances)).join("; ");
+};
+
+const buildOptionSectionRows = (
+  option: FertilizationOptionModel,
+  section: FertilizationOptionSection,
+  mode: RecommendationStructuredViewMode,
+): string[][] => {
+  const lines = (section === "planting" ? option.plantingLines : option.topDressingLines).filter(hasOptionLineContent);
+  const isSummary = mode === "summary";
+  const isShopping = mode === "shopping";
+  const isTopDressing = section === "topDressing";
+
+  return lines.map((line) => {
+    const fertilizer = getOptionText(line, optionValueFields.fertilizer) || "Fonte retornada pelo backend";
+    const dose = getOptionDoseText(line) || "-";
+    const quantity = getOptionQuantityText(line) || "-";
+    const supplied = [
+      getOptionNutrientText(line, optionValueFields.suppliedN)
+        ? `N: ${getOptionNutrientText(line, optionValueFields.suppliedN)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.suppliedK2o)
+        ? `K2O: ${getOptionNutrientText(line, optionValueFields.suppliedK2o)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.suppliedS)
+        ? `S: ${getOptionNutrientText(line, optionValueFields.suppliedS)}`
+        : "",
+    ].filter(Boolean).join("\n");
+    const plantingBalances = [
+      getOptionNutrientText(line, optionValueFields.plantingBalanceN)
+        ? `N: ${getOptionNutrientText(line, optionValueFields.plantingBalanceN)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.plantingBalanceK2o)
+        ? `K2O: ${getOptionNutrientText(line, optionValueFields.plantingBalanceK2o)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.plantingBalanceS)
+        ? `S: ${getOptionNutrientText(line, optionValueFields.plantingBalanceS)}`
+        : "",
+    ].filter(Boolean).join("\n");
+    const finalBalances = [
+      getOptionNutrientText(line, optionValueFields.finalBalanceN)
+        ? `N: ${getOptionNutrientText(line, optionValueFields.finalBalanceN)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.finalBalanceK2o)
+        ? `K2O: ${getOptionNutrientText(line, optionValueFields.finalBalanceK2o)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.finalBalanceS)
+        ? `S: ${getOptionNutrientText(line, optionValueFields.finalBalanceS)}`
+        : "",
+    ].filter(Boolean).join("\n");
+    const recommendedCoverage = [
+      getOptionNutrientText(line, optionValueFields.nRecommended)
+        ? `N: ${getOptionNutrientText(line, optionValueFields.nRecommended)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.k2oRecommended)
+        ? `K2O: ${getOptionNutrientText(line, optionValueFields.k2oRecommended)}`
+        : "",
+    ].filter(Boolean).join("\n");
+    const phase = getOptionText(line, optionValueFields.coverage) || getOptionText(line, optionValueFields.phase);
+    const observation = getOptionLineWarning(line) || "-";
+
+    if (isShopping) return [fertilizer, dose, quantity, supplied || "-", finalBalances || "-", observation];
+    if (isSummary) {
+      return [
+        fertilizer,
+        dose,
+        supplied || "-",
+        finalBalances || getOptionCriticalBalanceSummary([line]) || "-",
+      ];
+    }
+    if (isTopDressing) {
+      return [
+        fertilizer,
+        phase || "-",
+        recommendedCoverage || "-",
+        plantingBalances || "-",
+        dose,
+        supplied || "-",
+        finalBalances || "-",
+        observation,
+      ];
+    }
+
+    return [fertilizer, phase || "-", dose, supplied || "-", finalBalances || "-", observation];
+  });
+};
+
+const getOptionSectionColumns = (
+  section: FertilizationOptionSection,
+  mode: RecommendationStructuredViewMode,
+): RecommendationTableColumn[] => {
+  if (mode === "shopping") {
+    return [
+      { key: "source", header: "Fonte", minW: "220px" },
+      { key: "dose", header: "Dose kg/ha", minW: "130px" },
+      { key: "quantity", header: "Total para a área", minW: "150px" },
+      { key: "supplied", header: "Nutrientes fornecidos", minW: "190px" },
+      { key: "finalBalances", header: "Saldos finais", minW: "170px" },
+      { key: "observation", header: "Aviso/observação", minW: "240px" },
+    ];
+  }
+
+  if (mode === "summary") {
+    return [
+      { key: "source", header: "Fonte", minW: "220px" },
+      { key: "dose", header: "Dose principal", minW: "140px" },
+      { key: "supplied", header: "N, K2O e S fornecidos", minW: "190px" },
+      { key: "criticalBalances", header: "Saldos críticos", minW: "190px" },
+    ];
+  }
+
+  if (section === "topDressing") {
+    return [
+      { key: "source", header: "Fonte/formulado", minW: "220px" },
+      { key: "coverage", header: "Cobertura", minW: "120px" },
+      { key: "recommended", header: "N e K2O recomendados", minW: "180px" },
+      { key: "plantingBalances", header: "Saldos vindos do plantio", minW: "190px" },
+      { key: "dose", header: "Dose kg/ha", minW: "130px" },
+      { key: "supplied", header: "Nutrientes fornecidos", minW: "190px" },
+      { key: "finalBalances", header: "Saldos finais", minW: "170px" },
+      { key: "observation", header: "Aviso/observação", minW: "240px" },
+    ];
+  }
+
+  return [
+    { key: "source", header: "Fonte/formulado", minW: "220px" },
+    { key: "phase", header: "Fase", minW: "120px" },
+    { key: "dose", header: "Dose kg/ha", minW: "130px" },
+    { key: "supplied", header: "Nutrientes fornecidos", minW: "190px" },
+    { key: "finalBalances", header: "Saldos de plantio", minW: "170px" },
+    { key: "observation", header: "Aviso/observação", minW: "240px" },
+  ];
+};
+
+const getOptionSectionInstruction = (
+  option: FertilizationOptionModel,
+  section: FertilizationOptionSection,
+  mode: RecommendationStructuredViewMode,
+): string => {
+  if (mode !== "direct") return "";
+  if (section === "planting") return `Aplicar no plantio conforme a ${option.title.toLowerCase()}.`;
+  return "Aplicar a cobertura usando os saldos de S, N e K2O carregados do plantio.";
+};
+
+function FertilizationOptionSectionTable({
+  option,
+  section,
+  mode,
+}: {
+  option: FertilizationOptionModel;
+  section: FertilizationOptionSection;
+  mode: RecommendationStructuredViewMode;
+}) {
+  const rows = buildOptionSectionRows(option, section, mode);
+  if (rows.length === 0) return null;
+
+  const title = section === "planting" ? option.plantingTitle : option.topDressingTitle;
+  const instruction = getOptionSectionInstruction(option, section, mode);
+
+  return (
+    <VStack align="stretch" gap={2}>
+      <HStack gap={2} wrap="wrap">
+        <Heading size="sm">{title}</Heading>
+        <Badge colorPalette={section === "planting" ? "blue" : "green"}>
+          {section === "planting" ? "Plantio" : "Cobertura"}
+        </Badge>
+      </HStack>
+      {instruction ? <Text fontSize="sm">{instruction}</Text> : null}
+      <RecommendationTable
+        columns={getOptionSectionColumns(section, mode)}
+        rows={rows}
+        minW={mode === "summary" ? "760px" : "1080px"}
+        getRowKey={(_row, rowIndex) => `${option.key}-${section}-${rowIndex}`}
+        renderCell={(row, _column, _rowIndex, columnIndex) => (
+          <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
+            {row[columnIndex] || "-"}
+          </Text>
+        )}
+      />
+    </VStack>
+  );
+}
+
+function FertilizationOptionsTables({
+  document,
+  mode,
+}: {
+  document?: RecommendationStructuredFertilizerLines | null;
+  mode: RecommendationStructuredViewMode;
+}) {
+  const options = getFertilizationOptionModels(document);
+  if (options.length === 0) return null;
+
+  return (
+    <VStack align="stretch" gap={4}>
+      {options.map((option) => (
+        <Box key={option.key} borderWidth="1px" borderRadius="md" p={3}>
+          <VStack align="stretch" gap={3}>
+            <HStack gap={2} wrap="wrap">
+              <Heading size="sm">{option.title}</Heading>
+              <Badge>{option.description}</Badge>
+            </HStack>
+            {mode === "general" ? (
+              <Text fontSize="sm" color="fg.muted">
+                O backend retornou plantio e cobertura separados; a cobertura considera saldos negativos de S, N e K2O vindos do plantio.
+              </Text>
+            ) : null}
+            <FertilizationOptionSectionTable option={option} section="planting" mode={mode} />
+            <FertilizationOptionSectionTable option={option} section="topDressing" mode={mode} />
+          </VStack>
+        </Box>
+      ))}
+    </VStack>
+  );
+}
+
+export const buildFertilizationOptionPrintTableModels = (
+  document?: RecommendationStructuredFertilizerLines | null,
+  mode: RecommendationStructuredViewMode = "general",
+): FertilizationOptionPrintTableModel[] =>
+  getFertilizationOptionModels(document).flatMap((option) =>
+    (["planting", "topDressing"] as const)
+      .map((section) => {
+        const rows = buildOptionSectionRows(option, section, mode);
+        if (rows.length === 0) return null;
+
+        return {
+          title: `${option.title} - ${section === "planting" ? option.plantingTitle : option.topDressingTitle}`,
+          headers: getOptionSectionColumns(section, mode).map((column) => String(column.header)),
+          rows,
+        } satisfies FertilizationOptionPrintTableModel;
+      })
+      .filter((model): model is FertilizationOptionPrintTableModel => Boolean(model)),
+  );
 
 function ShoppingListHeader({ document }: { document: ShoppingListResponse }) {
   const area = formatShoppingListArea(getFirstPresentValue(document, shoppingListAreaFields));
@@ -1494,6 +2110,7 @@ export function SulfurRecommendationSection({
 export const hasStructuredRecommendationContent = (
   document?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
+  hasFertilizationOptionContent(document) ||
   hasMicronutrientFertilizerRows(document) ||
   hasFormulatedPlantingFertilizerRows(document) ||
   hasFormulatedTopDressingFertilizerRows(document) ||
@@ -1543,8 +2160,12 @@ function AlternativeFertilizerTables({
 export default function RecommendationStructuredFertilizerTables({
   document,
   showShoppingListHeader = false,
+  technicalWarnings = [],
+  mode,
 }: RecommendationStructuredFertilizerTablesProps) {
   const displayDocument = document;
+  const viewMode = mode ?? (showShoppingListHeader ? "shopping" : "direct");
+  const hasOptionContent = hasFertilizationOptionContent(displayDocument);
 
   if (!hasStructuredRecommendationContent(displayDocument)) return null;
 
@@ -1553,13 +2174,29 @@ export default function RecommendationStructuredFertilizerTables({
       {showShoppingListHeader && displayDocument ? (
         <ShoppingListHeader document={displayDocument as ShoppingListResponse} />
       ) : null}
-      <FormulatedPlantingFertilizerTable directRecommendation={displayDocument} />
-      <FormulatedTopDressingFertilizerTable directRecommendation={displayDocument} />
-      <MicronutrientFertilizerTable
-        directRecommendation={displayDocument}
-        variant={showShoppingListHeader ? "shopping" : "recommendation"}
-      />
-      <AlternativeFertilizerTables document={displayDocument} />
+      {technicalWarnings.map((warning) => (
+        <Box key={warning} borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
+          <Text color="orange.700" fontSize="sm" fontWeight="semibold">
+            Aviso técnico
+          </Text>
+          <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
+            {warning}
+          </Text>
+        </Box>
+      ))}
+      {hasOptionContent ? (
+        <FertilizationOptionsTables document={displayDocument} mode={viewMode} />
+      ) : (
+        <>
+          <FormulatedPlantingFertilizerTable directRecommendation={displayDocument} />
+          <FormulatedTopDressingFertilizerTable directRecommendation={displayDocument} />
+          <MicronutrientFertilizerTable
+            directRecommendation={displayDocument}
+            variant={showShoppingListHeader ? "shopping" : "recommendation"}
+          />
+          <AlternativeFertilizerTables document={displayDocument} />
+        </>
+      )}
       <SulfurRecommendationSection document={displayDocument} mode={showShoppingListHeader ? "shopping" : "direct"} />
       <GypsumRecommendationSection document={displayDocument} mode={showShoppingListHeader ? "shopping" : "direct"} />
     </VStack>

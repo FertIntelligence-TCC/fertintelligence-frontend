@@ -252,6 +252,42 @@ export interface RecommendationFertilizerLine {
   message?: string | null;
   technicalMessage?: string | null;
 
+  n_recomendado_cobertura_kg_ha?: number | string | null;
+  nRecomendadoCoberturaKgHa?: number | string | null;
+  recommendedTopDressingNKgHa?: number | string | null;
+  k2o_recomendado_cobertura_kg_ha?: number | string | null;
+  k2oRecomendadoCoberturaKgHa?: number | string | null;
+  recommendedTopDressingK2oKgHa?: number | string | null;
+  saldo_plantio_n_kg_ha?: number | string | null;
+  saldoPlantioNKgHa?: number | string | null;
+  plantingBalanceNKgHa?: number | string | null;
+  saldo_plantio_k2o_kg_ha?: number | string | null;
+  saldoPlantioK2oKgHa?: number | string | null;
+  plantingBalanceK2oKgHa?: number | string | null;
+  saldo_plantio_s_kg_ha?: number | string | null;
+  saldoPlantioSKgHa?: number | string | null;
+  plantingBalanceSKgHa?: number | string | null;
+  n_fornecido_kg_ha?: number | string | null;
+  nFornecidoKgHa?: number | string | null;
+  suppliedNKgHa?: number | string | null;
+  k2o_fornecido_kg_ha?: number | string | null;
+  k2oFornecidoKgHa?: number | string | null;
+  suppliedK2oKgHa?: number | string | null;
+  s_fornecido_kg_ha?: number | string | null;
+  sFornecidoKgHa?: number | string | null;
+  enxofre_fornecido_kg_ha?: number | string | null;
+  enxofreFornecidoKgHa?: number | string | null;
+  suppliedSKgHa?: number | string | null;
+  saldo_final_n_kg_ha?: number | string | null;
+  saldoFinalNKgHa?: number | string | null;
+  finalBalanceNKgHa?: number | string | null;
+  saldo_final_k2o_kg_ha?: number | string | null;
+  saldoFinalK2oKgHa?: number | string | null;
+  finalBalanceK2oKgHa?: number | string | null;
+  saldo_final_s_kg_ha?: number | string | null;
+  saldoFinalSKgHa?: number | string | null;
+  finalBalanceSKgHa?: number | string | null;
+
   micronutrientes?: RecommendationMicronutrientValues | null;
   micronutrientes_aplicados?: RecommendationMicronutrientValues | null;
   micronutrients?: RecommendationMicronutrientValues | null;
@@ -286,6 +322,48 @@ export interface RecommendationStructuredFertilizerLines extends GypsumRecommend
   linhas_formulados_cobertura?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
   linhasFormuladosCobertura?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
 
+  opcao_1?: RecommendationOptionFertilizationPayload | null;
+  opcao1?: RecommendationOptionFertilizationPayload | null;
+  option1?: RecommendationOptionFertilizationPayload | null;
+  option_1?: RecommendationOptionFertilizationPayload | null;
+  adubacao_opcao_1?: RecommendationOptionFertilizationPayload | null;
+  adubacaoOpcao1?: RecommendationOptionFertilizationPayload | null;
+  fertilizationOption1?: RecommendationOptionFertilizationPayload | null;
+  recomendacao_opcao_1?: RecommendationOptionFertilizationPayload | null;
+  recomendacaoOpcao1?: RecommendationOptionFertilizationPayload | null;
+
+  opcao_2?: RecommendationOptionFertilizationPayload | null;
+  opcao2?: RecommendationOptionFertilizationPayload | null;
+  option2?: RecommendationOptionFertilizationPayload | null;
+  option_2?: RecommendationOptionFertilizationPayload | null;
+  adubacao_opcao_2?: RecommendationOptionFertilizationPayload | null;
+  adubacaoOpcao2?: RecommendationOptionFertilizationPayload | null;
+  fertilizationOption2?: RecommendationOptionFertilizationPayload | null;
+  recomendacao_opcao_2?: RecommendationOptionFertilizationPayload | null;
+  recomendacaoOpcao2?: RecommendationOptionFertilizationPayload | null;
+
+  plantio_opcao_1?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  plantioOpcao1?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  plantingOption1?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  formulados_plantio_opcao_1?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  formuladosPlantioOpcao1?: NullableRecommendationLineArray<PlantingFormulatedFertilizerLine>;
+  cobertura_opcao_1?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+  coberturaOpcao1?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+  topDressingOption1?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+  formulados_cobertura_opcao_1?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+  formuladosCoberturaOpcao1?: NullableRecommendationLineArray<TopDressingFormulatedFertilizerLine>;
+
+  plantio_opcao_2?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  plantioOpcao2?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  plantingOption2?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  adubos_simples_plantio?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  adubosSimplesPlantio?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  cobertura_opcao_2?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  coberturaOpcao2?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  topDressingOption2?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  adubos_simples_cobertura?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+  adubosSimplesCobertura?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+
   adubos_organicos?: NullableRecommendationLineArray<OrganicFertilizerRecommendationLine>;
   adubosOrganicos?: NullableRecommendationLineArray<OrganicFertilizerRecommendationLine>;
   organicFertilizers?: NullableRecommendationLineArray<OrganicFertilizerRecommendationLine>;
@@ -318,6 +396,18 @@ export interface RecommendationStructuredFertilizerLines extends GypsumRecommend
   items?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
 }
 
+export interface RecommendationOptionFertilizationPayload {
+  [key: string]: unknown;
+  plantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  planting?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  adubacao_plantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  adubacaoPlantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  cobertura?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  topDressing?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  adubacao_cobertura?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  adubacaoCobertura?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+}
+
 const recommendationStructuredArrayFields = [
   "adubos_solidos_micronutrientes",
   "adubosSolidosMicronutrientes",
@@ -334,6 +424,26 @@ const recommendationStructuredArrayFields = [
   "topDressingFormulatedFertilizers",
   "linhas_formulados_cobertura",
   "linhasFormuladosCobertura",
+  "plantio_opcao_1",
+  "plantioOpcao1",
+  "plantingOption1",
+  "formulados_plantio_opcao_1",
+  "formuladosPlantioOpcao1",
+  "cobertura_opcao_1",
+  "coberturaOpcao1",
+  "topDressingOption1",
+  "formulados_cobertura_opcao_1",
+  "formuladosCoberturaOpcao1",
+  "plantio_opcao_2",
+  "plantioOpcao2",
+  "plantingOption2",
+  "adubos_simples_plantio",
+  "adubosSimplesPlantio",
+  "cobertura_opcao_2",
+  "coberturaOpcao2",
+  "topDressingOption2",
+  "adubos_simples_cobertura",
+  "adubosSimplesCobertura",
   "adubos_organicos",
   "adubosOrganicos",
   "organicFertilizers",
