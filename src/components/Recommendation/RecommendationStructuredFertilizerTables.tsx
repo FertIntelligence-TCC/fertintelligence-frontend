@@ -2,6 +2,7 @@ import { Badge, Box, Heading, HStack, SimpleGrid, Text, VStack } from "@chakra-u
 
 import type {
   BioFertilizerRecommendationLine,
+  EconomicFertilizerDecisionFields,
   GreenFertilizerRecommendationLine,
   GypsumRecommendationFields,
   OrganicFertilizerRecommendationLine,
@@ -86,6 +87,7 @@ type AlternativeFertilizerDetail = {
 
 type GypsumRecommendationViewMode = "general" | "summary" | "direct" | "shopping";
 type SulfurRecommendationViewMode = "general" | "summary" | "direct" | "shopping";
+type EconomicDecisionViewMode = "general" | "summary" | "direct" | "shopping";
 
 export type GypsumRecommendationPrintModel = {
   title: string;
@@ -139,6 +141,41 @@ type SulfurRecommendationModel = {
   technicalWarning: string;
   managementGuidance: string[];
   rawText: string;
+};
+
+type EconomicDecisionChoice = "simple" | "compound" | "indeterminate";
+
+type EconomicDecisionItemModel = {
+  name: string;
+  dose: string;
+  quantity: string;
+  observation: string;
+};
+
+type EconomicNutrientPriceModel = {
+  nutrient: string;
+  price: string;
+  source: string;
+};
+
+type EconomicFertilizerDecisionModel = {
+  title: string;
+  productName: string;
+  productType: string;
+  commercialPrice: string;
+  opportunityPrice: string;
+  ratio: string;
+  ratioLabel: string;
+  decision: EconomicDecisionChoice;
+  decisionLabel: string;
+  instruction: string;
+  economyOrReason: string;
+  justification: string;
+  warning: string;
+  referenceSources: string[];
+  nutrientPrices: EconomicNutrientPriceModel[];
+  chosenItems: EconomicDecisionItemModel[];
+  substituteItems: EconomicDecisionItemModel[];
 };
 
 const areaFormatter = new Intl.NumberFormat("pt-BR", {
@@ -502,6 +539,228 @@ const sulfurSourceValueFields = {
     "quantity",
   ],
   quantityUnit: ["unidade_quantidade", "unidadeQuantidade", "quantityUnit", "unidade", "unit"],
+} as const;
+
+const economicDecisionObjectFields = [
+  "decisao_economica",
+  "decisaoEconomica",
+  "economicDecision",
+  "economic_decision",
+] as const;
+
+const economicDecisionArrayFields = [
+  "decisoes_economicas",
+  "decisoesEconomicas",
+  "economicDecisions",
+  "comparativos_economicos",
+  "comparativosEconomicos",
+  "economicComparisons",
+  "comparativos_economicos_adubos",
+  "comparativosEconomicosAdubos",
+  "fertilizerEconomicComparisons",
+] as const;
+
+const economicValueFields = {
+  title: ["titulo", "title", "nome_comparativo", "nomeComparativo", "comparisonName"],
+  productName: [
+    "produto_avaliado",
+    "produtoAvaliado",
+    "adubo_avaliado",
+    "aduboAvaliado",
+    "fertilizante_avaliado",
+    "fertilizanteAvaliado",
+    "nome_adubo",
+    "nomeAdubo",
+    "fertilizerName",
+    "produto",
+    "product",
+    "nome",
+    "name",
+  ],
+  productType: [
+    "tipo_produto",
+    "tipoProduto",
+    "tipo_adubo",
+    "tipoAdubo",
+    "fertilizerType",
+    "productType",
+    "grupo_adubo",
+    "grupoAdubo",
+  ],
+  commercialPrice: [
+    "preco_comercial",
+    "precoComercial",
+    "preco_comercial_adubo",
+    "precoComercialAdubo",
+    "commercialPrice",
+    "fertilizerCommercialPrice",
+    "pcac",
+    "pcaf",
+    "pcafte",
+    "PCAC",
+    "PCAF",
+    "PCAFTE",
+  ],
+  opportunityPrice: [
+    "preco_oportunidade",
+    "precoOportunidade",
+    "preco_oportunidade_adubo",
+    "precoOportunidadeAdubo",
+    "opportunityPrice",
+    "fertilizerOpportunityPrice",
+    "poac",
+    "poaf",
+    "poafte",
+    "POAC",
+    "POAF",
+    "POAFTE",
+  ],
+  ratio: [
+    "razao_decisao",
+    "razaoDecisao",
+    "razao",
+    "ratio",
+    "decisionRatio",
+    "razao_pcac_poac",
+    "razaoPcacPoac",
+    "pcac_poac",
+    "PCAC_POAC",
+    "razao_pcaf_poaf",
+    "razaoPcafPoaf",
+    "pcaf_poaf",
+    "PCAF_POAF",
+    "razao_pcafte_poafte",
+    "razaoPcaftePoafte",
+    "pcafte_poafte",
+    "PCAFTE_POAFTE",
+  ],
+  ratioLabel: ["rotulo_razao", "rotuloRazao", "ratioLabel", "nome_razao", "nomeRazao"],
+  decision: [
+    "decisao",
+    "decisao_economica",
+    "decisaoEconomica",
+    "decision",
+    "economicDecision",
+    "resultado",
+    "result",
+  ],
+  economyOrReason: [
+    "economia",
+    "economia_estimada",
+    "economiaEstimada",
+    "economy",
+    "estimatedEconomy",
+    "motivo_indeterminacao",
+    "motivoIndeterminacao",
+    "indeterminationReason",
+    "reason",
+    "motivo",
+  ],
+  justification: [
+    "justificativa",
+    "justificativa_tecnica",
+    "justificativaTecnica",
+    "justificativa_economica",
+    "justificativaEconomica",
+    "justificativa_tecnica_economica",
+    "justificativaTecnicaEconomica",
+    "technicalEconomicJustification",
+    "justification",
+  ],
+  warning: [
+    "aviso_tecnico",
+    "avisoTecnico",
+    "technicalWarning",
+    "mensagem_tecnica",
+    "mensagemTecnica",
+    "technicalMessage",
+    "preco_faltante",
+    "precoFaltante",
+    "missingPriceMessage",
+  ],
+  referenceSources: [
+    "fontes_simples_referencia",
+    "fontesSimplesReferencia",
+    "fontes_referencia",
+    "fontesReferencia",
+    "referenceSimpleSources",
+    "simpleReferenceSources",
+    "fontes_simples",
+    "fontesSimples",
+  ],
+  nutrientPrices: [
+    "menores_precos_nutrientes",
+    "menoresPrecosNutrientes",
+    "menor_preco_nutriente",
+    "menorPrecoNutriente",
+    "precos_unitarios_nutrientes",
+    "precosUnitariosNutrientes",
+    "unitNutrientPrices",
+    "lowestNutrientPrices",
+    "nutrientPrices",
+  ],
+  chosenItems: [
+    "itens_escolhidos",
+    "itensEscolhidos",
+    "adubos_escolhidos",
+    "adubosEscolhidos",
+    "chosenItems",
+    "selectedItems",
+    "produto_escolhido",
+    "produtoEscolhido",
+    "chosenProduct",
+  ],
+  substituteItems: [
+    "adubos_simples_substitutos",
+    "adubosSimplesSubstitutos",
+    "substitutos_simples",
+    "substitutosSimples",
+    "simpleSubstitutes",
+    "substituteItems",
+  ],
+} as const;
+
+const nutrientPriceValueFields = {
+  nutrient: ["nutriente", "nutrient", "nome_nutriente", "nomeNutriente", "name"],
+  price: [
+    "preco_unitario",
+    "precoUnitario",
+    "preco_unitario_nutriente",
+    "precoUnitarioNutriente",
+    "valor",
+    "value",
+    "price",
+    "unitPrice",
+    "menor_preco",
+    "menorPreco",
+    "lowestPrice",
+  ],
+  source: ["fonte", "source", "adubo", "nome_adubo", "nomeAdubo", "fertilizerName"],
+} as const;
+
+const economicDecisionItemFields = {
+  name: [
+    "adubo",
+    "nome_adubo",
+    "nomeAdubo",
+    "fertilizer",
+    "fertilizerName",
+    "produto",
+    "product",
+    "nome",
+    "name",
+  ],
+  dose: ["dose_kg_ha", "doseKgHa", "kg_ha", "kgHa", "dose_fonte_kg_ha", "doseFonteKgHa", "dose"],
+  quantity: ["quantidade_total", "quantidadeTotal", "totalQuantity", "quantidade", "quantity"],
+  quantityUnit: ["unidade_quantidade", "unidadeQuantidade", "quantityUnit", "unidade", "unit"],
+  observation: [
+    "observacao",
+    "observacao_tecnica",
+    "observacaoTecnica",
+    "technicalObservation",
+    "mensagem",
+    "message",
+  ],
 } as const;
 
 const insufficientSubsurfaceLayersMessage =
@@ -1089,6 +1348,238 @@ const getFirstRecordList = (line: Record<string, unknown>, fields: readonly stri
 
   return [];
 };
+
+const getEconomicDecisionPayloads = (
+  document?: EconomicFertilizerDecisionFields | null,
+): Array<Record<string, unknown> | string> => {
+  if (!document) return [];
+
+  const record = document as Record<string, unknown>;
+  const payloads: Array<Record<string, unknown> | string> = [];
+
+  for (const field of economicDecisionArrayFields) {
+    const value = record[field];
+    if (Array.isArray(value)) payloads.push(...value.filter((item): item is Record<string, unknown> => isRecord(item)));
+    if (isRecord(value)) payloads.push(value);
+  }
+
+  for (const field of economicDecisionObjectFields) {
+    const value = record[field];
+    if (Array.isArray(value)) payloads.push(...value.filter((item): item is Record<string, unknown> => isRecord(item)));
+    else if (isRecord(value)) payloads.push(value);
+    else {
+      const text = normalizeRecommendationText(value);
+      if (text) payloads.push(text);
+    }
+  }
+
+  const flatEconomicFieldCount = Object.values(economicValueFields)
+    .flat()
+    .filter((field) => record[field] !== null && record[field] !== undefined && record[field] !== "")
+    .length;
+  const hasRecordPayload = payloads.some((payload) => typeof payload !== "string");
+
+  if ((payloads.length === 0 && flatEconomicFieldCount > 0) || (!hasRecordPayload && flatEconomicFieldCount > 1)) {
+    payloads.push(record);
+  }
+
+  return payloads;
+};
+
+const getEconomicDecisionChoice = (decisionText: string): EconomicDecisionChoice => {
+  const normalized = decisionText
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  if (/(simples|simple)/.test(normalized)) return "simple";
+  if (/(composto|formulado|fte|compound|formulated)/.test(normalized)) return "compound";
+  return "indeterminate";
+};
+
+const getEconomicDecisionLabel = (choice: EconomicDecisionChoice, productName: string): string => {
+  if (choice === "simple") return "Usar adubos simples";
+  if (choice === "compound") return productName ? `Usar ${productName}` : "Usar composto/formulado/FTE";
+  return "Decisão econômica indeterminada";
+};
+
+const formatMoneyText = (value: string): string => {
+  if (!value) return "";
+  return /R\$\s*/i.test(value) ? value : `R$ ${value}`;
+};
+
+const getEconomicReferenceSources = (payload: Record<string, unknown>): string[] => {
+  const sources = getFirstTextList(payload, economicValueFields.referenceSources);
+  if (sources.length > 0) return sources;
+
+  return getEconomicNutrientPrices(payload)
+    .map((item) => (item.source ? `${item.nutrient}: ${item.source}` : ""))
+    .filter(Boolean);
+};
+
+const normalizeEconomicDecisionItem = (item: Record<string, unknown> | string): EconomicDecisionItemModel => {
+  if (typeof item === "string") {
+    return { name: item, dose: "", quantity: "", observation: "" };
+  }
+
+  const quantity = getFirstAnyText(item, economicDecisionItemFields.quantity);
+  const quantityUnit = getFirstAnyText(item, economicDecisionItemFields.quantityUnit);
+
+  return {
+    name: getFirstAnyText(item, economicDecisionItemFields.name),
+    dose: normalizeDoseText(getFirstAnyText(item, economicDecisionItemFields.dose)),
+    quantity: quantity && quantityUnit ? `${quantity} ${quantityUnit}` : quantity,
+    observation: getFirstAnyText(item, economicDecisionItemFields.observation),
+  };
+};
+
+const getEconomicDecisionItems = (
+  payload: Record<string, unknown>,
+  fields: readonly string[],
+): EconomicDecisionItemModel[] => {
+  for (const field of fields) {
+    const value = payload[field];
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => {
+          if (isRecord(item)) return normalizeEconomicDecisionItem(item);
+          const text = normalizeRecommendationText(item);
+          return text ? normalizeEconomicDecisionItem(text) : null;
+        })
+        .filter((item): item is EconomicDecisionItemModel => Boolean(item?.name || item?.dose || item?.quantity));
+    }
+    if (isRecord(value)) return [normalizeEconomicDecisionItem(value)];
+
+    const text = normalizeRecommendationText(value);
+    if (text) return [normalizeEconomicDecisionItem(text)];
+  }
+
+  return [];
+};
+
+const getEconomicNutrientPrices = (payload: Record<string, unknown>): EconomicNutrientPriceModel[] => {
+  for (const field of economicValueFields.nutrientPrices) {
+    const value = payload[field];
+
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => {
+          if (!isRecord(item)) return null;
+          const nutrient = getFirstAnyText(item, nutrientPriceValueFields.nutrient);
+          const price = formatMoneyText(getFirstAnyText(item, nutrientPriceValueFields.price));
+          const source = getFirstAnyText(item, nutrientPriceValueFields.source);
+          return nutrient || price || source ? { nutrient, price, source } : null;
+        })
+        .filter((item): item is EconomicNutrientPriceModel => Boolean(item));
+    }
+
+    if (isRecord(value)) {
+      return Object.entries(value)
+        .map(([nutrient, item]) => {
+          if (isRecord(item)) {
+            return {
+              nutrient: getFirstAnyText(item, nutrientPriceValueFields.nutrient) || nutrient,
+              price: formatMoneyText(getFirstAnyText(item, nutrientPriceValueFields.price)),
+              source: getFirstAnyText(item, nutrientPriceValueFields.source),
+            };
+          }
+
+          const price = formatMoneyText(normalizeRecommendationText(item));
+          return price ? { nutrient, price, source: "" } : null;
+        })
+        .filter((item): item is EconomicNutrientPriceModel => Boolean(item));
+    }
+  }
+
+  return [];
+};
+
+const hasEconomicDecisionModelContent = (model: EconomicFertilizerDecisionModel): boolean =>
+  Boolean(
+    model.title ||
+      model.productName ||
+      model.commercialPrice ||
+      model.opportunityPrice ||
+      model.ratio ||
+      model.decision !== "indeterminate" ||
+      model.economyOrReason ||
+      model.justification ||
+      model.warning ||
+      model.referenceSources.length ||
+      model.nutrientPrices.length ||
+      model.chosenItems.length ||
+      model.substituteItems.length,
+  );
+
+export const getEconomicFertilizerDecisionModels = (
+  document?: EconomicFertilizerDecisionFields | null,
+): EconomicFertilizerDecisionModel[] =>
+  getEconomicDecisionPayloads(document)
+    .map((payload) => {
+      if (typeof payload === "string") {
+        return {
+          title: "Decisão econômica de adubos",
+          productName: "",
+          productType: "",
+          commercialPrice: "",
+          opportunityPrice: "",
+          ratio: "",
+          ratioLabel: "Razão de decisão",
+          decision: "indeterminate",
+          decisionLabel: "Decisão econômica retornada em texto",
+          instruction: payload,
+          economyOrReason: payload,
+          justification: payload,
+          warning: "",
+          referenceSources: [],
+          nutrientPrices: [],
+          chosenItems: [],
+          substituteItems: [],
+        } satisfies EconomicFertilizerDecisionModel;
+      }
+
+      const productName = getFirstAnyText(payload, economicValueFields.productName);
+      const rawDecision = getFirstAnyText(payload, economicValueFields.decision);
+      const decision = getEconomicDecisionChoice(rawDecision);
+      const decisionLabel = rawDecision || getEconomicDecisionLabel(decision, productName);
+      const warning = getFirstAnyText(payload, economicValueFields.warning);
+      const commercialPrice = formatMoneyText(getFirstAnyText(payload, economicValueFields.commercialPrice));
+      const opportunityPrice = formatMoneyText(getFirstAnyText(payload, economicValueFields.opportunityPrice));
+
+      return {
+        title: getFirstAnyText(payload, economicValueFields.title) || "Decisão econômica de adubos",
+        productName,
+        productType: getFirstAnyText(payload, economicValueFields.productType),
+        commercialPrice,
+        opportunityPrice,
+        ratio: getFirstAnyText(payload, economicValueFields.ratio),
+        ratioLabel: getFirstAnyText(payload, economicValueFields.ratioLabel) || "Razão PC/PO",
+        decision,
+        decisionLabel,
+        instruction:
+          decision === "simple"
+            ? "Usar adubos simples."
+            : decision === "compound"
+              ? `Usar ${productName || "formulado/composto/FTE"}.`
+              : "Decisão econômica indeterminada.",
+        economyOrReason: getFirstAnyText(payload, economicValueFields.economyOrReason),
+        justification: getFirstAnyText(payload, economicValueFields.justification),
+        warning:
+          warning ||
+          (!commercialPrice || !opportunityPrice
+            ? "Aviso técnico: preço comercial e/ou preço de oportunidade não retornado pelo backend."
+            : ""),
+        referenceSources: getEconomicReferenceSources(payload),
+        nutrientPrices: getEconomicNutrientPrices(payload),
+        chosenItems: getEconomicDecisionItems(payload, economicValueFields.chosenItems),
+        substituteItems: getEconomicDecisionItems(payload, economicValueFields.substituteItems),
+      } satisfies EconomicFertilizerDecisionModel;
+    })
+    .filter(hasEconomicDecisionModelContent);
+
+export const hasEconomicFertilizerDecisionContent = (
+  document?: EconomicFertilizerDecisionFields | null,
+): boolean => getEconomicFertilizerDecisionModels(document).length > 0;
 
 const getSulfurSourceModel = (source: Record<string, unknown>): SulfurSourceModel => {
   const quantity = getFirstAnyText(source, sulfurSourceValueFields.quantity);
@@ -2107,9 +2598,230 @@ export function SulfurRecommendationSection({
   );
 }
 
+const getEconomicDecisionBadgeColor = (decision: EconomicDecisionChoice): "green" | "blue" | "orange" => {
+  if (decision === "simple") return "green";
+  if (decision === "compound") return "blue";
+  return "orange";
+};
+
+const getEconomicShoppingItems = (model: EconomicFertilizerDecisionModel): EconomicDecisionItemModel[] => {
+  if (model.decision === "simple") return model.substituteItems;
+  if (model.decision === "compound") {
+    if (model.chosenItems.length > 0) return model.chosenItems;
+    if (model.productName) {
+      return [{ name: model.productName, dose: "", quantity: "", observation: model.productType }];
+    }
+  }
+
+  return model.chosenItems.length > 0 ? model.chosenItems : model.substituteItems;
+};
+
+function EconomicDecisionWarning({ warning }: { warning: string }) {
+  if (!warning) return null;
+
+  return (
+    <Box borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
+      <Text color="orange.700" fontSize="sm" fontWeight="semibold">
+        Aviso técnico
+      </Text>
+      <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
+        {warning}
+      </Text>
+    </Box>
+  );
+}
+
+function EconomicFertilizerDecisionSection({
+  document,
+  mode,
+}: {
+  document?: EconomicFertilizerDecisionFields | null;
+  mode: EconomicDecisionViewMode;
+}) {
+  const models = getEconomicFertilizerDecisionModels(document);
+  if (models.length === 0) return null;
+
+  if (mode === "direct") {
+    return (
+      <VStack align="stretch" gap={3}>
+        {models.map((model, index) => (
+          <Box key={`${model.title}-${index}`} borderWidth="1px" borderRadius="md" p={3}>
+            <VStack align="stretch" gap={2}>
+              <HStack gap={2} wrap="wrap">
+                <Heading size="sm">{model.title}</Heading>
+                <Badge colorPalette={getEconomicDecisionBadgeColor(model.decision)}>{model.decisionLabel}</Badge>
+              </HStack>
+              <Text fontWeight="medium">{model.instruction}</Text>
+              <EconomicDecisionWarning warning={model.warning} />
+            </VStack>
+          </Box>
+        ))}
+      </VStack>
+    );
+  }
+
+  if (mode === "summary") {
+    return (
+      <VStack align="stretch" gap={3}>
+        <Heading size="sm">Decisão econômica de adubos</Heading>
+        <RecommendationTable
+          columns={[
+            { key: "product", header: "Produto avaliado", minW: "220px" },
+            { key: "decision", header: "Decisão final", minW: "190px" },
+            { key: "ratio", header: "Razão de decisão", minW: "150px" },
+            { key: "economy", header: "Economia ou motivo", minW: "260px" },
+          ]}
+          rows={models}
+          minW="820px"
+          getRowKey={(model, index) => `${model.productName}-${index}`}
+          renderCell={(model, column) => {
+            if (column.key === "product") return model.productName || model.productType || "-";
+            if (column.key === "decision") {
+              return (
+                <Badge colorPalette={getEconomicDecisionBadgeColor(model.decision)}>
+                  {model.decisionLabel}
+                </Badge>
+              );
+            }
+            if (column.key === "ratio") return model.ratio ? `${model.ratioLabel}: ${model.ratio}` : "-";
+            return model.economyOrReason || model.warning || "Sem economia calculada pelo backend.";
+          }}
+        />
+      </VStack>
+    );
+  }
+
+  if (mode === "shopping") {
+    return (
+      <VStack align="stretch" gap={4}>
+        <Heading size="sm">Escolha econômica para compra</Heading>
+        {models.map((model, modelIndex) => {
+          const items = getEconomicShoppingItems(model);
+          return (
+            <Box key={`${model.title}-${modelIndex}`} borderWidth="1px" borderRadius="md" p={3}>
+              <VStack align="stretch" gap={3}>
+                <HStack gap={2} wrap="wrap">
+                  <Badge colorPalette={getEconomicDecisionBadgeColor(model.decision)}>Escolha econômica</Badge>
+                  <Text fontWeight="medium">{model.decisionLabel}</Text>
+                </HStack>
+                {items.length > 0 ? (
+                  <RecommendationTable
+                    columns={[
+                      { key: "item", header: model.decision === "simple" ? "Adubo simples substituto" : "Produto escolhido", minW: "240px" },
+                      { key: "dose", header: "Dose", minW: "130px" },
+                      { key: "quantity", header: "Quantidade", minW: "150px" },
+                      { key: "observation", header: "Observação", minW: "240px" },
+                    ]}
+                    rows={items}
+                    minW="780px"
+                    getRowKey={(item, index) => `${item.name}-${index}`}
+                    renderCell={(item, column) => {
+                      if (column.key === "item") {
+                        return (
+                          <HStack gap={2} align="start" wrap="wrap">
+                            <Badge colorPalette={getEconomicDecisionBadgeColor(model.decision)}>Selecionado</Badge>
+                            <Text>{item.name || "-"}</Text>
+                          </HStack>
+                        );
+                      }
+                      if (column.key === "dose") return item.dose || "-";
+                      if (column.key === "quantity") return item.quantity || "-";
+                      return item.observation || model.economyOrReason || "-";
+                    }}
+                  />
+                ) : (
+                  <Text color="orange.700" fontSize="sm">
+                    Aviso técnico: a decisão econômica foi retornada sem itens de compra estruturados.
+                  </Text>
+                )}
+                <EconomicDecisionWarning warning={model.warning} />
+              </VStack>
+            </Box>
+          );
+        })}
+      </VStack>
+    );
+  }
+
+  return (
+    <VStack align="stretch" gap={4}>
+      {models.map((model, index) => (
+        <Box key={`${model.title}-${index}`} borderWidth="1px" borderRadius="md" p={3}>
+          <VStack align="stretch" gap={3}>
+            <HStack gap={2} wrap="wrap">
+              <Heading size="sm">{model.title}</Heading>
+              <Badge colorPalette={getEconomicDecisionBadgeColor(model.decision)}>{model.decisionLabel}</Badge>
+            </HStack>
+            <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+              <Box>
+                <Text color="fg.muted" fontSize="xs">Produto avaliado</Text>
+                <Text fontWeight="medium">{model.productName || "-"}</Text>
+              </Box>
+              <Box>
+                <Text color="fg.muted" fontSize="xs">Tipo</Text>
+                <Text>{model.productType || "Composto/formulado/FTE"}</Text>
+              </Box>
+              <Box>
+                <Text color="fg.muted" fontSize="xs">Preço comercial</Text>
+                <Text>{model.commercialPrice || "-"}</Text>
+              </Box>
+              <Box>
+                <Text color="fg.muted" fontSize="xs">Preço de oportunidade</Text>
+                <Text>{model.opportunityPrice || "-"}</Text>
+              </Box>
+              <Box>
+                <Text color="fg.muted" fontSize="xs">{model.ratioLabel}</Text>
+                <Text>{model.ratio || "-"}</Text>
+              </Box>
+              <Box>
+                <Text color="fg.muted" fontSize="xs">Decisão final</Text>
+                <Text fontWeight="medium">{model.decisionLabel}</Text>
+              </Box>
+            </SimpleGrid>
+
+            {model.referenceSources.length > 0 ? (
+              <Box>
+                <Text color="fg.muted" fontSize="xs">Fontes simples usadas como referência</Text>
+                <Text whiteSpace="pre-wrap">{model.referenceSources.join("\n")}</Text>
+              </Box>
+            ) : null}
+
+            {model.nutrientPrices.length > 0 ? (
+              <RecommendationTable
+                columns={[
+                  { key: "nutrient", header: "Nutriente", minW: "120px" },
+                  { key: "price", header: "Menor R$/kg", minW: "140px" },
+                  { key: "source", header: "Fonte referência", minW: "240px" },
+                ]}
+                rows={model.nutrientPrices}
+                minW="620px"
+                getRowKey={(item, itemIndex) => `${item.nutrient}-${itemIndex}`}
+                renderCell={(item, column) => {
+                  if (column.key === "nutrient") return item.nutrient || "-";
+                  if (column.key === "price") return item.price || "-";
+                  return item.source || "-";
+                }}
+              />
+            ) : null}
+
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Justificativa técnica/econômica</Text>
+              <Text whiteSpace="pre-wrap">
+                {model.justification || model.economyOrReason || "Justificativa econômica não retornada pelo backend."}
+              </Text>
+            </Box>
+            <EconomicDecisionWarning warning={model.warning} />
+          </VStack>
+        </Box>
+      ))}
+    </VStack>
+  );
+}
+
 export const hasStructuredRecommendationContent = (
   document?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
+  hasEconomicFertilizerDecisionContent(document) ||
   hasFertilizationOptionContent(document) ||
   hasMicronutrientFertilizerRows(document) ||
   hasFormulatedPlantingFertilizerRows(document) ||
@@ -2184,6 +2896,7 @@ export default function RecommendationStructuredFertilizerTables({
           </Text>
         </Box>
       ))}
+      <EconomicFertilizerDecisionSection document={displayDocument} mode={viewMode} />
       {hasOptionContent ? (
         <FertilizationOptionsTables document={displayDocument} mode={viewMode} />
       ) : (

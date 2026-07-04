@@ -33,6 +33,7 @@ import type {
 import RecommendationReportViewer from "./RecommendationReportViewer";
 import RecommendationStructuredFertilizerTables, {
   GypsumRecommendationSection,
+  hasEconomicFertilizerDecisionContent,
   hasFertilizationOptionContent,
   hasStructuredRecommendationContent,
   SulfurRecommendationSection,
@@ -320,10 +321,12 @@ function RecommendationDocumentPanel({
   const showSummaryStructuredContent =
     selectedDocument?.key === "summary" &&
     (hasMicronutrientFertilizerRows(summaryRecommendationDocument) ||
+      hasEconomicFertilizerDecisionContent(summaryRecommendationDocument) ||
       hasFertilizationOptionContent(summaryRecommendationDocument));
   const showGeneralStructuredContent =
     selectedDocument?.key === "general" &&
-    hasFertilizationOptionContent(selectedRecommendation);
+    (hasFertilizationOptionContent(selectedRecommendation) ||
+      hasEconomicFertilizerDecisionContent(selectedRecommendation));
   const showSummaryGypsumContent = selectedDocument?.key === "summary";
   const showSummarySulfurContent = selectedDocument?.key === "summary";
   const showGeneralGypsumContent = selectedDocument?.key === "general";
@@ -375,7 +378,8 @@ function RecommendationDocumentPanel({
             </Box>
           ))}
           {showSummaryStructuredContent ? (
-            hasFertilizationOptionContent(summaryRecommendationDocument) ? (
+            hasFertilizationOptionContent(summaryRecommendationDocument) ||
+            hasEconomicFertilizerDecisionContent(summaryRecommendationDocument) ? (
               <RecommendationStructuredFertilizerTables
                 document={summaryRecommendationDocument}
                 mode="summary"
@@ -636,7 +640,8 @@ export default function RecommendationFolderDocuments({
                       <MicronutrientFertilizerTable directRecommendation={summaryRecommendationDocument} />
                     ) : null}
                     {selectedDocument.key === "summary" &&
-                    hasFertilizationOptionContent(summaryRecommendationDocument) ? (
+                    (hasFertilizationOptionContent(summaryRecommendationDocument) ||
+                      hasEconomicFertilizerDecisionContent(summaryRecommendationDocument)) ? (
                       <RecommendationStructuredFertilizerTables
                         document={summaryRecommendationDocument}
                         mode="summary"
@@ -655,7 +660,8 @@ export default function RecommendationFolderDocuments({
                       <SulfurRecommendationSection document={selectedRecommendation} mode="general" />
                     ) : null}
                     {selectedDocument.key === "general" &&
-                    hasFertilizationOptionContent(selectedRecommendation) ? (
+                    (hasFertilizationOptionContent(selectedRecommendation) ||
+                      hasEconomicFertilizerDecisionContent(selectedRecommendation)) ? (
                       <RecommendationStructuredFertilizerTables
                         document={selectedRecommendation}
                         mode="general"

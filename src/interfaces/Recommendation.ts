@@ -52,6 +52,26 @@ export interface SulfurRecommendationPayload {
   [key: string]: unknown;
 }
 
+export interface EconomicFertilizerDecisionFields {
+  decisao_economica?: EconomicFertilizerDecisionPayload | EconomicFertilizerDecisionPayload[] | string | null;
+  decisaoEconomica?: EconomicFertilizerDecisionPayload | EconomicFertilizerDecisionPayload[] | string | null;
+  economicDecision?: EconomicFertilizerDecisionPayload | EconomicFertilizerDecisionPayload[] | string | null;
+  economic_decision?: EconomicFertilizerDecisionPayload | EconomicFertilizerDecisionPayload[] | string | null;
+  decisoes_economicas?: EconomicFertilizerDecisionPayload[] | null;
+  decisoesEconomicas?: EconomicFertilizerDecisionPayload[] | null;
+  economicDecisions?: EconomicFertilizerDecisionPayload[] | null;
+  comparativos_economicos?: EconomicFertilizerDecisionPayload[] | null;
+  comparativosEconomicos?: EconomicFertilizerDecisionPayload[] | null;
+  economicComparisons?: EconomicFertilizerDecisionPayload[] | null;
+  comparativos_economicos_adubos?: EconomicFertilizerDecisionPayload[] | null;
+  comparativosEconomicosAdubos?: EconomicFertilizerDecisionPayload[] | null;
+  fertilizerEconomicComparisons?: EconomicFertilizerDecisionPayload[] | null;
+}
+
+export interface EconomicFertilizerDecisionPayload {
+  [key: string]: unknown;
+}
+
 export type RecommendationMicronutrientValues = Record<string, number | string | null | undefined>;
 export type RecommendationNpkValues = {
   n?: number | string | null;
@@ -303,7 +323,7 @@ export type OrganoMineralFertilizerRecommendationLine = RecommendationFertilizer
 export type BioFertilizerRecommendationLine = RecommendationFertilizerLine;
 type NullableRecommendationLineArray<T> = T[] | null;
 
-export interface RecommendationStructuredFertilizerLines extends GypsumRecommendationFields, SulfurRecommendationFields {
+export interface RecommendationStructuredFertilizerLines extends GypsumRecommendationFields, SulfurRecommendationFields, EconomicFertilizerDecisionFields {
   adubos_solidos_micronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
   adubosSolidosMicronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
   solidFertilizersWithMicronutrients?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
@@ -464,6 +484,15 @@ const recommendationStructuredArrayFields = [
   "bioFertilizers",
   "linhas_biofertilizantes",
   "linhasBiofertilizantes",
+  "decisoes_economicas",
+  "decisoesEconomicas",
+  "economicDecisions",
+  "comparativos_economicos",
+  "comparativosEconomicos",
+  "economicComparisons",
+  "comparativos_economicos_adubos",
+  "comparativosEconomicosAdubos",
+  "fertilizerEconomicComparisons",
   "linhas",
   "linhas_recomendacao",
   "linhasRecomendacao",
@@ -527,7 +556,7 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   nome_pasta_recomendacao?: string | null;
 }
 
-export interface RecommendationResponse extends RecommendationFertigramFields, GypsumRecommendationFields, SulfurRecommendationFields {
+export interface RecommendationResponse extends RecommendationFertigramFields, GypsumRecommendationFields, SulfurRecommendationFields, EconomicFertilizerDecisionFields {
   id: number;
 
   id_usuario_criador?: number;
@@ -662,6 +691,7 @@ export interface RecommendationPrintResponse
     RecommendationStructuredFertilizerLines,
     GypsumRecommendationFields,
     SulfurRecommendationFields,
+    EconomicFertilizerDecisionFields,
     RecommendationFertigramFields {}
 
 interface RecommendationDocumentTextFields {
@@ -692,6 +722,7 @@ export interface SummaryRecommendationResponse
     RecommendationStructuredFertilizerLines,
     GypsumRecommendationFields,
     SulfurRecommendationFields,
+    EconomicFertilizerDecisionFields,
     RecommendationFertigramFields {
   resumo?: string | null;
   summary?: string | null;
@@ -705,6 +736,7 @@ export interface DirectRecommendationResponse
     RecommendationStructuredFertilizerLines,
     GypsumRecommendationFields,
     SulfurRecommendationFields,
+    EconomicFertilizerDecisionFields,
     RecommendationFertigramFields {
   recomendacao_direta?: string | null;
   recomendacaoDireta?: string | null;
@@ -720,7 +752,8 @@ export interface ShoppingListResponse
   extends RecommendationDocumentTextFields,
     RecommendationStructuredFertilizerLines,
     GypsumRecommendationFields,
-    SulfurRecommendationFields {
+    SulfurRecommendationFields,
+    EconomicFertilizerDecisionFields {
   lista_compras?: string | null;
   listaCompras?: string | null;
   shoppingList?: string | null;

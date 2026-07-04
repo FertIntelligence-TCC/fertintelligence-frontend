@@ -88,6 +88,7 @@ import RecommendationFolderDocuments, {
 import RecommendationHistoryList from "@/components/Recommendation/RecommendationHistoryList";
 import { writePrintableReport } from "@/components/Recommendation/RecommendationPrintDocument";
 import {
+  hasEconomicFertilizerDecisionContent,
   hasGypsumRecommendationContent,
   hasSulfurRecommendationContent,
   hasStructuredRecommendationContent,
@@ -1096,15 +1097,18 @@ export default function Recommendation() {
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
     general:
+      hasEconomicFertilizerDecisionContent(selectedRecommendation) ||
       hasGypsumRecommendationContent(selectedRecommendation) ||
       hasSulfurRecommendationContent(selectedRecommendation),
   	summary:
+      hasEconomicFertilizerDecisionContent(summaryRecommendationDocument) ||
       hasMicronutrientFertilizerRows(summaryRecommendationDocument) ||
       hasRecommendationFertigramCharts(summaryRecommendationDocument, "chemical") ||
       hasGypsumRecommendationContent(summaryRecommendationDocument) ||
       hasSulfurRecommendationContent(summaryRecommendationDocument) ||
       Boolean(documentTechnicalWarnings.summary?.length),
   	direct:
+      hasEconomicFertilizerDecisionContent(directRecommendationDocument) ||
       hasDirectFertilizationObservations(directRecommendationDocument) ||
       hasDirectNpkFertilizerRows(directRecommendationDocument) ||
       Boolean(documentTechnicalWarnings.direct?.length),
