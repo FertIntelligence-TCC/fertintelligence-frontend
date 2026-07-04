@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Badge,
   Box,
@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
+import { toaster } from "@/components/ui/toaster";
 import SoilFertilityTableForm from "@/components/FertilizationTable/SoilFertility/SoilFertilityTableForm";
 import {
   DEFAULT_SOIL_FERTILITY_STATE,
@@ -36,18 +37,55 @@ const mapResponseToForm = (dto: SoilFertilityTableResponseDto): SoilFertilityFor
   tabelaPublica: Boolean(dto.tabela_publica),
 });
 
+const getErrorStatus = (error: unknown) => {
+  if (typeof error !== "object" || error === null) return undefined;
+  const response = (error as { response?: { status?: number } }).response;
+  return response?.status;
+};
+
 export default function PublicSoilFertilityInterpretationTable() {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeItem, setActiveItem] = useState<SoilFertilityTableResponseDto | null>(null);
   const [form, setForm] = useState<SoilFertilityFormState>(DEFAULT_SOIL_FERTILITY_STATE);
+  const notifiedErrorAtRef = useRef(0);
 
-  const { data: tables = [], isLoading } = useQuery({
+  const {
+    data: tables = [],
+    error,
+    errorUpdatedAt,
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["soil-fertility-tables-public"],
     queryFn: fetchPublicSoilFertilityTables,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
+  const canUseLoadedTables = !isLoading && !isFetching && !isError;
+
+  useEffect(() => {
+    if (!isError || !errorUpdatedAt || notifiedErrorAtRef.current === errorUpdatedAt) return;
+
+    notifiedErrorAtRef.current = errorUpdatedAt;
+    const status = getErrorStatus(error);
+    console.warn("Falha ao carregar tabelas públicas de fertilidade do solo.", { status, error });
+    toaster.create({
+      title: "Não foi possível carregar as tabelas agora.",
+      description: status ? `Erro HTTP ${status}. Tente novamente em instantes.` : "Tente novamente em instantes.",
+      type: "error",
+    });
+  }, [error, errorUpdatedAt, isError]);
+
   const handleOpenView = (table: SoilFertilityTableResponseDto) => {
+    if (!canUseLoadedTables) {
+      toaster.create({ title: "Aguarde o carregamento das tabelas antes de visualizar.", type: "warning" });
+      return;
+    }
+
     setActiveItem(table);
     setForm(mapResponseToForm(table));
   };
@@ -79,6 +117,27 @@ export default function PublicSoilFertilityInterpretationTable() {
         {isLoading ? (
           <Flex justify="center" minH="200px" align="center">
             <Spinner color="green.500" size="xl" />
+          </Flex>
+        ) : isError ? (
+          <Flex justify="center" minH="200px" align="center" direction="column" gap={2}>
+            <Text color="red.500" fontWeight="bold">Não foi possível carregar as tabelas agora.</Text>
+            <Text color="gray.500" fontSize="sm">A lista pública foi mantida vazia para evitar ações sobre dados incompletos.</Text>
+            <Button size="sm" variant="outline" onClick={() => refetch()} loading={isFetching}>Tentar novamente</Button>
+          </Flex>
+        ) : tables.length === 0 ? (
+          <Flex
+            justify="center"
+            align="center"
+            minH="300px"
+            borderWidth="2px"
+            borderStyle="dashed"
+            borderColor="gray.300"
+            borderRadius="lg"
+            direction="column"
+            gap={4}
+            color="gray.500"
+          >
+            <Text fontSize="lg">Nenhuma tabela encontrada.</Text>
           </Flex>
         ) : (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap={6}>

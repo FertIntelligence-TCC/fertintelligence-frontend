@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -59,6 +59,12 @@ type Props = {
   variant?: "mine" | "default";
 };
 
+const getErrorStatus = (error: unknown) => {
+  if (typeof error !== "object" || error === null) return undefined;
+  const response = (error as { response?: { status?: number } }).response;
+  return response?.status;
+};
+
 export default function SoilFertilityInterpretationCriteriaTable({ variant = "mine" }: Props) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -80,6 +86,7 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
   const [activeItem, setActiveItem] = useState<SoilFertilityTableResponseDto | null>(null);
   const [form, setForm] = useState<SoilFertilityFormState>(DEFAULT_SOIL_FERTILITY_STATE);
   const [isSaving, setIsSaving] = useState(false);
+  const notifiedErrorAtRef = useRef(0);
 
   const isReadOnly = mode === "view";
   
@@ -90,10 +97,36 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
   }, [mode]);
 
   // Queries
-  const { data: tables = [], isLoading, isError } = useQuery<SoilFertilityTableResponseDto[]>({
+  const {
+    data: tables = [],
+    error,
+    errorUpdatedAt,
+    isError,
+    isFetching,
+    isLoading,
+    refetch,
+  } = useQuery<SoilFertilityTableResponseDto[]>({
     queryKey,
     queryFn,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
+
+  const canUseLoadedTables = !isLoading && !isFetching && !isError;
+
+  useEffect(() => {
+    if (!isError || !errorUpdatedAt || notifiedErrorAtRef.current === errorUpdatedAt) return;
+
+    notifiedErrorAtRef.current = errorUpdatedAt;
+    const context = usesDefaultTables ? "tabelas padrão" : "minhas tabelas";
+    const status = getErrorStatus(error);
+    console.warn(`Falha ao carregar ${context} de fertilidade do solo.`, { status, error });
+    toaster.create({
+      title: "Não foi possível carregar as tabelas agora.",
+      description: status ? `Erro HTTP ${status}. Tente novamente em instantes.` : "Tente novamente em instantes.",
+      type: "error",
+    });
+  }, [error, errorUpdatedAt, isError, usesDefaultTables]);
 
   const deleteMutation = useMutation({
     mutationFn: deleteSoilFertilityTable,
@@ -108,6 +141,11 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
 
   // Handlers
   const handleOpen = (newMode: Mode, item?: SoilFertilityTableResponseDto) => {
+    if (!canUseLoadedTables) {
+      toaster.create({ title: "Aguarde o carregamento das tabelas antes de continuar.", type: "warning" });
+      return;
+    }
+
     setMode(newMode);
     setActiveItem(item || null);
     
@@ -121,6 +159,10 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
 
   const handleSave = async () => {
     if (isReadOnly) { setIsModalOpen(false); return; }
+    if (!canUseLoadedTables) {
+        toaster.create({ title: "Não é possível salvar enquanto as tabelas não foram carregadas.", type: "warning" });
+        return;
+    }
     
     if (!form.nome || form.nome.trim() === "") {
         toaster.create({ title: "O Nome é obrigatório.", type: "error" });
@@ -207,6 +249,7 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
                     colorPalette="green"
                     onClick={() => handleOpen("create")}
                     size="md"
+                    disabled={!canUseLoadedTables}
                 >
                     <FiPlus /> Nova Tabela
                 </Button>
@@ -232,8 +275,9 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
                     </Flex>
                 ) : isError ? (
                     <Flex justify="center" minH="200px" align="center" direction="column" gap={2}>
-                        <Text color="red.500" fontWeight="bold">Erro ao carregar dados.</Text>
-                        <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey })}>Tentar Novamente</Button>
+                        <Text color="red.500" fontWeight="bold">Não foi possível carregar as tabelas agora.</Text>
+                        <Text color="gray.500" fontSize="sm">A lista foi mantida vazia para evitar ações sobre dados incompletos.</Text>
+                        <Button size="sm" variant="outline" onClick={() => refetch()} loading={isFetching}>Tentar novamente</Button>
                     </Flex>
                 ) : tables.length === 0 ? (
                     <Flex 
@@ -261,7 +305,14 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
                                 onSelect={() => setSelectedId(selectedId === table.id ? null : table.id)}
                                 onView={() => handleOpen("view", table)}
                                 onEdit={canManage ? () => handleOpen("edit", table) : undefined}
-                                onDelete={canManage ? () => { setActiveItem(table); setIsDeleteOpen(true); } : undefined}
+                                onDelete={canManage ? () => {
+                                  if (!canUseLoadedTables) {
+                                    toaster.create({ title: "Aguarde o carregamento das tabelas antes de excluir.", type: "warning" });
+                                    return;
+                                  }
+                                  setActiveItem(table);
+                                  setIsDeleteOpen(true);
+                                } : undefined}
                             />
                         ))}
                     </SimpleGrid>
@@ -347,8 +398,9 @@ export default function SoilFertilityInterpretationCriteriaTable({ variant = "mi
               </Button>
               <Button 
                 colorPalette="red" 
-                onClick={() => activeItem && deleteMutation.mutate(activeItem.id)} 
+                onClick={() => activeItem && canUseLoadedTables && deleteMutation.mutate(activeItem.id)} 
                 loading={deleteMutation.isPending}
+                disabled={!canUseLoadedTables}
               >
                 Excluir Definitivamente
               </Button>
