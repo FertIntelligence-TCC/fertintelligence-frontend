@@ -69,6 +69,11 @@ export const ENDPOINT = {
   CREATE_SULFUR_DOSE: "sulfur-dose/register",
   UPDATE_SULFUR_DOSE: "sulfur-dose/update",
 
+  // --- Potassium Content and Dose Endpoints ---
+  GET_BY_TABLE_POTASSIUM_CONTENT_AND_DOSE: "potassium-content-and-dose/get-by-table",
+  CREATE_POTASSIUM_CONTENT_AND_DOSE: "potassium-content-and-dose/register",
+  UPDATE_POTASSIUM_CONTENT_AND_DOSE: "potassium-content-and-dose/update",
+
   // --- Micronutrient Dose Endpoints ---
   GET_BY_TABLE_MICRONUTRIENT_DOSE: "micronutrient-dose/get-by-table",
   CREATE_MICRONUTRIENT_DOSE: "micronutrient-dose/register",
