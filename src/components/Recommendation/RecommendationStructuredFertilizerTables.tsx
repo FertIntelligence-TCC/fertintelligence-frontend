@@ -59,6 +59,7 @@ type FertilizationOptionModel = {
   description: string;
   plantingTitle: string;
   topDressingTitle: string;
+  payload: RecommendationOptionFertilizationPayload | null;
   plantingLines: RecommendationFertilizerLine[];
   topDressingLines: RecommendationFertilizerLine[];
 };
@@ -1187,7 +1188,18 @@ const optionLineFields = {
 } as const;
 
 const nestedSectionFields = {
-  planting: ["plantio", "planting", "adubacao_plantio", "adubacaoPlantio", "linhas_plantio", "plantingLines"],
+  planting: [
+    "plantio",
+    "planting",
+    "adubacao_plantio",
+    "adubacaoPlantio",
+    "formulados_plantio",
+    "formuladosPlantio",
+    "adubos_simples_plantio",
+    "adubosSimplesPlantio",
+    "linhas_plantio",
+    "plantingLines",
+  ],
   topDressing: [
     "cobertura",
     "topDressing",
@@ -1199,6 +1211,27 @@ const nestedSectionFields = {
 } as const;
 
 const optionValueFields = {
+  relation: [
+    "relacao_recomendada_npk",
+    "relacaoNpkRecomendada",
+    "relacao_recomendada",
+    "recommendedNpkRelation",
+    "relacao_npk",
+    "relacaoNpk",
+    "relacao",
+    "relation",
+  ],
+  concentration: [
+    "concentracao_npk",
+    "concentracaoNpk",
+    "npkConcentration",
+    "concentracao",
+    "concentration",
+    "formula_npk",
+    "formulaNpk",
+    "npkFormula",
+    "formula",
+  ],
   fertilizer: [
     "formulado",
     "nome_formulado",
@@ -1223,6 +1256,13 @@ const optionValueFields = {
   phase: ["fase_aplicacao", "faseAplicacao", "fase", "phase"],
   coverage: ["cobertura", "identificacao_cobertura", "identificacaoCobertura", "nome_cobertura", "coverage", "coverageName"],
   nRecommended: ["n_recomendado_cobertura_kg_ha", "nRecomendadoCoberturaKgHa", "recommendedTopDressingNKgHa", "n_recomendado", "recommendedN"],
+  p2o5Recommended: [
+    "p2o5_recomendado_kg_ha",
+    "p2o5RecomendadoKgHa",
+    "recommendedP2o5KgHa",
+    "p2o5_recomendado",
+    "recommendedP2o5",
+  ],
   k2oRecommended: [
     "k2o_recomendado_cobertura_kg_ha",
     "k2oRecomendadoCoberturaKgHa",
@@ -1240,6 +1280,7 @@ const optionValueFields = {
   ],
   plantingBalanceS: ["saldo_plantio_s_kg_ha", "saldoPlantioSKgHa", "plantingBalanceSKgHa", "saldo_plantio_s", "saldoSPlantio"],
   suppliedN: ["n_fornecido_kg_ha", "nFornecidoKgHa", "suppliedNKgHa", "n_fornecido", "providedN"],
+  suppliedP2o5: ["p2o5_fornecido_kg_ha", "p2o5FornecidoKgHa", "suppliedP2o5KgHa", "p2o5_fornecido", "providedP2o5"],
   suppliedK2o: ["k2o_fornecido_kg_ha", "k2oFornecidoKgHa", "suppliedK2oKgHa", "k2o_fornecido", "providedK2o"],
   suppliedS: [
     "s_fornecido_kg_ha",
@@ -1251,6 +1292,14 @@ const optionValueFields = {
     "providedS",
   ],
   finalBalanceN: ["saldo_final_n_kg_ha", "saldoFinalNKgHa", "finalBalanceNKgHa", "saldo_final_n", "final_n", "finalN"],
+  finalBalanceP2o5: [
+    "saldo_final_p2o5_kg_ha",
+    "saldoFinalP2o5KgHa",
+    "finalBalanceP2o5KgHa",
+    "saldo_final_p2o5",
+    "final_p2o5",
+    "finalP2o5",
+  ],
   finalBalanceK2o: [
     "saldo_final_k2o_kg_ha",
     "saldoFinalK2oKgHa",
@@ -1268,8 +1317,85 @@ const optionValueFields = {
     "final_s",
     "finalS",
   ],
+  transferBalanceN: [
+    "saldo_enviado_cobertura_n_kg_ha",
+    "saldoEnviadoCoberturaNKgHa",
+    "topDressingTransferNKgHa",
+    "saldo_enviado_cobertura_n",
+    "saldo_transferido_n",
+  ],
+  transferBalanceP2o5: [
+    "saldo_enviado_cobertura_p2o5_kg_ha",
+    "saldoEnviadoCoberturaP2o5KgHa",
+    "topDressingTransferP2o5KgHa",
+    "saldo_enviado_cobertura_p2o5",
+    "saldo_transferido_p2o5",
+  ],
+  transferBalanceK2o: [
+    "saldo_enviado_cobertura_k2o_kg_ha",
+    "saldoEnviadoCoberturaK2oKgHa",
+    "topDressingTransferK2oKgHa",
+    "saldo_enviado_cobertura_k2o",
+    "saldo_transferido_k2o",
+  ],
+  transferBalanceS: [
+    "saldo_enviado_cobertura_s_kg_ha",
+    "saldoEnviadoCoberturaSKgHa",
+    "topDressingTransferSKgHa",
+    "saldo_enviado_cobertura_s",
+    "saldo_transferido_s",
+  ],
+  gypsumDose: [
+    "dose_gesso_kg_ha",
+    "doseGessoKgHa",
+    "gypsumDoseKgHa",
+    "dose_gesso_agricola_kg_ha",
+    "doseGessoAgricolaKgHa",
+  ],
+  gypsumApplicationMode: [
+    "modo_aplicacao_gesso",
+    "modoAplicacaoGesso",
+    "gypsumApplicationMode",
+    "aplicacao_gesso",
+    "aplicacaoGesso",
+  ],
+  micronutrients: ["micronutrientes", "micronutrients", "micronutrientes_aplicados", "appliedMicronutrients"],
+  micronutrientBalance: [
+    "balanco_micronutrientes",
+    "balancoMicronutrientes",
+    "micronutrientBalance",
+    "balanco",
+    "balance",
+  ],
   observation: ["observacao_tecnica", "observacaoTecnica", "technicalObservation", "technicalNote", "observacao"],
   message: ["mensagem", "mensagem_tecnica", "mensagemTecnica", "message", "technicalMessage", "aviso_tecnico", "technicalWarning"],
+} as const;
+
+const optionPayloadValueFields = {
+  transferBalances: ["saldos_enviados_cobertura", "saldosEnviadosCobertura", "topDressingTransfers"],
+  gypsumComplement: ["complemento_enxofre_gesso", "complementoEnxofreGesso", "sulfurGypsumComplement"],
+  micronutrientSources: ["fontes_micronutrientes", "fontesMicronutrientes", "micronutrientSources"],
+  fteBr12: ["fte_br_12", "fteBr12", "FTE_BR_12", "fte_br12", "fteBR12"],
+  fteConcentrated: [
+    "fte_alternativo_zn",
+    "fteAlternativoZn",
+    "fte_zinco_concentrado",
+    "fteZincoConcentrado",
+    "fteConcentrated",
+    "zincConcentratedFte",
+  ],
+  micronutrientBalance: ["balanco_micronutrientes", "balancoMicronutrientes", "micronutrientBalance"],
+  technicalWarnings: [
+    "avisos_tecnicos",
+    "avisosTecnicos",
+    "technicalWarnings",
+    "aviso_tecnico",
+    "avisoTecnico",
+    "technicalWarning",
+    "mensagem_tecnica",
+    "mensagemTecnica",
+    "technicalMessage",
+  ],
 } as const;
 
 const recommendationOptionMetadata: Record<FertilizationOptionKey, Pick<FertilizationOptionModel, "title" | "description" | "plantingTitle" | "topDressingTitle">> = {
@@ -1308,6 +1434,194 @@ const getOptionQuantityText = (line: RecommendationFertilizerLine): string => {
 
 const getOptionNutrientText = (line: RecommendationFertilizerLine, fields: readonly string[]): string =>
   normalizeKgHaText(getOptionText(line, fields));
+
+const formatNpkLikeValue = (value: unknown): string => {
+  if (isRecord(value)) {
+    const n = normalizeRecommendationText(value.n ?? value.N ?? value.nitrogenio ?? value.nitrogen);
+    const p2o5 = normalizeRecommendationText(value.p2o5 ?? value.P2O5 ?? value.p ?? value.P ?? value.fosforo ?? value.phosphorus);
+    const k2o = normalizeRecommendationText(value.k2o ?? value.K2O ?? value.k ?? value.K ?? value.potassio ?? value.potassium);
+    const parts = [n, p2o5, k2o];
+    if (parts.some(Boolean)) return parts.map((part) => part || "0").join("-");
+  }
+
+  return normalizeRecommendationText(value);
+};
+
+const getOptionFormattedText = (
+  line: RecommendationFertilizerLine | Record<string, unknown>,
+  fields: readonly string[],
+): string => {
+  for (const field of fields) {
+    const text = formatNpkLikeValue(line[field]);
+    if (text) return text;
+  }
+
+  return "";
+};
+
+const getOptionPayloadRecord = (
+  option: FertilizationOptionModel,
+  fields: readonly string[],
+): Record<string, unknown> | null => {
+  if (!option.payload) return null;
+
+  for (const field of fields) {
+    const value = option.payload[field];
+    if (isRecord(value)) return value;
+
+    const text = normalizeRecommendationText(value);
+    if (text) return { nome: field, dose: text };
+  }
+
+  return null;
+};
+
+const getOptionPayloadLineList = (
+  option: FertilizationOptionModel,
+  fields: readonly string[],
+): RecommendationFertilizerLine[] => {
+  if (!option.payload) return [];
+
+  for (const field of fields) {
+    const lines = normalizeLineList(option.payload[field]);
+    if (lines.length > 0) return lines;
+  }
+
+  return [];
+};
+
+const buildNutrientLinesText = (
+  line: RecommendationFertilizerLine | Record<string, unknown>,
+  fieldGroups: { label: string; fields: readonly string[] }[],
+): string =>
+  fieldGroups
+    .map(({ label, fields }) => {
+      const text = getOptionNutrientText(line as RecommendationFertilizerLine, fields);
+      return text ? `${label}: ${text}` : "";
+    })
+    .filter(Boolean)
+    .join("\n");
+
+const buildTransferBalanceText = (line: RecommendationFertilizerLine): string =>
+  buildNutrientLinesText(line, [
+    { label: "N", fields: optionValueFields.transferBalanceN },
+    { label: "P2O5", fields: optionValueFields.transferBalanceP2o5 },
+    { label: "K2O", fields: optionValueFields.transferBalanceK2o },
+    { label: "S", fields: optionValueFields.transferBalanceS },
+  ]);
+
+const buildSuppliedNutrientsText = (line: RecommendationFertilizerLine): string =>
+  buildNutrientLinesText(line, [
+    { label: "N", fields: optionValueFields.suppliedN },
+    { label: "P2O5", fields: optionValueFields.suppliedP2o5 },
+    { label: "K2O", fields: optionValueFields.suppliedK2o },
+    { label: "S", fields: optionValueFields.suppliedS },
+  ]);
+
+const buildFinalBalanceText = (line: RecommendationFertilizerLine): string =>
+  buildNutrientLinesText(line, [
+    { label: "N", fields: optionValueFields.finalBalanceN },
+    { label: "P2O5", fields: optionValueFields.finalBalanceP2o5 },
+    { label: "K2O", fields: optionValueFields.finalBalanceK2o },
+    { label: "S", fields: optionValueFields.finalBalanceS },
+  ]);
+
+const buildPlantingBalanceText = (line: RecommendationFertilizerLine): string =>
+  buildNutrientLinesText(line, [
+    { label: "N", fields: optionValueFields.plantingBalanceN },
+    { label: "K2O", fields: optionValueFields.plantingBalanceK2o },
+    { label: "S", fields: optionValueFields.plantingBalanceS },
+  ]);
+
+const buildGypsumComplementText = (line: RecommendationFertilizerLine): string => {
+  const gypsumDose = getOptionNutrientText(line, optionValueFields.gypsumDose);
+  const applicationMode = getOptionText(line, optionValueFields.gypsumApplicationMode);
+  return [
+    gypsumDose ? `Gesso: ${gypsumDose}` : "",
+    applicationMode ? `Aplicação: ${applicationMode}` : "",
+  ].filter(Boolean).join("\n");
+};
+
+const formatRecordEntries = (record: Record<string, unknown>): string =>
+  Object.entries(record)
+    .map(([key, value]) => {
+      const text = formatNpkLikeValue(value);
+      return text ? `${key}: ${text}` : "";
+    })
+    .filter(Boolean)
+    .join("\n");
+
+const buildMicronutrientText = (line: RecommendationFertilizerLine): string => {
+  const explicit = getOptionFormattedText(line, optionValueFields.micronutrients);
+  const balance = getOptionFormattedText(line, optionValueFields.micronutrientBalance);
+  return [explicit, balance ? `Balanço: ${balance}` : ""].filter(Boolean).join("\n");
+};
+
+const getOptionPayloadTextList = (
+  option: FertilizationOptionModel,
+  fields: readonly string[],
+): string[] => {
+  if (!option.payload) return [];
+
+  for (const field of fields) {
+    const values = normalizeTextList(option.payload[field]);
+    if (values.length > 0) return values;
+  }
+
+  return [];
+};
+
+const normalizeSupplementalItem = (
+  item: Record<string, unknown>,
+  fallbackName: string,
+): CorrectiveFertilizerItemModel => {
+  const quantity = getOptionText(item as RecommendationFertilizerLine, optionValueFields.quantity);
+  const quantityUnit = getOptionText(item as RecommendationFertilizerLine, optionValueFields.quantityUnit);
+  const supplied = buildSuppliedNutrientsText(item as RecommendationFertilizerLine);
+  const finalBalance = buildFinalBalanceText(item as RecommendationFertilizerLine);
+  const observation = getOptionLineWarning(item as RecommendationFertilizerLine);
+
+  return {
+    name: getOptionText(item as RecommendationFertilizerLine, optionValueFields.fertilizer) || fallbackName,
+    dose: getOptionDoseText(item as RecommendationFertilizerLine),
+    quantity: quantity && quantityUnit ? `${quantity} ${quantityUnit}` : quantity,
+    supplied,
+    complement: buildGypsumComplementText(item as RecommendationFertilizerLine),
+    finalBalance,
+    observation,
+  };
+};
+
+const getOptionSupplementalRows = (option: FertilizationOptionModel): CorrectiveFertilizerItemModel[] => {
+  const rows: CorrectiveFertilizerItemModel[] = [];
+  const gypsumComplement = getOptionPayloadRecord(option, optionPayloadValueFields.gypsumComplement);
+  const fteBr12 = getOptionPayloadRecord(option, optionPayloadValueFields.fteBr12);
+  const fteConcentrated = getOptionPayloadRecord(option, optionPayloadValueFields.fteConcentrated);
+  const micronutrientSources = getOptionPayloadLineList(option, optionPayloadValueFields.micronutrientSources);
+
+  if (gypsumComplement) rows.push(normalizeSupplementalItem(gypsumComplement, "Gesso agrícola"));
+  if (fteBr12) rows.push(normalizeSupplementalItem(fteBr12, "FTE BR 12"));
+  if (fteConcentrated) rows.push(normalizeSupplementalItem(fteConcentrated, "FTE mais concentrado em Zn"));
+  rows.push(...micronutrientSources.map((source) => normalizeSupplementalItem(source, "Micronutriente")));
+
+  return rows.filter((row) =>
+    Boolean(row.name || row.dose || row.quantity || row.supplied || row.complement || row.finalBalance || row.observation),
+  );
+};
+
+const getOptionTransferSummary = (option: FertilizationOptionModel): string => {
+  const transferPayload = getOptionPayloadRecord(option, optionPayloadValueFields.transferBalances);
+  if (transferPayload) return formatRecordEntries(transferPayload);
+
+  return Array.from(new Set(option.plantingLines.map(buildTransferBalanceText).filter(Boolean))).join("\n");
+};
+
+const getOptionMicronutrientBalanceSummary = (option: FertilizationOptionModel): string => {
+  const balancePayload = getOptionPayloadRecord(option, optionPayloadValueFields.micronutrientBalance);
+  if (balancePayload) return formatRecordEntries(balancePayload);
+
+  return Array.from(new Set(option.plantingLines.map(buildMicronutrientText).filter(Boolean))).join("\n");
+};
 
 const normalizeLineList = (value: unknown): RecommendationFertilizerLine[] => {
   if (Array.isArray(value)) return value.filter(isRecord) as RecommendationFertilizerLine[];
@@ -1420,12 +1734,14 @@ export const getFertilizationOptionModels = (
     {
       key: "option1",
       ...recommendationOptionMetadata.option1,
+      payload: option1Payload,
       plantingLines: option1PlantingLines.length > 0 ? option1PlantingLines : fallbackOption1Planting,
       topDressingLines: option1TopDressingLines.length > 0 ? option1TopDressingLines : fallbackOption1TopDressing,
     },
     {
       key: "option2",
       ...recommendationOptionMetadata.option2,
+      payload: option2Payload,
       plantingLines: option2PlantingLines.length > 0 ? option2PlantingLines : fallbackOption2Planting,
       topDressingLines: option2TopDressingLines,
     },
@@ -2392,9 +2708,15 @@ const hasOptionLineContent = (line: RecommendationFertilizerLine): boolean =>
     getOptionText(line, optionValueFields.fertilizer) ||
       getOptionDoseText(line) ||
       getOptionQuantityText(line) ||
+      getOptionFormattedText(line, optionValueFields.relation) ||
+      getOptionFormattedText(line, optionValueFields.concentration) ||
       getOptionNutrientText(line, optionValueFields.suppliedN) ||
+      getOptionNutrientText(line, optionValueFields.suppliedP2o5) ||
       getOptionNutrientText(line, optionValueFields.suppliedK2o) ||
       getOptionNutrientText(line, optionValueFields.suppliedS) ||
+      buildGypsumComplementText(line) ||
+      buildTransferBalanceText(line) ||
+      buildMicronutrientText(line) ||
       getOptionLineWarning(line),
   );
 
@@ -2403,6 +2725,9 @@ const getOptionCriticalBalanceSummary = (lines: RecommendationFertilizerLine[]):
     .flatMap((line) => [
       getOptionNutrientText(line, optionValueFields.finalBalanceN)
         ? `N ${getOptionNutrientText(line, optionValueFields.finalBalanceN)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.finalBalanceP2o5)
+        ? `P2O5 ${getOptionNutrientText(line, optionValueFields.finalBalanceP2o5)}`
         : "",
       getOptionNutrientText(line, optionValueFields.finalBalanceK2o)
         ? `K2O ${getOptionNutrientText(line, optionValueFields.finalBalanceK2o)}`
@@ -2428,44 +2753,22 @@ const buildOptionSectionRows = (
 
   return lines.map((line) => {
     const fertilizer = getOptionText(line, optionValueFields.fertilizer) || "Fonte retornada pelo backend";
+    const relation = getOptionFormattedText(line, optionValueFields.relation);
+    const concentration = getOptionFormattedText(line, optionValueFields.concentration);
     const dose = getOptionDoseText(line) || "-";
     const quantity = getOptionQuantityText(line) || "-";
-    const supplied = [
-      getOptionNutrientText(line, optionValueFields.suppliedN)
-        ? `N: ${getOptionNutrientText(line, optionValueFields.suppliedN)}`
-        : "",
-      getOptionNutrientText(line, optionValueFields.suppliedK2o)
-        ? `K2O: ${getOptionNutrientText(line, optionValueFields.suppliedK2o)}`
-        : "",
-      getOptionNutrientText(line, optionValueFields.suppliedS)
-        ? `S: ${getOptionNutrientText(line, optionValueFields.suppliedS)}`
-        : "",
-    ].filter(Boolean).join("\n");
-    const plantingBalances = [
-      getOptionNutrientText(line, optionValueFields.plantingBalanceN)
-        ? `N: ${getOptionNutrientText(line, optionValueFields.plantingBalanceN)}`
-        : "",
-      getOptionNutrientText(line, optionValueFields.plantingBalanceK2o)
-        ? `K2O: ${getOptionNutrientText(line, optionValueFields.plantingBalanceK2o)}`
-        : "",
-      getOptionNutrientText(line, optionValueFields.plantingBalanceS)
-        ? `S: ${getOptionNutrientText(line, optionValueFields.plantingBalanceS)}`
-        : "",
-    ].filter(Boolean).join("\n");
-    const finalBalances = [
-      getOptionNutrientText(line, optionValueFields.finalBalanceN)
-        ? `N: ${getOptionNutrientText(line, optionValueFields.finalBalanceN)}`
-        : "",
-      getOptionNutrientText(line, optionValueFields.finalBalanceK2o)
-        ? `K2O: ${getOptionNutrientText(line, optionValueFields.finalBalanceK2o)}`
-        : "",
-      getOptionNutrientText(line, optionValueFields.finalBalanceS)
-        ? `S: ${getOptionNutrientText(line, optionValueFields.finalBalanceS)}`
-        : "",
-    ].filter(Boolean).join("\n");
+    const supplied = buildSuppliedNutrientsText(line);
+    const plantingBalances = buildPlantingBalanceText(line);
+    const finalBalances = buildFinalBalanceText(line);
+    const transferBalances = buildTransferBalanceText(line);
+    const gypsumComplement = buildGypsumComplementText(line);
+    const micronutrients = buildMicronutrientText(line);
     const recommendedCoverage = [
       getOptionNutrientText(line, optionValueFields.nRecommended)
         ? `N: ${getOptionNutrientText(line, optionValueFields.nRecommended)}`
+        : "",
+      getOptionNutrientText(line, optionValueFields.p2o5Recommended)
+        ? `P2O5: ${getOptionNutrientText(line, optionValueFields.p2o5Recommended)}`
         : "",
       getOptionNutrientText(line, optionValueFields.k2oRecommended)
         ? `K2O: ${getOptionNutrientText(line, optionValueFields.k2oRecommended)}`
@@ -2474,13 +2777,22 @@ const buildOptionSectionRows = (
     const phase = getOptionText(line, optionValueFields.coverage) || getOptionText(line, optionValueFields.phase);
     const observation = getOptionLineWarning(line) || "-";
 
-    if (isShopping) return [fertilizer, dose, quantity, supplied || "-", finalBalances || "-", observation];
+    if (isShopping) return [fertilizer, dose, quantity, supplied || "-", gypsumComplement || "-", micronutrients || "-", transferBalances || finalBalances || "-", observation];
     if (isSummary) {
       return [
         fertilizer,
         dose,
         supplied || "-",
-        finalBalances || getOptionCriticalBalanceSummary([line]) || "-",
+        transferBalances || finalBalances || getOptionCriticalBalanceSummary([line]) || "-",
+      ];
+    }
+    if (mode === "direct") {
+      return [
+        fertilizer,
+        dose,
+        supplied || "-",
+        transferBalances || finalBalances || "-",
+        observation,
       ];
     }
     if (isTopDressing) {
@@ -2496,7 +2808,19 @@ const buildOptionSectionRows = (
       ];
     }
 
-    return [fertilizer, phase || "-", dose, supplied || "-", finalBalances || "-", observation];
+    return [
+      fertilizer,
+      relation || "-",
+      concentration || "-",
+      phase || "-",
+      dose,
+      supplied || "-",
+      gypsumComplement || "-",
+      finalBalances || "-",
+      transferBalances || "-",
+      micronutrients || "-",
+      observation,
+    ];
   });
 };
 
@@ -2510,7 +2834,9 @@ const getOptionSectionColumns = (
       { key: "dose", header: "Dose kg/ha", minW: "130px" },
       { key: "quantity", header: "Total para a área", minW: "150px" },
       { key: "supplied", header: "Nutrientes fornecidos", minW: "190px" },
-      { key: "finalBalances", header: "Saldos finais", minW: "170px" },
+      { key: "gypsum", header: "Complemento de S", minW: "170px" },
+      { key: "micronutrients", header: "Micronutrientes", minW: "190px" },
+      { key: "transfers", header: "Saldos para cobertura", minW: "190px" },
       { key: "observation", header: "Aviso/observação", minW: "240px" },
     ];
   }
@@ -2519,8 +2845,18 @@ const getOptionSectionColumns = (
     return [
       { key: "source", header: "Fonte", minW: "220px" },
       { key: "dose", header: "Dose principal", minW: "140px" },
-      { key: "supplied", header: "N, K2O e S fornecidos", minW: "190px" },
-      { key: "criticalBalances", header: "Saldos críticos", minW: "190px" },
+      { key: "supplied", header: "N, P2O5, K2O e S fornecidos", minW: "210px" },
+      { key: "criticalBalances", header: "Saldos transferidos/finais", minW: "210px" },
+    ];
+  }
+
+  if (mode === "direct") {
+    return [
+      { key: "source", header: "Fonte", minW: "220px" },
+      { key: "dose", header: "Dose kg/ha", minW: "130px" },
+      { key: "supplied", header: "Nutrientes fornecidos", minW: "210px" },
+      { key: "transfers", header: "Saldos para cobertura", minW: "200px" },
+      { key: "observation", header: "Instrução/aviso", minW: "240px" },
     ];
   }
 
@@ -2539,10 +2875,15 @@ const getOptionSectionColumns = (
 
   return [
     { key: "source", header: "Fonte/formulado", minW: "220px" },
+    { key: "relation", header: "Relação recomendada", minW: "160px" },
+    { key: "concentration", header: "Concentração", minW: "150px" },
     { key: "phase", header: "Fase", minW: "120px" },
     { key: "dose", header: "Dose kg/ha", minW: "130px" },
     { key: "supplied", header: "Nutrientes fornecidos", minW: "190px" },
+    { key: "gypsum", header: "S via gesso", minW: "170px" },
     { key: "finalBalances", header: "Saldos de plantio", minW: "170px" },
+    { key: "transfers", header: "Saldos enviados para cobertura", minW: "210px" },
+    { key: "micronutrients", header: "FTE/micronutrientes", minW: "220px" },
     { key: "observation", header: "Aviso/observação", minW: "240px" },
   ];
 };
@@ -2596,6 +2937,88 @@ function FertilizationOptionSectionTable({
   );
 }
 
+function FertilizationOptionSupplemental({
+  option,
+  mode,
+}: {
+  option: FertilizationOptionModel;
+  mode: RecommendationStructuredViewMode;
+}) {
+  const rows = getOptionSupplementalRows(option);
+  const transferSummary = getOptionTransferSummary(option);
+  const micronutrientBalance = getOptionMicronutrientBalanceSummary(option);
+  const warnings = getOptionPayloadTextList(option, optionPayloadValueFields.technicalWarnings);
+  const shouldShowDetails = rows.length > 0 || transferSummary || micronutrientBalance || warnings.length > 0;
+  if (!shouldShowDetails) return null;
+
+  const compact = mode === "direct" || mode === "summary";
+  const columns: RecommendationTableColumn[] = compact
+    ? [
+        { key: "source", header: "Complemento/fonte", minW: "220px" },
+        { key: "dose", header: "Dose", minW: "130px" },
+        { key: "observation", header: "Instrução/aviso", minW: "260px" },
+      ]
+    : [
+        { key: "source", header: "Complemento/fonte", minW: "230px" },
+        { key: "dose", header: "Dose kg/ha", minW: "130px" },
+        { key: "quantity", header: "Total para a área", minW: "150px" },
+        { key: "supplied", header: "Nutrientes fornecidos", minW: "190px" },
+        { key: "balance", header: "Balanço/complemento", minW: "210px" },
+        { key: "observation", header: "Aviso/observação", minW: "240px" },
+      ];
+
+  return (
+    <VStack align="stretch" gap={3}>
+      {rows.length > 0 ? (
+        <VStack align="stretch" gap={2}>
+          <Heading size="sm">
+            {mode === "shopping" ? "Complementos de S e micronutrientes" : "S e micronutrientes"}
+          </Heading>
+          <RecommendationTable
+            columns={columns}
+            rows={rows}
+            minW={compact ? "760px" : "1120px"}
+            getRowKey={(row, index) => `${option.key}-supplemental-${row.name}-${index}`}
+            renderCell={(row, column) => {
+              if (column.key === "source") return row.name || "-";
+              if (column.key === "dose") return row.dose || "-";
+              if (column.key === "quantity") return row.quantity || "-";
+              if (column.key === "supplied") return row.supplied || "-";
+              if (column.key === "balance") return [row.complement, row.finalBalance].filter(Boolean).join("\n") || "-";
+              return row.observation || "-";
+            }}
+          />
+        </VStack>
+      ) : null}
+
+      {transferSummary || micronutrientBalance ? (
+        <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+          {transferSummary ? (
+            <Box borderWidth="1px" borderRadius="md" p={3}>
+              <Text color="fg.muted" fontSize="xs">
+                Saldos enviados para cobertura
+              </Text>
+              <Text whiteSpace="pre-wrap">{transferSummary}</Text>
+            </Box>
+          ) : null}
+          {micronutrientBalance ? (
+            <Box borderWidth="1px" borderRadius="md" p={3}>
+              <Text color="fg.muted" fontSize="xs">
+                Balanço de micronutrientes
+              </Text>
+              <Text whiteSpace="pre-wrap">{micronutrientBalance}</Text>
+            </Box>
+          ) : null}
+        </SimpleGrid>
+      ) : null}
+
+      {warnings.map((warning, index) => (
+        <EconomicDecisionWarning key={`${option.key}-warning-${index}`} warning={warning} />
+      ))}
+    </VStack>
+  );
+}
+
 function FertilizationOptionsTables({
   document,
   mode,
@@ -2621,6 +3044,7 @@ function FertilizationOptionsTables({
               </Text>
             ) : null}
             <FertilizationOptionSectionTable option={option} section="planting" mode={mode} />
+            <FertilizationOptionSupplemental option={option} mode={mode} />
             <FertilizationOptionSectionTable option={option} section="topDressing" mode={mode} />
           </VStack>
         </Box>
@@ -2634,7 +3058,8 @@ export const buildFertilizationOptionPrintTableModels = (
   mode: RecommendationStructuredViewMode = "general",
 ): FertilizationOptionPrintTableModel[] =>
   getFertilizationOptionModels(document).flatMap((option) =>
-    (["planting", "topDressing"] as const)
+    [
+      ...(["planting", "topDressing"] as const)
       .map((section) => {
         const rows = buildOptionSectionRows(option, section, mode);
         if (rows.length === 0) return null;
@@ -2646,6 +3071,29 @@ export const buildFertilizationOptionPrintTableModels = (
         } satisfies FertilizationOptionPrintTableModel;
       })
       .filter((model): model is FertilizationOptionPrintTableModel => Boolean(model)),
+      (() => {
+        const rows = getOptionSupplementalRows(option);
+        const transferSummary = getOptionTransferSummary(option);
+        const micronutrientBalance = getOptionMicronutrientBalanceSummary(option);
+        const warnings = getOptionPayloadTextList(option, optionPayloadValueFields.technicalWarnings);
+        if (rows.length === 0 && !transferSummary && !micronutrientBalance && warnings.length === 0) return null;
+
+        return {
+          title: `${option.title} - Complementos de S, micronutrientes e saldos`,
+          headers: ["Grupo", "Fonte/dose", "Detalhes"],
+          rows: [
+            ...rows.map((row) => [
+              /fte|micro/i.test(row.name) ? "Micronutrientes" : "Complemento de S",
+              [row.name, row.dose].filter(Boolean).join(" - ") || "-",
+              [row.quantity, row.supplied, row.complement, row.finalBalance, row.observation].filter(Boolean).join("\n") || "-",
+            ]),
+            transferSummary ? ["Saldos enviados para cobertura", "-", transferSummary] : null,
+            micronutrientBalance ? ["Balanço de micronutrientes", "-", micronutrientBalance] : null,
+            ...warnings.map((warning) => ["Aviso técnico", "-", warning]),
+          ].filter((row): row is string[] => Boolean(row)),
+        } satisfies FertilizationOptionPrintTableModel;
+      })(),
+    ].filter((model): model is FertilizationOptionPrintTableModel => Boolean(model)),
   );
 
 function ShoppingListHeader({ document }: { document: ShoppingListResponse }) {

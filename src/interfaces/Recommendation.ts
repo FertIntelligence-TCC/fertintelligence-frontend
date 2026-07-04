@@ -168,12 +168,21 @@ export interface RecommendationFertilizerLine {
   formulaK?: number | string | null;
   formula_k2o?: number | string | null;
   formulaK2o?: number | string | null;
+  concentracao?: RecommendationNpkValues | string | null;
+  concentracao_npk?: RecommendationNpkValues | string | null;
+  concentracaoNpk?: RecommendationNpkValues | string | null;
+  concentration?: RecommendationNpkValues | string | null;
+  npkConcentration?: RecommendationNpkValues | string | null;
 
   relacao?: RecommendationNpkValues | string | null;
   relacao_npk?: RecommendationNpkValues | string | null;
   relacaoNpk?: RecommendationNpkValues | string | null;
   relacao_usada?: RecommendationNpkValues | string | null;
   relacaoUsada?: RecommendationNpkValues | string | null;
+  relacao_recomendada?: RecommendationNpkValues | string | null;
+  relacao_recomendada_npk?: RecommendationNpkValues | string | null;
+  relacaoNpkRecomendada?: RecommendationNpkValues | string | null;
+  recommendedNpkRelation?: RecommendationNpkValues | string | null;
   relation?: RecommendationNpkValues | string | null;
   relationUsed?: RecommendationNpkValues | string | null;
 
@@ -303,6 +312,9 @@ export interface RecommendationFertilizerLine {
   n_fornecido_kg_ha?: number | string | null;
   nFornecidoKgHa?: number | string | null;
   suppliedNKgHa?: number | string | null;
+  p2o5_fornecido_kg_ha?: number | string | null;
+  p2o5FornecidoKgHa?: number | string | null;
+  suppliedP2o5KgHa?: number | string | null;
   k2o_fornecido_kg_ha?: number | string | null;
   k2oFornecidoKgHa?: number | string | null;
   suppliedK2oKgHa?: number | string | null;
@@ -320,6 +332,32 @@ export interface RecommendationFertilizerLine {
   saldo_final_s_kg_ha?: number | string | null;
   saldoFinalSKgHa?: number | string | null;
   finalBalanceSKgHa?: number | string | null;
+  saldo_enviado_cobertura_n_kg_ha?: number | string | null;
+  saldoEnviadoCoberturaNKgHa?: number | string | null;
+  topDressingTransferNKgHa?: number | string | null;
+  saldo_enviado_cobertura_p2o5_kg_ha?: number | string | null;
+  saldoEnviadoCoberturaP2o5KgHa?: number | string | null;
+  topDressingTransferP2o5KgHa?: number | string | null;
+  saldo_enviado_cobertura_k2o_kg_ha?: number | string | null;
+  saldoEnviadoCoberturaK2oKgHa?: number | string | null;
+  topDressingTransferK2oKgHa?: number | string | null;
+  saldo_enviado_cobertura_s_kg_ha?: number | string | null;
+  saldoEnviadoCoberturaSKgHa?: number | string | null;
+  topDressingTransferSKgHa?: number | string | null;
+  dose_gesso_kg_ha?: number | string | null;
+  doseGessoKgHa?: number | string | null;
+  gypsumDoseKgHa?: number | string | null;
+  modo_aplicacao_gesso?: string | null;
+  modoAplicacaoGesso?: string | null;
+  gypsumApplicationMode?: string | null;
+  fte_br_12?: RecommendationMicronutrientValues | string | null;
+  fteBr12?: RecommendationMicronutrientValues | string | null;
+  fte_alternativo_zn?: RecommendationMicronutrientValues | string | null;
+  fteAlternativoZn?: RecommendationMicronutrientValues | string | null;
+  fte_zinco_concentrado?: RecommendationMicronutrientValues | string | null;
+  fteZincoConcentrado?: RecommendationMicronutrientValues | string | null;
+  balanco_micronutrientes?: RecommendationMicronutrientValues | RecommendationMicronutrientValues[] | null;
+  balancoMicronutrientes?: RecommendationMicronutrientValues | RecommendationMicronutrientValues[] | null;
 
   micronutrientes?: RecommendationMicronutrientValues | null;
   micronutrientes_aplicados?: RecommendationMicronutrientValues | null;
@@ -435,10 +473,28 @@ export interface RecommendationOptionFertilizationPayload {
   planting?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
   adubacao_plantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
   adubacaoPlantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  formulados_plantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  formuladosPlantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  adubos_simples_plantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  adubosSimplesPlantio?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
   cobertura?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
   topDressing?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
   adubacao_cobertura?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
   adubacaoCobertura?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  saldos_enviados_cobertura?: RecommendationMicronutrientValues | null;
+  saldosEnviadosCobertura?: RecommendationMicronutrientValues | null;
+  topDressingTransfers?: RecommendationMicronutrientValues | null;
+  complemento_enxofre_gesso?: RecommendationFertilizerLine | string | null;
+  complementoEnxofreGesso?: RecommendationFertilizerLine | string | null;
+  sulfurGypsumComplement?: RecommendationFertilizerLine | string | null;
+  micronutrientes?: RecommendationMicronutrientValues | RecommendationMicronutrientValues[] | null;
+  micronutrients?: RecommendationMicronutrientValues | RecommendationMicronutrientValues[] | null;
+  fontes_micronutrientes?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  fontesMicronutrientes?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  micronutrientSources?: NullableRecommendationLineArray<RecommendationFertilizerLine> | RecommendationFertilizerLine | null;
+  balanco_micronutrientes?: RecommendationMicronutrientValues | RecommendationMicronutrientValues[] | null;
+  balancoMicronutrientes?: RecommendationMicronutrientValues | RecommendationMicronutrientValues[] | null;
+  micronutrientBalance?: RecommendationMicronutrientValues | RecommendationMicronutrientValues[] | null;
 }
 
 const recommendationStructuredArrayFields = [
