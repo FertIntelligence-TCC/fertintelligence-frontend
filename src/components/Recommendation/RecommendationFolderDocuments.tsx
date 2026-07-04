@@ -33,6 +33,7 @@ import type {
 import RecommendationReportViewer from "./RecommendationReportViewer";
 import RecommendationStructuredFertilizerTables, {
   GypsumRecommendationSection,
+  hasCorrectiveSoilFertilizationContent,
   hasEconomicFertilizerDecisionContent,
   hasFertilizationOptionContent,
   hasStructuredRecommendationContent,
@@ -321,11 +322,13 @@ function RecommendationDocumentPanel({
   const showSummaryStructuredContent =
     selectedDocument?.key === "summary" &&
     (hasMicronutrientFertilizerRows(summaryRecommendationDocument) ||
+      hasCorrectiveSoilFertilizationContent(summaryRecommendationDocument) ||
       hasEconomicFertilizerDecisionContent(summaryRecommendationDocument) ||
       hasFertilizationOptionContent(summaryRecommendationDocument));
   const showGeneralStructuredContent =
     selectedDocument?.key === "general" &&
     (hasFertilizationOptionContent(selectedRecommendation) ||
+      hasCorrectiveSoilFertilizationContent(selectedRecommendation) ||
       hasEconomicFertilizerDecisionContent(selectedRecommendation));
   const showSummaryGypsumContent = selectedDocument?.key === "summary";
   const showSummarySulfurContent = selectedDocument?.key === "summary";
@@ -336,7 +339,8 @@ function RecommendationDocumentPanel({
     Boolean(directFertilizationObservations);
   const showDirectStructuredNpkContent =
     selectedDocument?.key === "direct" &&
-    hasDirectNpkFertilizerRows(directRecommendationDocument);
+    (hasDirectNpkFertilizerRows(directRecommendationDocument) ||
+      hasCorrectiveSoilFertilizationContent(directRecommendationDocument));
   const showShoppingStructuredContent =
     selectedDocument?.key === "shopping" &&
     hasStructuredRecommendationContent(shoppingListDocument);
@@ -379,6 +383,7 @@ function RecommendationDocumentPanel({
           ))}
           {showSummaryStructuredContent ? (
             hasFertilizationOptionContent(summaryRecommendationDocument) ||
+            hasCorrectiveSoilFertilizationContent(summaryRecommendationDocument) ||
             hasEconomicFertilizerDecisionContent(summaryRecommendationDocument) ? (
               <RecommendationStructuredFertilizerTables
                 document={summaryRecommendationDocument}
@@ -641,6 +646,7 @@ export default function RecommendationFolderDocuments({
                     ) : null}
                     {selectedDocument.key === "summary" &&
                     (hasFertilizationOptionContent(summaryRecommendationDocument) ||
+                      hasCorrectiveSoilFertilizationContent(summaryRecommendationDocument) ||
                       hasEconomicFertilizerDecisionContent(summaryRecommendationDocument)) ? (
                       <RecommendationStructuredFertilizerTables
                         document={summaryRecommendationDocument}
@@ -661,6 +667,7 @@ export default function RecommendationFolderDocuments({
                     ) : null}
                     {selectedDocument.key === "general" &&
                     (hasFertilizationOptionContent(selectedRecommendation) ||
+                      hasCorrectiveSoilFertilizationContent(selectedRecommendation) ||
                       hasEconomicFertilizerDecisionContent(selectedRecommendation)) ? (
                       <RecommendationStructuredFertilizerTables
                         document={selectedRecommendation}
@@ -668,7 +675,8 @@ export default function RecommendationFolderDocuments({
                       />
                     ) : null}
                     {selectedDocument.key === "direct" &&
-                    hasDirectNpkFertilizerRows(directRecommendationDocument) ? (
+                    (hasDirectNpkFertilizerRows(directRecommendationDocument) ||
+                      hasCorrectiveSoilFertilizationContent(directRecommendationDocument)) ? (
                       <RecommendationStructuredFertilizerTables
                         document={directRecommendationDocument}
                         mode="direct"

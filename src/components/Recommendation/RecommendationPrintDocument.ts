@@ -7,11 +7,13 @@ import {
 } from "./FormulatedPlantingFertilizerTable";
 import {
   buildAlternativeFertilizerTableModels,
+  buildCorrectiveSoilFertilizationPrintTableModels,
   buildFertilizationOptionPrintTableModels,
   buildGypsumRecommendationPrintModel,
   buildSulfurRecommendationPrintModel,
   hasFertilizationOptionContent,
   type AlternativeFertilizerPrintTableModel,
+  type CorrectiveSoilFertilizationPrintTableModel,
 } from "./RecommendationStructuredFertilizerTables";
 import {
   buildMicronutrientFertilizerTableModel,
@@ -24,6 +26,7 @@ type StructuredPrintTableModel =
   | RecommendationPrintTableModel
   | FormulatedFertilizerPrintTableModel
   | AlternativeFertilizerPrintTableModel
+  | CorrectiveSoilFertilizationPrintTableModel
   | ReturnType<typeof buildFertilizationOptionPrintTableModels>[number];
 
 const escapeHtml = (value: string) =>
@@ -61,11 +64,16 @@ const getStructuredPrintTableModels = (
   recommendation: RecommendationPrintResponse,
 ): StructuredPrintTableModel[] => {
   const micronutrientTable = buildMicronutrientFertilizerTableModel(recommendation);
+  const correctiveTables = buildCorrectiveSoilFertilizationPrintTableModels(recommendation, "general");
   if (hasFertilizationOptionContent(recommendation)) {
-    return buildFertilizationOptionPrintTableModels(recommendation, "general");
+    return [
+      ...correctiveTables,
+      ...buildFertilizationOptionPrintTableModels(recommendation, "general"),
+    ];
   }
 
   return [
+    ...correctiveTables,
     ...buildFormulatedPlantingFertilizerTableModels(recommendation),
     ...buildFormulatedTopDressingFertilizerTableModels(recommendation),
     ...buildAlternativeFertilizerTableModels(recommendation),

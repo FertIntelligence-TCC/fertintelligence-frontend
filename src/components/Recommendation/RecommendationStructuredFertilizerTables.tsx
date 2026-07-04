@@ -2,6 +2,7 @@ import { Badge, Box, Heading, HStack, SimpleGrid, Text, VStack } from "@chakra-u
 
 import type {
   BioFertilizerRecommendationLine,
+  CorrectiveSoilFertilizationRecommendationFields,
   EconomicFertilizerDecisionFields,
   GreenFertilizerRecommendationLine,
   GypsumRecommendationFields,
@@ -88,6 +89,7 @@ type AlternativeFertilizerDetail = {
 type GypsumRecommendationViewMode = "general" | "summary" | "direct" | "shopping";
 type SulfurRecommendationViewMode = "general" | "summary" | "direct" | "shopping";
 type EconomicDecisionViewMode = "general" | "summary" | "direct" | "shopping";
+type CorrectiveSoilFertilizationViewMode = "general" | "summary" | "direct" | "shopping";
 
 export type GypsumRecommendationPrintModel = {
   title: string;
@@ -176,6 +178,61 @@ type EconomicFertilizerDecisionModel = {
   nutrientPrices: EconomicNutrientPriceModel[];
   chosenItems: EconomicDecisionItemModel[];
   substituteItems: EconomicDecisionItemModel[];
+};
+
+type CorrectiveFertilizerItemModel = {
+  name: string;
+  dose: string;
+  quantity: string;
+  supplied: string;
+  complement: string;
+  finalBalance: string;
+  observation: string;
+};
+
+type CorrectiveFormulatedModel = CorrectiveFertilizerItemModel & {
+  p2o5Complement: string;
+  k2oComplement: string;
+  finalP2o5Balance: string;
+  finalK2oBalance: string;
+};
+
+type CorrectiveMicronutrientBalanceRow = {
+  nutrient: string;
+  recommended: string;
+  supplied: string;
+  finalBalance: string;
+};
+
+type CorrectiveMicronutrientModel = {
+  ph: string;
+  blocked: boolean;
+  blockMessage: string;
+  fteBr12: CorrectiveFertilizerItemModel | null;
+  fteConcentrated: CorrectiveFertilizerItemModel | null;
+  balanceRows: CorrectiveMicronutrientBalanceRow[];
+  complements: CorrectiveFertilizerItemModel[];
+  warning: string;
+};
+
+type CorrectiveSoilFertilizationModel = {
+  title: string;
+  applies: boolean;
+  notApplicableMessage: string;
+  technicalMessage: string;
+  p2o5Sources: CorrectiveFertilizerItemModel[];
+  k2oSources: CorrectiveFertilizerItemModel[];
+  formulated: CorrectiveFormulatedModel[];
+  micronutrients: CorrectiveMicronutrientModel | null;
+  residualWarning: string;
+  rawText: string;
+};
+
+export type CorrectiveSoilFertilizationPrintTableModel = {
+  title: string;
+  headers: string[];
+  rows: string[][];
+  warnings: string[];
 };
 
 const areaFormatter = new Intl.NumberFormat("pt-BR", {
@@ -763,6 +820,231 @@ const economicDecisionItemFields = {
   ],
 } as const;
 
+const correctiveSoilFertilizationObjectFields = [
+  "adubacao_corretiva_solo",
+  "adubacaoCorretivaSolo",
+  "correctiveSoilFertilization",
+  "recomendacao_adubacao_corretiva",
+  "recomendacaoAdubacaoCorretiva",
+  "correctiveSoilFertilizationRecommendation",
+] as const;
+
+const correctiveAppliesFields = [
+  "aplica",
+  "aplicavel",
+  "se_aplica",
+  "seAplica",
+  "recomendada",
+  "recommended",
+  "applies",
+  "isApplicable",
+] as const;
+
+const correctiveValueFields = {
+  title: ["titulo_tecnico", "tituloTecnico", "titulo", "title", "technicalTitle"],
+  technicalMessage: [
+    "mensagem_tecnica",
+    "mensagemTecnica",
+    "technicalMessage",
+    "aviso_tecnico",
+    "avisoTecnico",
+    "technicalWarning",
+    "mensagem",
+    "message",
+  ],
+  notApplicableMessage: [
+    "mensagem_nao_aplicavel",
+    "mensagemNaoAplicavel",
+    "justificativa_nao_aplicavel",
+    "justificativaNaoAplicavel",
+    "motivo_nao_aplicavel",
+    "motivoNaoAplicavel",
+    "notApplicableMessage",
+    "notApplicableReason",
+  ],
+  p2o5: ["p2o5", "fosforo", "phosphorus", "adubacao_p2o5", "adubacaoP2o5", "p2o5Correction"],
+  k2o: ["k2o", "potassio", "potassium", "adubacao_k2o", "adubacaoK2o", "k2oCorrection"],
+  formulated: [
+    "formulado",
+    "formulado_00_p2o5_k2o",
+    "formulado00P2o5K2o",
+    "formulated",
+    "formulated00P2o5K2o",
+  ],
+  micronutrients: [
+    "micronutrientes",
+    "micronutrients",
+    "adubacao_micronutrientes",
+    "adubacaoMicronutrientes",
+    "micronutrientCorrection",
+  ],
+  residualWarning: [
+    "advertencia_efeito_residual",
+    "advertenciaEfeitoResidual",
+    "aviso_efeito_residual",
+    "avisoEfeitoResidual",
+    "residualWarning",
+    "residualEffectWarning",
+  ],
+} as const;
+
+const correctiveItemFields = {
+  name: [
+    "fonte",
+    "source",
+    "adubo",
+    "nome_adubo",
+    "nomeAdubo",
+    "fertilizante",
+    "fertilizer",
+    "fertilizerName",
+    "formulado",
+    "nome_formulado",
+    "nomeFormulado",
+    "name",
+    "nome",
+  ],
+  dose: ["dose_kg_ha", "doseKgHa", "kg_ha", "kgHa", "dose", "dose_fonte_kg_ha", "doseFonteKgHa"],
+  quantity: ["quantidade_total", "quantidadeTotal", "totalQuantity", "total_area", "totalArea", "quantidade", "quantity"],
+  quantityUnit: ["unidade_quantidade", "unidadeQuantidade", "quantityUnit", "unidade", "unit"],
+  supplied: [
+    "fornecido_kg_ha",
+    "fornecidoKgHa",
+    "nutriente_fornecido_kg_ha",
+    "nutrienteFornecidoKgHa",
+    "suppliedKgHa",
+    "providedKgHa",
+  ],
+  complement: ["complemento", "complement", "complemento_kg_ha", "complementoKgHa", "complementKgHa"],
+  observation: ["observacao", "observacao_tecnica", "observacaoTecnica", "technicalObservation", "mensagem", "message"],
+  p2o5Complement: [
+    "complemento_p2o5",
+    "complementoP2o5",
+    "complemento_p2o5_kg_ha",
+    "complementoP2o5KgHa",
+    "p2o5Complement",
+    "p2o5ComplementKgHa",
+  ],
+  k2oComplement: [
+    "complemento_k2o",
+    "complementoK2o",
+    "complemento_k2o_kg_ha",
+    "complementoK2oKgHa",
+    "k2oComplement",
+    "k2oComplementKgHa",
+  ],
+  finalBalance: ["saldo_final", "saldoFinal", "saldo_final_kg_ha", "saldoFinalKgHa", "finalBalance", "finalBalanceKgHa"],
+  finalP2o5Balance: [
+    "saldo_final_p2o5",
+    "saldoFinalP2o5",
+    "saldo_final_p2o5_kg_ha",
+    "saldoFinalP2o5KgHa",
+    "finalP2o5Balance",
+    "finalP2o5BalanceKgHa",
+  ],
+  finalK2oBalance: [
+    "saldo_final_k2o",
+    "saldoFinalK2o",
+    "saldo_final_k2o_kg_ha",
+    "saldoFinalK2oKgHa",
+    "finalK2oBalance",
+    "finalK2oBalanceKgHa",
+  ],
+} as const;
+
+const correctiveSourceFields = {
+  simpleSuperphosphate: [
+    "superfosfato_simples",
+    "superfosfatoSimples",
+    "simpleSuperphosphate",
+    "dose_superfosfato_simples",
+    "doseSuperfosfatoSimples",
+    "dose_simple_superphosphate",
+    "doseSimpleSuperphosphate",
+  ],
+  tripleSuperphosphate: [
+    "superfosfato_triplo",
+    "superfosfatoTriplo",
+    "tripleSuperphosphate",
+    "dose_superfosfato_triplo",
+    "doseSuperfosfatoTriplo",
+    "dose_triple_superphosphate",
+    "doseTripleSuperphosphate",
+  ],
+  magnesiumThermophosphate: [
+    "termofosfato_magnesiano",
+    "termofosfatoMagnesiano",
+    "magnesiumThermophosphate",
+    "dose_termofosfato_magnesiano",
+    "doseTermofosfatoMagnesiano",
+    "dose_magnesium_thermophosphate",
+    "doseMagnesiumThermophosphate",
+  ],
+  potassiumChloride: [
+    "cloreto_potassio",
+    "cloreto_de_potassio",
+    "cloretoPotassio",
+    "cloretoDePotassio",
+    "potassiumChloride",
+    "dose_cloreto_potassio",
+    "doseCloretoPotassio",
+  ],
+  fteBr12: ["fte_br_12", "fteBr12", "FTE_BR_12", "fte_br12", "fteBR12"],
+  fteConcentrated: [
+    "fte_concentrado_zn",
+    "fteConcentradoZn",
+    "fte_mais_concentrado_zn",
+    "fteMaisConcentradoZn",
+    "fteConcentratedZn",
+    "fteMoreConcentratedZn",
+  ],
+} as const;
+
+const correctiveLineArrayFields = [
+  "fontes",
+  "sources",
+  "itens",
+  "items",
+  "linhas",
+  "lines",
+  "adubos",
+  "fertilizers",
+] as const;
+
+const correctiveMicronutrientFields = {
+  ph: ["ph", "pH", "valor_ph", "valorPh", "soilPh"],
+  blocked: ["bloqueado", "blocked", "micronutrientes_bloqueados", "micronutrientesBloqueados", "isBlocked"],
+  blockMessage: [
+    "mensagem_bloqueio",
+    "mensagemBloqueio",
+    "blockMessage",
+    "blockingMessage",
+    "aviso_bloqueio",
+    "avisoBloqueio",
+  ],
+  balance: ["balanco", "balanco_micronutrientes", "balancoMicronutrientes", "balance", "micronutrientBalance"],
+  complements: [
+    "complementos",
+    "complementos_adubos_simples",
+    "complementosAdubosSimples",
+    "simpleComplements",
+    "simpleFertilizerComplements",
+  ],
+} as const;
+
+const correctiveBalanceFields = {
+  nutrient: ["nutriente", "nutrient", "nome", "name"],
+  recommended: ["recomendado", "dose_recomendada", "doseRecomendada", "recommended", "recommendedKgHa"],
+  supplied: ["fornecido", "fornecido_kg_ha", "fornecidoKgHa", "supplied", "suppliedKgHa"],
+  finalBalance: ["saldo_final", "saldoFinal", "saldo", "balance", "finalBalance", "finalBalanceKgHa"],
+} as const;
+
+const correctiveDefaultNotApplicableMessage =
+  "A Recomendação de Adubação Corretiva não se aplica, pois trata-se de agricultura familiar de baixa/média tecnologia de cultivo.";
+
+const correctiveDefaultResidualWarning =
+  "Advertência técnica: considerar efeito residual mínimo de 5 anos para a adubação corretiva do solo.";
+
 const insufficientSubsurfaceLayersMessage =
   "Não é possível recomendar gessagem sem análises das camadas subsuperficiais 21–40 cm e/ou 41–60 cm.";
 
@@ -1348,6 +1630,293 @@ const getFirstRecordList = (line: Record<string, unknown>, fields: readonly stri
 
   return [];
 };
+
+const getCorrectivePayload = (
+  document?: CorrectiveSoilFertilizationRecommendationFields | null,
+): Record<string, unknown> | string | null => {
+  if (!document) return null;
+
+  const record = document as Record<string, unknown>;
+  for (const field of correctiveSoilFertilizationObjectFields) {
+    const value = record[field];
+    if (isRecord(value)) return value;
+    if (Array.isArray(value)) {
+      const firstRecord = value.find(isRecord);
+      if (firstRecord) return firstRecord;
+
+      const firstText = value.map(normalizeRecommendationText).find(Boolean);
+      if (firstText) return firstText;
+    }
+
+    const text = normalizeRecommendationText(value);
+    if (text) return text;
+  }
+
+  const hasFlatCorrectiveField = [
+    ...correctiveAppliesFields,
+    ...Object.values(correctiveValueFields).flat(),
+    ...Object.values(correctiveSourceFields).flat(),
+    ...Object.values(correctiveItemFields).flat(),
+  ].some((field) => record[field] !== null && record[field] !== undefined && record[field] !== "");
+
+  return hasFlatCorrectiveField ? record : null;
+};
+
+const getFirstRecordOrDose = (
+  payload: Record<string, unknown>,
+  fields: readonly string[],
+  fallbackName: string,
+): Record<string, unknown> | null => {
+  for (const field of fields) {
+    const value = payload[field];
+    if (isRecord(value)) return value;
+
+    const text = normalizeRecommendationText(value);
+    if (text) return { nome: fallbackName, dose: text };
+  }
+
+  return null;
+};
+
+const findCorrectiveSourceByName = (
+  sourcePayload: Record<string, unknown> | null,
+  match: RegExp,
+): Record<string, unknown> | null => {
+  if (!sourcePayload) return null;
+
+  const candidates = correctiveLineArrayFields.flatMap((field) => getFirstRecordList(sourcePayload, [field]));
+  return candidates.find((candidate) => match.test(getFirstAnyText(candidate, correctiveItemFields.name))) ?? null;
+};
+
+const normalizeCorrectiveItem = (
+  item: Record<string, unknown>,
+  fallbackName = "",
+): CorrectiveFertilizerItemModel => {
+  const quantity = getFirstAnyText(item, correctiveItemFields.quantity);
+  const quantityUnit = getFirstAnyText(item, correctiveItemFields.quantityUnit);
+  const supplied = normalizeDoseText(getFirstAnyText(item, correctiveItemFields.supplied));
+  const complement = normalizeDoseText(getFirstAnyText(item, correctiveItemFields.complement));
+  const finalBalance = normalizeDoseText(getFirstAnyText(item, correctiveItemFields.finalBalance));
+
+  return {
+    name: getFirstAnyText(item, correctiveItemFields.name) || fallbackName,
+    dose: normalizeDoseText(getFirstAnyText(item, correctiveItemFields.dose)),
+    quantity: quantity && quantityUnit ? `${quantity} ${quantityUnit}` : quantity,
+    supplied,
+    complement,
+    finalBalance,
+    observation: getFirstAnyText(item, correctiveItemFields.observation),
+  };
+};
+
+const hasCorrectiveItemContent = (item: CorrectiveFertilizerItemModel): boolean =>
+  Boolean(item.name || item.dose || item.quantity || item.supplied || item.complement || item.finalBalance || item.observation);
+
+const getSpecificCorrectiveItem = (
+  sourcePayload: Record<string, unknown> | null,
+  fields: readonly string[],
+  fallbackName: string,
+  match: RegExp,
+): CorrectiveFertilizerItemModel | null => {
+  if (!sourcePayload) return null;
+
+  const itemPayload =
+    getFirstRecordOrDose(sourcePayload, fields, fallbackName) ?? findCorrectiveSourceByName(sourcePayload, match);
+  if (!itemPayload) return null;
+
+  const item = normalizeCorrectiveItem(itemPayload, fallbackName);
+  return hasCorrectiveItemContent(item) ? item : null;
+};
+
+const getCorrectiveSourcePayload = (
+  payload: Record<string, unknown>,
+  fields: readonly string[],
+): Record<string, unknown> | null => {
+  const nestedPayload = getFirstRecord(payload, fields);
+  return nestedPayload ?? payload;
+};
+
+const normalizeCorrectiveFormulated = (
+  item: Record<string, unknown>,
+): CorrectiveFormulatedModel => {
+  const baseItem = normalizeCorrectiveItem(item, "00-P2O5-K2O");
+  const finalP2o5Balance = normalizeDoseText(getFirstAnyText(item, correctiveItemFields.finalP2o5Balance));
+  const finalK2oBalance = normalizeDoseText(getFirstAnyText(item, correctiveItemFields.finalK2oBalance));
+
+  return {
+    ...baseItem,
+    p2o5Complement: normalizeDoseText(getFirstAnyText(item, correctiveItemFields.p2o5Complement)),
+    k2oComplement: normalizeDoseText(getFirstAnyText(item, correctiveItemFields.k2oComplement)),
+    finalP2o5Balance,
+    finalK2oBalance,
+    finalBalance:
+      baseItem.finalBalance ||
+      [
+        finalP2o5Balance ? `P2O5: ${finalP2o5Balance}` : "",
+        finalK2oBalance ? `K2O: ${finalK2oBalance}` : "",
+      ].filter(Boolean).join("\n"),
+  };
+};
+
+const getCorrectiveFormulatedModels = (payload: Record<string, unknown>): CorrectiveFormulatedModel[] => {
+  const formulatedPayloads = getFirstRecordList(payload, correctiveValueFields.formulated);
+  if (formulatedPayloads.length > 0) {
+    return formulatedPayloads
+      .map(normalizeCorrectiveFormulated)
+      .filter((item) => hasCorrectiveItemContent(item) || item.p2o5Complement || item.k2oComplement);
+  }
+
+  const formulatedRecord = getFirstRecordOrDose(payload, correctiveValueFields.formulated, "00-P2O5-K2O");
+  if (!formulatedRecord) return [];
+
+  const formulated = normalizeCorrectiveFormulated(formulatedRecord);
+  return hasCorrectiveItemContent(formulated) || formulated.p2o5Complement || formulated.k2oComplement
+    ? [formulated]
+    : [];
+};
+
+const getCorrectiveBalanceValue = (
+  balancePayload: Record<string, unknown>,
+  nutrient: string,
+  fields: readonly string[],
+): string => {
+  const directValue = getFirstAnyText(balancePayload, fields.map((field) => `${field}_${nutrient.toLowerCase()}`));
+  if (directValue) return normalizeDoseText(directValue);
+
+  const camelNutrient = nutrient.charAt(0).toUpperCase() + nutrient.slice(1).toLowerCase();
+  const camelValue = getFirstAnyText(balancePayload, fields.map((field) => `${field}${camelNutrient}`));
+  if (camelValue) return normalizeDoseText(camelValue);
+
+  const nested = balancePayload[nutrient.toLowerCase()] ?? balancePayload[nutrient];
+  if (isRecord(nested)) return normalizeDoseText(getFirstAnyText(nested, fields));
+
+  return normalizeDoseText(normalizeRecommendationText(nested));
+};
+
+const getCorrectiveBalanceRows = (
+  micronutrientPayload: Record<string, unknown>,
+): CorrectiveMicronutrientBalanceRow[] => {
+  const balancePayload = getFirstRecord(micronutrientPayload, correctiveMicronutrientFields.balance) ?? micronutrientPayload;
+  const balanceList = getFirstRecordList(micronutrientPayload, correctiveMicronutrientFields.balance);
+
+  if (balanceList.length > 0) {
+    return balanceList
+      .map((row) => ({
+        nutrient: getFirstAnyText(row, correctiveBalanceFields.nutrient),
+        recommended: normalizeDoseText(getFirstAnyText(row, correctiveBalanceFields.recommended)),
+        supplied: normalizeDoseText(getFirstAnyText(row, correctiveBalanceFields.supplied)),
+        finalBalance: normalizeDoseText(getFirstAnyText(row, correctiveBalanceFields.finalBalance)),
+      }))
+      .filter((row) => row.nutrient || row.recommended || row.supplied || row.finalBalance);
+  }
+
+  return ["B", "Cu", "Fe", "Mn", "Zn"]
+    .map((nutrient) => ({
+      nutrient,
+      recommended: getCorrectiveBalanceValue(balancePayload, nutrient, correctiveBalanceFields.recommended),
+      supplied: getCorrectiveBalanceValue(balancePayload, nutrient, correctiveBalanceFields.supplied),
+      finalBalance: getCorrectiveBalanceValue(balancePayload, nutrient, correctiveBalanceFields.finalBalance),
+    }))
+    .filter((row) => row.recommended || row.supplied || row.finalBalance);
+};
+
+const getCorrectiveMicronutrientModel = (
+  payload: Record<string, unknown>,
+): CorrectiveMicronutrientModel | null => {
+  const micronutrientPayload = getFirstRecord(payload, correctiveValueFields.micronutrients);
+  if (!micronutrientPayload) return null;
+
+  const ph = getFirstAnyText(micronutrientPayload, correctiveMicronutrientFields.ph) || getFirstAnyText(payload, correctiveMicronutrientFields.ph);
+  const parsedPh = parseDisplayNumber(ph);
+  const blockedFlag = getFirstBoolean(micronutrientPayload, correctiveMicronutrientFields.blocked);
+  const blocked = blockedFlag ?? (Number.isFinite(parsedPh) ? parsedPh > 7 : false);
+  const fteBr12 = getSpecificCorrectiveItem(
+    micronutrientPayload,
+    correctiveSourceFields.fteBr12,
+    "FTE BR 12",
+    /\bfte\s*br\s*12\b/i,
+  );
+  const fteConcentrated = getSpecificCorrectiveItem(
+    micronutrientPayload,
+    correctiveSourceFields.fteConcentrated,
+    "FTE mais concentrado em Zn",
+    /fte.*(zn|zinco|concentr)/i,
+  );
+  const complements = getFirstRecordList(micronutrientPayload, correctiveMicronutrientFields.complements)
+    .map((item) => normalizeCorrectiveItem(item))
+    .filter(hasCorrectiveItemContent);
+
+  const warning = getFirstAnyText(micronutrientPayload, correctiveValueFields.technicalMessage);
+
+  return {
+    ph,
+    blocked,
+    blockMessage:
+      getFirstAnyText(micronutrientPayload, correctiveMicronutrientFields.blockMessage) ||
+      (blocked ? "Micronutrientes bloqueados para pH > 7." : ""),
+    fteBr12,
+    fteConcentrated,
+    balanceRows: getCorrectiveBalanceRows(micronutrientPayload),
+    complements,
+    warning,
+  };
+};
+
+export const getCorrectiveSoilFertilizationModel = (
+  document?: CorrectiveSoilFertilizationRecommendationFields | null,
+): CorrectiveSoilFertilizationModel | null => {
+  const payload = getCorrectivePayload(document);
+  if (!payload) return null;
+
+  if (typeof payload === "string") {
+    return {
+      title: "Adubação Corretiva do Solo",
+      applies: false,
+      notApplicableMessage: payload,
+      technicalMessage: payload,
+      p2o5Sources: [],
+      k2oSources: [],
+      formulated: [],
+      micronutrients: null,
+      residualWarning: "",
+      rawText: payload,
+    };
+  }
+
+  const appliesFlag = getFirstBoolean(payload, correctiveAppliesFields);
+  const p2o5Payload = getCorrectiveSourcePayload(payload, correctiveValueFields.p2o5);
+  const k2oPayload = getCorrectiveSourcePayload(payload, correctiveValueFields.k2o);
+  const p2o5Sources = [
+    getSpecificCorrectiveItem(p2o5Payload, correctiveSourceFields.simpleSuperphosphate, "Superfosfato Simples", /superfosfato\s+simples/i),
+    getSpecificCorrectiveItem(p2o5Payload, correctiveSourceFields.tripleSuperphosphate, "Superfosfato Triplo", /superfosfato\s+triplo/i),
+    getSpecificCorrectiveItem(p2o5Payload, correctiveSourceFields.magnesiumThermophosphate, "Termofosfato Magnesiano", /termofosfato\s+magnesiano/i),
+  ].filter((item): item is CorrectiveFertilizerItemModel => Boolean(item));
+  const k2oSources = [
+    getSpecificCorrectiveItem(k2oPayload, correctiveSourceFields.potassiumChloride, "Cloreto de Potássio", /cloreto.*pot[aá]ssio/i),
+  ].filter((item): item is CorrectiveFertilizerItemModel => Boolean(item));
+  const formulated = getCorrectiveFormulatedModels(payload);
+  const micronutrients = getCorrectiveMicronutrientModel(payload);
+  const hasStructuredItems = Boolean(p2o5Sources.length || k2oSources.length || formulated.length || micronutrients);
+  const technicalMessage = getFirstAnyText(payload, correctiveValueFields.technicalMessage);
+  const notApplicableMessage = getFirstAnyText(payload, correctiveValueFields.notApplicableMessage);
+
+  return {
+    title: getFirstAnyText(payload, correctiveValueFields.title) || "Adubação Corretiva do Solo",
+    applies: appliesFlag ?? hasStructuredItems,
+    notApplicableMessage: notApplicableMessage || correctiveDefaultNotApplicableMessage,
+    technicalMessage,
+    p2o5Sources,
+    k2oSources,
+    formulated,
+    micronutrients,
+    residualWarning: getFirstAnyText(payload, correctiveValueFields.residualWarning) || correctiveDefaultResidualWarning,
+    rawText: "",
+  };
+};
+
+export const hasCorrectiveSoilFertilizationContent = (
+  document?: CorrectiveSoilFertilizationRecommendationFields | null,
+): boolean => Boolean(getCorrectiveSoilFertilizationModel(document));
 
 const getEconomicDecisionPayloads = (
   document?: EconomicFertilizerDecisionFields | null,
@@ -2818,9 +3387,342 @@ function EconomicFertilizerDecisionSection({
   );
 }
 
+const correctiveItemColumns: RecommendationTableColumn[] = [
+  { key: "source", header: "Fonte", minW: "220px" },
+  { key: "dose", header: "Dose", minW: "130px" },
+  { key: "quantity", header: "Quantidade", minW: "150px" },
+  { key: "supplied", header: "Nutriente fornecido", minW: "170px" },
+  { key: "balance", header: "Saldo/complemento", minW: "190px" },
+  { key: "observation", header: "Aviso/observação", minW: "220px" },
+];
+
+const renderCorrectiveItemCell = (
+  item: CorrectiveFertilizerItemModel,
+  column: RecommendationTableColumn,
+) => {
+  if (column.key === "source") return item.name || "-";
+  if (column.key === "dose") return item.dose || "-";
+  if (column.key === "quantity") return item.quantity || "-";
+  if (column.key === "supplied") return item.supplied || "-";
+  if (column.key === "balance") {
+    return [
+      item.complement ? `Complemento: ${item.complement}` : "",
+      item.finalBalance ? `Saldo final: ${item.finalBalance}` : "",
+    ].filter(Boolean).join("\n") || "-";
+  }
+  return item.observation || "-";
+};
+
+function CorrectiveItemsTable({
+  title,
+  rows,
+  mode,
+}: {
+  title: string;
+  rows: CorrectiveFertilizerItemModel[];
+  mode: CorrectiveSoilFertilizationViewMode;
+}) {
+  if (rows.length === 0) return null;
+
+  const columns = mode === "summary" || mode === "direct"
+    ? correctiveItemColumns.filter((column) => ["source", "dose", "balance", "observation"].includes(column.key))
+    : correctiveItemColumns;
+
+  return (
+    <VStack align="stretch" gap={2}>
+      <Heading size="sm">{title}</Heading>
+      <RecommendationTable
+        columns={columns}
+        rows={rows}
+        minW={mode === "summary" || mode === "direct" ? "760px" : "1040px"}
+        getRowKey={(row, index) => `${title}-${row.name}-${index}`}
+        renderCell={renderCorrectiveItemCell}
+      />
+    </VStack>
+  );
+}
+
+function CorrectiveFormulatedTable({
+  rows,
+  mode,
+}: {
+  rows: CorrectiveFormulatedModel[];
+  mode: CorrectiveSoilFertilizationViewMode;
+}) {
+  if (rows.length === 0) return null;
+
+  const columns: RecommendationTableColumn[] = mode === "summary" || mode === "direct"
+    ? [
+        { key: "formulated", header: "Formulado", minW: "220px" },
+        { key: "dose", header: "Dose", minW: "130px" },
+        { key: "complements", header: "Complementos", minW: "220px" },
+        { key: "balances", header: "Saldos finais", minW: "220px" },
+      ]
+    : [
+        { key: "formulated", header: "Formulado escolhido", minW: "240px" },
+        { key: "dose", header: "Dose", minW: "130px" },
+        { key: "quantity", header: "Quantidade", minW: "150px" },
+        { key: "complements", header: "Complementos de P2O5 e K2O", minW: "240px" },
+        { key: "balances", header: "Saldos finais", minW: "220px" },
+        { key: "observation", header: "Aviso/observação", minW: "220px" },
+      ];
+
+  return (
+    <VStack align="stretch" gap={2}>
+      <Heading size="sm">Formulado 00-P2O5-K2O</Heading>
+      <RecommendationTable
+        columns={columns}
+        rows={rows}
+        minW={mode === "summary" || mode === "direct" ? "820px" : "1120px"}
+        getRowKey={(row, index) => `${row.name}-${index}`}
+        renderCell={(row, column) => {
+          if (column.key === "formulated") return row.name || "-";
+          if (column.key === "dose") return row.dose || "-";
+          if (column.key === "quantity") return row.quantity || "-";
+          if (column.key === "complements") {
+            return [
+              row.p2o5Complement ? `P2O5: ${row.p2o5Complement}` : "",
+              row.k2oComplement ? `K2O: ${row.k2oComplement}` : "",
+            ].filter(Boolean).join("\n") || "-";
+          }
+          if (column.key === "balances") {
+            return [
+              row.finalP2o5Balance ? `P2O5: ${row.finalP2o5Balance}` : "",
+              row.finalK2oBalance ? `K2O: ${row.finalK2oBalance}` : "",
+              !row.finalP2o5Balance && !row.finalK2oBalance ? row.finalBalance : "",
+            ].filter(Boolean).join("\n") || "-";
+          }
+          return row.observation || "-";
+        }}
+      />
+    </VStack>
+  );
+}
+
+function CorrectiveMicronutrientsSection({
+  model,
+}: {
+  model: CorrectiveMicronutrientModel;
+}) {
+  if (model.blocked) {
+    return (
+      <Box borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
+        <VStack align="stretch" gap={2}>
+          <HStack gap={2} wrap="wrap">
+            <Heading size="sm">Micronutrientes</Heading>
+            <Badge colorPalette="orange">Aviso técnico</Badge>
+          </HStack>
+          <Text color="orange.700">
+            {model.blockMessage || "Micronutrientes bloqueados para pH > 7."}
+          </Text>
+          {model.ph ? (
+            <Text color="orange.700" fontSize="sm">
+              pH informado: {model.ph}
+            </Text>
+          ) : null}
+        </VStack>
+      </Box>
+    );
+  }
+
+  const fteRows = [
+    { label: "FTE BR 12", item: model.fteBr12 },
+    { label: "FTE mais concentrado em Zn", item: model.fteConcentrated },
+  ];
+
+  return (
+    <VStack align="stretch" gap={3}>
+      <Heading size="sm">Micronutrientes</Heading>
+      {model.ph ? (
+        <Text fontSize="sm" color="fg.muted">
+          pH informado: {model.ph}
+        </Text>
+      ) : null}
+      <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+        {fteRows.map(({ label, item }) => (
+          <Box key={label} borderWidth="1px" borderRadius="md" p={3}>
+            <VStack align="stretch" gap={2}>
+              <Heading size="sm">{label}</Heading>
+              <Text>
+                Dose: <strong>{item?.dose || "-"}</strong>
+              </Text>
+              <Text color="fg.muted" fontSize="sm">
+                {item?.quantity ? `Quantidade: ${item.quantity}` : item?.observation || "Dados retornados sem quantidade estruturada."}
+              </Text>
+            </VStack>
+          </Box>
+        ))}
+      </SimpleGrid>
+
+      {model.balanceRows.length > 0 ? (
+        <RecommendationTable
+          columns={[
+            { key: "nutrient", header: "Micronutriente", minW: "130px" },
+            { key: "recommended", header: "Dose recomendada", minW: "160px" },
+            { key: "supplied", header: "Fornecido", minW: "150px" },
+            { key: "finalBalance", header: "Balanço final", minW: "160px" },
+          ]}
+          rows={model.balanceRows}
+          minW="680px"
+          getRowKey={(row) => row.nutrient}
+          renderCell={(row, column) => {
+            if (column.key === "nutrient") return row.nutrient || "-";
+            if (column.key === "recommended") return row.recommended || "-";
+            if (column.key === "supplied") return row.supplied || "-";
+            return row.finalBalance || "-";
+          }}
+        />
+      ) : null}
+
+      <CorrectiveItemsTable title="Complementos com adubos simples" rows={model.complements} mode="general" />
+      {model.warning ? <EconomicDecisionWarning warning={model.warning} /> : null}
+    </VStack>
+  );
+}
+
+export const buildCorrectiveSoilFertilizationPrintTableModels = (
+  document?: CorrectiveSoilFertilizationRecommendationFields | null,
+  mode: CorrectiveSoilFertilizationViewMode = "general",
+): CorrectiveSoilFertilizationPrintTableModel[] => {
+  const model = getCorrectiveSoilFertilizationModel(document);
+  if (!model) return [];
+
+  if (!model.applies) {
+    return [{
+      title: model.title,
+      headers: ["Aviso técnico"],
+      rows: [[model.notApplicableMessage]],
+      warnings: [model.notApplicableMessage],
+    }];
+  }
+
+  const warnings = [
+    model.technicalMessage,
+    model.micronutrients?.blocked ? model.micronutrients.blockMessage : "",
+    model.residualWarning,
+  ].filter(Boolean);
+
+  const sourceRows = [...model.p2o5Sources, ...model.k2oSources].map((item) => [
+    item.name || "-",
+    item.dose || "-",
+    item.quantity || "-",
+    item.supplied || "-",
+    [
+      item.complement ? `Complemento: ${item.complement}` : "",
+      item.finalBalance ? `Saldo final: ${item.finalBalance}` : "",
+    ].filter(Boolean).join("\n") || "-",
+  ]);
+  const formulatedRows = model.formulated.map((item) => [
+    item.name || "-",
+    item.dose || "-",
+    [
+      item.p2o5Complement ? `P2O5: ${item.p2o5Complement}` : "",
+      item.k2oComplement ? `K2O: ${item.k2oComplement}` : "",
+    ].filter(Boolean).join("\n") || "-",
+    [
+      item.finalP2o5Balance ? `P2O5: ${item.finalP2o5Balance}` : "",
+      item.finalK2oBalance ? `K2O: ${item.finalK2oBalance}` : "",
+    ].filter(Boolean).join("\n") || item.finalBalance || "-",
+  ]);
+  const micronutrientRows = model.micronutrients && !model.micronutrients.blocked
+    ? [
+        ...(model.micronutrients.fteBr12 ? [model.micronutrients.fteBr12] : []),
+        ...(model.micronutrients.fteConcentrated ? [model.micronutrients.fteConcentrated] : []),
+        ...model.micronutrients.complements,
+      ].map((item) => [item.name || "-", item.dose || "-", item.quantity || "-", item.observation || "-"])
+    : [];
+
+  return [
+    sourceRows.length
+      ? {
+          title: mode === "shopping" ? "Adubação Corretiva do Solo - Itens de compra" : `${model.title} - P2O5 e K2O`,
+          headers: ["Fonte", "Dose", "Quantidade", "Fornecido", "Saldo/complemento"],
+          rows: sourceRows,
+          warnings,
+        }
+      : null,
+    formulatedRows.length
+      ? {
+          title: `${model.title} - Formulado 00-P2O5-K2O`,
+          headers: ["Formulado", "Dose", "Complementos", "Saldos finais"],
+          rows: formulatedRows,
+          warnings: [],
+        }
+      : null,
+    micronutrientRows.length
+      ? {
+          title: `${model.title} - Micronutrientes`,
+          headers: ["Fonte", "Dose", "Quantidade", "Observação"],
+          rows: micronutrientRows,
+          warnings: [],
+        }
+      : null,
+    model.micronutrients?.blocked
+      ? {
+          title: `${model.title} - Micronutrientes`,
+          headers: ["Aviso técnico"],
+          rows: [[model.micronutrients.blockMessage || "Micronutrientes bloqueados para pH > 7."]],
+          warnings: [model.micronutrients.blockMessage || "Micronutrientes bloqueados para pH > 7."],
+        }
+      : null,
+  ].filter((table): table is CorrectiveSoilFertilizationPrintTableModel => Boolean(table));
+};
+
+function CorrectiveSoilFertilizationSection({
+  document,
+  mode,
+}: {
+  document?: CorrectiveSoilFertilizationRecommendationFields | null;
+  mode: CorrectiveSoilFertilizationViewMode;
+}) {
+  const model = getCorrectiveSoilFertilizationModel(document);
+  if (!model) return null;
+
+  if (!model.applies) {
+    return (
+      <Box borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
+        <VStack align="stretch" gap={2}>
+          <HStack gap={2} wrap="wrap">
+            <Heading size="sm">Adubação Corretiva do Solo</Heading>
+            <Badge colorPalette="orange">Aviso técnico</Badge>
+          </HStack>
+          <Text color="orange.700" whiteSpace="pre-wrap">
+            {model.notApplicableMessage}
+          </Text>
+        </VStack>
+      </Box>
+    );
+  }
+
+  return (
+    <Box borderWidth="1px" borderRadius="md" p={3}>
+      <VStack align="stretch" gap={4}>
+        <HStack gap={2} wrap="wrap">
+          <Heading size="sm">{mode === "shopping" ? "Adubação Corretiva do Solo" : model.title}</Heading>
+          <Badge colorPalette="green">Corretiva</Badge>
+        </HStack>
+        {model.technicalMessage ? <EconomicDecisionWarning warning={model.technicalMessage} /> : null}
+        <CorrectiveItemsTable title="P2O5" rows={model.p2o5Sources} mode={mode} />
+        <CorrectiveItemsTable title="K2O" rows={model.k2oSources} mode={mode} />
+        <CorrectiveFormulatedTable rows={model.formulated} mode={mode} />
+        {model.micronutrients ? <CorrectiveMicronutrientsSection model={model.micronutrients} /> : null}
+        <Box borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
+          <Text color="orange.700" fontSize="sm" fontWeight="semibold">
+            Aviso técnico
+          </Text>
+          <Text color="orange.700" fontSize="sm">
+            {model.residualWarning}
+          </Text>
+        </Box>
+      </VStack>
+    </Box>
+  );
+}
+
 export const hasStructuredRecommendationContent = (
   document?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
+  hasCorrectiveSoilFertilizationContent(document) ||
   hasEconomicFertilizerDecisionContent(document) ||
   hasFertilizationOptionContent(document) ||
   hasMicronutrientFertilizerRows(document) ||
@@ -2896,6 +3798,7 @@ export default function RecommendationStructuredFertilizerTables({
           </Text>
         </Box>
       ))}
+      <CorrectiveSoilFertilizationSection document={displayDocument} mode={viewMode} />
       <EconomicFertilizerDecisionSection document={displayDocument} mode={viewMode} />
       {hasOptionContent ? (
         <FertilizationOptionsTables document={displayDocument} mode={viewMode} />
