@@ -299,6 +299,9 @@ const filterTablesByGroup = (tables: TableOption[], group: TableGroupValue) =>
 
 type TableFetchers = Record<Exclude<TableGroupValue, "">, () => Promise<RecommendationTableApiResponse[]>>;
 
+const getAxiosStatus = (error: unknown): number | null =>
+  error instanceof AxiosError ? error.response?.status ?? null : null;
+
 const normalizeTableResponse = (response: unknown): RecommendationTableApiResponse[] => {
   if (Array.isArray(response)) return response as RecommendationTableApiResponse[];
   if (!response || typeof response !== "object") return [];
@@ -310,7 +313,24 @@ const normalizeTableResponse = (response: unknown): RecommendationTableApiRespon
 };
 
 const isNotFoundError = (error: unknown) =>
-  error instanceof AxiosError && error.response?.status === 404;
+  getAxiosStatus(error) === 404;
+
+const isRecoverableTableLoadError = (error: unknown) => {
+  const status = getAxiosStatus(error);
+  return status === 404 || status === 500;
+};
+
+const logRecoverableTableLoadError = (
+  label: string,
+  group: TableGroupValue,
+  error: unknown,
+) => {
+  const status = getAxiosStatus(error);
+  console.warn(
+    `[Recommendation] ${label} indisponível no carregamento inicial; usando lista vazia.`,
+    { group, status, error },
+  );
+};
 
 const loadTableOptionsByGroup = async (
   group: TableGroupValue,
@@ -626,15 +646,23 @@ export default function Recommendation() {
   	}
   	setLoadingTables(true);
   	try {
-    	setCropFertilizationTables(await loadTableOptionsByGroup(cropFertilizationTableGroup, {
+    	const tables = await loadTableOptionsByGroup(cropFertilizationTableGroup, {
       	PRIVATE: fetchCropFertilizationTables,
       	PUBLIC: fetchPublicCropFertilizationTables,
       	DEFAULT: fetchDefaultCropFertilizationTables,
-    	}));
+    	});
+    	setCropFertilizationTables(tables);
+    	if (!tables.some((table) => String(table.id) === cropFertilizationTableId)) {
+      	setCropFertilizationTableId("");
+    	}
   	} catch (error) {
-    	console.error(error);
-    	toaster.create({ title: "Falha ao carregar tabelas de adubação.", type: "error" });
+    	if (isRecoverableTableLoadError(error)) {
+      	logRecoverableTableLoadError("Tabelas de adubação", cropFertilizationTableGroup, error);
+    	} else {
+      	console.error(error);
+    	}
     	setCropFertilizationTables([]);
+    	setCropFertilizationTableId("");
   	} finally { setLoadingTables(false); }
 	};
 	loadCropTables();
@@ -648,15 +676,23 @@ export default function Recommendation() {
   	}
   	setLoadingTables(true);
   	try {
-    	setSoilFertilityTables(await loadTableOptionsByGroup(soilFertilityInterpretationTableGroup, {
+    	const tables = await loadTableOptionsByGroup(soilFertilityInterpretationTableGroup, {
       	PRIVATE: fetchSoilFertilityTables,
       	PUBLIC: fetchPublicSoilFertilityTables,
       	DEFAULT: fetchDefaultSoilFertilityTables,
-    	}));
+    	});
+    	setSoilFertilityTables(tables);
+    	if (!tables.some((table) => String(table.id) === soilFertilityInterpretationTableId)) {
+      	setSoilFertilityInterpretationTableId("");
+    	}
   	} catch (error) {
-    	console.error(error);
-    	toaster.create({ title: "Falha ao carregar tabelas de fertilidade.", type: "error" });
+    	if (isRecoverableTableLoadError(error)) {
+      	logRecoverableTableLoadError("Tabelas de fertilidade do solo", soilFertilityInterpretationTableGroup, error);
+    	} else {
+      	console.error(error);
+    	}
     	setSoilFertilityTables([]);
+    	setSoilFertilityInterpretationTableId("");
   	} finally { setLoadingTables(false); }
 	};
 	loadSoilTables();
@@ -672,15 +708,23 @@ export default function Recommendation() {
   	setLoadingTables(true);
   	setCropFoliarAnalysisInterpretationTableId("");
   	try {
-    	setFoliarInterpretationTables(await loadTableOptionsByGroup(cropFoliarAnalysisInterpretationTableGroup, {
+    	const tables = await loadTableOptionsByGroup(cropFoliarAnalysisInterpretationTableGroup, {
       	PRIVATE: fetchFoliarTables,
       	PUBLIC: fetchPublicFoliarTables,
       	DEFAULT: fetchDefaultFoliarTables,
-    	}));
+    	});
+    	setFoliarInterpretationTables(tables);
+    	if (!tables.some((table) => String(table.id) === cropFoliarAnalysisInterpretationTableId)) {
+      	setCropFoliarAnalysisInterpretationTableId("");
+    	}
   	} catch (error) {
-    	console.error(error);
-    	toaster.create({ title: "Falha ao carregar tabelas foliares.", type: "error" });
+    	if (isRecoverableTableLoadError(error)) {
+      	logRecoverableTableLoadError("Tabelas foliares", cropFoliarAnalysisInterpretationTableGroup, error);
+    	} else {
+      	console.error(error);
+    	}
     	setFoliarInterpretationTables([]);
+    	setCropFoliarAnalysisInterpretationTableId("");
   	} finally { setLoadingTables(false); }
 	};
 	loadFoliarTables();

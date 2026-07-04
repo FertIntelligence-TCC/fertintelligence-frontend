@@ -38,19 +38,25 @@ export default function AnalysisSelectors({
   onFertilityAnalysisChange,
   onSaturationExtractAnalysisChange,
 }: AnalysisSelectorsProps) {
+  const safePhysicalAnalysisOptions = Array.isArray(physicalAnalysisOptions) ? physicalAnalysisOptions : [];
+  const safeFertilityAnalysisOptions = Array.isArray(fertilityAnalysisOptions) ? fertilityAnalysisOptions : [];
+  const safeSaturationExtractAnalysisOptions = Array.isArray(saturationExtractAnalysisOptions)
+    ? saturationExtractAnalysisOptions
+    : [];
+
   return (
     <>
       <NativeSelect
         value={physicalAnalysisId}
         onChange={(event) => onPhysicalAnalysisChange(event.target.value)}
-        disabled={!selectedPlotId || loadingPlotAnalyses || physicalAnalysisOptions.length === 0}
+        disabled={!selectedPlotId || loadingPlotAnalyses || safePhysicalAnalysisOptions.length === 0}
       >
         {loadingPlotAnalyses ? (
           <option>Carregando análises físicas...</option>
         ) : (
           <>
             <option value="">{physicalAnalysisPlaceholder}</option>
-            {physicalAnalysisOptions.map((analysis) => (
+            {safePhysicalAnalysisOptions.map((analysis) => (
               <option key={analysis.id} value={analysis.id}>{analysis.label}</option>
             ))}
           </>
@@ -60,14 +66,14 @@ export default function AnalysisSelectors({
       <NativeSelect
         value={fertilityAnalysisId}
         onChange={(event) => onFertilityAnalysisChange(event.target.value)}
-        disabled={!selectedPlotId || loadingPlotAnalyses || fertilityAnalysisOptions.length === 0}
+        disabled={!selectedPlotId || loadingPlotAnalyses || safeFertilityAnalysisOptions.length === 0}
       >
         {loadingPlotAnalyses ? (
           <option>Carregando análises de fertilidade...</option>
         ) : (
           <>
             <option value="">{fertilityAnalysisPlaceholder}</option>
-            {fertilityAnalysisOptions.map((analysis) => (
+            {safeFertilityAnalysisOptions.map((analysis) => (
               <option key={analysis.id} value={analysis.id}>{analysis.label}</option>
             ))}
           </>
@@ -77,14 +83,14 @@ export default function AnalysisSelectors({
       <NativeSelect
         value={saturationExtractAnalysisId}
         onChange={(event) => onSaturationExtractAnalysisChange(event.target.value)}
-        disabled={!selectedPlotId || loadingPlotAnalyses || saturationExtractAnalysisOptions.length === 0}
+        disabled={!selectedPlotId || loadingPlotAnalyses || safeSaturationExtractAnalysisOptions.length === 0}
       >
         {loadingPlotAnalyses ? (
           <option>Carregando análises de extrato de saturação...</option>
         ) : (
           <>
             <option value="">{saturationExtractAnalysisPlaceholder}</option>
-            {saturationExtractAnalysisOptions.map((analysis) => (
+            {safeSaturationExtractAnalysisOptions.map((analysis) => (
               <option key={analysis.id} value={analysis.id}>{analysis.label}</option>
             ))}
           </>

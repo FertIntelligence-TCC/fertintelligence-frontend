@@ -73,19 +73,25 @@ export default function CropTableSelectors({
   onSoilFertilityInterpretationTableChange,
   onCropFoliarAnalysisInterpretationTableChange,
 }: CropTableSelectorsProps) {
+  const safeAnnualCropFolders = Array.isArray(annualCropFolders) ? annualCropFolders : [];
+  const safeCrops = Array.isArray(crops) ? crops : [];
+  const safeCropFertilizationTables = Array.isArray(cropFertilizationTables) ? cropFertilizationTables : [];
+  const safeSoilFertilityTables = Array.isArray(soilFertilityTables) ? soilFertilityTables : [];
+  const safeFoliarInterpretationTables = Array.isArray(foliarInterpretationTables) ? foliarInterpretationTables : [];
+
   return (
     <>
       <NativeSelect
         value={annualCropFolderId}
         onChange={(event) => onAnnualCropFolderChange(event.target.value)}
-        disabled={!selectedPlotId || loadingAnnualCropFolders || annualCropFolders.length === 0}
+        disabled={!selectedPlotId || loadingAnnualCropFolders || safeAnnualCropFolders.length === 0}
       >
         {loadingAnnualCropFolders ? (
           <option>Carregando pastas anuais...</option>
         ) : (
           <>
             <option value="">{annualCropFolderPlaceholder}</option>
-            {annualCropFolders.map((folder) => (
+            {safeAnnualCropFolders.map((folder) => (
               <option key={folder.id} value={folder.id}>{getFolderLabel(folder)}</option>
             ))}
           </>
@@ -95,14 +101,14 @@ export default function CropTableSelectors({
       <NativeSelect
         value={cropId}
         onChange={(event) => onCropChange(event.target.value)}
-        disabled={!annualCropFolderId || loadingCrops || crops.length === 0}
+        disabled={!annualCropFolderId || loadingCrops || safeCrops.length === 0}
       >
         {loadingCrops ? (
           <option>Carregando culturas...</option>
         ) : (
           <>
             <option value="">{cropPlaceholder}</option>
-            {crops.map((crop) => (
+            {safeCrops.map((crop) => (
               <option key={crop.id} value={crop.id}>{getCropLabel(crop)}</option>
             ))}
           </>
@@ -113,7 +119,7 @@ export default function CropTableSelectors({
         label="Tabela de adubação de culturas"
         group={cropFertilizationTableGroup}
         tableId={cropFertilizationTableId}
-        tables={cropFertilizationTables}
+        tables={safeCropFertilizationTables}
         loadingTables={loadingTables}
         onGroupChange={onCropFertilizationTableGroupChange}
         onTableChange={onCropFertilizationTableChange}
@@ -122,7 +128,7 @@ export default function CropTableSelectors({
         label="Tabela de interpretação da fertilidade do solo"
         group={soilFertilityInterpretationTableGroup}
         tableId={soilFertilityInterpretationTableId}
-        tables={soilFertilityTables}
+        tables={safeSoilFertilityTables}
         loadingTables={loadingTables}
         onGroupChange={onSoilFertilityInterpretationTableGroupChange}
         onTableChange={onSoilFertilityInterpretationTableChange}
@@ -131,7 +137,7 @@ export default function CropTableSelectors({
         label="Tabela de interpretação de análise foliar (opcional)"
         group={cropFoliarAnalysisInterpretationTableGroup}
         tableId={cropFoliarAnalysisInterpretationTableId}
-        tables={foliarInterpretationTables}
+        tables={safeFoliarInterpretationTables}
         loadingTables={loadingTables}
         optional
         onGroupChange={onCropFoliarAnalysisInterpretationTableGroupChange}

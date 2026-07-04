@@ -38,6 +38,8 @@ export default function RecommendationTableSelector({
   onGroupChange,
   onTableChange,
 }: RecommendationTableSelectorProps) {
+  const safeTables = Array.isArray(tables) ? tables : [];
+
   return (
     <Box>
       <Text fontSize="sm" mb={1}>{label}</Text>
@@ -59,11 +61,11 @@ export default function RecommendationTableSelector({
         <NativeSelect
           value={tableId}
           onChange={(event) => onTableChange(event.target.value)}
-          disabled={loadingTables || !group || tables.length === 0}
+          disabled={loadingTables || !group || safeTables.length === 0}
           aria-label={`${label}: escolha da tabela`}
         >
-          <option value="">{getTableChoicePlaceholder(group, tables, optional)}</option>
-          {tables.map((table) => (
+          <option value="">{getTableChoicePlaceholder(group, safeTables, optional)}</option>
+          {safeTables.map((table) => (
             <option key={`${table.source}-${table.id}`} value={table.id}>{table.label}</option>
           ))}
         </NativeSelect>
