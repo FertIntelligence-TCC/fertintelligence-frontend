@@ -37,6 +37,21 @@ export interface GypsumRecommendationPayload {
   [key: string]: unknown;
 }
 
+export interface SulfurRecommendationFields {
+  enxofre?: SulfurRecommendationPayload | string | null;
+  recomendacao_enxofre?: SulfurRecommendationPayload | string | null;
+  recomendacaoEnxofre?: SulfurRecommendationPayload | string | null;
+  sulfur?: SulfurRecommendationPayload | string | null;
+  sulfurRecommendation?: SulfurRecommendationPayload | string | null;
+  adubacao_enxofre?: SulfurRecommendationPayload | string | null;
+  adubacaoEnxofre?: SulfurRecommendationPayload | string | null;
+  sulfurFertilization?: SulfurRecommendationPayload | string | null;
+}
+
+export interface SulfurRecommendationPayload {
+  [key: string]: unknown;
+}
+
 export type RecommendationMicronutrientValues = Record<string, number | string | null | undefined>;
 export type RecommendationNpkValues = {
   n?: number | string | null;
@@ -252,7 +267,7 @@ export type OrganoMineralFertilizerRecommendationLine = RecommendationFertilizer
 export type BioFertilizerRecommendationLine = RecommendationFertilizerLine;
 type NullableRecommendationLineArray<T> = T[] | null;
 
-export interface RecommendationStructuredFertilizerLines extends GypsumRecommendationFields {
+export interface RecommendationStructuredFertilizerLines extends GypsumRecommendationFields, SulfurRecommendationFields {
   adubos_solidos_micronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
   adubosSolidosMicronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
   solidFertilizersWithMicronutrients?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
@@ -402,7 +417,7 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   nome_pasta_recomendacao?: string | null;
 }
 
-export interface RecommendationResponse extends RecommendationFertigramFields, GypsumRecommendationFields {
+export interface RecommendationResponse extends RecommendationFertigramFields, GypsumRecommendationFields, SulfurRecommendationFields {
   id: number;
 
   id_usuario_criador?: number;
@@ -536,6 +551,7 @@ export interface RecommendationPrintResponse
   extends RecommendationResponse,
     RecommendationStructuredFertilizerLines,
     GypsumRecommendationFields,
+    SulfurRecommendationFields,
     RecommendationFertigramFields {}
 
 interface RecommendationDocumentTextFields {
@@ -565,6 +581,7 @@ export interface SummaryRecommendationResponse
   extends RecommendationDocumentTextFields,
     RecommendationStructuredFertilizerLines,
     GypsumRecommendationFields,
+    SulfurRecommendationFields,
     RecommendationFertigramFields {
   resumo?: string | null;
   summary?: string | null;
@@ -577,6 +594,7 @@ export interface DirectRecommendationResponse
   extends RecommendationDocumentTextFields,
     RecommendationStructuredFertilizerLines,
     GypsumRecommendationFields,
+    SulfurRecommendationFields,
     RecommendationFertigramFields {
   recomendacao_direta?: string | null;
   recomendacaoDireta?: string | null;
@@ -591,7 +609,8 @@ export interface DirectRecommendationResponse
 export interface ShoppingListResponse
   extends RecommendationDocumentTextFields,
     RecommendationStructuredFertilizerLines,
-    GypsumRecommendationFields {
+    GypsumRecommendationFields,
+    SulfurRecommendationFields {
   lista_compras?: string | null;
   listaCompras?: string | null;
   shoppingList?: string | null;

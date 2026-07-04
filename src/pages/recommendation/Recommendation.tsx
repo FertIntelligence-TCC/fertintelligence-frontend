@@ -89,6 +89,7 @@ import RecommendationHistoryList from "@/components/Recommendation/Recommendatio
 import { writePrintableReport } from "@/components/Recommendation/RecommendationPrintDocument";
 import {
   hasGypsumRecommendationContent,
+  hasSulfurRecommendationContent,
   hasStructuredRecommendationContent,
 } from "@/components/Recommendation/RecommendationStructuredFertilizerTables";
 import { hasMicronutrientFertilizerRows } from "@/components/Recommendation/MicronutrientFertilizerTable";
@@ -1094,11 +1095,14 @@ export default function Recommendation() {
   const reportText = getRecommendationReportText(selectedRecommendation);
   const structuredDocuments = useMemo<Partial<Record<RecommendationDocumentKey, boolean>>>(
 	() => ({
-    general: hasGypsumRecommendationContent(selectedRecommendation),
+    general:
+      hasGypsumRecommendationContent(selectedRecommendation) ||
+      hasSulfurRecommendationContent(selectedRecommendation),
   	summary:
       hasMicronutrientFertilizerRows(summaryRecommendationDocument) ||
       hasRecommendationFertigramCharts(summaryRecommendationDocument, "chemical") ||
       hasGypsumRecommendationContent(summaryRecommendationDocument) ||
+      hasSulfurRecommendationContent(summaryRecommendationDocument) ||
       Boolean(documentTechnicalWarnings.summary?.length),
   	direct:
       hasDirectFertilizationObservations(directRecommendationDocument) ||
@@ -1238,11 +1242,15 @@ export default function Recommendation() {
         loadedDocument.summaryRecommendationDocument,
         "chemical",
   	);
+    const hasSummarySulfurContent = hasSulfurRecommendationContent(
+        loadedDocument.summaryRecommendationDocument,
+    );
 	if (
       loadedDocument.text.trim() ||
       loadedDocument.technicalWarnings.length > 0 ||
       hasSummaryMicronutrients ||
       hasSummaryFertigramCharts ||
+      hasSummarySulfurContent ||
       hasDirectNpkStructuredContent ||
       hasDirectFertilizationObservationContent ||
       hasShoppingStructuredContent

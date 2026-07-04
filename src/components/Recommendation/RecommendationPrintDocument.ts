@@ -8,6 +8,7 @@ import {
 import {
   buildAlternativeFertilizerTableModels,
   buildGypsumRecommendationPrintModel,
+  buildSulfurRecommendationPrintModel,
   type AlternativeFertilizerPrintTableModel,
 } from "./RecommendationStructuredFertilizerTables";
 import {
@@ -100,6 +101,20 @@ const renderGypsumHtml = (recommendation: RecommendationPrintResponse) => {
   return `<h2>${escapeHtml(model.title)}</h2>${warningHtml}${linesHtml}`;
 };
 
+const renderSulfurHtml = (recommendation: RecommendationPrintResponse) => {
+  const model = buildSulfurRecommendationPrintModel(recommendation, "general");
+  if (!model) return "";
+
+  const warningHtml = model.warning
+    ? `<p class="technical-warning"><strong>Aviso técnico:</strong> ${escapeHtml(model.warning)}</p>`
+    : "";
+  const linesHtml = model.lines
+    .map((line) => `<p>${escapeHtml(formatRecommendationTableCell(line))}</p>`)
+    .join("");
+
+  return `<h2>${escapeHtml(model.title)}</h2>${warningHtml}${linesHtml}`;
+};
+
 const renderLegacyTableHtml = (headers: string[], rows: string[][]) => {
   const headerHtml = `<thead><tr>${headers
     .map((header) => `<th>${escapeHtml(formatRecommendationTableCell(header))}</th>`)
@@ -150,8 +165,9 @@ export const writePrintableReport = (
     .map(renderStructuredTableHtml)
     .join("");
   const gypsumHtml = renderGypsumHtml(printableRecommendation);
-  const structuredContentHtml = structuredTablesHtml || gypsumHtml
-    ? `<div class="spacing"></div>${gypsumHtml}${structuredTablesHtml}`
+  const sulfurHtml = renderSulfurHtml(printableRecommendation);
+  const structuredContentHtml = structuredTablesHtml || gypsumHtml || sulfurHtml
+    ? `<div class="spacing"></div>${sulfurHtml}${gypsumHtml}${structuredTablesHtml}`
     : "";
 
   const doc = printWindow.document;

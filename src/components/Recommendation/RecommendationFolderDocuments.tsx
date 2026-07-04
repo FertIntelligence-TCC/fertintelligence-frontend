@@ -34,6 +34,7 @@ import RecommendationReportViewer from "./RecommendationReportViewer";
 import RecommendationStructuredFertilizerTables, {
   GypsumRecommendationSection,
   hasStructuredRecommendationContent,
+  SulfurRecommendationSection,
 } from "./RecommendationStructuredFertilizerTables";
 import MicronutrientFertilizerTable, {
   getCalculatedMicronutrientLabels,
@@ -319,7 +320,9 @@ function RecommendationDocumentPanel({
     selectedDocument?.key === "summary" &&
     hasMicronutrientFertilizerRows(summaryRecommendationDocument);
   const showSummaryGypsumContent = selectedDocument?.key === "summary";
+  const showSummarySulfurContent = selectedDocument?.key === "summary";
   const showGeneralGypsumContent = selectedDocument?.key === "general";
+  const showGeneralSulfurContent = selectedDocument?.key === "general";
   const showDirectFertilizationObservations =
     selectedDocument?.key === "direct" &&
     Boolean(directFertilizationObservations);
@@ -372,8 +375,14 @@ function RecommendationDocumentPanel({
           {showSummaryGypsumContent ? (
             <GypsumRecommendationSection document={summaryRecommendationDocument} mode="summary" />
           ) : null}
+          {showSummarySulfurContent ? (
+            <SulfurRecommendationSection document={summaryRecommendationDocument} mode="summary" />
+          ) : null}
           {showGeneralGypsumContent ? (
             <GypsumRecommendationSection document={selectedRecommendation} mode="general" />
+          ) : null}
+          {showGeneralSulfurContent ? (
+            <SulfurRecommendationSection document={selectedRecommendation} mode="general" />
           ) : null}
           {showDirectStructuredNpkContent ? (
             <RecommendationStructuredFertilizerTables
@@ -610,8 +619,14 @@ export default function RecommendationFolderDocuments({
                     {selectedDocument.key === "summary" ? (
                       <GypsumRecommendationSection document={summaryRecommendationDocument} mode="summary" />
                     ) : null}
+                    {selectedDocument.key === "summary" ? (
+                      <SulfurRecommendationSection document={summaryRecommendationDocument} mode="summary" />
+                    ) : null}
                     {selectedDocument.key === "general" ? (
                       <GypsumRecommendationSection document={selectedRecommendation} mode="general" />
+                    ) : null}
+                    {selectedDocument.key === "general" ? (
+                      <SulfurRecommendationSection document={selectedRecommendation} mode="general" />
                     ) : null}
                     {selectedDocument.key === "direct" &&
                     hasDirectNpkFertilizerRows(directRecommendationDocument) ? (

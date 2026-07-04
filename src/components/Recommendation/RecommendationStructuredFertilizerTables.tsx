@@ -9,6 +9,7 @@ import type {
   RecommendationFertilizerLine,
   RecommendationStructuredFertilizerLines,
   ShoppingListResponse,
+  SulfurRecommendationFields,
 } from "@/interfaces/Recommendation";
 import {
   getFirstRecommendationText,
@@ -55,6 +56,7 @@ type AlternativeFertilizerDetail = {
 };
 
 type GypsumRecommendationViewMode = "general" | "summary" | "direct" | "shopping";
+type SulfurRecommendationViewMode = "general" | "summary" | "direct" | "shopping";
 
 export type GypsumRecommendationPrintModel = {
   title: string;
@@ -74,6 +76,39 @@ type GypsumRecommendationModel = {
   applicationGuidance: string;
   notRecommendedJustification: string;
   sulfurEquivalentAlternative: string;
+  rawText: string;
+};
+
+type SulfurSourceModel = {
+  name: string;
+  dose: string;
+  sulfurProvided: string;
+  quantity: string;
+};
+
+type SulfurBalanceModel = {
+  n: string;
+  p2o5: string;
+  k2o: string;
+  s: string;
+};
+
+export type SulfurRecommendationPrintModel = {
+  title: string;
+  lines: string[];
+  warning?: string;
+};
+
+type SulfurRecommendationModel = {
+  recommended: boolean;
+  dose: string;
+  layer: string;
+  deficiencyLevel: string;
+  sources: SulfurSourceModel[];
+  finalBalance: SulfurBalanceModel;
+  reason: string;
+  technicalWarning: string;
+  managementGuidance: string[];
   rawText: string;
 };
 
@@ -210,6 +245,17 @@ const gypsumObjectFields = [
   "agriculturalGypsum",
 ] as const;
 
+const sulfurObjectFields = [
+  "enxofre",
+  "recomendacao_enxofre",
+  "recomendacaoEnxofre",
+  "sulfur",
+  "sulfurRecommendation",
+  "adubacao_enxofre",
+  "adubacaoEnxofre",
+  "sulfurFertilization",
+] as const;
+
 const gypsumRecommendedFields = [
   "recomendar_gessagem",
   "recomendarGessagem",
@@ -303,6 +349,130 @@ const gypsumValueFields = {
     "sulfurEquivalentAlternative",
     "equivalentSulfurAlternative",
   ],
+} as const;
+
+const sulfurRecommendedFields = [
+  "recomendar_enxofre",
+  "recomendarEnxofre",
+  "enxofre_recomendado",
+  "enxofreRecomendado",
+  "recommended",
+  "isRecommended",
+  "recommendSulfur",
+  "sulfurRecommended",
+] as const;
+
+const sulfurValueFields = {
+  dose: [
+    "dose_s_kg_ha",
+    "doseSKgHa",
+    "dose_enxofre_kg_ha",
+    "doseEnxofreKgHa",
+    "dose_recomendada_s_kg_ha",
+    "doseRecomendadaSKgHa",
+    "sulfurDoseKgHa",
+    "recommendedSulfurDoseKgHa",
+    "dose_kg_ha",
+    "doseKgHa",
+    "kg_ha",
+    "kgHa",
+  ],
+  layer: [
+    "camada_usada",
+    "camadaUsada",
+    "camada_referencia",
+    "camadaReferencia",
+    "camada",
+    "layer",
+    "usedLayer",
+    "referenceLayer",
+  ],
+  deficiencyLevel: [
+    "nivel_deficiencia",
+    "nivelDeficiencia",
+    "interpretacao_deficiencia",
+    "interpretacaoDeficiencia",
+    "interpretacao",
+    "deficiencyLevel",
+    "deficiencyInterpretation",
+    "interpretation",
+  ],
+  sources: [
+    "fontes_escolhidas",
+    "fontesEscolhidas",
+    "fontes",
+    "sources",
+    "chosenSources",
+    "sourceLines",
+    "linhas_fontes",
+    "linhasFontes",
+    "itens",
+    "items",
+  ],
+  reason: ["motivo", "motivo_principal", "motivoPrincipal", "justificativa", "justification", "reason", "mainReason"],
+  technicalWarning: [
+    "aviso_tecnico",
+    "avisoTecnico",
+    "aviso_tecnico_s",
+    "avisoTecnicoS",
+    "mensagem_tecnica",
+    "mensagemTecnica",
+    "technicalWarning",
+    "technicalMessage",
+    "mensagem",
+    "message",
+  ],
+  managementGuidance: [
+    "orientacao_manejo",
+    "orientacaoManejo",
+    "orientacoes_manejo",
+    "orientacoesManejo",
+    "managementGuidance",
+    "managementGuidelines",
+    "orientacao",
+    "guidance",
+  ],
+  finalBalance: ["balanco_nutricional", "balancoNutricional", "nutritionalBalance", "balance"],
+  finalBalanceN: ["saldo_final_n", "saldoFinalN", "final_n", "finalN", "n"],
+  finalBalanceP2o5: ["saldo_final_p2o5", "saldoFinalP2o5", "final_p2o5", "finalP2o5", "p2o5", "p"],
+  finalBalanceK2o: ["saldo_final_k2o", "saldoFinalK2o", "final_k2o", "finalK2o", "k2o", "k"],
+  finalBalanceS: ["saldo_final_s", "saldoFinalS", "saldo_final_enxofre", "saldoFinalEnxofre", "final_s", "finalS", "s"],
+} as const;
+
+const sulfurSourceValueFields = {
+  name: [
+    "fonte",
+    "source",
+    "insumo",
+    "input",
+    "adubo",
+    "nome_adubo",
+    "nomeAdubo",
+    "fertilizer",
+    "fertilizerName",
+    "nome",
+    "name",
+  ],
+  dose: ["dose_fonte_kg_ha", "doseFonteKgHa", "dose_kg_ha", "doseKgHa", "kg_ha", "kgHa", "dose"],
+  sulfurProvided: [
+    "s_fornecido_kg_ha",
+    "sFornecidoKgHa",
+    "enxofre_fornecido_kg_ha",
+    "enxofreFornecidoKgHa",
+    "sulfurProvidedKgHa",
+    "providedSulfurKgHa",
+  ],
+  quantity: [
+    "quantidade_total",
+    "quantidadeTotal",
+    "totalQuantity",
+    "total_area",
+    "totalArea",
+    "totalForArea",
+    "quantidade",
+    "quantity",
+  ],
+  quantityUnit: ["unidade_quantidade", "unidadeQuantidade", "quantityUnit", "unidade", "unit"],
 } as const;
 
 const insufficientSubsurfaceLayersMessage =
@@ -520,6 +690,149 @@ export const getGypsumRecommendationModel = (
 export const hasGypsumRecommendationContent = (
   document?: GypsumRecommendationFields | null,
 ): boolean => Boolean(getGypsumRecommendationModel(document));
+
+const getSulfurPayload = (
+  document?: SulfurRecommendationFields | null,
+): Record<string, unknown> | string | null => {
+  if (!document) return null;
+
+  const record = document as Record<string, unknown>;
+  for (const field of sulfurObjectFields) {
+    const value = record[field];
+    if (isRecord(value)) return value;
+    if (Array.isArray(value)) {
+      const firstRecord = value.find(isRecord);
+      if (firstRecord) return firstRecord;
+
+      const firstText = value.map(normalizeRecommendationText).find(Boolean);
+      if (firstText) return firstText;
+    }
+    const text = normalizeRecommendationText(value);
+    if (text) return text;
+  }
+
+  const hasFlatSulfurField = [
+    ...sulfurRecommendedFields,
+    ...Object.values(sulfurValueFields).flat(),
+  ].some((field) => record[field] !== null && record[field] !== undefined && record[field] !== "");
+
+  return hasFlatSulfurField ? record : null;
+};
+
+const getFirstRecord = (line: Record<string, unknown>, fields: readonly string[]): Record<string, unknown> | null => {
+  for (const field of fields) {
+    const value = line[field];
+    if (isRecord(value)) return value;
+  }
+
+  return null;
+};
+
+const getFirstRecordList = (line: Record<string, unknown>, fields: readonly string[]): Record<string, unknown>[] => {
+  for (const field of fields) {
+    const value = line[field];
+    if (Array.isArray(value)) return value.filter(isRecord);
+    if (isRecord(value)) return [value];
+  }
+
+  return [];
+};
+
+const getSulfurSourceModel = (source: Record<string, unknown>): SulfurSourceModel => {
+  const quantity = getFirstAnyText(source, sulfurSourceValueFields.quantity);
+  const quantityUnit = getFirstAnyText(source, sulfurSourceValueFields.quantityUnit);
+
+  return {
+    name: getFirstAnyText(source, sulfurSourceValueFields.name),
+    dose: normalizeDoseText(getFirstAnyText(source, sulfurSourceValueFields.dose)),
+    sulfurProvided: normalizeDoseText(getFirstAnyText(source, sulfurSourceValueFields.sulfurProvided)),
+    quantity: quantity && quantityUnit ? `${quantity} ${quantityUnit}` : quantity,
+  };
+};
+
+const hasSulfurSourceContent = (source: SulfurSourceModel): boolean =>
+  Boolean(source.name || source.dose || source.sulfurProvided || source.quantity);
+
+const getSulfurFinalBalance = (payload: Record<string, unknown>): SulfurBalanceModel => {
+  const balanceRecord = getFirstRecord(payload, sulfurValueFields.finalBalance) ?? payload;
+
+  return {
+    n: normalizeDoseText(getFirstAnyText(balanceRecord, sulfurValueFields.finalBalanceN)),
+    p2o5: normalizeDoseText(getFirstAnyText(balanceRecord, sulfurValueFields.finalBalanceP2o5)),
+    k2o: normalizeDoseText(getFirstAnyText(balanceRecord, sulfurValueFields.finalBalanceK2o)),
+    s: normalizeDoseText(getFirstAnyText(balanceRecord, sulfurValueFields.finalBalanceS)),
+  };
+};
+
+const getSulfurDefaultGuidance = (model: Pick<SulfurRecommendationModel, "sources">): string[] => {
+  const sourceNames = model.sources.map((source) => source.name.toLowerCase()).join(" ");
+  const hasGypsum = /gesso|gypsum/.test(sourceNames);
+  const hasFormulatedWithoutSulfur = /formulado/.test(sourceNames) && !/\bs\b|enxofre|sulfur/.test(sourceNames);
+
+  return [
+    "S é nutriente secundário de plantio.",
+    "Aplicar na linha de plantio.",
+    hasFormulatedWithoutSulfur || hasGypsum
+      ? "Quando usado formulado sem S, complementar com gesso agrícola."
+      : "",
+    model.sources.length > 1
+      ? "Quando usados adubos simples, seguir a combinação escolhida pelo backend."
+      : "",
+  ].filter(Boolean);
+};
+
+export const getSulfurRecommendationModel = (
+  document?: SulfurRecommendationFields | null,
+): SulfurRecommendationModel | null => {
+  const payload = getSulfurPayload(document);
+  if (!payload) return null;
+
+  if (typeof payload === "string") {
+    return {
+      recommended: false,
+      dose: "",
+      layer: "",
+      deficiencyLevel: "",
+      sources: [],
+      finalBalance: { n: "", p2o5: "", k2o: "", s: "" },
+      reason: "",
+      technicalWarning: payload,
+      managementGuidance: [],
+      rawText: "",
+    };
+  }
+
+  const sources = getFirstRecordList(payload, sulfurValueFields.sources)
+    .map(getSulfurSourceModel)
+    .filter(hasSulfurSourceContent);
+  const dose = normalizeDoseText(getFirstAnyText(payload, sulfurValueFields.dose));
+  const recommendedFlag = getFirstBoolean(payload, sulfurRecommendedFields);
+  const technicalWarning = getFirstAnyText(payload, sulfurValueFields.technicalWarning);
+  const modelWithoutGuidance = {
+    sources,
+  };
+  const managementGuidance = [
+    ...getFirstTextList(payload, sulfurValueFields.managementGuidance),
+    ...getSulfurDefaultGuidance(modelWithoutGuidance),
+  ];
+
+  return {
+    recommended: recommendedFlag ?? Boolean(dose || sources.length),
+    dose,
+    layer: getFirstAnyText(payload, sulfurValueFields.layer) || (dose || sources.length ? "0 a 20 cm" : ""),
+    deficiencyLevel: getFirstAnyText(payload, sulfurValueFields.deficiencyLevel),
+    sources,
+    finalBalance: getSulfurFinalBalance(payload),
+    reason: getFirstAnyText(payload, sulfurValueFields.reason) || getFirstAnyText(payload, sulfurValueFields.deficiencyLevel),
+    technicalWarning,
+    managementGuidance: Array.from(new Set(managementGuidance)),
+    rawText: "",
+  };
+};
+
+export const hasSulfurRecommendationContent = (
+  document?: SulfurRecommendationFields | null,
+): boolean => Boolean(getSulfurRecommendationModel(document));
 
 const getAlternativeFertilizerLines = <TLine extends AlternativeFertilizerLine>(
   document: RecommendationStructuredFertilizerLines | null | undefined,
@@ -920,6 +1233,264 @@ export function GypsumRecommendationSection({
   );
 }
 
+const getSulfurPrimarySource = (model: SulfurRecommendationModel): string =>
+  model.sources[0]?.name || "fonte retornada pelo backend";
+
+const getSulfurBalanceLines = (model: SulfurRecommendationModel): string[] => [
+  model.finalBalance.n ? `Saldo final de N: ${model.finalBalance.n}` : "",
+  model.finalBalance.p2o5 ? `Saldo final de P2O5: ${model.finalBalance.p2o5}` : "",
+  model.finalBalance.k2o ? `Saldo final de K2O: ${model.finalBalance.k2o}` : "",
+  model.finalBalance.s ? `Saldo final de S: ${model.finalBalance.s}` : "",
+].filter(Boolean);
+
+export const buildSulfurRecommendationPrintModel = (
+  document?: SulfurRecommendationFields | null,
+  mode: SulfurRecommendationViewMode = "general",
+): SulfurRecommendationPrintModel | null => {
+  const model = getSulfurRecommendationModel(document);
+  if (!model) return null;
+
+  if (!model.recommended) {
+    return {
+      title: "Enxofre (S)",
+      lines: [model.technicalWarning || "Critério de S não retornado pelo backend."],
+      warning: model.technicalWarning || undefined,
+    };
+  }
+
+  if (mode === "direct") {
+    return {
+      title: "Enxofre (S)",
+      lines: [
+        `Aplicar ${model.dose || "a dose retornada pelo backend"} de S na linha de plantio usando ${getSulfurPrimarySource(model)}.`,
+      ],
+    };
+  }
+
+  if (mode === "summary") {
+    return {
+      title: "Enxofre (S)",
+      lines: [
+        `Dose de S: ${model.dose || "-"}`,
+        `Fonte principal: ${getSulfurPrimarySource(model)}`,
+        `Motivo: ${model.reason || model.deficiencyLevel || "-"}`,
+      ],
+    };
+  }
+
+  if (mode === "shopping") {
+    return {
+      title: "Fontes de Enxofre (S)",
+      lines: model.sources.length
+        ? model.sources.map((source) =>
+            [
+              source.name || "Fonte retornada pelo backend",
+              source.dose ? `dose ${source.dose}` : "",
+              source.quantity ? `quantidade ${source.quantity}` : "",
+              source.sulfurProvided ? `S fornecido ${source.sulfurProvided}` : "",
+            ].filter(Boolean).join(" - "),
+          )
+        : [`Dose de S: ${model.dose || "-"}`],
+    };
+  }
+
+  return {
+    title: "Enxofre (S)",
+    lines: [
+      `Dose recomendada de S: ${model.dose || "-"}`,
+      `Camada usada: ${model.layer || "0 a 20 cm"}`,
+      `Nível de deficiência: ${model.deficiencyLevel || "-"}`,
+      model.sources.length
+        ? `Fontes escolhidas: ${model.sources.map((source) => source.name || "Fonte sem nome").join("; ")}`
+        : "",
+      ...model.sources.map((source) =>
+        [
+          source.name || "Fonte sem nome",
+          source.dose ? `dose ${source.dose}` : "",
+          source.sulfurProvided ? `S fornecido ${source.sulfurProvided}` : "",
+        ].filter(Boolean).join(" - "),
+      ),
+      ...getSulfurBalanceLines(model),
+      ...model.managementGuidance.map((line) => `Manejo: ${line}`),
+    ].filter(Boolean),
+  };
+};
+
+export function SulfurRecommendationSection({
+  document,
+  mode,
+}: {
+  document?: SulfurRecommendationFields | null;
+  mode: SulfurRecommendationViewMode;
+}) {
+  const model = getSulfurRecommendationModel(document);
+  if (!model) return null;
+
+  if (!model.recommended) {
+    return (
+      <Box borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
+        <VStack align="stretch" gap={2}>
+          <HStack gap={2} wrap="wrap">
+            <Heading size="sm">Enxofre (S)</Heading>
+            <Badge colorPalette="orange">Aviso técnico</Badge>
+          </HStack>
+          <Text color="orange.700">
+            {model.technicalWarning || "Dados ou critério de S não retornados pelo backend."}
+          </Text>
+        </VStack>
+      </Box>
+    );
+  }
+
+  if (mode === "direct") {
+    return (
+      <Box borderWidth="1px" borderRadius="md" p={3}>
+        <VStack align="stretch" gap={2}>
+          <HStack gap={2} wrap="wrap">
+            <Heading size="sm">Enxofre (S)</Heading>
+            <Badge colorPalette="green">Plantio</Badge>
+          </HStack>
+          <Text fontWeight="medium">
+            Aplicar {model.dose || "a dose retornada pelo backend"} de S na linha de plantio usando{" "}
+            {getSulfurPrimarySource(model)}.
+          </Text>
+        </VStack>
+      </Box>
+    );
+  }
+
+  if (mode === "summary") {
+    return (
+      <Box borderWidth="1px" borderRadius="md" p={3}>
+        <VStack align="stretch" gap={2}>
+          <HStack gap={2} wrap="wrap">
+            <Heading size="sm">Enxofre (S)</Heading>
+            <Badge colorPalette="green">Recomendado</Badge>
+          </HStack>
+          <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Dose de S</Text>
+              <Text fontWeight="medium">{model.dose || "-"}</Text>
+            </Box>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Fonte principal</Text>
+              <Text>{getSulfurPrimarySource(model)}</Text>
+            </Box>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Motivo</Text>
+              <Text>{model.reason || model.deficiencyLevel || "-"}</Text>
+            </Box>
+          </SimpleGrid>
+        </VStack>
+      </Box>
+    );
+  }
+
+  if (mode === "shopping") {
+    if (model.sources.length === 0) return null;
+
+    return (
+      <VStack align="stretch" gap={3}>
+        <Heading size="sm">Fontes de Enxofre (S)</Heading>
+        <RecommendationTable
+          columns={[
+            { key: "source", header: "Fonte", minW: "220px" },
+            { key: "dose", header: "Dose", minW: "130px" },
+            { key: "quantity", header: "Quantidade", minW: "150px" },
+            { key: "sulfurProvided", header: "S fornecido", minW: "150px" },
+          ]}
+          rows={model.sources}
+          minW="760px"
+          getRowKey={(source, index) => `${source.name}-${index}`}
+          renderCell={(source, column) => {
+            if (column.key === "source") return source.name || "-";
+            if (column.key === "dose") return source.dose || "-";
+            if (column.key === "quantity") return source.quantity || "-";
+            return source.sulfurProvided || "-";
+          }}
+        />
+      </VStack>
+    );
+  }
+
+  return (
+    <Box borderWidth="1px" borderRadius="md" p={3}>
+      <VStack align="stretch" gap={3}>
+        <HStack gap={2} wrap="wrap">
+          <Heading size="sm">Enxofre (S)</Heading>
+          <Badge colorPalette="green">Recomendado</Badge>
+        </HStack>
+        <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Dose recomendada de S</Text>
+            <Text fontWeight="medium">{model.dose || "-"}</Text>
+          </Box>
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Camada usada</Text>
+            <Text>{model.layer || "0 a 20 cm"}</Text>
+          </Box>
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Nível de deficiência</Text>
+            <Text>{model.deficiencyLevel || "-"}</Text>
+          </Box>
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Saldo final de S</Text>
+            <Text>{model.finalBalance.s || "-"}</Text>
+          </Box>
+        </SimpleGrid>
+
+        {model.sources.length > 0 ? (
+          <RecommendationTable
+            columns={[
+              { key: "source", header: "Fonte", minW: "220px" },
+              { key: "dose", header: "Dose da fonte", minW: "150px" },
+              { key: "sulfurProvided", header: "S fornecido", minW: "150px" },
+            ]}
+            rows={model.sources}
+            minW="620px"
+            getRowKey={(source, index) => `${source.name}-${index}`}
+            renderCell={(source, column) => {
+              if (column.key === "source") return source.name || "-";
+              if (column.key === "dose") return source.dose || "-";
+              return source.sulfurProvided || "-";
+            }}
+          />
+        ) : null}
+
+        {getSulfurBalanceLines(model).length > 0 ? (
+          <SimpleGrid columns={{ base: 1, md: 4 }} gap={3}>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Saldo final de N</Text>
+              <Text>{model.finalBalance.n || "-"}</Text>
+            </Box>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Saldo final de P2O5</Text>
+              <Text>{model.finalBalance.p2o5 || "-"}</Text>
+            </Box>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Saldo final de K2O</Text>
+              <Text>{model.finalBalance.k2o || "-"}</Text>
+            </Box>
+            <Box>
+              <Text color="fg.muted" fontSize="xs">Saldo final de S</Text>
+              <Text>{model.finalBalance.s || "-"}</Text>
+            </Box>
+          </SimpleGrid>
+        ) : null}
+
+        <Box>
+          <Text color="fg.muted" fontSize="xs">Orientação de manejo</Text>
+          <VStack align="stretch" gap={1} mt={1}>
+            {model.managementGuidance.map((guidance) => (
+              <Text key={guidance}>{guidance}</Text>
+            ))}
+          </VStack>
+        </Box>
+      </VStack>
+    </Box>
+  );
+}
+
 export const hasStructuredRecommendationContent = (
   document?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
@@ -927,7 +1498,8 @@ export const hasStructuredRecommendationContent = (
   hasFormulatedPlantingFertilizerRows(document) ||
   hasFormulatedTopDressingFertilizerRows(document) ||
   hasAlternativeFertilizerRows(document) ||
-  hasGypsumRecommendationContent(document);
+  hasGypsumRecommendationContent(document) ||
+  hasSulfurRecommendationContent(document);
 
 function AlternativeFertilizerTables({
   document,
@@ -988,6 +1560,7 @@ export default function RecommendationStructuredFertilizerTables({
         variant={showShoppingListHeader ? "shopping" : "recommendation"}
       />
       <AlternativeFertilizerTables document={displayDocument} />
+      <SulfurRecommendationSection document={displayDocument} mode={showShoppingListHeader ? "shopping" : "direct"} />
       <GypsumRecommendationSection document={displayDocument} mode={showShoppingListHeader ? "shopping" : "direct"} />
     </VStack>
   );
