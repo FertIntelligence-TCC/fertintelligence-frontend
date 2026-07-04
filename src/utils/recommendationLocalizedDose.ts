@@ -22,13 +22,14 @@ const formatter = new Intl.NumberFormat("pt-BR", {
 });
 
 const invalidDisplayValueRegex = /^(?:nan|null|undefined|[-+]?infinity)$/i;
+const absentDisplayValueRegex = /^(?:-|n[aã]o informad[oa]s?|n[aã]o calculad[oa]s?)\.?$/i;
 
 export const normalizeRecommendationText = (value: unknown): string => {
   if (value === null || value === undefined) return "";
   if (typeof value === "number") return Number.isFinite(value) ? formatter.format(value) : "";
   if (typeof value === "string") {
     const text = value.trim();
-    return invalidDisplayValueRegex.test(text) || /\bNaN\b/i.test(text) ? "" : text;
+    return invalidDisplayValueRegex.test(text) || absentDisplayValueRegex.test(text) || /\bNaN\b/i.test(text) ? "" : text;
   }
   return "";
 };

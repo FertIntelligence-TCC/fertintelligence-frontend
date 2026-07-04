@@ -254,6 +254,101 @@ const parseDisplayNumber = (value: string): number => {
 const isInvalidDisplayText = (value: string): boolean =>
   /^(?:nan|null|undefined|[-+]?infinity)$/i.test(value.trim());
 
+const normalizeForComparison = (value: string): string =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+const nonInformativeTextValues = new Set([
+  "-",
+  "nao informado",
+  "nao informada",
+  "nao informados",
+  "nao informadas",
+  "nao calculado",
+  "nao calculada",
+  "nao calculados",
+  "nao calculadas",
+  "nao retornado",
+  "nao retornada",
+  "sem dados",
+  "sem dado",
+  "sem informacao",
+  "sem informacoes",
+]);
+
+const isNonInformativeText = (value: string): boolean => {
+  const normalized = normalizeForComparison(value).replace(/[.:;]+$/g, "");
+  return nonInformativeTextValues.has(normalized);
+};
+
+const cleanDisplayText = (value: unknown): string => {
+  const text = normalizeRecommendationText(value);
+  if (!text || isNonInformativeText(text)) return "";
+  return text;
+};
+
+const compactTextList = (values: string[]): string[] => {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const value of values) {
+    const text = cleanDisplayText(value);
+    if (!text) continue;
+
+    const key = normalizeForComparison(text);
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    result.push(text);
+  }
+
+  return result;
+};
+
+const hasRenderableCell = (value: unknown): boolean => {
+  if (typeof value === "string") return Boolean(cleanDisplayText(value));
+  if (value === null || value === undefined) return false;
+  return true;
+};
+
+const compactColumnsAndRows = (
+  columns: RecommendationTableColumn[],
+  rows: string[][],
+  requiredColumnKeys: readonly string[] = [],
+): { columns: RecommendationTableColumn[]; rows: string[][] } => {
+  const requiredKeys = new Set(requiredColumnKeys);
+  const keptIndexes = columns
+    .map((column, index) => ({ column, index }))
+    .filter(({ column, index }) =>
+      requiredKeys.has(column.key) || rows.some((row) => hasRenderableCell(row[index])),
+    );
+
+  return {
+    columns: keptIndexes.map(({ column }) => column),
+    rows: rows.map((row) => keptIndexes.map(({ index }) => row[index] ?? "")),
+  };
+};
+
+const TechnicalWarningBox = ({ warning }: { warning: string }) => {
+  const text = cleanDisplayText(warning);
+  if (!text) return null;
+
+  return (
+    <Box borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
+      <Text color="orange.700" fontSize="sm" fontWeight="semibold">
+        Aviso técnico
+      </Text>
+      <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
+        {text}
+      </Text>
+    </Box>
+  );
+};
+
 const getFirstPresentValue = (
   document: ShoppingListResponse,
   fields: readonly (keyof ShoppingListResponse)[],
@@ -1043,9 +1138,6 @@ const correctiveBalanceFields = {
 const correctiveDefaultNotApplicableMessage =
   "A Recomendação de Adubação Corretiva não se aplica, pois trata-se de agricultura familiar de baixa/média tecnologia de cultivo.";
 
-const correctiveDefaultResidualWarning =
-  "Advertência técnica: considerar efeito residual mínimo de 5 anos para a adubação corretiva do solo.";
-
 const insufficientSubsurfaceLayersMessage =
   "Não é possível recomendar gessagem sem análises das camadas subsuperficiais 21–40 cm e/ou 41–60 cm.";
 
@@ -1112,7 +1204,7 @@ const bioFertilizerDetails: AlternativeFertilizerDetail[] = [
 ];
 
 const getFirstText = (line: RecommendationFertilizerLine, fields: readonly string[]): string =>
-  getFirstRecommendationText(line, fields);
+  cleanDisplayText(getFirstRecommendationText(line, fields));
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -1419,7 +1511,7 @@ const normalizeKgHaText = (value: string): string => {
 };
 
 const getOptionText = (line: RecommendationFertilizerLine, fields: readonly string[]): string =>
-  getFirstRecommendationText(line, fields);
+  cleanDisplayText(getFirstRecommendationText(line, fields));
 
 const getOptionDoseText = (line: RecommendationFertilizerLine): string =>
   normalizeKgHaText(getOptionText(line, optionValueFields.fertilizerDose));
@@ -1444,7 +1536,7 @@ const formatNpkLikeValue = (value: unknown): string => {
     if (parts.some(Boolean)) return parts.map((part) => part || "0").join("-");
   }
 
-  return normalizeRecommendationText(value);
+  return cleanDisplayText(value);
 };
 
 const getOptionFormattedText = (
@@ -1452,7 +1544,7 @@ const getOptionFormattedText = (
   fields: readonly string[],
 ): string => {
   for (const field of fields) {
-    const text = formatNpkLikeValue(line[field]);
+    const text = cleanDisplayText(formatNpkLikeValue(line[field]));
     if (text) return text;
   }
 
@@ -1469,7 +1561,7 @@ const getOptionPayloadRecord = (
     const value = option.payload[field];
     if (isRecord(value)) return value;
 
-    const text = normalizeRecommendationText(value);
+    const text = cleanDisplayText(value);
     if (text) return { nome: field, dose: text };
   }
 
@@ -1545,7 +1637,7 @@ const buildGypsumComplementText = (line: RecommendationFertilizerLine): string =
 const formatRecordEntries = (record: Record<string, unknown>): string =>
   Object.entries(record)
     .map(([key, value]) => {
-      const text = formatNpkLikeValue(value);
+      const text = cleanDisplayText(formatNpkLikeValue(value));
       return text ? `${key}: ${text}` : "";
     })
     .filter(Boolean)
@@ -1780,13 +1872,13 @@ const normalizeTextList = (value: unknown): string[] => {
   if (isRecord(value)) {
     return Object.entries(value)
       .map(([key, item]) => {
-        const text = normalizeRecommendationText(item);
+        const text = cleanDisplayText(item);
         return text ? `${key}: ${text}` : "";
       })
       .filter(Boolean);
   }
 
-  const text = normalizeRecommendationText(value);
+  const text = cleanDisplayText(value);
   return text ? [text] : [];
 };
 
@@ -1800,7 +1892,7 @@ const getFirstTextList = (line: Record<string, unknown>, fields: readonly string
 };
 
 const getFirstAnyText = (line: Record<string, unknown>, fields: readonly string[]): string =>
-  getFirstRecommendationText(line, fields);
+  cleanDisplayText(getFirstRecommendationText(line, fields));
 
 const getGypsumPayload = (
   document?: GypsumRecommendationFields | null,
@@ -1815,10 +1907,10 @@ const getGypsumPayload = (
       const firstRecord = value.find(isRecord);
       if (firstRecord) return firstRecord;
 
-      const firstText = value.map(normalizeRecommendationText).find(Boolean);
+      const firstText = value.map(cleanDisplayText).find(Boolean);
       if (firstText) return firstText;
     }
-    const text = normalizeRecommendationText(value);
+    const text = cleanDisplayText(value);
     if (text) return text;
   }
 
@@ -1913,10 +2005,10 @@ const getSulfurPayload = (
       const firstRecord = value.find(isRecord);
       if (firstRecord) return firstRecord;
 
-      const firstText = value.map(normalizeRecommendationText).find(Boolean);
+      const firstText = value.map(cleanDisplayText).find(Boolean);
       if (firstText) return firstText;
     }
-    const text = normalizeRecommendationText(value);
+    const text = cleanDisplayText(value);
     if (text) return text;
   }
 
@@ -1960,11 +2052,11 @@ const getCorrectivePayload = (
       const firstRecord = value.find(isRecord);
       if (firstRecord) return firstRecord;
 
-      const firstText = value.map(normalizeRecommendationText).find(Boolean);
+      const firstText = value.map(cleanDisplayText).find(Boolean);
       if (firstText) return firstText;
     }
 
-    const text = normalizeRecommendationText(value);
+    const text = cleanDisplayText(value);
     if (text) return text;
   }
 
@@ -1987,7 +2079,7 @@ const getFirstRecordOrDose = (
     const value = payload[field];
     if (isRecord(value)) return value;
 
-    const text = normalizeRecommendationText(value);
+    const text = cleanDisplayText(value);
     if (text) return { nome: fallbackName, dose: text };
   }
 
@@ -2106,7 +2198,7 @@ const getCorrectiveBalanceValue = (
   const nested = balancePayload[nutrient.toLowerCase()] ?? balancePayload[nutrient];
   if (isRecord(nested)) return normalizeDoseText(getFirstAnyText(nested, fields));
 
-  return normalizeDoseText(normalizeRecommendationText(nested));
+  return normalizeDoseText(cleanDisplayText(nested));
 };
 
 const getCorrectiveBalanceRows = (
@@ -2225,7 +2317,7 @@ export const getCorrectiveSoilFertilizationModel = (
     k2oSources,
     formulated,
     micronutrients,
-    residualWarning: getFirstAnyText(payload, correctiveValueFields.residualWarning) || correctiveDefaultResidualWarning,
+    residualWarning: getFirstAnyText(payload, correctiveValueFields.residualWarning),
     rawText: "",
   };
 };
@@ -2253,7 +2345,7 @@ const getEconomicDecisionPayloads = (
     if (Array.isArray(value)) payloads.push(...value.filter((item): item is Record<string, unknown> => isRecord(item)));
     else if (isRecord(value)) payloads.push(value);
     else {
-      const text = normalizeRecommendationText(value);
+      const text = cleanDisplayText(value);
       if (text) payloads.push(text);
     }
   }
@@ -2328,14 +2420,14 @@ const getEconomicDecisionItems = (
       return value
         .map((item) => {
           if (isRecord(item)) return normalizeEconomicDecisionItem(item);
-          const text = normalizeRecommendationText(item);
+          const text = cleanDisplayText(item);
           return text ? normalizeEconomicDecisionItem(text) : null;
         })
         .filter((item): item is EconomicDecisionItemModel => Boolean(item?.name || item?.dose || item?.quantity));
     }
     if (isRecord(value)) return [normalizeEconomicDecisionItem(value)];
 
-    const text = normalizeRecommendationText(value);
+    const text = cleanDisplayText(value);
     if (text) return [normalizeEconomicDecisionItem(text)];
   }
 
@@ -2369,7 +2461,7 @@ const getEconomicNutrientPrices = (payload: Record<string, unknown>): EconomicNu
             };
           }
 
-          const price = formatMoneyText(normalizeRecommendationText(item));
+          const price = formatMoneyText(cleanDisplayText(item));
           return price ? { nutrient, price, source: "" } : null;
         })
         .filter((item): item is EconomicNutrientPriceModel => Boolean(item));
@@ -2752,11 +2844,11 @@ const buildOptionSectionRows = (
   const isTopDressing = section === "topDressing";
 
   return lines.map((line) => {
-    const fertilizer = getOptionText(line, optionValueFields.fertilizer) || "Fonte retornada pelo backend";
+    const fertilizer = getOptionText(line, optionValueFields.fertilizer);
     const relation = getOptionFormattedText(line, optionValueFields.relation);
     const concentration = getOptionFormattedText(line, optionValueFields.concentration);
-    const dose = getOptionDoseText(line) || "-";
-    const quantity = getOptionQuantityText(line) || "-";
+    const dose = getOptionDoseText(line);
+    const quantity = getOptionQuantityText(line);
     const supplied = buildSuppliedNutrientsText(line);
     const plantingBalances = buildPlantingBalanceText(line);
     const finalBalances = buildFinalBalanceText(line);
@@ -2775,50 +2867,50 @@ const buildOptionSectionRows = (
         : "",
     ].filter(Boolean).join("\n");
     const phase = getOptionText(line, optionValueFields.coverage) || getOptionText(line, optionValueFields.phase);
-    const observation = getOptionLineWarning(line) || "-";
+    const observation = getOptionLineWarning(line);
 
-    if (isShopping) return [fertilizer, dose, quantity, supplied || "-", gypsumComplement || "-", micronutrients || "-", transferBalances || finalBalances || "-", observation];
+    if (isShopping) return [fertilizer, dose, quantity, supplied, gypsumComplement, micronutrients, transferBalances || finalBalances, observation];
     if (isSummary) {
       return [
         fertilizer,
         dose,
-        supplied || "-",
-        transferBalances || finalBalances || getOptionCriticalBalanceSummary([line]) || "-",
+        supplied,
+        transferBalances || finalBalances || getOptionCriticalBalanceSummary([line]),
       ];
     }
     if (mode === "direct") {
       return [
         fertilizer,
         dose,
-        supplied || "-",
-        transferBalances || finalBalances || "-",
+        supplied,
+        transferBalances || finalBalances,
         observation,
       ];
     }
     if (isTopDressing) {
       return [
         fertilizer,
-        phase || "-",
-        recommendedCoverage || "-",
-        plantingBalances || "-",
+        phase,
+        recommendedCoverage,
+        plantingBalances,
         dose,
-        supplied || "-",
-        finalBalances || "-",
+        supplied,
+        finalBalances,
         observation,
       ];
     }
 
     return [
       fertilizer,
-      relation || "-",
-      concentration || "-",
-      phase || "-",
+      relation,
+      concentration,
+      phase,
       dose,
-      supplied || "-",
-      gypsumComplement || "-",
-      finalBalances || "-",
-      transferBalances || "-",
-      micronutrients || "-",
+      supplied,
+      gypsumComplement,
+      finalBalances,
+      transferBalances,
+      micronutrients,
       observation,
     ];
   });
@@ -2907,11 +2999,14 @@ function FertilizationOptionSectionTable({
   section: FertilizationOptionSection;
   mode: RecommendationStructuredViewMode;
 }) {
-  const rows = buildOptionSectionRows(option, section, mode);
-  if (rows.length === 0) return null;
+  const rawRows = buildOptionSectionRows(option, section, mode);
+  if (rawRows.length === 0) return null;
 
   const title = section === "planting" ? option.plantingTitle : option.topDressingTitle;
   const instruction = getOptionSectionInstruction(option, section, mode);
+  const rawColumns = getOptionSectionColumns(section, mode);
+  const { columns, rows } = compactColumnsAndRows(rawColumns, rawRows, ["source", "dose"]);
+  if (columns.length === 0) return null;
 
   return (
     <VStack align="stretch" gap={2}>
@@ -2923,7 +3018,7 @@ function FertilizationOptionSectionTable({
       </HStack>
       {instruction ? <Text fontSize="sm">{instruction}</Text> : null}
       <RecommendationTable
-        columns={getOptionSectionColumns(section, mode)}
+        columns={columns}
         rows={rows}
         minW={mode === "summary" ? "760px" : "1080px"}
         getRowKey={(_row, rowIndex) => `${option.key}-${section}-${rowIndex}`}
@@ -3012,7 +3107,7 @@ function FertilizationOptionSupplemental({
         </SimpleGrid>
       ) : null}
 
-      {warnings.map((warning, index) => (
+      {compactTextList(warnings).map((warning, index) => (
         <EconomicDecisionWarning key={`${option.key}-warning-${index}`} warning={warning} />
       ))}
     </VStack>
@@ -3099,32 +3194,24 @@ export const buildFertilizationOptionPrintTableModels = (
 function ShoppingListHeader({ document }: { document: ShoppingListResponse }) {
   const area = formatShoppingListArea(getFirstPresentValue(document, shoppingListAreaFields));
   const plantingDate = formatShoppingListDate(getFirstPresentValue(document, shoppingListPlantingDateFields));
-  const missingValues = [
-    area ? "" : "área",
-    plantingDate ? "" : "data de plantio",
-  ].filter(Boolean);
+  const headerItems = [
+    area ? { label: "Área", value: area } : null,
+    plantingDate ? { label: "Data de plantio", value: plantingDate } : null,
+  ].filter((item): item is { label: string; value: string } => Boolean(item));
 
   return (
     <VStack align="stretch" gap={2}>
-      <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-        <Box>
-          <Text color="fg.muted" fontSize="xs">
-            Área
-          </Text>
-          <Text fontWeight="medium">{area || "-"}</Text>
-        </Box>
-        <Box>
-          <Text color="fg.muted" fontSize="xs">
-            Data de plantio
-          </Text>
-          <Text fontWeight="medium">{plantingDate || "-"}</Text>
-        </Box>
-      </SimpleGrid>
-      {missingValues.length > 0 ? (
-        <Text color="orange.600" fontSize="xs">
-          Aviso técnico: {missingValues.join(" e ")}{" "}
-          {missingValues.length > 1 ? "não informadas" : "não informada"} pelo backend.
-        </Text>
+      {headerItems.length > 0 ? (
+        <SimpleGrid columns={{ base: 1, md: Math.min(headerItems.length, 2) }} gap={3}>
+          {headerItems.map((item) => (
+            <Box key={item.label}>
+              <Text color="fg.muted" fontSize="xs">
+                {item.label}
+              </Text>
+              <Text fontWeight="medium">{item.value}</Text>
+            </Box>
+          ))}
+        </SimpleGrid>
       ) : null}
     </VStack>
   );
@@ -3261,6 +3348,13 @@ export function GypsumRecommendationSection({
   }
 
   if (mode === "summary") {
+    const items = [
+      model.dose ? { label: "Dose", value: model.dose, strong: true } : null,
+      model.mainReason || model.criterion
+        ? { label: "Motivo principal", value: model.mainReason || model.criterion, strong: false }
+        : null,
+    ].filter((item): item is { label: string; value: string; strong: boolean } => Boolean(item));
+
     return (
       <Box borderWidth="1px" borderRadius="md" p={3}>
         <VStack align="stretch" gap={2}>
@@ -3269,14 +3363,12 @@ export function GypsumRecommendationSection({
             <Badge colorPalette="green">Recomendada</Badge>
           </HStack>
           <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-            <Box>
-              <Text color="fg.muted" fontSize="xs">Dose</Text>
-              <Text fontWeight="medium">{model.dose || "-"}</Text>
-            </Box>
-            <Box>
-              <Text color="fg.muted" fontSize="xs">Motivo principal</Text>
-              <Text>{model.mainReason || model.criterion || "-"}</Text>
-            </Box>
+            {items.map((item) => (
+              <Box key={item.label}>
+                <Text color="fg.muted" fontSize="xs">{item.label}</Text>
+                <Text fontWeight={item.strong ? "medium" : undefined}>{item.value}</Text>
+              </Box>
+            ))}
           </SimpleGrid>
         </VStack>
       </Box>
@@ -3293,15 +3385,7 @@ export function GypsumRecommendationSection({
             { key: "dose", header: "Dose", minW: "140px" },
             { key: "alternative", header: "Alternativa", minW: "260px" },
           ]}
-          rows={[
-            [
-              "Gesso agrícola",
-              model.dose || "-",
-              model.sulfurEquivalentAlternative
-                ? `Enxofre equivalente: ${model.sulfurEquivalentAlternative}`
-                : "-",
-            ],
-          ]}
+          rows={[["Gesso agrícola", model.dose, model.sulfurEquivalentAlternative ? `Enxofre equivalente: ${model.sulfurEquivalentAlternative}` : ""]]}
           minW="620px"
           renderCell={(row, _column, _rowIndex, columnIndex) => (
             <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
@@ -3313,6 +3397,13 @@ export function GypsumRecommendationSection({
     );
   }
 
+  const detailItems = [
+    model.dose ? { label: "Dose de gesso agrícola", value: model.dose, strong: true } : null,
+    model.criterion ? { label: "Critério usado", value: model.criterion, strong: false } : null,
+    model.evaluatedLayers ? { label: "Camada(s) subsuperficial(is) avaliadas", value: model.evaluatedLayers, strong: false } : null,
+    model.highestClayContent ? { label: "Maior teor de argila usado", value: model.highestClayContent, strong: false } : null,
+  ].filter((item): item is { label: string; value: string; strong: boolean } => Boolean(item));
+
   return (
     <Box borderWidth="1px" borderRadius="md" p={3}>
       <VStack align="stretch" gap={3}>
@@ -3320,24 +3411,16 @@ export function GypsumRecommendationSection({
           <Heading size="sm">Gessagem</Heading>
           <Badge colorPalette="green">Recomendada</Badge>
         </HStack>
-        <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-          <Box>
-            <Text color="fg.muted" fontSize="xs">Dose de gesso agrícola</Text>
-            <Text fontWeight="medium">{model.dose || "-"}</Text>
-          </Box>
-          <Box>
-            <Text color="fg.muted" fontSize="xs">Critério usado</Text>
-            <Text>{model.criterion || "-"}</Text>
-          </Box>
-          <Box>
-            <Text color="fg.muted" fontSize="xs">Camada(s) subsuperficial(is) avaliadas</Text>
-            <Text>{model.evaluatedLayers || "-"}</Text>
-          </Box>
-          <Box>
-            <Text color="fg.muted" fontSize="xs">Maior teor de argila usado</Text>
-            <Text>{model.highestClayContent || "-"}</Text>
-          </Box>
-        </SimpleGrid>
+        {detailItems.length > 0 ? (
+          <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+            {detailItems.map((item) => (
+              <Box key={item.label}>
+                <Text color="fg.muted" fontSize="xs">{item.label}</Text>
+                <Text fontWeight={item.strong ? "medium" : undefined}>{item.value}</Text>
+              </Box>
+            ))}
+          </SimpleGrid>
+        ) : null}
         {model.reasons.length > 0 ? (
           <Box>
             <Text color="fg.muted" fontSize="xs">Justificativa por Ca2+, Al3+ e/ou m%</Text>
@@ -3348,17 +3431,19 @@ export function GypsumRecommendationSection({
             </VStack>
           </Box>
         ) : null}
-        <Box>
-          <Text color="fg.muted" fontSize="xs">Orientação de aplicação</Text>
-          <Text>{model.applicationGuidance || "-"}</Text>
-        </Box>
+        {model.applicationGuidance ? (
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Orientação de aplicação</Text>
+            <Text>{model.applicationGuidance}</Text>
+          </Box>
+        ) : null}
       </VStack>
     </Box>
   );
 }
 
 const getSulfurPrimarySource = (model: SulfurRecommendationModel): string =>
-  model.sources[0]?.name || "fonte retornada pelo backend";
+  model.sources[0]?.name || "";
 
 const getSulfurBalanceLines = (model: SulfurRecommendationModel): string[] => [
   model.finalBalance.n ? `Saldo final de N: ${model.finalBalance.n}` : "",
@@ -3383,10 +3468,14 @@ export const buildSulfurRecommendationPrintModel = (
   }
 
   if (mode === "direct") {
+    const primarySource = getSulfurPrimarySource(model);
     return {
       title: "Enxofre (S)",
       lines: [
-        `Aplicar ${model.dose || "a dose retornada pelo backend"} de S na linha de plantio usando ${getSulfurPrimarySource(model)}.`,
+        [
+          `Aplicar ${model.dose || "a dose de S retornada pelo backend"} na linha de plantio`,
+          primarySource ? `usando ${primarySource}` : "",
+        ].filter(Boolean).join(" ") + ".",
       ],
     };
   }
@@ -3408,7 +3497,7 @@ export const buildSulfurRecommendationPrintModel = (
       lines: model.sources.length
         ? model.sources.map((source) =>
             [
-              source.name || "Fonte retornada pelo backend",
+              source.name,
               source.dose ? `dose ${source.dose}` : "",
               source.quantity ? `quantidade ${source.quantity}` : "",
               source.sulfurProvided ? `S fornecido ${source.sulfurProvided}` : "",
@@ -3467,6 +3556,7 @@ export function SulfurRecommendationSection({
   }
 
   if (mode === "direct") {
+    const primarySource = getSulfurPrimarySource(model);
     return (
       <Box borderWidth="1px" borderRadius="md" p={3}>
         <VStack align="stretch" gap={2}>
@@ -3475,8 +3565,10 @@ export function SulfurRecommendationSection({
             <Badge colorPalette="green">Plantio</Badge>
           </HStack>
           <Text fontWeight="medium">
-            Aplicar {model.dose || "a dose retornada pelo backend"} de S na linha de plantio usando{" "}
-            {getSulfurPrimarySource(model)}.
+            {[
+              `Aplicar ${model.dose || "a dose de S retornada pelo backend"} na linha de plantio`,
+              primarySource ? `usando ${primarySource}` : "",
+            ].filter(Boolean).join(" ")}.
           </Text>
         </VStack>
       </Box>
@@ -3484,6 +3576,14 @@ export function SulfurRecommendationSection({
   }
 
   if (mode === "summary") {
+    const items = [
+      model.dose ? { label: "Dose de S", value: model.dose, strong: true } : null,
+      model.sources[0]?.name ? { label: "Fonte principal", value: getSulfurPrimarySource(model), strong: false } : null,
+      model.reason || model.deficiencyLevel
+        ? { label: "Motivo", value: model.reason || model.deficiencyLevel, strong: false }
+        : null,
+    ].filter((item): item is { label: string; value: string; strong: boolean } => Boolean(item));
+
     return (
       <Box borderWidth="1px" borderRadius="md" p={3}>
         <VStack align="stretch" gap={2}>
@@ -3491,20 +3591,16 @@ export function SulfurRecommendationSection({
             <Heading size="sm">Enxofre (S)</Heading>
             <Badge colorPalette="green">Recomendado</Badge>
           </HStack>
-          <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
-            <Box>
-              <Text color="fg.muted" fontSize="xs">Dose de S</Text>
-              <Text fontWeight="medium">{model.dose || "-"}</Text>
-            </Box>
-            <Box>
-              <Text color="fg.muted" fontSize="xs">Fonte principal</Text>
-              <Text>{getSulfurPrimarySource(model)}</Text>
-            </Box>
-            <Box>
-              <Text color="fg.muted" fontSize="xs">Motivo</Text>
-              <Text>{model.reason || model.deficiencyLevel || "-"}</Text>
-            </Box>
-          </SimpleGrid>
+          {items.length > 0 ? (
+            <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+              {items.map((item) => (
+                <Box key={item.label}>
+                  <Text color="fg.muted" fontSize="xs">{item.label}</Text>
+                  <Text fontWeight={item.strong ? "medium" : undefined}>{item.value}</Text>
+                </Box>
+              ))}
+            </SimpleGrid>
+          ) : null}
         </VStack>
       </Box>
     );
@@ -3537,6 +3633,13 @@ export function SulfurRecommendationSection({
     );
   }
 
+  const detailItems = [
+    model.dose ? { label: "Dose recomendada de S", value: model.dose, strong: true } : null,
+    model.layer ? { label: "Camada usada", value: model.layer, strong: false } : null,
+    model.deficiencyLevel ? { label: "Nível de deficiência", value: model.deficiencyLevel, strong: false } : null,
+    model.finalBalance.s ? { label: "Saldo final de S", value: model.finalBalance.s, strong: false } : null,
+  ].filter((item): item is { label: string; value: string; strong: boolean } => Boolean(item));
+
   return (
     <Box borderWidth="1px" borderRadius="md" p={3}>
       <VStack align="stretch" gap={3}>
@@ -3544,24 +3647,16 @@ export function SulfurRecommendationSection({
           <Heading size="sm">Enxofre (S)</Heading>
           <Badge colorPalette="green">Recomendado</Badge>
         </HStack>
-        <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-          <Box>
-            <Text color="fg.muted" fontSize="xs">Dose recomendada de S</Text>
-            <Text fontWeight="medium">{model.dose || "-"}</Text>
-          </Box>
-          <Box>
-            <Text color="fg.muted" fontSize="xs">Camada usada</Text>
-            <Text>{model.layer || "0 a 20 cm"}</Text>
-          </Box>
-          <Box>
-            <Text color="fg.muted" fontSize="xs">Nível de deficiência</Text>
-            <Text>{model.deficiencyLevel || "-"}</Text>
-          </Box>
-          <Box>
-            <Text color="fg.muted" fontSize="xs">Saldo final de S</Text>
-            <Text>{model.finalBalance.s || "-"}</Text>
-          </Box>
-        </SimpleGrid>
+        {detailItems.length > 0 ? (
+          <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+            {detailItems.map((item) => (
+              <Box key={item.label}>
+                <Text color="fg.muted" fontSize="xs">{item.label}</Text>
+                <Text fontWeight={item.strong ? "medium" : undefined}>{item.value}</Text>
+              </Box>
+            ))}
+          </SimpleGrid>
+        ) : null}
 
         {model.sources.length > 0 ? (
           <RecommendationTable
@@ -3602,14 +3697,16 @@ export function SulfurRecommendationSection({
           </SimpleGrid>
         ) : null}
 
-        <Box>
-          <Text color="fg.muted" fontSize="xs">Orientação de manejo</Text>
-          <VStack align="stretch" gap={1} mt={1}>
-            {model.managementGuidance.map((guidance) => (
-              <Text key={guidance}>{guidance}</Text>
-            ))}
-          </VStack>
-        </Box>
+        {model.managementGuidance.length > 0 ? (
+          <Box>
+            <Text color="fg.muted" fontSize="xs">Orientação de manejo</Text>
+            <VStack align="stretch" gap={1} mt={1}>
+              {model.managementGuidance.map((guidance) => (
+                <Text key={guidance}>{guidance}</Text>
+              ))}
+            </VStack>
+          </Box>
+        ) : null}
       </VStack>
     </Box>
   );
@@ -3634,18 +3731,7 @@ const getEconomicShoppingItems = (model: EconomicFertilizerDecisionModel): Econo
 };
 
 function EconomicDecisionWarning({ warning }: { warning: string }) {
-  if (!warning) return null;
-
-  return (
-    <Box borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
-      <Text color="orange.700" fontSize="sm" fontWeight="semibold">
-        Aviso técnico
-      </Text>
-      <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
-        {warning}
-      </Text>
-    </Box>
-  );
+  return <TechnicalWarningBox warning={warning} />;
 }
 
 function EconomicFertilizerDecisionSection({
@@ -3700,8 +3786,8 @@ function EconomicFertilizerDecisionSection({
                 </Badge>
               );
             }
-            if (column.key === "ratio") return model.ratio ? `${model.ratioLabel}: ${model.ratio}` : "-";
-            return model.economyOrReason || model.warning || "Sem economia calculada pelo backend.";
+            if (column.key === "ratio") return model.ratio ? `${model.ratioLabel}: ${model.ratio}` : "";
+            return model.economyOrReason || model.warning;
           }}
         />
       </VStack>
@@ -3741,9 +3827,9 @@ function EconomicFertilizerDecisionSection({
                           </HStack>
                         );
                       }
-                      if (column.key === "dose") return item.dose || "-";
-                      if (column.key === "quantity") return item.quantity || "-";
-                      return item.observation || model.economyOrReason || "-";
+                      if (column.key === "dose") return item.dose;
+                      if (column.key === "quantity") return item.quantity;
+                      return item.observation || model.economyOrReason;
                     }}
                   />
                 ) : (
@@ -3770,63 +3856,62 @@ function EconomicFertilizerDecisionSection({
               <Badge colorPalette={getEconomicDecisionBadgeColor(model.decision)}>{model.decisionLabel}</Badge>
             </HStack>
             <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
-              <Box>
-                <Text color="fg.muted" fontSize="xs">Produto avaliado</Text>
-                <Text fontWeight="medium">{model.productName || "-"}</Text>
-              </Box>
-              <Box>
-                <Text color="fg.muted" fontSize="xs">Tipo</Text>
-                <Text>{model.productType || "Composto/formulado/FTE"}</Text>
-              </Box>
-              <Box>
-                <Text color="fg.muted" fontSize="xs">Preço comercial</Text>
-                <Text>{model.commercialPrice || "-"}</Text>
-              </Box>
-              <Box>
-                <Text color="fg.muted" fontSize="xs">Preço de oportunidade</Text>
-                <Text>{model.opportunityPrice || "-"}</Text>
-              </Box>
-              <Box>
-                <Text color="fg.muted" fontSize="xs">{model.ratioLabel}</Text>
-                <Text>{model.ratio || "-"}</Text>
-              </Box>
-              <Box>
-                <Text color="fg.muted" fontSize="xs">Decisão final</Text>
-                <Text fontWeight="medium">{model.decisionLabel}</Text>
-              </Box>
+              {[
+                model.productName ? { label: "Produto avaliado", value: model.productName, strong: true } : null,
+                model.productType ? { label: "Tipo", value: model.productType, strong: false } : null,
+                model.commercialPrice ? { label: "Preço comercial", value: model.commercialPrice, strong: false } : null,
+                model.opportunityPrice ? { label: "Preço de oportunidade", value: model.opportunityPrice, strong: false } : null,
+                model.ratio ? { label: model.ratioLabel, value: model.ratio, strong: false } : null,
+                model.decisionLabel ? { label: "Decisão final", value: model.decisionLabel, strong: true } : null,
+              ].filter((item): item is { label: string; value: string; strong: boolean } => Boolean(item)).map((item) => (
+                <Box key={item.label}>
+                  <Text color="fg.muted" fontSize="xs">{item.label}</Text>
+                  <Text fontWeight={item.strong ? "medium" : undefined}>{item.value}</Text>
+                </Box>
+              ))}
             </SimpleGrid>
 
-            {model.referenceSources.length > 0 ? (
-              <Box>
-                <Text color="fg.muted" fontSize="xs">Fontes simples usadas como referência</Text>
-                <Text whiteSpace="pre-wrap">{model.referenceSources.join("\n")}</Text>
+            {model.referenceSources.length > 0 || model.nutrientPrices.length > 0 ? (
+              <Box as="details" borderWidth="1px" borderRadius="md" p={3}>
+                <Box as="summary" cursor="pointer" fontWeight="medium">
+                  Ver cálculo
+                </Box>
+                <VStack align="stretch" gap={3} mt={3}>
+                  {model.referenceSources.length > 0 ? (
+                    <Box>
+                      <Text color="fg.muted" fontSize="xs">Fontes simples usadas como referência</Text>
+                      <Text whiteSpace="pre-wrap">{model.referenceSources.join("\n")}</Text>
+                    </Box>
+                  ) : null}
+                  {model.nutrientPrices.length > 0 ? (
+                    <RecommendationTable
+                      columns={[
+                        { key: "nutrient", header: "Nutriente", minW: "120px" },
+                        { key: "price", header: "Menor R$/kg", minW: "140px" },
+                        { key: "source", header: "Fonte referência", minW: "240px" },
+                      ]}
+                      rows={model.nutrientPrices}
+                      minW="620px"
+                      getRowKey={(item, itemIndex) => `${item.nutrient}-${itemIndex}`}
+                      renderCell={(item, column) => {
+                        if (column.key === "nutrient") return item.nutrient;
+                        if (column.key === "price") return item.price;
+                        return item.source;
+                      }}
+                    />
+                  ) : null}
+                </VStack>
               </Box>
             ) : null}
 
-            {model.nutrientPrices.length > 0 ? (
-              <RecommendationTable
-                columns={[
-                  { key: "nutrient", header: "Nutriente", minW: "120px" },
-                  { key: "price", header: "Menor R$/kg", minW: "140px" },
-                  { key: "source", header: "Fonte referência", minW: "240px" },
-                ]}
-                rows={model.nutrientPrices}
-                minW="620px"
-                getRowKey={(item, itemIndex) => `${item.nutrient}-${itemIndex}`}
-                renderCell={(item, column) => {
-                  if (column.key === "nutrient") return item.nutrient || "-";
-                  if (column.key === "price") return item.price || "-";
-                  return item.source || "-";
-                }}
-              />
+            {model.justification || model.economyOrReason ? (
+              <Box>
+                <Text color="fg.muted" fontSize="xs">Justificativa técnica/econômica</Text>
+                <Text whiteSpace="pre-wrap">
+                  {model.justification || model.economyOrReason}
+                </Text>
+              </Box>
             ) : null}
-
-            <Box>
-              <Text color="fg.muted" fontSize="xs">Justificativa técnica/econômica</Text>
-              <Text whiteSpace="pre-wrap">
-                {model.justification || model.economyOrReason || "Justificativa econômica não retornada pelo backend."}
-              </Text>
-            </Box>
             <EconomicDecisionWarning warning={model.warning} />
           </VStack>
         </Box>
@@ -3875,12 +3960,16 @@ function CorrectiveItemsTable({
   const columns = mode === "summary" || mode === "direct"
     ? correctiveItemColumns.filter((column) => ["source", "dose", "balance", "observation"].includes(column.key))
     : correctiveItemColumns;
+  const visibleColumns = columns.filter((column) => {
+    if (["source", "dose"].includes(column.key)) return true;
+    return rows.some((row) => hasRenderableCell(renderCorrectiveItemCell(row, column)));
+  });
 
   return (
     <VStack align="stretch" gap={2}>
       <Heading size="sm">{title}</Heading>
       <RecommendationTable
-        columns={columns}
+        columns={visibleColumns}
         rows={rows}
         minW={mode === "summary" || mode === "direct" ? "760px" : "1040px"}
         getRowKey={(row, index) => `${title}-${row.name}-${index}`}
@@ -3914,34 +4003,39 @@ function CorrectiveFormulatedTable({
         { key: "balances", header: "Saldos finais", minW: "220px" },
         { key: "observation", header: "Aviso/observação", minW: "220px" },
       ];
+  const getCellValue = (row: CorrectiveFormulatedModel, column: RecommendationTableColumn) => {
+    if (column.key === "formulated") return row.name || "";
+    if (column.key === "dose") return row.dose || "";
+    if (column.key === "quantity") return row.quantity || "";
+    if (column.key === "complements") {
+      return [
+        row.p2o5Complement ? `P2O5: ${row.p2o5Complement}` : "",
+        row.k2oComplement ? `K2O: ${row.k2oComplement}` : "",
+      ].filter(Boolean).join("\n");
+    }
+    if (column.key === "balances") {
+      return [
+        row.finalP2o5Balance ? `P2O5: ${row.finalP2o5Balance}` : "",
+        row.finalK2oBalance ? `K2O: ${row.finalK2oBalance}` : "",
+        !row.finalP2o5Balance && !row.finalK2oBalance ? row.finalBalance : "",
+      ].filter(Boolean).join("\n");
+    }
+    return row.observation || "";
+  };
+  const visibleColumns = columns.filter((column) => {
+    if (["formulated", "dose"].includes(column.key)) return true;
+    return rows.some((row) => hasRenderableCell(getCellValue(row, column)));
+  });
 
   return (
     <VStack align="stretch" gap={2}>
       <Heading size="sm">Formulado 00-P2O5-K2O</Heading>
       <RecommendationTable
-        columns={columns}
+        columns={visibleColumns}
         rows={rows}
         minW={mode === "summary" || mode === "direct" ? "820px" : "1120px"}
         getRowKey={(row, index) => `${row.name}-${index}`}
-        renderCell={(row, column) => {
-          if (column.key === "formulated") return row.name || "-";
-          if (column.key === "dose") return row.dose || "-";
-          if (column.key === "quantity") return row.quantity || "-";
-          if (column.key === "complements") {
-            return [
-              row.p2o5Complement ? `P2O5: ${row.p2o5Complement}` : "",
-              row.k2oComplement ? `K2O: ${row.k2oComplement}` : "",
-            ].filter(Boolean).join("\n") || "-";
-          }
-          if (column.key === "balances") {
-            return [
-              row.finalP2o5Balance ? `P2O5: ${row.finalP2o5Balance}` : "",
-              row.finalK2oBalance ? `K2O: ${row.finalK2oBalance}` : "",
-              !row.finalP2o5Balance && !row.finalK2oBalance ? row.finalBalance : "",
-            ].filter(Boolean).join("\n") || "-";
-          }
-          return row.observation || "-";
-        }}
+        renderCell={getCellValue}
       />
     </VStack>
   );
@@ -3976,7 +4070,7 @@ function CorrectiveMicronutrientsSection({
   const fteRows = [
     { label: "FTE BR 12", item: model.fteBr12 },
     { label: "FTE mais concentrado em Zn", item: model.fteConcentrated },
-  ];
+  ].filter((row): row is { label: string; item: CorrectiveFertilizerItemModel } => Boolean(row.item));
 
   return (
     <VStack align="stretch" gap={3}>
@@ -3986,21 +4080,27 @@ function CorrectiveMicronutrientsSection({
           pH informado: {model.ph}
         </Text>
       ) : null}
-      <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-        {fteRows.map(({ label, item }) => (
-          <Box key={label} borderWidth="1px" borderRadius="md" p={3}>
-            <VStack align="stretch" gap={2}>
-              <Heading size="sm">{label}</Heading>
-              <Text>
-                Dose: <strong>{item?.dose || "-"}</strong>
-              </Text>
-              <Text color="fg.muted" fontSize="sm">
-                {item?.quantity ? `Quantidade: ${item.quantity}` : item?.observation || "Dados retornados sem quantidade estruturada."}
-              </Text>
-            </VStack>
-          </Box>
-        ))}
-      </SimpleGrid>
+      {fteRows.length > 0 ? (
+        <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+          {fteRows.map(({ label, item }) => (
+            <Box key={label} borderWidth="1px" borderRadius="md" p={3}>
+              <VStack align="stretch" gap={2}>
+                <Heading size="sm">{label}</Heading>
+                {item.dose ? (
+                  <Text>
+                    Dose: <strong>{item.dose}</strong>
+                  </Text>
+                ) : null}
+                {item.quantity || item.observation ? (
+                  <Text color="fg.muted" fontSize="sm">
+                    {item.quantity ? `Quantidade: ${item.quantity}` : item.observation}
+                  </Text>
+                ) : null}
+              </VStack>
+            </Box>
+          ))}
+        </SimpleGrid>
+      ) : null}
 
       {model.balanceRows.length > 0 ? (
         <RecommendationTable
@@ -4154,14 +4254,7 @@ function CorrectiveSoilFertilizationSection({
         <CorrectiveItemsTable title="K2O" rows={model.k2oSources} mode={mode} />
         <CorrectiveFormulatedTable rows={model.formulated} mode={mode} />
         {model.micronutrients ? <CorrectiveMicronutrientsSection model={model.micronutrients} /> : null}
-        <Box borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
-          <Text color="orange.700" fontSize="sm" fontWeight="semibold">
-            Aviso técnico
-          </Text>
-          <Text color="orange.700" fontSize="sm">
-            {model.residualWarning}
-          </Text>
-        </Box>
+        {model.residualWarning ? <EconomicDecisionWarning warning={model.residualWarning} /> : null}
       </VStack>
     </Box>
   );
@@ -4228,6 +4321,7 @@ export default function RecommendationStructuredFertilizerTables({
   const displayDocument = document;
   const viewMode = mode ?? (showShoppingListHeader ? "shopping" : "direct");
   const hasOptionContent = hasFertilizationOptionContent(displayDocument);
+  const uniqueTechnicalWarnings = compactTextList(technicalWarnings);
 
   if (!hasStructuredRecommendationContent(displayDocument)) return null;
 
@@ -4236,15 +4330,8 @@ export default function RecommendationStructuredFertilizerTables({
       {showShoppingListHeader && displayDocument ? (
         <ShoppingListHeader document={displayDocument as ShoppingListResponse} />
       ) : null}
-      {technicalWarnings.map((warning) => (
-        <Box key={warning} borderWidth="1px" borderColor="orange.200" bg="orange.50" p={3} borderRadius="md">
-          <Text color="orange.700" fontSize="sm" fontWeight="semibold">
-            Aviso técnico
-          </Text>
-          <Text color="orange.700" fontSize="sm" whiteSpace="pre-wrap">
-            {warning}
-          </Text>
-        </Box>
+      {uniqueTechnicalWarnings.map((warning) => (
+        <TechnicalWarningBox key={warning} warning={warning} />
       ))}
       <CorrectiveSoilFertilizationSection document={displayDocument} mode={viewMode} />
       <EconomicFertilizerDecisionSection document={displayDocument} mode={viewMode} />
