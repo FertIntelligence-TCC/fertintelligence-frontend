@@ -22,15 +22,38 @@ const normalizeCropResponse = (crop: CropResponseDto): CropResponseDto => {
 
   return {
     ...crop,
-    modo_espacamento: "plants_per_meter",
+    modo_espacamento: toFrontendSpacingMode(crop.modo_espacamento),
   };
 };
+
+const toBackendSpacingMode = (value?: PlantSpacingMode | string | null) => {
+  if (value === "plants_per_meter") return "PLANTS_PER_LINEAR_METER";
+  if (value === "holes") return "PIT";
+  return value;
+};
+
+const toFrontendSpacingMode = (value?: string | null): PlantSpacingMode | null | undefined => {
+  if (value === "PLANTS_PER_LINEAR_METER") return "plants_per_meter";
+  if (value === "PIT") return "holes";
+  if (isPlantSpacingMode(value)) return value;
+  return value as PlantSpacingMode | null | undefined;
+};
+
+const mapCreateCropToBackend = (data: CropCreateRequestDto) => ({
+  ...data,
+  modo_espacamento: toBackendSpacingMode(data.modo_espacamento),
+});
+
+const mapUpdateCropToBackend = (data: CropPostRequestDto) => ({
+  ...data,
+  novo_modo_espacamento: toBackendSpacingMode(data.novo_modo_espacamento),
+});
 
 export const createCrop = async (
   folderId: number,
   data: CropCreateRequestDto
 ): Promise<CropResponseDto> => {
-  const response = await api.post(ENDPOINT.CREATE_CROP, data, {
+  const response = await api.post(ENDPOINT.CREATE_CROP, mapCreateCropToBackend(data), {
     params: { folderId }
   });
   return normalizeCropResponse(response.data);
@@ -58,7 +81,7 @@ export const updateCrop = async (
   cropId: number,
   data: CropPostRequestDto
 ): Promise<CropResponseDto> => {
-  const response = await api.put(ENDPOINT.UPDATE_CROP, data, {
+  const response = await api.put(ENDPOINT.UPDATE_CROP, mapUpdateCropToBackend(data), {
     params: { cropId }
   });
   return normalizeCropResponse(response.data);
