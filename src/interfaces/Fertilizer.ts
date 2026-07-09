@@ -31,6 +31,10 @@ export const getOrganicMatterContent = (item: {
 
 export interface FertilizerCommercialPriceResponseFields {
     data_tomada_preco?: string | null;
+    preco_saco_5kg?: number | null;
+    preco_saco_25kg?: number | null;
+    preco_saco_50kg?: number | null;
+    preco_saco_1000kg?: number | null;
     preco_saco_5_kg?: number | null;
     preco_saco_25_kg?: number | null;
     preco_saco_50_kg?: number | null;
@@ -105,15 +109,40 @@ export const parseFertilizerCommercialPriceDateForPayload = (value: string): str
     return trimmed;
 };
 
+export const getFertilizerCommercialPriceValue = (
+    item: FertilizerCommercialPriceResponseFields | undefined,
+    packageSize: "5" | "25" | "50" | "1000"
+): number | null => {
+    if (!item) return null;
+
+    switch (packageSize) {
+        case "5":
+            return item.preco_saco_5kg ?? item.preco_saco_5_kg ?? null;
+        case "25":
+            return item.preco_saco_25kg ?? item.preco_saco_25_kg ?? null;
+        case "50":
+            return item.preco_saco_50kg ?? item.preco_saco_50_kg ?? null;
+        case "1000":
+            return item.preco_saco_1000kg ?? item.preco_saco_1000_kg ?? null;
+    }
+};
+
 export const fertilizerCommercialPriceResponseToForm = (
     item: FertilizerCommercialPriceResponseFields
-): FertilizerCommercialPriceFormFields => ({
-    dataTomadaPreco: formatFertilizerCommercialPriceDateForForm(item.data_tomada_preco),
-    precoSaco5Kg: item.preco_saco_5_kg == null ? "" : String(item.preco_saco_5_kg),
-    precoSaco25Kg: item.preco_saco_25_kg == null ? "" : String(item.preco_saco_25_kg),
-    precoSaco50Kg: item.preco_saco_50_kg == null ? "" : String(item.preco_saco_50_kg),
-    precoSaco1000Kg: item.preco_saco_1000_kg == null ? "" : String(item.preco_saco_1000_kg),
-});
+): FertilizerCommercialPriceFormFields => {
+    const precoSaco5Kg = getFertilizerCommercialPriceValue(item, "5");
+    const precoSaco25Kg = getFertilizerCommercialPriceValue(item, "25");
+    const precoSaco50Kg = getFertilizerCommercialPriceValue(item, "50");
+    const precoSaco1000Kg = getFertilizerCommercialPriceValue(item, "1000");
+
+    return {
+        dataTomadaPreco: formatFertilizerCommercialPriceDateForForm(item.data_tomada_preco),
+        precoSaco5Kg: precoSaco5Kg == null ? "" : String(precoSaco5Kg),
+        precoSaco25Kg: precoSaco25Kg == null ? "" : String(precoSaco25Kg),
+        precoSaco50Kg: precoSaco50Kg == null ? "" : String(precoSaco50Kg),
+        precoSaco1000Kg: precoSaco1000Kg == null ? "" : String(precoSaco1000Kg),
+    };
+};
 
 export const fertilizerCommercialPriceFormToCreatePayload = (
     form: FertilizerCommercialPriceFormFields

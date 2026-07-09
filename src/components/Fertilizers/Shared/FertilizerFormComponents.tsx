@@ -5,6 +5,7 @@ import {
     FertilizerCommercialPriceFormFields,
     FertilizerCommercialPriceResponseFields,
     formatFertilizerCommercialPriceDateForForm,
+    getFertilizerCommercialPriceValue,
 } from "@/interfaces/Fertilizer";
 
 interface FertilizerInputFieldProps {
@@ -135,10 +136,10 @@ const formatCommercialPriceValue = (value?: number | null) =>
 export const hasFertilizerCommercialPrice = (item?: FertilizerCommercialPriceResponseFields) =>
     Boolean(
         item?.data_tomada_preco ||
-        item?.preco_saco_5_kg != null ||
-        item?.preco_saco_25_kg != null ||
-        item?.preco_saco_50_kg != null ||
-        item?.preco_saco_1000_kg != null
+        getFertilizerCommercialPriceValue(item, "5") != null ||
+        getFertilizerCommercialPriceValue(item, "25") != null ||
+        getFertilizerCommercialPriceValue(item, "50") != null ||
+        getFertilizerCommercialPriceValue(item, "1000") != null
     );
 
 export const FertilizerCommercialPriceSummary = ({
@@ -148,11 +149,16 @@ export const FertilizerCommercialPriceSummary = ({
 }) => {
     if (!hasFertilizerCommercialPrice(item)) return null;
 
+    const precoSaco5Kg = getFertilizerCommercialPriceValue(item, "5");
+    const precoSaco25Kg = getFertilizerCommercialPriceValue(item, "25");
+    const precoSaco50Kg = getFertilizerCommercialPriceValue(item, "50");
+    const precoSaco1000Kg = getFertilizerCommercialPriceValue(item, "1000");
+
     const priceParts = [
-        item?.preco_saco_5_kg != null ? `5 kg: ${formatCommercialPriceValue(item.preco_saco_5_kg)}` : "",
-        item?.preco_saco_25_kg != null ? `25 kg: ${formatCommercialPriceValue(item.preco_saco_25_kg)}` : "",
-        item?.preco_saco_50_kg != null ? `50 kg: ${formatCommercialPriceValue(item.preco_saco_50_kg)}` : "",
-        item?.preco_saco_1000_kg != null ? `1000 kg/big bag: ${formatCommercialPriceValue(item.preco_saco_1000_kg)}` : "",
+        precoSaco5Kg != null ? `5 kg: ${formatCommercialPriceValue(precoSaco5Kg)}` : "",
+        precoSaco25Kg != null ? `25 kg: ${formatCommercialPriceValue(precoSaco25Kg)}` : "",
+        precoSaco50Kg != null ? `50 kg: ${formatCommercialPriceValue(precoSaco50Kg)}` : "",
+        precoSaco1000Kg != null ? `1000 kg/big bag: ${formatCommercialPriceValue(precoSaco1000Kg)}` : "",
     ].filter(Boolean);
 
     return (
