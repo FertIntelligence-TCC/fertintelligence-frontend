@@ -243,6 +243,15 @@ const renderReportTextHtml = (text: string) => {
         return content ? `<p class="technical-warning">${escapeHtml(content)}</p>` : "";
       }
 
+      if (block.type === "notice") {
+        const content = cleanRecommendationDocumentText(block.content);
+        return content ? `<p class="technical-warning"><strong>${escapeHtml(block.label)}:</strong> ${escapeHtml(content)}</p>` : "";
+      }
+
+      if (block.type === "emptyTable") {
+        return "<p>Sem dados calculados para esta seção.</p>";
+      }
+
       const content = cleanRecommendationDocumentText(block.content);
       return content ? `<p>${escapeHtml(content)}</p>` : "";
     })
@@ -257,7 +266,7 @@ export const writePrintableReport = (
   const contentHtml = renderReportTextHtml(text);
   const renderedReportWarningKeys = new Set(
     parseRecommendationReportBlocks(text)
-      .filter((block) => block.type === "warning")
+      .filter((block) => block.type === "warning" || block.type === "notice")
       .map((block) => normalizeComparableText(block.content)),
   );
   const technicalWarningsHtml = getPrintableTechnicalWarnings(printableRecommendation)

@@ -34,11 +34,17 @@ export default function RecommendationTable<TRow>({
   return (
     <Box
       overflowX="auto"
+      overflowY="hidden"
+      maxW="100%"
       borderWidth="1px"
       borderColor="gray.300"
       borderRadius="md"
       bg="bg.panel"
       _dark={{ borderColor: "gray.600" }}
+      css={{
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "thin",
+      }}
     >
       <Table.Root
         size="sm"
