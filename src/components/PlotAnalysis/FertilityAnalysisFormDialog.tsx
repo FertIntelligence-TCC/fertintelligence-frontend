@@ -177,6 +177,25 @@ const formatEditableNumericValue = (value: unknown) => {
     return numericValue === null ? "" : String(value);
 };
 
+const formatExtractNavigationLabel = (
+    extract: Pick<FertilityExtractFormData, "profundidadeInicial" | "profundidadeFinal" | "camada" | "subcamada">,
+    index: number,
+    mode: AnalysisMode
+) => {
+    const initialDepth = parseDecimalInputOrNull(extract.profundidadeInicial);
+    const finalDepth = parseDecimalInputOrNull(extract.profundidadeFinal);
+
+    if (initialDepth !== null && finalDepth !== null) {
+        return `${initialDepth.toLocaleString("pt-BR")}-${finalDepth.toLocaleString("pt-BR")}`;
+    }
+
+    if (mode === "LAYER") {
+        return `Camada ${extract.camada || "?"}${extract.subcamada ?? ""}`;
+    }
+
+    return `Amostra ${index + 1}`;
+};
+
 const formatCalculatedValueWithRuntimeFallback = (
     runtimeValue: number | null | undefined,
     backendValue: number | null | undefined,
@@ -263,6 +282,7 @@ export const FertilityAnalysisFormDialog = ({
     const autoSaveRequestIdRef = useRef(0);
     const lastAutoSaveSignatureRef = useRef("");
     const skipNextAutoSaveRef = useRef(false);
+    const extractSectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     const runtimeFertilityBaseSignature = extracts
         .map((extract) => [
@@ -654,6 +674,13 @@ export const FertilityAnalysisFormDialog = ({
         isReadOnly,
     };
 
+    const scrollToExtract = (tempId: string) => {
+        extractSectionRefs.current[tempId]?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        });
+    };
+
     return (
         <DialogRoot open={isOpen} onOpenChange={onClose} size="xl">
             <DialogContent bg="gray.50" _dark={{ bg: "gray.900", color: "gray.100" }}>
@@ -708,11 +735,46 @@ export const FertilityAnalysisFormDialog = ({
                                         </HStack>
                                     )}
                                 </Flex>
-                                <VStack gap={4} align="stretch">
+                                <Flex align="flex-start" gap={4} direction={{ base: "column", md: "row" }}>
+                                    {extracts.length > 1 && (
+                                        <Box
+                                            minW={{ base: "full", md: "92px" }}
+                                            position={{ base: "static", md: "sticky" }}
+                                            top={2}
+                                        >
+                                            <VStack align="stretch" gap={2}>
+                                                {extracts.map((ext, idx) => (
+                                                    <Button
+                                                        key={ext.tempId}
+                                                        size="xs"
+                                                        variant="outline"
+                                                        colorPalette="teal"
+                                                        justifyContent="flex-start"
+                                                        onMouseDown={(event) => event.preventDefault()}
+                                                        onClick={() => scrollToExtract(ext.tempId)}
+                                                    >
+                                                        {formatExtractNavigationLabel(ext, idx, mode)}
+                                                    </Button>
+                                                ))}
+                                            </VStack>
+                                        </Box>
+                                    )}
+                                    <VStack gap={4} align="stretch" flex={1} minW={0}>
                                     {extracts.map((ext, idx) => {
                                         const runtimeDerivedValues = runtimeDerivedValuesByTempId.get(ext.tempId);
                                         return (
-                                        <Box key={ext.tempId} p={5} borderWidth="1px" borderColor="gray.300" _dark={{ bg: "gray.800", borderColor: "gray.600" }} borderRadius="lg" bg="white" shadow="sm">
+                                        <Box
+                                            key={ext.tempId}
+                                            ref={(node: HTMLDivElement | null) => { extractSectionRefs.current[ext.tempId] = node; }}
+                                            scrollMarginTop="16px"
+                                            p={5}
+                                            borderWidth="1px"
+                                            borderColor="gray.300"
+                                            _dark={{ bg: "gray.800", borderColor: "gray.600" }}
+                                            borderRadius="lg"
+                                            bg="white"
+                                            shadow="sm"
+                                        >
                                             <Flex justify="space-between" mb={4} align="center">
                                                 <Badge colorPalette="teal" size="lg" variant="subtle">{mode === 'LAYER' ? `Camada ${ext.camada}${ext.subcamada}` : `Amostra ${idx + 1}`}</Badge>
                                                 {!isReadOnly && (
@@ -810,7 +872,8 @@ export const FertilityAnalysisFormDialog = ({
                                         </Box>
                                         );
                                     })}
-                                </VStack>
+                                    </VStack>
+                                </Flex>
                             </Box>
                         )}
                     </VStack>
