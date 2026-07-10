@@ -46,6 +46,44 @@ type Props = {
     tableId?: number | null;
 };
 
+const auxiliaryTableLabels = {
+    salinity: "Salinidade",
+    availablePMehlich1: "Fósforo (P) Disponível com Extrator Mehlich-1 - mg/dm³",
+    availablePResin: "Fósforo (P) Disponível com Extrator Resina de Troca Aniônica - mg/dm³",
+    availableS: "Enxofre (S) Disponível - mg/dm³",
+    sulfurDose: "Doses de Enxofre (S) - kg/ha",
+    potassiumContentAndDose: "Teores e Doses de Potássio (K) - mg/dm³ e kg/ha",
+    phosphorusClayContentAndPhosphateDose: "Teores de Fósforo (P) e Argila (g/kg), e Doses de Fosfato (PO₄³⁻)",
+    correctiveP2O5Fertilization: "Adubação Corretiva de Fósforo (P₂O₅)",
+    correctiveK2OFertilization: "Adubação Corretiva de Potássio (K₂O)",
+    micronutrientDose: "Doses de Micronutrientes - kg/ha",
+    diverseContent: "Teores de Nutrientes Diversos - mg/dm³, % ou mmolc/dm³",
+    exchangeableSodium: "Sódio (Na) Trocável - mmolc/dm³",
+    ctcSaturation: "Saturação na CTC(T), em %",
+    exchangeableBaseRatio: "Relações entre Bases Trocáveis, adimensional",
+    recommendedLimestoneType: "Tipos de calcário recomendados"
+} as const;
+
+type AuxiliaryTableKey = keyof typeof auxiliaryTableLabels;
+
+const auxiliaryTableOrder: AuxiliaryTableKey[] = [
+    "salinity",
+    "availablePMehlich1",
+    "availablePResin",
+    "availableS",
+    "sulfurDose",
+    "potassiumContentAndDose",
+    "phosphorusClayContentAndPhosphateDose",
+    "correctiveP2O5Fertilization",
+    "correctiveK2OFertilization",
+    "micronutrientDose",
+    "diverseContent",
+    "exchangeableSodium",
+    "ctcSaturation",
+    "exchangeableBaseRatio",
+    "recommendedLimestoneType"
+];
+
 export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, tableId }: Props) {
 
     // Estados para controle dos Modais
@@ -69,23 +107,55 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
         items: Object.keys(RegionEnum).map((k) => ({ label: k.replace(/_/g, ' '), value: k })),
     });
 
-    const auxiliaryTables = [
-        "Salinidade",
-        "Fósforo disponível, extrator Mehlich-1",
-        "Fósforo Disponível (Extrator Resina) - mg/dm³",
-        "S disponível",
-        "Doses de S",
-        "Teores e Doses de K",
-        "Teores de Fósforo e Argila, e Doses de Fosfato",
-        "Adubação Corretiva de P2O5",
-        "Adubação Corretiva de K2O",
-        "Doses de micronutrientes",
-        "Teores de Nutrientes Diversos",
-        "Sódio Trocável (mmolc/dm³)",
-        "Saturação na CTC(T), em %",
-        "Relações entre bases trocáveis",
-        "Tipos de calcário recomendados"
-    ];
+    const openAuxiliaryTable = (tableKey: AuxiliaryTableKey) => {
+        switch (tableKey) {
+            case "salinity":
+                setIsSalinityOpen(true);
+                break;
+            case "availablePMehlich1":
+                setIsPMehlich1Open(true);
+                break;
+            case "availablePResin":
+                setIsPResinOpen(true);
+                break;
+            case "availableS":
+                setIsAvailableSOpen(true);
+                break;
+            case "sulfurDose":
+                setIsSulfurDoseOpen(true);
+                break;
+            case "potassiumContentAndDose":
+                setIsPotassiumContentAndDoseOpen(true);
+                break;
+            case "phosphorusClayContentAndPhosphateDose":
+                setIsPhosphorusClayContentAndPhosphateDoseOpen(true);
+                break;
+            case "correctiveP2O5Fertilization":
+                setIsCorrectiveP2O5FertilizationOpen(true);
+                break;
+            case "correctiveK2OFertilization":
+                setIsCorrectiveK2OFertilizationOpen(true);
+                break;
+            case "micronutrientDose":
+                setIsMicronutrientDoseOpen(true);
+                break;
+            case "diverseContent":
+                setIsDiverseContentOpen(true);
+                break;
+            case "exchangeableSodium":
+                setIsExchangeableSodiumOpen(true);
+                break;
+            case "ctcSaturation":
+                setIsCtcSaturationOpen(true);
+                break;
+            case "exchangeableBaseRatio":
+                setIsExchangeableBaseRatioOpen(true);
+                break;
+            case "recommendedLimestoneType":
+                setIsRecommendedLimestoneTypeOpen(true);
+                break;
+        }
+    };
 
     return (
         <VStack gap={6} align="stretch" py={2}>
@@ -197,9 +267,9 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                         Tabelas Auxiliares
                     </Text>
                     <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-                        {auxiliaryTables.map((tableName, index) => (
+                        {auxiliaryTableOrder.map((tableKey) => (
                             <Box
-                                key={index}
+                                key={tableKey}
                                 borderWidth="1px"
                                 borderRadius="md"
                                 p={4}
@@ -213,33 +283,24 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                                     cursor: "pointer" 
                                 }}
                                 transition="all 0.2s"
-                                h="100px"
+                                minH="116px"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
-                                onClick={() => {
-                                    if (tableName === "Salinidade") setIsSalinityOpen(true);
-                                    else if (tableName === "Fósforo disponível, extrator Mehlich-1") setIsPMehlich1Open(true);
-                                    else if (tableName === "Fósforo Disponível (Extrator Resina) - mg/dm³") setIsPResinOpen(true);
-                                    else if (tableName === "S disponível") setIsAvailableSOpen(true);
-                                    else if (tableName === "Doses de S") setIsSulfurDoseOpen(true);
-                                    else if (tableName === "Teores e Doses de K") setIsPotassiumContentAndDoseOpen(true);
-                                    else if (tableName === "Teores de Fósforo e Argila, e Doses de Fosfato") setIsPhosphorusClayContentAndPhosphateDoseOpen(true);
-                                    else if (tableName === "Adubação Corretiva de P2O5") setIsCorrectiveP2O5FertilizationOpen(true);
-                                    else if (tableName === "Adubação Corretiva de K2O") setIsCorrectiveK2OFertilizationOpen(true);
-                                    else if (tableName === "Doses de micronutrientes") setIsMicronutrientDoseOpen(true);
-                                    
-                                    // Nova lógica para Nutrientes Diversos
-                                    else if (tableName === "Teores de Nutrientes Diversos") setIsDiverseContentOpen(true);
-                                    else if (tableName === "Sódio Trocável (mmolc/dm³)") setIsExchangeableSodiumOpen(true);
-                                    else if (tableName === "Saturação na CTC(T), em %") setIsCtcSaturationOpen(true);
-                                    else if (tableName === "Relações entre bases trocáveis") setIsExchangeableBaseRatioOpen(true);
-                                    else if (tableName === "Tipos de calcário recomendados") setIsRecommendedLimestoneTypeOpen(true);
-                                }}
+                                minW={0}
+                                onClick={() => openAuxiliaryTable(tableKey)}
                             >
-                                <Center flexDirection="column" textAlign="center">
-                                    <Text fontWeight="semibold" fontSize="sm" color="gray.700" _dark={{ color: "gray.200" }}>
-                                        {tableName}
+                                <Center flexDirection="column" textAlign="center" w="full" minW={0}>
+                                    <Text
+                                        fontWeight="semibold"
+                                        fontSize="sm"
+                                        color="gray.700"
+                                        _dark={{ color: "gray.200" }}
+                                        whiteSpace="normal"
+                                        overflowWrap="anywhere"
+                                        wordBreak="normal"
+                                    >
+                                        {auxiliaryTableLabels[tableKey]}
                                     </Text>
                                     
                                     <Text fontSize="xs" color={readOnly ? "blue.500" : "green.500"} mt={1}>
