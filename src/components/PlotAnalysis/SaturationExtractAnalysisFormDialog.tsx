@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import {
     DialogRoot,
     DialogContent,
@@ -41,6 +41,82 @@ import { saturationExtractAnalysisExtractService } from "@/services/saturationEx
 import { TipoExtrato } from "@/interfaces/SoilAnalysis";
 import { Camada } from "@/interfaces/LayerExtract";
 import { AnalysisMode, SaturationExtractFormData } from "@/interfaces/SaturationExtractAnalysisFormTypes";
+
+const KEYBOARD_NAV_SCOPE = "saturation-extract-analysis";
+
+const SATURATION_FIELD_ORDER: Array<keyof SaturationExtractFormData> = [
+    "profundidadeInicial",
+    "profundidadeFinal",
+    "ph",
+    "ce",
+    "residuosSuspensao",
+    "teorCa",
+    "teorMg",
+    "teorNa",
+    "teorK",
+    "teorCO3",
+    "teorHCO3",
+    "teorNO3",
+    "teorH2PO4",
+    "teorSO4",
+    "teorCl",
+    "durezaTotalCaCO3",
+    "ras",
+];
+
+const getKeyboardNavInputs = (scope: string) => Array.from(
+    document.querySelectorAll<HTMLInputElement>(
+        `input[data-keyboard-nav-scope="${scope}"]:not([readonly]):not(:disabled)`
+    )
+).sort((a, b) => {
+    const rowDiff = Number(a.dataset.keyboardNavRow) - Number(b.dataset.keyboardNavRow);
+    if (rowDiff !== 0) return rowDiff;
+    return Number(a.dataset.keyboardNavColumn) - Number(b.dataset.keyboardNavColumn);
+});
+
+const focusKeyboardNavInput = (input?: HTMLInputElement) => {
+    if (!input) return;
+    input.focus();
+    input.select();
+};
+
+const shouldKeepHorizontalArrowInText = (event: KeyboardEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const selectionStart = input.selectionStart ?? 0;
+    const selectionEnd = input.selectionEnd ?? selectionStart;
+
+    if (selectionStart !== selectionEnd) return true;
+    if (event.key === "ArrowLeft") return selectionStart > 0;
+    if (event.key === "ArrowRight") return selectionEnd < input.value.length;
+    return false;
+};
+
+const handleKeyboardNav = (event: KeyboardEvent<HTMLInputElement>, scope: string) => {
+    const navigationKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"];
+    if (!navigationKeys.includes(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
+    if ((event.key === "ArrowLeft" || event.key === "ArrowRight") && shouldKeepHorizontalArrowInText(event)) return;
+
+    const inputs = getKeyboardNavInputs(scope);
+    const currentIndex = inputs.indexOf(event.currentTarget);
+    if (currentIndex < 0) return;
+
+    const currentRow = Number(event.currentTarget.dataset.keyboardNavRow);
+    const currentColumn = Number(event.currentTarget.dataset.keyboardNavColumn);
+    let nextInput: HTMLInputElement | undefined;
+
+    if (event.key === "ArrowUp") {
+        nextInput = inputs.filter((input) => Number(input.dataset.keyboardNavColumn) === currentColumn && Number(input.dataset.keyboardNavRow) < currentRow).pop();
+    } else if (event.key === "ArrowDown") {
+        nextInput = inputs.find((input) => Number(input.dataset.keyboardNavColumn) === currentColumn && Number(input.dataset.keyboardNavRow) > currentRow);
+    } else {
+        const offset = event.key === "ArrowLeft" || (event.key === "Enter" && event.shiftKey) ? -1 : 1;
+        nextInput = inputs[currentIndex + offset];
+    }
+
+    if (!nextInput) return;
+    event.preventDefault();
+    focusKeyboardNavInput(nextInput);
+};
 
 // Interface para gerenciar a exclusão completa (Dado + Container)
 interface ItemToDelete {
@@ -143,6 +219,7 @@ type SaturationNumericFieldProps = {
     setNumericDrafts: Dispatch<SetStateAction<Record<string, string>>>;
     onChangeExtract: (tempId: string, field: keyof SaturationExtractFormData, value: unknown) => void;
     isReadOnly: boolean;
+    rowIndex: number;
 };
 
 const NumericField = ({
@@ -153,9 +230,17 @@ const NumericField = ({
     setNumericDrafts,
     onChangeExtract,
     isReadOnly,
+    rowIndex,
 }: SaturationNumericFieldProps) => {
     const draftKey = `${extract.tempId}:${String(field)}`;
     const displayValue = numericDrafts[draftKey] ?? formatEditableNumericValue(extract[field]);
+    const columnIndex = SATURATION_FIELD_ORDER.indexOf(field);
+    const keyboardNavProps = !isReadOnly && columnIndex >= 0 ? {
+        "data-keyboard-nav-scope": KEYBOARD_NAV_SCOPE,
+        "data-keyboard-nav-row": rowIndex,
+        "data-keyboard-nav-column": columnIndex,
+        onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => handleKeyboardNav(event, KEYBOARD_NAV_SCOPE),
+    } : {};
 
     return (
         <Field
@@ -176,6 +261,7 @@ const NumericField = ({
                 });
             }}
             readOnly={isReadOnly}
+            {...keyboardNavProps}
         />
     );
 };
@@ -727,39 +813,39 @@ export const SaturationExtractAnalysisFormDialog = ({
                                                         </SelectRoot>
                                                     </Box>
                                                 )}
-                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
-                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} rowIndex={idx} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} rowIndex={idx} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
                                             </Grid>
 
                                             <SectionHeader title="Físico-Química e Resíduos" colorPalette="blue" />
                                             <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="pH" extract={ext} field="ph" />
-                                                <NumericField {...numericFieldSharedProps} label="CE (dS/m)" extract={ext} field="ce" />
-                                                <NumericField {...numericFieldSharedProps} label="Resíduos Susp. (mg/L)" extract={ext} field="residuosSuspensao" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="pH" extract={ext} field="ph" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="CE (dS/m)" extract={ext} field="ce" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Resíduos Susp. (mg/L)" extract={ext} field="residuosSuspensao" />
                                             </Grid>
 
                                             <SectionHeader title="Cátions Solúveis" colorPalette="orange" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="Ca2+ (mg/L)" extract={ext} field="teorCa" />
-                                                <NumericField {...numericFieldSharedProps} label="Mg2+ (mg/L)" extract={ext} field="teorMg" />
-                                                <NumericField {...numericFieldSharedProps} label="Na+ (mg/L)" extract={ext} field="teorNa" />
-                                                <NumericField {...numericFieldSharedProps} label="K+ (mg/L)" extract={ext} field="teorK" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Ca2+ (mg/L)" extract={ext} field="teorCa" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Mg2+ (mg/L)" extract={ext} field="teorMg" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Na+ (mg/L)" extract={ext} field="teorNa" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="K+ (mg/L)" extract={ext} field="teorK" />
                                             </Grid>
 
                                             <SectionHeader title="Ânions Solúveis" colorPalette="teal" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="CO3 2- (mg/L)" extract={ext} field="teorCO3" />
-                                                <NumericField {...numericFieldSharedProps} label="HCO3 - (mg/L)" extract={ext} field="teorHCO3" />
-                                                <NumericField {...numericFieldSharedProps} label="NO3 - (mg/L)" extract={ext} field="teorNO3" />
-                                                <NumericField {...numericFieldSharedProps} label="H2PO4 - (mg/L)" extract={ext} field="teorH2PO4" />
-                                                <NumericField {...numericFieldSharedProps} label="SO4 2- (mg/L)" extract={ext} field="teorSO4" />
-                                                <NumericField {...numericFieldSharedProps} label="Cl - (mg/L)" extract={ext} field="teorCl" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="CO3 2- (mg/L)" extract={ext} field="teorCO3" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="HCO3 - (mg/L)" extract={ext} field="teorHCO3" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="NO3 - (mg/L)" extract={ext} field="teorNO3" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="H2PO4 - (mg/L)" extract={ext} field="teorH2PO4" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="SO4 2- (mg/L)" extract={ext} field="teorSO4" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Cl - (mg/L)" extract={ext} field="teorCl" />
                                             </Grid>
 
                                             <SectionHeader title="Dureza e Indicadores" colorPalette="pink" />
                                             <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-                                                <NumericField {...numericFieldSharedProps} label="Dureza Total (mg/L)" extract={ext} field="durezaTotalCaCO3" />
-                                                <NumericField {...numericFieldSharedProps} label="RAS ((mmolc)**0.5)" extract={ext} field="ras" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Dureza Total (mg/L)" extract={ext} field="durezaTotalCaCO3" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="RAS ((mmolc)**0.5)" extract={ext} field="ras" />
                                             </Grid>
                                         </Box>
                                     ))}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import {
     DialogRoot,
     DialogContent,
@@ -41,6 +41,85 @@ import { fertilityAnalysisExtractService } from "@/services/fertilityAnalysisExt
 import { TipoExtrato } from "@/interfaces/SoilAnalysis";
 import { Camada } from "@/interfaces/LayerExtract";
 import { AnalysisMode, FertilityExtractFormData } from "@/interfaces/FertilityAnalysisFormTypes";
+
+const KEYBOARD_NAV_SCOPE = "fertility-analysis";
+
+const FERTILITY_FIELD_ORDER: Array<keyof FertilityExtractFormData> = [
+    "profundidadeInicial",
+    "profundidadeFinal",
+    "phAgua",
+    "phCacl2",
+    "aluminio",
+    "aluminioMaisHidrogenio",
+    "calcio",
+    "magnesio",
+    "potassio",
+    "sodio",
+    "ctcPh7",
+    "fosforoMehlich1",
+    "fosforoResina",
+    "enxofre",
+    "materiaOrganica",
+    "boro",
+    "cobre",
+    "ferro",
+    "manganes",
+    "zinco",
+];
+
+const getKeyboardNavInputs = (scope: string) => Array.from(
+    document.querySelectorAll<HTMLInputElement>(
+        `input[data-keyboard-nav-scope="${scope}"]:not([readonly]):not(:disabled)`
+    )
+).sort((a, b) => {
+    const rowDiff = Number(a.dataset.keyboardNavRow) - Number(b.dataset.keyboardNavRow);
+    if (rowDiff !== 0) return rowDiff;
+    return Number(a.dataset.keyboardNavColumn) - Number(b.dataset.keyboardNavColumn);
+});
+
+const focusKeyboardNavInput = (input?: HTMLInputElement) => {
+    if (!input) return;
+    input.focus();
+    input.select();
+};
+
+const shouldKeepHorizontalArrowInText = (event: KeyboardEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const selectionStart = input.selectionStart ?? 0;
+    const selectionEnd = input.selectionEnd ?? selectionStart;
+
+    if (selectionStart !== selectionEnd) return true;
+    if (event.key === "ArrowLeft") return selectionStart > 0;
+    if (event.key === "ArrowRight") return selectionEnd < input.value.length;
+    return false;
+};
+
+const handleKeyboardNav = (event: KeyboardEvent<HTMLInputElement>, scope: string) => {
+    const navigationKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"];
+    if (!navigationKeys.includes(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
+    if ((event.key === "ArrowLeft" || event.key === "ArrowRight") && shouldKeepHorizontalArrowInText(event)) return;
+
+    const inputs = getKeyboardNavInputs(scope);
+    const currentIndex = inputs.indexOf(event.currentTarget);
+    if (currentIndex < 0) return;
+
+    const currentRow = Number(event.currentTarget.dataset.keyboardNavRow);
+    const currentColumn = Number(event.currentTarget.dataset.keyboardNavColumn);
+    let nextInput: HTMLInputElement | undefined;
+
+    if (event.key === "ArrowUp") {
+        nextInput = inputs.filter((input) => Number(input.dataset.keyboardNavColumn) === currentColumn && Number(input.dataset.keyboardNavRow) < currentRow).pop();
+    } else if (event.key === "ArrowDown") {
+        nextInput = inputs.find((input) => Number(input.dataset.keyboardNavColumn) === currentColumn && Number(input.dataset.keyboardNavRow) > currentRow);
+    } else {
+        const offset = event.key === "ArrowLeft" || (event.key === "Enter" && event.shiftKey) ? -1 : 1;
+        nextInput = inputs[currentIndex + offset];
+    }
+
+    if (!nextInput) return;
+    event.preventDefault();
+    focusKeyboardNavInput(nextInput);
+};
 
 // Interface para gerenciar itens a serem deletados (Dado + Container)
 interface ItemToDelete {
@@ -210,6 +289,7 @@ type FertilityNumericFieldProps = {
     setNumericDrafts: Dispatch<SetStateAction<Record<string, string>>>;
     onChangeExtract: (tempId: string, field: keyof FertilityExtractFormData, value: unknown) => void;
     isReadOnly: boolean;
+    rowIndex: number;
 };
 
 const NumericField = ({
@@ -220,9 +300,17 @@ const NumericField = ({
     setNumericDrafts,
     onChangeExtract,
     isReadOnly,
+    rowIndex,
 }: FertilityNumericFieldProps) => {
     const draftKey = `${extract.tempId}:${String(field)}`;
     const displayValue = numericDrafts[draftKey] ?? formatEditableNumericValue(extract[field]);
+    const columnIndex = FERTILITY_FIELD_ORDER.indexOf(field);
+    const keyboardNavProps = !isReadOnly && columnIndex >= 0 ? {
+        "data-keyboard-nav-scope": KEYBOARD_NAV_SCOPE,
+        "data-keyboard-nav-row": rowIndex,
+        "data-keyboard-nav-column": columnIndex,
+        onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => handleKeyboardNav(event, KEYBOARD_NAV_SCOPE),
+    } : {};
 
     return (
         <Field
@@ -243,6 +331,7 @@ const NumericField = ({
                 });
             }}
             readOnly={isReadOnly}
+            {...keyboardNavProps}
         />
     );
 };
@@ -808,31 +897,31 @@ export const FertilityAnalysisFormDialog = ({
                                                         </SelectRoot>
                                                     </Box>
                                                 )}
-                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
-                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} rowIndex={idx} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} rowIndex={idx} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
                                             </Grid>
 
                                             <SectionHeader title="Acidez & Alumínio" colorPalette="red" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="pH H₂O" extract={ext} field="phAgua" />
-                                                <NumericField {...numericFieldSharedProps} label="pH CaCl₂" extract={ext} field="phCacl2" />
-                                                <NumericField {...numericFieldSharedProps} label="Al3+ (mmolc/dm³)" extract={ext} field="aluminio" />
-                                                <NumericField {...numericFieldSharedProps} label="H+Al (mmolc/dm³)" extract={ext} field="aluminioMaisHidrogenio" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="pH H₂O" extract={ext} field="phAgua" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="pH CaCl₂" extract={ext} field="phCacl2" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Al3+ (mmolc/dm³)" extract={ext} field="aluminio" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="H+Al (mmolc/dm³)" extract={ext} field="aluminioMaisHidrogenio" />
                                             </Grid>
 
                                             <SectionHeader title="Bases Trocáveis" colorPalette="blue" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="Ca2+ (mmolc/dm³)" extract={ext} field="calcio" />
-                                                <NumericField {...numericFieldSharedProps} label="Mg2+ (mmolc/dm³)" extract={ext} field="magnesio" />
-                                                <NumericField {...numericFieldSharedProps} label="K+ (mmolc/dm³)" extract={ext} field="potassio" />
-                                                <NumericField {...numericFieldSharedProps} label="Na+ (mmolc/dm³)" extract={ext} field="sodio" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Ca2+ (mmolc/dm³)" extract={ext} field="calcio" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Mg2+ (mmolc/dm³)" extract={ext} field="magnesio" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="K+ (mmolc/dm³)" extract={ext} field="potassio" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Na+ (mmolc/dm³)" extract={ext} field="sodio" />
                                             </Grid>
 
                                             <SectionHeader title="Complexo de Troca" colorPalette="purple" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
                                                 <Field label="SB (mmolc/dm³)" value={formatBackendCalculatedValue(ext.somaBases)} readOnly />
                                                 <Field label="CTC(t) (mmolc/dm³)" value={formatBackendCalculatedValue(ext.ctcEfetiva)} readOnly />
-                                                <NumericField {...numericFieldSharedProps} label="CTC(T) (mmolc/dm³)" extract={ext} field="ctcPh7" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="CTC(T) (mmolc/dm³)" extract={ext} field="ctcPh7" />
                                                 <Field label="V%" value={formatBackendCalculatedValue(ext.saturacaoBasesV, "%")} readOnly />
                                                 <Field label="m%" value={formatBackendCalculatedValue(ext.saturacaoAluminioM, "%")} readOnly />
                                                 <Field label="PST (%)" value={formatBackendCalculatedValue(ext.pst, "%")} readOnly />
@@ -857,17 +946,17 @@ export const FertilityAnalysisFormDialog = ({
 
                                             <SectionHeader title="Micronutrientes e Outros" colorPalette="green" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="P (Meh) (mg/dm³)" extract={ext} field="fosforoMehlich1" />
-                                                <NumericField {...numericFieldSharedProps} label="P (Res) (mg/dm³)" extract={ext} field="fosforoResina" />
-                                                <NumericField {...numericFieldSharedProps} label="S (mg/dm³)" extract={ext} field="enxofre" />
-                                                <NumericField {...numericFieldSharedProps} label="Matéria Orgânica (g/dm³)" extract={ext} field="materiaOrganica" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="P (Meh) (mg/dm³)" extract={ext} field="fosforoMehlich1" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="P (Res) (mg/dm³)" extract={ext} field="fosforoResina" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="S (mg/dm³)" extract={ext} field="enxofre" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Matéria Orgânica (g/dm³)" extract={ext} field="materiaOrganica" />
                                             </Grid>
                                             <Grid templateColumns="repeat(5, 1fr)" gap={4}>
-                                                <NumericField {...numericFieldSharedProps} label="Boro (mg/dm³)" extract={ext} field="boro" />
-                                                <NumericField {...numericFieldSharedProps} label="Cobre (mg/dm³)" extract={ext} field="cobre" />
-                                                <NumericField {...numericFieldSharedProps} label="Ferro (mg/dm³)" extract={ext} field="ferro" />
-                                                <NumericField {...numericFieldSharedProps} label="Manganês (mg/dm³)" extract={ext} field="manganes" />
-                                                <NumericField {...numericFieldSharedProps} label="Zinco (mg/dm³)" extract={ext} field="zinco" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Boro (mg/dm³)" extract={ext} field="boro" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Cobre (mg/dm³)" extract={ext} field="cobre" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Ferro (mg/dm³)" extract={ext} field="ferro" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Manganês (mg/dm³)" extract={ext} field="manganes" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Zinco (mg/dm³)" extract={ext} field="zinco" />
                                             </Grid>
                                         </Box>
                                         );

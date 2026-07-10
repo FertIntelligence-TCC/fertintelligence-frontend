@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import {
     DialogRoot,
     DialogContent,
@@ -42,6 +42,86 @@ import { TipoExtrato } from "@/interfaces/SoilAnalysis";
 import { Camada } from "@/interfaces/LayerExtract";
 import { AnalysisMode, PhysicalExtractFormData } from "@/interfaces/PhysicalAnalysisFormTypes";
 import { PhysicalAnalysisExtractUpdatePayload } from "@/interfaces/PhysicalAnalysisExtract";
+
+const KEYBOARD_NAV_SCOPE = "physical-analysis";
+
+const PHYSICAL_FIELD_ORDER: Array<keyof PhysicalExtractFormData> = [
+    "profundidadeInicial",
+    "profundidadeFinal",
+    "teorAreia",
+    "teorSilte",
+    "teorArgila",
+    "densidadeAparente",
+    "densidadeReal",
+    "porosidadeTotal",
+    "microporosidade",
+    "umidadeCapacidadeCampo",
+    "umidadePontoMurchaPermanente",
+    "aguaDisponivel",
+    "resistenciaPenetracao",
+    "dmAgregados",
+    "percAgregados6_0mm",
+    "percAgregados4_1a6_0mm",
+    "percAgregados2_1a4_0mm",
+    "percAgregados1_0a2_0mm",
+    "percAgregados0_5a1_0mm",
+    "percAgregados0_25a0_5mm",
+    "percAgregadosMenor0_25mm",
+];
+
+const getKeyboardNavInputs = (scope: string) => Array.from(
+    document.querySelectorAll<HTMLInputElement>(
+        `input[data-keyboard-nav-scope="${scope}"]:not([readonly]):not(:disabled)`
+    )
+).sort((a, b) => {
+    const rowDiff = Number(a.dataset.keyboardNavRow) - Number(b.dataset.keyboardNavRow);
+    if (rowDiff !== 0) return rowDiff;
+    return Number(a.dataset.keyboardNavColumn) - Number(b.dataset.keyboardNavColumn);
+});
+
+const focusKeyboardNavInput = (input?: HTMLInputElement) => {
+    if (!input) return;
+    input.focus();
+    input.select();
+};
+
+const shouldKeepHorizontalArrowInText = (event: KeyboardEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const selectionStart = input.selectionStart ?? 0;
+    const selectionEnd = input.selectionEnd ?? selectionStart;
+
+    if (selectionStart !== selectionEnd) return true;
+    if (event.key === "ArrowLeft") return selectionStart > 0;
+    if (event.key === "ArrowRight") return selectionEnd < input.value.length;
+    return false;
+};
+
+const handleKeyboardNav = (event: KeyboardEvent<HTMLInputElement>, scope: string) => {
+    const navigationKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"];
+    if (!navigationKeys.includes(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
+    if ((event.key === "ArrowLeft" || event.key === "ArrowRight") && shouldKeepHorizontalArrowInText(event)) return;
+
+    const inputs = getKeyboardNavInputs(scope);
+    const currentIndex = inputs.indexOf(event.currentTarget);
+    if (currentIndex < 0) return;
+
+    const currentRow = Number(event.currentTarget.dataset.keyboardNavRow);
+    const currentColumn = Number(event.currentTarget.dataset.keyboardNavColumn);
+    let nextInput: HTMLInputElement | undefined;
+
+    if (event.key === "ArrowUp") {
+        nextInput = inputs.filter((input) => Number(input.dataset.keyboardNavColumn) === currentColumn && Number(input.dataset.keyboardNavRow) < currentRow).pop();
+    } else if (event.key === "ArrowDown") {
+        nextInput = inputs.find((input) => Number(input.dataset.keyboardNavColumn) === currentColumn && Number(input.dataset.keyboardNavRow) > currentRow);
+    } else {
+        const offset = event.key === "ArrowLeft" || (event.key === "Enter" && event.shiftKey) ? -1 : 1;
+        nextInput = inputs[currentIndex + offset];
+    }
+
+    if (!nextInput) return;
+    event.preventDefault();
+    focusKeyboardNavInput(nextInput);
+};
 
 // Interface interna para gerenciar itens a serem deletados
 interface ItemToDelete {
@@ -193,6 +273,7 @@ type PhysicalNumericFieldProps = {
     onChangeExtract: (tempId: string, field: keyof PhysicalExtractFormData, value: any) => void;
     isReadOnly: boolean;
     readOnly?: boolean;
+    rowIndex: number;
 };
 
 const NumericField = ({
@@ -204,9 +285,18 @@ const NumericField = ({
     onChangeExtract,
     isReadOnly,
     readOnly,
+    rowIndex,
 }: PhysicalNumericFieldProps) => {
     const draftKey = `${extract.tempId}:${String(field)}`;
     const displayValue = numericDrafts[draftKey] ?? formatEditableNumericValue(extract[field]);
+    const isFieldReadOnly = isReadOnly || readOnly;
+    const columnIndex = PHYSICAL_FIELD_ORDER.indexOf(field);
+    const keyboardNavProps = !isFieldReadOnly && columnIndex >= 0 ? {
+        "data-keyboard-nav-scope": KEYBOARD_NAV_SCOPE,
+        "data-keyboard-nav-row": rowIndex,
+        "data-keyboard-nav-column": columnIndex,
+        onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => handleKeyboardNav(event, KEYBOARD_NAV_SCOPE),
+    } : {};
 
     return (
         <Field
@@ -226,7 +316,8 @@ const NumericField = ({
                     return next;
                 });
             }}
-            readOnly={isReadOnly || readOnly}
+            readOnly={isFieldReadOnly}
+            {...keyboardNavProps}
         />
     );
 };
@@ -800,43 +891,43 @@ export const PhysicalAnalysisFormDialog = ({
                                                     </Box>
                                                 )}
                                                 
-                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
-                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} rowIndex={idx} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} rowIndex={idx} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
                                             </Grid>
 
                                             <SectionHeader title="Granulometria (g/kg)" colorPalette="blue" />
                                             <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="Areia (g/kg)" extract={ext} field="teorAreia" />
-                                                <NumericField {...numericFieldSharedProps} label="Silte (g/kg)" extract={ext} field="teorSilte" />
-                                                <NumericField {...numericFieldSharedProps} label="Argila (g/kg)" extract={ext} field="teorArgila" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Areia (g/kg)" extract={ext} field="teorAreia" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Silte (g/kg)" extract={ext} field="teorSilte" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Argila (g/kg)" extract={ext} field="teorArgila" />
                                             </Grid>
 
                                             <SectionHeader title="Física do Solo" colorPalette="orange" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="Dens. Aparente (g/dm³)" extract={ext} field="densidadeAparente" />
-                                                <NumericField {...numericFieldSharedProps} label="Dens. Real (g/dm³)" extract={ext} field="densidadeReal" />
-                                                <NumericField {...numericFieldSharedProps} label="Poros. Total (%)" extract={ext} field="porosidadeTotal" readOnly />
-                                                <NumericField {...numericFieldSharedProps} label="Microporos. (%)" extract={ext} field="microporosidade" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Dens. Aparente (g/dm³)" extract={ext} field="densidadeAparente" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Dens. Real (g/dm³)" extract={ext} field="densidadeReal" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Poros. Total (%)" extract={ext} field="porosidadeTotal" readOnly />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Microporos. (%)" extract={ext} field="microporosidade" />
                                             </Grid>
 
                                             <SectionHeader title="Hídrico & Resistência" colorPalette="teal" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField {...numericFieldSharedProps} label="Umidade CC (%)" extract={ext} field="umidadeCapacidadeCampo" />
-                                                <NumericField {...numericFieldSharedProps} label="Umidade PMP (%)" extract={ext} field="umidadePontoMurchaPermanente" />
-                                                <NumericField {...numericFieldSharedProps} label="Água Disp. (%)" extract={ext} field="aguaDisponivel" readOnly />
-                                                <NumericField {...numericFieldSharedProps} label="Resist. Penetr. (MPa)" extract={ext} field="resistenciaPenetracao" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Umidade CC (%)" extract={ext} field="umidadeCapacidadeCampo" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Umidade PMP (%)" extract={ext} field="umidadePontoMurchaPermanente" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Água Disp. (%)" extract={ext} field="aguaDisponivel" readOnly />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="Resist. Penetr. (MPa)" extract={ext} field="resistenciaPenetracao" />
                                             </Grid>
 
                                             <SectionHeader title="Agregados (%)" colorPalette="green" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-                                                <NumericField {...numericFieldSharedProps} label="DMP (mm)" extract={ext} field="dmAgregados" />
-                                                <NumericField {...numericFieldSharedProps} label="> 6.0mm" extract={ext} field="percAgregados6_0mm" />
-                                                <NumericField {...numericFieldSharedProps} label="4-6mm" extract={ext} field="percAgregados4_1a6_0mm" />
-                                                <NumericField {...numericFieldSharedProps} label="2-4mm" extract={ext} field="percAgregados2_1a4_0mm" />
-                                                <NumericField {...numericFieldSharedProps} label="1-2mm" extract={ext} field="percAgregados1_0a2_0mm" />
-                                                <NumericField {...numericFieldSharedProps} label="0.5-1mm" extract={ext} field="percAgregados0_5a1_0mm" />
-                                                <NumericField {...numericFieldSharedProps} label="0.25-0.5mm" extract={ext} field="percAgregados0_25a0_5mm" />
-                                                <NumericField {...numericFieldSharedProps} label="< 0.25mm" extract={ext} field="percAgregadosMenor0_25mm" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="DMP (mm)" extract={ext} field="dmAgregados" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="> 6.0mm" extract={ext} field="percAgregados6_0mm" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="4-6mm" extract={ext} field="percAgregados4_1a6_0mm" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="2-4mm" extract={ext} field="percAgregados2_1a4_0mm" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="1-2mm" extract={ext} field="percAgregados1_0a2_0mm" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="0.5-1mm" extract={ext} field="percAgregados0_5a1_0mm" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="0.25-0.5mm" extract={ext} field="percAgregados0_25a0_5mm" />
+                                                <NumericField {...numericFieldSharedProps} rowIndex={idx} label="< 0.25mm" extract={ext} field="percAgregadosMenor0_25mm" />
                                             </Grid>
                                         </Box>
                                     ))}
