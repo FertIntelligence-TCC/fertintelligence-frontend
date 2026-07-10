@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import {
     DialogRoot,
     DialogContent,
@@ -82,16 +83,51 @@ const Field = ({ label, ...props }: InputProps & { label: string }) => (
 
 const roundToTwoDecimals = (value: number) => Math.round(value * 100) / 100;
 
-const calculatePorosidadeTotal = (densidadeAparente: number, densidadeReal: number) => {
-    if (!Number.isFinite(densidadeAparente) || !Number.isFinite(densidadeReal) || densidadeReal === 0) {
+const parseDecimalInputOrNull = (value: unknown): number | null => {
+    if (value === undefined || value === null) return null;
+    if (typeof value === "string" && value.trim() === "") return null;
+
+    const normalizedValue = typeof value === "string" ? value.trim().replace(",", ".") : value;
+    const numericValue = typeof normalizedValue === "number" ? normalizedValue : Number(normalizedValue);
+    return Number.isFinite(numericValue) ? numericValue : null;
+};
+
+const numberForPayload = (value: unknown) => parseDecimalInputOrNull(value) ?? 0;
+
+const formatEditableNumericValue = (value: unknown) => {
+    if (typeof value === "string") return value;
+
+    const numericValue = parseDecimalInputOrNull(value);
+    return numericValue === null ? "" : String(numericValue);
+};
+
+const calculatePorosidadeTotal = (densidadeAparenteValue: unknown, densidadeRealValue: unknown) => {
+    const densidadeAparente = parseDecimalInputOrNull(densidadeAparenteValue);
+    const densidadeReal = parseDecimalInputOrNull(densidadeRealValue);
+
+    if (
+        densidadeAparente === null ||
+        densidadeReal === null ||
+        !Number.isFinite(densidadeAparente) ||
+        !Number.isFinite(densidadeReal) ||
+        densidadeReal === 0
+    ) {
         return 0;
     }
 
     return roundToTwoDecimals(((densidadeReal - densidadeAparente) / densidadeReal) * 100);
 };
 
-const calculateAguaDisponivel = (umidadeCapacidadeCampo: number, umidadePontoMurchaPermanente: number) => {
-    if (!Number.isFinite(umidadeCapacidadeCampo) || !Number.isFinite(umidadePontoMurchaPermanente)) {
+const calculateAguaDisponivel = (umidadeCapacidadeCampoValue: unknown, umidadePontoMurchaPermanenteValue: unknown) => {
+    const umidadeCapacidadeCampo = parseDecimalInputOrNull(umidadeCapacidadeCampoValue);
+    const umidadePontoMurchaPermanente = parseDecimalInputOrNull(umidadePontoMurchaPermanenteValue);
+
+    if (
+        umidadeCapacidadeCampo === null ||
+        umidadePontoMurchaPermanente === null ||
+        !Number.isFinite(umidadeCapacidadeCampo) ||
+        !Number.isFinite(umidadePontoMurchaPermanente)
+    ) {
         return 0;
     }
 
@@ -119,6 +155,53 @@ const getApiErrorMessage = (error: unknown) => {
 const camadaCollection = createListCollection({
     items: Object.values(Camada).map((c) => ({ label: c, value: c })),
 });
+
+type PhysicalNumericFieldProps = {
+    extract: PhysicalExtractFormData;
+    field: keyof PhysicalExtractFormData;
+    label: string;
+    numericDrafts: Record<string, string>;
+    setNumericDrafts: Dispatch<SetStateAction<Record<string, string>>>;
+    onChangeExtract: (tempId: string, field: keyof PhysicalExtractFormData, value: any) => void;
+    isReadOnly: boolean;
+    readOnly?: boolean;
+};
+
+const NumericField = ({
+    extract,
+    field,
+    label,
+    numericDrafts,
+    setNumericDrafts,
+    onChangeExtract,
+    isReadOnly,
+    readOnly,
+}: PhysicalNumericFieldProps) => {
+    const draftKey = `${extract.tempId}:${String(field)}`;
+    const displayValue = numericDrafts[draftKey] ?? formatEditableNumericValue(extract[field]);
+
+    return (
+        <Field
+            label={label}
+            type="text"
+            inputMode="decimal"
+            value={displayValue}
+            onChange={(e) => {
+                const value = e.target.value;
+                setNumericDrafts((prev) => ({ ...prev, [draftKey]: value }));
+                onChangeExtract(extract.tempId, field, value);
+            }}
+            onBlur={() => {
+                setNumericDrafts((prev) => {
+                    const next = { ...prev };
+                    delete next[draftKey];
+                    return next;
+                });
+            }}
+            readOnly={isReadOnly || readOnly}
+        />
+    );
+};
 
 interface PhysicalAnalysisDialogData {
     analysisId?: number;
@@ -157,11 +240,13 @@ export const PhysicalAnalysisFormDialog = ({
     const [itemsToDelete, setItemsToDelete] = useState<ItemToDelete[]>([]);
     
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [numericDrafts, setNumericDrafts] = useState<Record<string, string>>({});
 
     // Efeito de Inicialização (Criação vs Edição vs Visualização)
     useEffect(() => {
         if (isOpen) {
             setItemsToDelete([]); // Limpa lista de exclusão ao abrir
+            setNumericDrafts({});
 
             if (initialData) {
                 // --- MODO EDIÇÃO / VISUALIZAÇÃO ---
@@ -220,7 +305,7 @@ export const PhysicalAnalysisFormDialog = ({
     const handleChangeExtract = (
         tempId: string,
         field: keyof PhysicalExtractFormData,
-        value: PhysicalExtractFormData[keyof PhysicalExtractFormData]
+        value: any
     ) => {
         const updated = extracts.map(e => (
             e.tempId === tempId ? applyCalculatedPhysicalFields({ ...e, [field]: value }) : e
@@ -254,6 +339,33 @@ export const PhysicalAnalysisFormDialog = ({
         if (!lab.trim()) { toaster.create({ title: "Informe o Laboratório", type: "error" }); return false; }
         if (!analysisYear || isNaN(parseInt(analysisYear))) { toaster.create({ title: "Informe um Ano válido", type: "error" }); return false; }
         if (extracts.length === 0) { toaster.create({ title: "Adicione pelo menos um extrato", type: "error" }); return false; }
+        const invalidNumericValue = extracts.some((extract) =>
+            [
+                extract.profundidadeInicial,
+                extract.profundidadeFinal,
+                extract.teorAreia,
+                extract.teorSilte,
+                extract.teorArgila,
+                extract.densidadeAparente,
+                extract.densidadeReal,
+                extract.microporosidade,
+                extract.umidadeCapacidadeCampo,
+                extract.umidadePontoMurchaPermanente,
+                extract.resistenciaPenetracao,
+                extract.dmAgregados,
+                extract.percAgregados6_0mm,
+                extract.percAgregados4_1a6_0mm,
+                extract.percAgregados2_1a4_0mm,
+                extract.percAgregados1_0a2_0mm,
+                extract.percAgregados0_5a1_0mm,
+                extract.percAgregados0_25a0_5mm,
+                extract.percAgregadosMenor0_25mm,
+            ].some((value) => parseDecimalInputOrNull(value) === null)
+        );
+        if (invalidNumericValue) {
+            toaster.create({ title: "Informe valores numéricos válidos", description: "Use vírgula ou ponto como separador decimal.", type: "error" });
+            return false;
+        }
         return true;
     };
 
@@ -320,28 +432,28 @@ export const PhysicalAnalysisFormDialog = ({
             for (const ext of extracts) {
                 
                 const payloadFisico = {
-                    teor_areia: ext.teorAreia, 
-                    teor_silte: ext.teorSilte, 
-                    teor_argila: ext.teorArgila,
-                    densidade_aparente: ext.densidadeAparente, 
-                    densidade_real: ext.densidadeReal,
+                    teor_areia: numberForPayload(ext.teorAreia), 
+                    teor_silte: numberForPayload(ext.teorSilte), 
+                    teor_argila: numberForPayload(ext.teorArgila),
+                    densidade_aparente: numberForPayload(ext.densidadeAparente), 
+                    densidade_real: numberForPayload(ext.densidadeReal),
                     porosidade_total: calculatePorosidadeTotal(ext.densidadeAparente, ext.densidadeReal), 
-                    microporosidade: ext.microporosidade,
-                    umidade_capacidade_campo: ext.umidadeCapacidadeCampo, 
-                    umidade_ponto_murcha_permanente: ext.umidadePontoMurchaPermanente,
+                    microporosidade: numberForPayload(ext.microporosidade),
+                    umidade_capacidade_campo: numberForPayload(ext.umidadeCapacidadeCampo), 
+                    umidade_ponto_murcha_permanente: numberForPayload(ext.umidadePontoMurchaPermanente),
                     agua_disponivel: calculateAguaDisponivel(
                         ext.umidadeCapacidadeCampo,
                         ext.umidadePontoMurchaPermanente
                     ), 
-                    resistencia_penetracao: ext.resistenciaPenetracao,
-                    perc_agregados_6_0mm: ext.percAgregados6_0mm, 
-                    perc_agregados_4_1_a_6_0mm: ext.percAgregados4_1a6_0mm,
-                    perc_agregados_2_1_a_4_0mm: ext.percAgregados2_1a4_0mm,
-                    perc_agregados_1_0_a_2_0mm: ext.percAgregados1_0a2_0mm,
-                    perc_agregados_0_5_a_1_0mm: ext.percAgregados0_5a1_0mm,
-                    perc_agregados_0_25_a_0_5mm: ext.percAgregados0_25a0_5mm,
-                    perc_agregados_menor_0_25mm: ext.percAgregadosMenor0_25mm,
-                    dm_agregados: ext.dmAgregados
+                    resistencia_penetracao: numberForPayload(ext.resistenciaPenetracao),
+                    perc_agregados_6_0mm: numberForPayload(ext.percAgregados6_0mm), 
+                    perc_agregados_4_1_a_6_0mm: numberForPayload(ext.percAgregados4_1a6_0mm),
+                    perc_agregados_2_1_a_4_0mm: numberForPayload(ext.percAgregados2_1a4_0mm),
+                    perc_agregados_1_0_a_2_0mm: numberForPayload(ext.percAgregados1_0a2_0mm),
+                    perc_agregados_0_5_a_1_0mm: numberForPayload(ext.percAgregados0_5a1_0mm),
+                    perc_agregados_0_25_a_0_5mm: numberForPayload(ext.percAgregados0_25a0_5mm),
+                    perc_agregados_menor_0_25mm: numberForPayload(ext.percAgregadosMenor0_25mm),
+                    dm_agregados: numberForPayload(ext.dmAgregados)
                 };
 
                 if (ext.databaseId) {
@@ -374,15 +486,15 @@ export const PhysicalAnalysisFormDialog = ({
                     if (ext.containerId) {
                         if (mode === 'LAYER') {
                             await layerExtractService.update(ext.containerId, {
-                                nova_profundidade_inicial: ext.profundidadeInicial,
-                                nova_profundidade_final: ext.profundidadeFinal,
+                                nova_profundidade_inicial: numberForPayload(ext.profundidadeInicial),
+                                nova_profundidade_final: numberForPayload(ext.profundidadeFinal),
                                 nova_camada: ext.camada,
                                 nova_subcamada: ext.subcamada
                             });
                         } else {
                             await rangeExtractService.update(ext.containerId, {
-                                nova_profundidade_inicial: ext.profundidadeInicial,
-                                nova_profundidade_final: ext.profundidadeFinal
+                                nova_profundidade_inicial: numberForPayload(ext.profundidadeInicial),
+                                nova_profundidade_final: numberForPayload(ext.profundidadeFinal)
                             });
                         }
                     }
@@ -393,16 +505,16 @@ export const PhysicalAnalysisFormDialog = ({
                     
                     if (mode === 'LAYER') {
                         const res = await layerExtractService.create(analysisId, {
-                            profundidade_inicial: ext.profundidadeInicial, 
-                            profundidade_final: ext.profundidadeFinal,
+                            profundidade_inicial: numberForPayload(ext.profundidadeInicial), 
+                            profundidade_final: numberForPayload(ext.profundidadeFinal),
                             camada: ext.camada!, 
                             subcamada: ext.subcamada || 1
                         });
                         extractId = res.id;
                     } else {
                         const res = await rangeExtractService.create(analysisId, {
-                            profundidade_inicial: ext.profundidadeInicial, 
-                            profundidade_final: ext.profundidadeFinal
+                            profundidade_inicial: numberForPayload(ext.profundidadeInicial), 
+                            profundidade_final: numberForPayload(ext.profundidadeFinal)
                         });
                         extractId = res.id;
                     }
@@ -426,6 +538,13 @@ export const PhysicalAnalysisFormDialog = ({
         } finally { 
             setIsSubmitting(false); 
         }
+    };
+
+    const numericFieldSharedProps = {
+        numericDrafts,
+        setNumericDrafts,
+        onChangeExtract: handleChangeExtract,
+        isReadOnly,
     };
 
     return (
@@ -524,43 +643,43 @@ export const PhysicalAnalysisFormDialog = ({
                                                     </Box>
                                                 )}
                                                 
-                                                <Box gridColumn="span 2"><Field label="Prof. Inicial (cm)" type="number" value={ext.profundidadeInicial} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeInicial', parseFloat(e.target.value))} readOnly={isReadOnly} /></Box>
-                                                <Box gridColumn="span 2"><Field label="Prof. Final (cm)" type="number" value={ext.profundidadeFinal} onChange={e => handleChangeExtract(ext.tempId, 'profundidadeFinal', parseFloat(e.target.value))} readOnly={isReadOnly} /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
                                             </Grid>
 
                                             <SectionHeader title="Granulometria (g/kg)" colorPalette="blue" />
                                             <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                                                <Field label="Areia (g/kg)" type="number" value={ext.teorAreia} onChange={e => handleChangeExtract(ext.tempId, 'teorAreia', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Silte (g/kg)" type="number" value={ext.teorSilte} onChange={e => handleChangeExtract(ext.tempId, 'teorSilte', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Argila (g/kg)" type="number" value={ext.teorArgila} onChange={e => handleChangeExtract(ext.tempId, 'teorArgila', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField {...numericFieldSharedProps} label="Areia (g/kg)" extract={ext} field="teorAreia" />
+                                                <NumericField {...numericFieldSharedProps} label="Silte (g/kg)" extract={ext} field="teorSilte" />
+                                                <NumericField {...numericFieldSharedProps} label="Argila (g/kg)" extract={ext} field="teorArgila" />
                                             </Grid>
 
                                             <SectionHeader title="Física do Solo" colorPalette="orange" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Dens. Aparente (g/dm³)" type="number" value={ext.densidadeAparente} onChange={e => handleChangeExtract(ext.tempId, 'densidadeAparente', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Dens. Real (g/dm³)" type="number" value={ext.densidadeReal} onChange={e => handleChangeExtract(ext.tempId, 'densidadeReal', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Poros. Total (%)" type="number" value={ext.porosidadeTotal} readOnly />
-                                                <Field label="Microporos. (%)" type="number" value={ext.microporosidade} onChange={e => handleChangeExtract(ext.tempId, 'microporosidade', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField {...numericFieldSharedProps} label="Dens. Aparente (g/dm³)" extract={ext} field="densidadeAparente" />
+                                                <NumericField {...numericFieldSharedProps} label="Dens. Real (g/dm³)" extract={ext} field="densidadeReal" />
+                                                <NumericField {...numericFieldSharedProps} label="Poros. Total (%)" extract={ext} field="porosidadeTotal" readOnly />
+                                                <NumericField {...numericFieldSharedProps} label="Microporos. (%)" extract={ext} field="microporosidade" />
                                             </Grid>
 
                                             <SectionHeader title="Hídrico & Resistência" colorPalette="teal" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <Field label="Umidade CC (%)" type="number" value={ext.umidadeCapacidadeCampo} onChange={e => handleChangeExtract(ext.tempId, 'umidadeCapacidadeCampo', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Umidade PMP (%)" type="number" value={ext.umidadePontoMurchaPermanente} onChange={e => handleChangeExtract(ext.tempId, 'umidadePontoMurchaPermanente', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="Água Disp. (%)" type="number" value={ext.aguaDisponivel} readOnly />
-                                                <Field label="Resist. Penetr. (MPa)" type="number" value={ext.resistenciaPenetracao} onChange={e => handleChangeExtract(ext.tempId, 'resistenciaPenetracao', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField {...numericFieldSharedProps} label="Umidade CC (%)" extract={ext} field="umidadeCapacidadeCampo" />
+                                                <NumericField {...numericFieldSharedProps} label="Umidade PMP (%)" extract={ext} field="umidadePontoMurchaPermanente" />
+                                                <NumericField {...numericFieldSharedProps} label="Água Disp. (%)" extract={ext} field="aguaDisponivel" readOnly />
+                                                <NumericField {...numericFieldSharedProps} label="Resist. Penetr. (MPa)" extract={ext} field="resistenciaPenetracao" />
                                             </Grid>
 
                                             <SectionHeader title="Agregados (%)" colorPalette="green" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-                                                <Field label="DMP (mm)" type="number" value={ext.dmAgregados} onChange={e => handleChangeExtract(ext.tempId, 'dmAgregados', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="> 6.0mm" type="number" value={ext.percAgregados6_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados6_0mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="4-6mm" type="number" value={ext.percAgregados4_1a6_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados4_1a6_0mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="2-4mm" type="number" value={ext.percAgregados2_1a4_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados2_1a4_0mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="1-2mm" type="number" value={ext.percAgregados1_0a2_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados1_0a2_0mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="0.5-1mm" type="number" value={ext.percAgregados0_5a1_0mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados0_5a1_0mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="0.25-0.5mm" type="number" value={ext.percAgregados0_25a0_5mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregados0_25a0_5mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
-                                                <Field label="< 0.25mm" type="number" value={ext.percAgregadosMenor0_25mm} onChange={e => handleChangeExtract(ext.tempId, 'percAgregadosMenor0_25mm', parseFloat(e.target.value))} readOnly={isReadOnly} />
+                                                <NumericField {...numericFieldSharedProps} label="DMP (mm)" extract={ext} field="dmAgregados" />
+                                                <NumericField {...numericFieldSharedProps} label="> 6.0mm" extract={ext} field="percAgregados6_0mm" />
+                                                <NumericField {...numericFieldSharedProps} label="4-6mm" extract={ext} field="percAgregados4_1a6_0mm" />
+                                                <NumericField {...numericFieldSharedProps} label="2-4mm" extract={ext} field="percAgregados2_1a4_0mm" />
+                                                <NumericField {...numericFieldSharedProps} label="1-2mm" extract={ext} field="percAgregados1_0a2_0mm" />
+                                                <NumericField {...numericFieldSharedProps} label="0.5-1mm" extract={ext} field="percAgregados0_5a1_0mm" />
+                                                <NumericField {...numericFieldSharedProps} label="0.25-0.5mm" extract={ext} field="percAgregados0_25a0_5mm" />
+                                                <NumericField {...numericFieldSharedProps} label="< 0.25mm" extract={ext} field="percAgregadosMenor0_25mm" />
                                             </Grid>
                                         </Box>
                                     ))}

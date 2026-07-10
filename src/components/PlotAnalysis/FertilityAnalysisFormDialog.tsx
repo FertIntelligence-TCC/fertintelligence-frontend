@@ -363,6 +363,33 @@ export const FertilityAnalysisFormDialog = ({
         if (!lab.trim()) { toaster.create({ title: "Informe o Laboratório", type: "error" }); return false; }
         if (!analysisYear || isNaN(parseInt(analysisYear))) { toaster.create({ title: "Informe um Ano válido", type: "error" }); return false; }
         if (extracts.length === 0) { toaster.create({ title: "Adicione pelo menos um extrato", type: "error" }); return false; }
+        const invalidNumericValue = extracts.some((extract) =>
+            [
+                extract.profundidadeInicial,
+                extract.profundidadeFinal,
+                extract.phAgua,
+                extract.phCacl2,
+                extract.calcio,
+                extract.magnesio,
+                extract.potassio,
+                extract.sodio,
+                extract.aluminio,
+                extract.aluminioMaisHidrogenio,
+                extract.fosforoMehlich1,
+                extract.fosforoResina,
+                extract.enxofre,
+                extract.materiaOrganica,
+                extract.boro,
+                extract.cobre,
+                extract.ferro,
+                extract.manganes,
+                extract.zinco,
+            ].some((value) => parseDecimalInputOrNull(value) === null)
+        );
+        if (invalidNumericValue) {
+            toaster.create({ title: "Informe valores numéricos válidos", description: "Use vírgula ou ponto como separador decimal.", type: "error" });
+            return false;
+        }
         return true;
     };
 

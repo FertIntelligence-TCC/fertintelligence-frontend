@@ -89,13 +89,23 @@ const formatDecimalDisplay = (value?: number | null) => {
     return Number.isFinite(numericValue) ? numericValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00";
 };
 
-const parseDecimalInput = (value: string) => {
-    const normalizedValue = value.replace(",", ".");
-    const numericValue = parseFloat(normalizedValue);
-    return Number.isFinite(numericValue) ? numericValue : 0;
+const parseDecimalInputOrNull = (value: unknown): number | null => {
+    if (value === undefined || value === null) return null;
+    if (typeof value === "string" && value.trim() === "") return null;
+
+    const normalizedValue = typeof value === "string" ? value.trim().replace(",", ".") : value;
+    const numericValue = typeof normalizedValue === "number" ? normalizedValue : Number(normalizedValue);
+    return Number.isFinite(numericValue) ? numericValue : null;
 };
 
-const roundDecimalValue = (value: number) => Number(value.toFixed(2));
+const numberForPayload = (value: unknown) => parseDecimalInputOrNull(value) ?? 0;
+
+const formatEditableNumericValue = (value: unknown) => {
+    if (typeof value === "string") return value;
+
+    const numericValue = parseDecimalInputOrNull(value);
+    return numericValue === null ? "" : formatDecimalDisplay(numericValue);
+};
 
 type SaturationNumericFieldProps = {
     extract: SaturationExtractFormData;
@@ -117,9 +127,7 @@ const NumericField = ({
     isReadOnly,
 }: SaturationNumericFieldProps) => {
     const draftKey = `${extract.tempId}:${String(field)}`;
-    const rawValue = extract[field];
-    const numericValue = typeof rawValue === "number" ? rawValue : parseDecimalInput(String(rawValue ?? 0));
-    const displayValue = numericDrafts[draftKey] ?? formatDecimalDisplay(numericValue);
+    const displayValue = numericDrafts[draftKey] ?? formatEditableNumericValue(extract[field]);
 
     return (
         <Field
@@ -130,11 +138,9 @@ const NumericField = ({
             onChange={(e) => {
                 const value = e.target.value;
                 setNumericDrafts((prev) => ({ ...prev, [draftKey]: value }));
-                onChangeExtract(extract.tempId, field, parseDecimalInput(value));
+                onChangeExtract(extract.tempId, field, value);
             }}
             onBlur={() => {
-                const roundedValue = roundDecimalValue(parseDecimalInput(numericDrafts[draftKey] ?? String(numericValue)));
-                onChangeExtract(extract.tempId, field, roundedValue);
                 setNumericDrafts((prev) => {
                     const next = { ...prev };
                     delete next[draftKey];
@@ -273,6 +279,31 @@ export const SaturationExtractAnalysisFormDialog = ({
         if (!lab.trim()) { toaster.create({ title: "Informe o Laboratório", type: "error" }); return false; }
         if (!analysisYear || isNaN(parseInt(analysisYear))) { toaster.create({ title: "Informe um Ano válido", type: "error" }); return false; }
         if (extracts.length === 0) { toaster.create({ title: "Adicione pelo menos um extrato", type: "error" }); return false; }
+        const invalidNumericValue = extracts.some((extract) =>
+            [
+                extract.profundidadeInicial,
+                extract.profundidadeFinal,
+                extract.ph,
+                extract.ce,
+                extract.residuosSuspensao,
+                extract.teorCa,
+                extract.teorMg,
+                extract.teorNa,
+                extract.teorK,
+                extract.teorCO3,
+                extract.teorHCO3,
+                extract.teorNO3,
+                extract.teorH2PO4,
+                extract.teorSO4,
+                extract.teorCl ?? 0,
+                extract.durezaTotalCaCO3,
+                extract.ras,
+            ].some((value) => parseDecimalInputOrNull(value) === null)
+        );
+        if (invalidNumericValue) {
+            toaster.create({ title: "Informe valores numéricos válidos", description: "Use vírgula ou ponto como separador decimal.", type: "error" });
+            return false;
+        }
         return true;
     };
 
@@ -343,21 +374,21 @@ export const SaturationExtractAnalysisFormDialog = ({
                 
                 // Mapeamento dos dados para DTO (snake_case)
                 const payloadSaturacao = {
-                    ph: ext.ph,
-                    ce: ext.ce,
-                    teor_co3: ext.teorCO3,
-                    teor_hco3: ext.teorHCO3,
-                    teor_no3: ext.teorNO3,
-                    teor_h2po4: ext.teorH2PO4,
-                    teor_so4: ext.teorSO4,
-                    teor_cl: ext.teorCl ?? 0,
-                    teor_na: ext.teorNa,
-                    teor_k: ext.teorK,
-                    teor_ca: ext.teorCa,
-                    teor_mg: ext.teorMg,
-                    residuos_suspensao: ext.residuosSuspensao,
-                    dureza_total_caco3: ext.durezaTotalCaCO3,
-                    ras: ext.ras
+                    ph: numberForPayload(ext.ph),
+                    ce: numberForPayload(ext.ce),
+                    teor_co3: numberForPayload(ext.teorCO3),
+                    teor_hco3: numberForPayload(ext.teorHCO3),
+                    teor_no3: numberForPayload(ext.teorNO3),
+                    teor_h2po4: numberForPayload(ext.teorH2PO4),
+                    teor_so4: numberForPayload(ext.teorSO4),
+                    teor_cl: numberForPayload(ext.teorCl),
+                    teor_na: numberForPayload(ext.teorNa),
+                    teor_k: numberForPayload(ext.teorK),
+                    teor_ca: numberForPayload(ext.teorCa),
+                    teor_mg: numberForPayload(ext.teorMg),
+                    residuos_suspensao: numberForPayload(ext.residuosSuspensao),
+                    dureza_total_caco3: numberForPayload(ext.durezaTotalCaCO3),
+                    ras: numberForPayload(ext.ras)
                 };
 
                 if (ext.databaseId) {
@@ -383,15 +414,15 @@ export const SaturationExtractAnalysisFormDialog = ({
                     if (ext.containerId) {
                         if (mode === 'LAYER') {
                             await layerExtractService.update(ext.containerId, {
-                                nova_profundidade_inicial: ext.profundidadeInicial,
-                                nova_profundidade_final: ext.profundidadeFinal,
+                                nova_profundidade_inicial: numberForPayload(ext.profundidadeInicial),
+                                nova_profundidade_final: numberForPayload(ext.profundidadeFinal),
                                 nova_camada: ext.camada,
                                 nova_subcamada: ext.subcamada
                             });
                         } else {
                             await rangeExtractService.update(ext.containerId, {
-                                nova_profundidade_inicial: ext.profundidadeInicial,
-                                nova_profundidade_final: ext.profundidadeFinal
+                                nova_profundidade_inicial: numberForPayload(ext.profundidadeInicial),
+                                nova_profundidade_final: numberForPayload(ext.profundidadeFinal)
                             });
                         }
                     }
@@ -402,16 +433,16 @@ export const SaturationExtractAnalysisFormDialog = ({
                     
                     if (mode === 'LAYER') {
                         const res = await layerExtractService.create(analysisId, {
-                            profundidade_inicial: ext.profundidadeInicial, 
-                            profundidade_final: ext.profundidadeFinal,
+                            profundidade_inicial: numberForPayload(ext.profundidadeInicial), 
+                            profundidade_final: numberForPayload(ext.profundidadeFinal),
                             camada: ext.camada!, 
                             subcamada: ext.subcamada || 1
                         });
                         extractId = res.id;
                     } else {
                         const res = await rangeExtractService.create(analysisId, {
-                            profundidade_inicial: ext.profundidadeInicial, 
-                            profundidade_final: ext.profundidadeFinal
+                            profundidade_inicial: numberForPayload(ext.profundidadeInicial), 
+                            profundidade_final: numberForPayload(ext.profundidadeFinal)
                         });
                         extractId = res.id;
                     }
