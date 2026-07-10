@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
     DialogRoot,
@@ -48,6 +48,15 @@ interface ItemToDelete {
     physicalId: number;
     containerId: number;
 }
+
+type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
+
+const getAutoSaveStatusLabel = (status: AutoSaveStatus) => {
+    if (status === "saving") return "Salvando...";
+    if (status === "saved") return "Salvo";
+    if (status === "error") return "Erro ao salvar";
+    return "";
+};
 
 // --- Componentes Auxiliares de Estilo ---
 const SectionHeader = ({ title, colorPalette = "green" }: { title: string, colorPalette?: string }) => (
@@ -241,12 +250,19 @@ export const PhysicalAnalysisFormDialog = ({
     
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [numericDrafts, setNumericDrafts] = useState<Record<string, string>>({});
+    const [autoSaveStatus, setAutoSaveStatus] = useState<AutoSaveStatus>("idle");
+    const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const autoSaveRequestIdRef = useRef(0);
+    const lastAutoSaveSignatureRef = useRef("");
+    const skipNextAutoSaveRef = useRef(false);
 
     // Efeito de Inicialização (Criação vs Edição vs Visualização)
     useEffect(() => {
         if (isOpen) {
             setItemsToDelete([]); // Limpa lista de exclusão ao abrir
             setNumericDrafts({});
+            setAutoSaveStatus("idle");
+            skipNextAutoSaveRef.current = true;
 
             if (initialData) {
                 // --- MODO EDIÇÃO / VISUALIZAÇÃO ---
@@ -266,6 +282,58 @@ export const PhysicalAnalysisFormDialog = ({
             }
         }
     }, [isOpen, initialData]);
+
+    const autoSaveSignature = JSON.stringify({
+        analysisYear,
+        lab,
+        mode,
+        extracts,
+        itemsToDelete,
+    });
+
+    useEffect(() => {
+        if (autoSaveTimerRef.current) {
+            clearTimeout(autoSaveTimerRef.current);
+            autoSaveTimerRef.current = null;
+        }
+
+        const canAutoSave =
+            isOpen &&
+            !isReadOnly &&
+            Boolean(initialData?.analysisId) &&
+            mode !== "INITIAL" &&
+            extracts.length > 0 &&
+            extracts.every((extract) => Boolean(extract.databaseId && extract.containerId));
+
+        if (!canAutoSave) {
+            lastAutoSaveSignatureRef.current = autoSaveSignature;
+            return;
+        }
+
+        if (!lastAutoSaveSignatureRef.current) {
+            lastAutoSaveSignatureRef.current = autoSaveSignature;
+            return;
+        }
+
+        if (skipNextAutoSaveRef.current) {
+            skipNextAutoSaveRef.current = false;
+            lastAutoSaveSignatureRef.current = autoSaveSignature;
+            return;
+        }
+
+        if (lastAutoSaveSignatureRef.current === autoSaveSignature) return;
+
+        autoSaveTimerRef.current = setTimeout(() => {
+            void handleSubmit({ autosave: true });
+        }, 1000);
+
+        return () => {
+            if (autoSaveTimerRef.current) {
+                clearTimeout(autoSaveTimerRef.current);
+                autoSaveTimerRef.current = null;
+            }
+        };
+    }, [autoSaveSignature, extracts, initialData?.analysisId, isOpen, isReadOnly, mode]);
 
     const handleAddExtract = () => {
         const newExtract: PhysicalExtractFormData = {
@@ -335,10 +403,10 @@ export const PhysicalAnalysisFormDialog = ({
         setItemsToDelete([]);
     };
 
-    const validate = () => {
-        if (!lab.trim()) { toaster.create({ title: "Informe o Laboratório", type: "error" }); return false; }
-        if (!analysisYear || isNaN(parseInt(analysisYear))) { toaster.create({ title: "Informe um Ano válido", type: "error" }); return false; }
-        if (extracts.length === 0) { toaster.create({ title: "Adicione pelo menos um extrato", type: "error" }); return false; }
+    const validate = (showFeedback = true) => {
+        if (!lab.trim()) { if (showFeedback) toaster.create({ title: "Informe o Laboratório", type: "error" }); return false; }
+        if (!analysisYear || isNaN(parseInt(analysisYear))) { if (showFeedback) toaster.create({ title: "Informe um Ano válido", type: "error" }); return false; }
+        if (extracts.length === 0) { if (showFeedback) toaster.create({ title: "Adicione pelo menos um extrato", type: "error" }); return false; }
         const invalidNumericValue = extracts.some((extract) =>
             [
                 extract.profundidadeInicial,
@@ -363,15 +431,32 @@ export const PhysicalAnalysisFormDialog = ({
             ].some((value) => parseDecimalInputOrNull(value) === null)
         );
         if (invalidNumericValue) {
-            toaster.create({ title: "Informe valores numéricos válidos", description: "Use vírgula ou ponto como separador decimal.", type: "error" });
+            if (showFeedback) toaster.create({ title: "Informe valores numéricos válidos", description: "Use vírgula ou ponto como separador decimal.", type: "error" });
             return false;
         }
         return true;
     };
 
-    const handleSubmit = async () => {
-        if (!validate()) return;
-        setIsSubmitting(true);
+    const handleSubmit = async (options?: { autosave?: boolean }) => {
+        const isAutosave = Boolean(options?.autosave);
+        const autosaveRequestId = isAutosave ? autoSaveRequestIdRef.current + 1 : null;
+
+        if (isAutosave) {
+            autoSaveRequestIdRef.current = autosaveRequestId!;
+            if (!initialData?.analysisId || isReadOnly) return;
+            if (extracts.some((extract) => !extract.databaseId || !extract.containerId)) return;
+        }
+
+        if (!validate(!isAutosave)) {
+            if (isAutosave && autosaveRequestId === autoSaveRequestIdRef.current) setAutoSaveStatus("error");
+            return;
+        }
+
+        if (isAutosave) {
+            setAutoSaveStatus("saving");
+        } else {
+            setIsSubmitting(true);
+        }
         try {
             const year = parseInt(analysisYear);
             let analysisId: number;
@@ -527,16 +612,26 @@ export const PhysicalAnalysisFormDialog = ({
                 }
             }
             
-            toaster.create({ title: "Dados salvos com sucesso!", type: "success" });
-            onSuccess(); 
-            onClose();
+            if (isAutosave) {
+                setItemsToDelete([]);
+                lastAutoSaveSignatureRef.current = autoSaveSignature;
+                if (autosaveRequestId === autoSaveRequestIdRef.current) setAutoSaveStatus("saved");
+            } else {
+                toaster.create({ title: "Dados salvos com sucesso!", type: "success" });
+                onSuccess(); 
+                onClose();
+            }
 
         } catch (error: unknown) {
             console.error("Erro ao salvar:", error);
             const msg = getApiErrorMessage(error);
-            toaster.create({ title: "Erro", description: msg, type: "error" });
+            if (isAutosave) {
+                if (autosaveRequestId === autoSaveRequestIdRef.current) setAutoSaveStatus("error");
+            } else {
+                toaster.create({ title: "Erro", description: msg, type: "error" });
+            }
         } finally { 
-            setIsSubmitting(false); 
+            if (!isAutosave) setIsSubmitting(false); 
         }
     };
 
@@ -689,11 +784,16 @@ export const PhysicalAnalysisFormDialog = ({
                     </VStack>
                 </DialogBody>
                 <DialogFooter bg="gray.100" _dark={{ bg: "gray.800", borderColor: "gray.700" }} borderTopWidth="1px" borderColor="gray.200">
+                    {!isReadOnly && initialData && (
+                        <Text mr="auto" fontSize="sm" color={autoSaveStatus === "error" ? "red.500" : "gray.600"} _dark={{ color: autoSaveStatus === "error" ? "red.300" : "gray.300" }}>
+                            {getAutoSaveStatusLabel(autoSaveStatus)}
+                        </Text>
+                    )}
                     <Button variant="ghost" colorPalette="gray" onClick={onClose}>
                         {isReadOnly ? "Fechar" : "Cancelar"}
                     </Button>
                     {!isReadOnly && (
-                        <Button onClick={handleSubmit} loading={isSubmitting} colorPalette="green" disabled={mode === 'INITIAL'}>
+                        <Button onClick={() => handleSubmit()} loading={isSubmitting} colorPalette="green" disabled={mode === 'INITIAL'}>
                             {initialData ? "Salvar Alterações" : "Salvar Análise"}
                         </Button>
                     )}
