@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import {
     DialogRoot,
     DialogContent,
@@ -95,6 +96,55 @@ const parseDecimalInput = (value: string) => {
 };
 
 const roundDecimalValue = (value: number) => Number(value.toFixed(2));
+
+type SaturationNumericFieldProps = {
+    extract: SaturationExtractFormData;
+    field: keyof SaturationExtractFormData;
+    label: string;
+    numericDrafts: Record<string, string>;
+    setNumericDrafts: Dispatch<SetStateAction<Record<string, string>>>;
+    onChangeExtract: (tempId: string, field: keyof SaturationExtractFormData, value: unknown) => void;
+    isReadOnly: boolean;
+};
+
+const NumericField = ({
+    extract,
+    field,
+    label,
+    numericDrafts,
+    setNumericDrafts,
+    onChangeExtract,
+    isReadOnly,
+}: SaturationNumericFieldProps) => {
+    const draftKey = `${extract.tempId}:${String(field)}`;
+    const rawValue = extract[field];
+    const numericValue = typeof rawValue === "number" ? rawValue : parseDecimalInput(String(rawValue ?? 0));
+    const displayValue = numericDrafts[draftKey] ?? formatDecimalDisplay(numericValue);
+
+    return (
+        <Field
+            label={label}
+            type="text"
+            inputMode="decimal"
+            value={displayValue}
+            onChange={(e) => {
+                const value = e.target.value;
+                setNumericDrafts((prev) => ({ ...prev, [draftKey]: value }));
+                onChangeExtract(extract.tempId, field, parseDecimalInput(value));
+            }}
+            onBlur={() => {
+                const roundedValue = roundDecimalValue(parseDecimalInput(numericDrafts[draftKey] ?? String(numericValue)));
+                onChangeExtract(extract.tempId, field, roundedValue);
+                setNumericDrafts((prev) => {
+                    const next = { ...prev };
+                    delete next[draftKey];
+                    return next;
+                });
+            }}
+            readOnly={isReadOnly}
+        />
+    );
+};
 
 interface Props {
     isOpen: boolean;
@@ -199,37 +249,6 @@ export const SaturationExtractAnalysisFormDialog = ({
         } else {
             setExtracts(updated);
         }
-    };
-
-    const NumericField = ({ extract, field, label }: { extract: SaturationExtractFormData, field: keyof SaturationExtractFormData, label: string }) => {
-        const draftKey = `${extract.tempId}:${String(field)}`;
-        const rawValue = extract[field];
-        const numericValue = typeof rawValue === "number" ? rawValue : parseDecimalInput(String(rawValue ?? 0));
-        const displayValue = numericDrafts[draftKey] ?? formatDecimalDisplay(numericValue);
-
-        return (
-            <Field
-                label={label}
-                type="text"
-                inputMode="decimal"
-                value={displayValue}
-                onChange={(e) => {
-                    const value = e.target.value;
-                    setNumericDrafts((prev) => ({ ...prev, [draftKey]: value }));
-                    handleChangeExtract(extract.tempId, field, parseDecimalInput(value));
-                }}
-                onBlur={() => {
-                    const roundedValue = roundDecimalValue(parseDecimalInput(numericDrafts[draftKey] ?? String(numericValue)));
-                    handleChangeExtract(extract.tempId, field, roundedValue);
-                    setNumericDrafts((prev) => {
-                        const next = { ...prev };
-                        delete next[draftKey];
-                        return next;
-                    });
-                }}
-                readOnly={isReadOnly}
-            />
-        );
     };
 
     const recalculateSubLayers = (list: SaturationExtractFormData[]) => {
@@ -418,6 +437,13 @@ export const SaturationExtractAnalysisFormDialog = ({
         }
     };
 
+    const numericFieldSharedProps = {
+        numericDrafts,
+        setNumericDrafts,
+        onChangeExtract: handleChangeExtract,
+        isReadOnly,
+    };
+
     return (
         <DialogRoot open={isOpen} onOpenChange={onClose} size="xl" scrollBehavior="inside" motionPreset="slide-in-bottom">
             <DialogContent bg="gray.50" _dark={{ bg: "gray.900", color: "gray.100" }}>
@@ -513,39 +539,39 @@ export const SaturationExtractAnalysisFormDialog = ({
                                                         </SelectRoot>
                                                     </Box>
                                                 )}
-                                                <Box gridColumn="span 2"><NumericField label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
-                                                <Box gridColumn="span 2"><NumericField label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
                                             </Grid>
 
                                             <SectionHeader title="Físico-Química e Resíduos" colorPalette="blue" />
                                             <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                                                <NumericField label="pH" extract={ext} field="ph" />
-                                                <NumericField label="CE (dS/m)" extract={ext} field="ce" />
-                                                <NumericField label="Resíduos Susp. (mg/L)" extract={ext} field="residuosSuspensao" />
+                                                <NumericField {...numericFieldSharedProps} label="pH" extract={ext} field="ph" />
+                                                <NumericField {...numericFieldSharedProps} label="CE (dS/m)" extract={ext} field="ce" />
+                                                <NumericField {...numericFieldSharedProps} label="Resíduos Susp. (mg/L)" extract={ext} field="residuosSuspensao" />
                                             </Grid>
 
                                             <SectionHeader title="Cátions Solúveis" colorPalette="orange" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField label="Ca2+ (mg/L)" extract={ext} field="teorCa" />
-                                                <NumericField label="Mg2+ (mg/L)" extract={ext} field="teorMg" />
-                                                <NumericField label="Na+ (mg/L)" extract={ext} field="teorNa" />
-                                                <NumericField label="K+ (mg/L)" extract={ext} field="teorK" />
+                                                <NumericField {...numericFieldSharedProps} label="Ca2+ (mg/L)" extract={ext} field="teorCa" />
+                                                <NumericField {...numericFieldSharedProps} label="Mg2+ (mg/L)" extract={ext} field="teorMg" />
+                                                <NumericField {...numericFieldSharedProps} label="Na+ (mg/L)" extract={ext} field="teorNa" />
+                                                <NumericField {...numericFieldSharedProps} label="K+ (mg/L)" extract={ext} field="teorK" />
                                             </Grid>
 
                                             <SectionHeader title="Ânions Solúveis" colorPalette="teal" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
-                                                <NumericField label="CO3 2- (mg/L)" extract={ext} field="teorCO3" />
-                                                <NumericField label="HCO3 - (mg/L)" extract={ext} field="teorHCO3" />
-                                                <NumericField label="NO3 - (mg/L)" extract={ext} field="teorNO3" />
-                                                <NumericField label="H2PO4 - (mg/L)" extract={ext} field="teorH2PO4" />
-                                                <NumericField label="SO4 2- (mg/L)" extract={ext} field="teorSO4" />
-                                                <NumericField label="Cl - (mg/L)" extract={ext} field="teorCl" />
+                                                <NumericField {...numericFieldSharedProps} label="CO3 2- (mg/L)" extract={ext} field="teorCO3" />
+                                                <NumericField {...numericFieldSharedProps} label="HCO3 - (mg/L)" extract={ext} field="teorHCO3" />
+                                                <NumericField {...numericFieldSharedProps} label="NO3 - (mg/L)" extract={ext} field="teorNO3" />
+                                                <NumericField {...numericFieldSharedProps} label="H2PO4 - (mg/L)" extract={ext} field="teorH2PO4" />
+                                                <NumericField {...numericFieldSharedProps} label="SO4 2- (mg/L)" extract={ext} field="teorSO4" />
+                                                <NumericField {...numericFieldSharedProps} label="Cl - (mg/L)" extract={ext} field="teorCl" />
                                             </Grid>
 
                                             <SectionHeader title="Dureza e Indicadores" colorPalette="pink" />
                                             <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-                                                <NumericField label="Dureza Total (mg/L)" extract={ext} field="durezaTotalCaCO3" />
-                                                <NumericField label="RAS ((mmolc)**0.5)" extract={ext} field="ras" />
+                                                <NumericField {...numericFieldSharedProps} label="Dureza Total (mg/L)" extract={ext} field="durezaTotalCaCO3" />
+                                                <NumericField {...numericFieldSharedProps} label="RAS ((mmolc)**0.5)" extract={ext} field="ras" />
                                             </Grid>
                                         </Box>
                                     ))}

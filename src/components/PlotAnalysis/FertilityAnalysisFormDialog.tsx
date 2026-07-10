@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import {
     DialogRoot,
     DialogContent,
@@ -173,6 +174,51 @@ const formatCalculatedValueWithRuntimeFallback = (
     suffix = ""
 ) => formatBackendCalculatedValue(runtimeValue ?? backendValue, suffix);
 
+type FertilityNumericFieldProps = {
+    extract: FertilityExtractFormData;
+    field: keyof FertilityExtractFormData;
+    label: string;
+    numericDrafts: Record<string, string>;
+    setNumericDrafts: Dispatch<SetStateAction<Record<string, string>>>;
+    onChangeExtract: (tempId: string, field: keyof FertilityExtractFormData, value: unknown) => void;
+    isReadOnly: boolean;
+};
+
+const NumericField = ({
+    extract,
+    field,
+    label,
+    numericDrafts,
+    setNumericDrafts,
+    onChangeExtract,
+    isReadOnly,
+}: FertilityNumericFieldProps) => {
+    const draftKey = `${extract.tempId}:${String(field)}`;
+    const displayValue = numericDrafts[draftKey] ?? formatEditableNumericValue(extract[field]);
+
+    return (
+        <Field
+            label={label}
+            type="text"
+            inputMode="decimal"
+            value={displayValue}
+            onChange={(e) => {
+                const value = e.target.value;
+                setNumericDrafts((prev) => ({ ...prev, [draftKey]: value }));
+                onChangeExtract(extract.tempId, field, value);
+            }}
+            onBlur={() => {
+                setNumericDrafts((prev) => {
+                    const next = { ...prev };
+                    delete next[draftKey];
+                    return next;
+                });
+            }}
+            readOnly={isReadOnly}
+        />
+    );
+};
+
 interface Props {
     isOpen: boolean;
     onClose: () => void;
@@ -293,33 +339,6 @@ export const FertilityAnalysisFormDialog = ({
         } else {
             setExtracts(updated);
         }
-    };
-
-    const NumericField = ({ extract, field, label }: { extract: FertilityExtractFormData, field: keyof FertilityExtractFormData, label: string }) => {
-        const draftKey = `${extract.tempId}:${String(field)}`;
-        const displayValue = numericDrafts[draftKey] ?? formatEditableNumericValue(extract[field]);
-
-        return (
-            <Field
-                label={label}
-                type="text"
-                inputMode="decimal"
-                value={displayValue}
-                onChange={(e) => {
-                    const value = e.target.value;
-                    setNumericDrafts((prev) => ({ ...prev, [draftKey]: value }));
-                    handleChangeExtract(extract.tempId, field, value);
-                }}
-                onBlur={() => {
-                    setNumericDrafts((prev) => {
-                        const next = { ...prev };
-                        delete next[draftKey];
-                        return next;
-                    });
-                }}
-                readOnly={isReadOnly}
-            />
-        );
     };
 
     const recalculateSubLayers = (list: FertilityExtractFormData[]) => {
@@ -506,6 +525,13 @@ export const FertilityAnalysisFormDialog = ({
         }
     };
 
+    const numericFieldSharedProps = {
+        numericDrafts,
+        setNumericDrafts,
+        onChangeExtract: handleChangeExtract,
+        isReadOnly,
+    };
+
     return (
         <DialogRoot open={isOpen} onOpenChange={onClose} size="xl">
             <DialogContent bg="gray.50" _dark={{ bg: "gray.900", color: "gray.100" }}>
@@ -598,31 +624,31 @@ export const FertilityAnalysisFormDialog = ({
                                                         </SelectRoot>
                                                     </Box>
                                                 )}
-                                                <Box gridColumn="span 2"><NumericField label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
-                                                <Box gridColumn="span 2"><NumericField label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Inicial (cm)" extract={ext} field="profundidadeInicial" /></Box>
+                                                <Box gridColumn="span 2"><NumericField {...numericFieldSharedProps} label="Prof. Final (cm)" extract={ext} field="profundidadeFinal" /></Box>
                                             </Grid>
 
                                             <SectionHeader title="Acidez & Alumínio" colorPalette="red" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField label="pH H₂O" extract={ext} field="phAgua" />
-                                                <NumericField label="pH CaCl₂" extract={ext} field="phCacl2" />
-                                                <NumericField label="Al3+ (mmolc/dm³)" extract={ext} field="aluminio" />
-                                                <NumericField label="H+Al (mmolc/dm³)" extract={ext} field="aluminioMaisHidrogenio" />
+                                                <NumericField {...numericFieldSharedProps} label="pH H₂O" extract={ext} field="phAgua" />
+                                                <NumericField {...numericFieldSharedProps} label="pH CaCl₂" extract={ext} field="phCacl2" />
+                                                <NumericField {...numericFieldSharedProps} label="Al3+ (mmolc/dm³)" extract={ext} field="aluminio" />
+                                                <NumericField {...numericFieldSharedProps} label="H+Al (mmolc/dm³)" extract={ext} field="aluminioMaisHidrogenio" />
                                             </Grid>
 
                                             <SectionHeader title="Bases Trocáveis" colorPalette="blue" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField label="Ca2+ (mmolc/dm³)" extract={ext} field="calcio" />
-                                                <NumericField label="Mg2+ (mmolc/dm³)" extract={ext} field="magnesio" />
-                                                <NumericField label="K+ (mmolc/dm³)" extract={ext} field="potassio" />
-                                                <NumericField label="Na+ (mmolc/dm³)" extract={ext} field="sodio" />
+                                                <NumericField {...numericFieldSharedProps} label="Ca2+ (mmolc/dm³)" extract={ext} field="calcio" />
+                                                <NumericField {...numericFieldSharedProps} label="Mg2+ (mmolc/dm³)" extract={ext} field="magnesio" />
+                                                <NumericField {...numericFieldSharedProps} label="K+ (mmolc/dm³)" extract={ext} field="potassio" />
+                                                <NumericField {...numericFieldSharedProps} label="Na+ (mmolc/dm³)" extract={ext} field="sodio" />
                                             </Grid>
 
                                             <SectionHeader title="Complexo de Troca" colorPalette="purple" />
                                             <Grid templateColumns="repeat(6, 1fr)" gap={4} mb={4}>
                                                 <Field label="SB (mmolc/dm³)" value={formatBackendCalculatedValue(ext.somaBases)} readOnly />
                                                 <Field label="CTC(t) (mmolc/dm³)" value={formatBackendCalculatedValue(ext.ctcEfetiva)} readOnly />
-                                                <NumericField label="CTC(T) (mmolc/dm³)" extract={ext} field="ctcPh7" />
+                                                <NumericField {...numericFieldSharedProps} label="CTC(T) (mmolc/dm³)" extract={ext} field="ctcPh7" />
                                                 <Field label="V%" value={formatBackendCalculatedValue(ext.saturacaoBasesV, "%")} readOnly />
                                                 <Field label="m%" value={formatBackendCalculatedValue(ext.saturacaoAluminioM, "%")} readOnly />
                                                 <Field label="PST (%)" value={formatBackendCalculatedValue(ext.pst, "%")} readOnly />
@@ -647,17 +673,17 @@ export const FertilityAnalysisFormDialog = ({
 
                                             <SectionHeader title="Micronutrientes e Outros" colorPalette="green" />
                                             <Grid templateColumns="repeat(4, 1fr)" gap={4} mb={4}>
-                                                <NumericField label="P (Meh) (mg/dm³)" extract={ext} field="fosforoMehlich1" />
-                                                <NumericField label="P (Res) (mg/dm³)" extract={ext} field="fosforoResina" />
-                                                <NumericField label="S (mg/dm³)" extract={ext} field="enxofre" />
-                                                <NumericField label="Matéria Orgânica (g/dm³)" extract={ext} field="materiaOrganica" />
+                                                <NumericField {...numericFieldSharedProps} label="P (Meh) (mg/dm³)" extract={ext} field="fosforoMehlich1" />
+                                                <NumericField {...numericFieldSharedProps} label="P (Res) (mg/dm³)" extract={ext} field="fosforoResina" />
+                                                <NumericField {...numericFieldSharedProps} label="S (mg/dm³)" extract={ext} field="enxofre" />
+                                                <NumericField {...numericFieldSharedProps} label="Matéria Orgânica (g/dm³)" extract={ext} field="materiaOrganica" />
                                             </Grid>
                                             <Grid templateColumns="repeat(5, 1fr)" gap={4}>
-                                                <NumericField label="Boro (mg/dm³)" extract={ext} field="boro" />
-                                                <NumericField label="Cobre (mg/dm³)" extract={ext} field="cobre" />
-                                                <NumericField label="Ferro (mg/dm³)" extract={ext} field="ferro" />
-                                                <NumericField label="Manganês (mg/dm³)" extract={ext} field="manganes" />
-                                                <NumericField label="Zinco (mg/dm³)" extract={ext} field="zinco" />
+                                                <NumericField {...numericFieldSharedProps} label="Boro (mg/dm³)" extract={ext} field="boro" />
+                                                <NumericField {...numericFieldSharedProps} label="Cobre (mg/dm³)" extract={ext} field="cobre" />
+                                                <NumericField {...numericFieldSharedProps} label="Ferro (mg/dm³)" extract={ext} field="ferro" />
+                                                <NumericField {...numericFieldSharedProps} label="Manganês (mg/dm³)" extract={ext} field="manganes" />
+                                                <NumericField {...numericFieldSharedProps} label="Zinco (mg/dm³)" extract={ext} field="zinco" />
                                             </Grid>
                                         </Box>
                                         );
