@@ -83,7 +83,6 @@ const RANGE_PREFIXES = [
 ];
 
 const NUTRIENTS_WITHOUT_EXTREME_RANGES: NutrientSuffix[] = [
-    "potassio",
     "boro",
     "cobre",
     "ferro",
@@ -134,6 +133,24 @@ const getRangeLabel = (suffix: NutrientSuffix, prefix: string, label: string) =>
     return label;
 };
 
+const RANGE_FIELDS = [
+    { label: "Muito Baixo (Menor que)", prefix: "menor_teor" },
+    { label: "Baixo (Menor Teor)", prefix: "teor_inicial_baixo" },
+    { label: "Baixo (Maior Teor)", prefix: "teor_final_baixo" },
+    { label: "Médio (Menor Teor)", prefix: "teor_inicial_medio" },
+    { label: "Médio (Maior Teor)", prefix: "teor_final_medio" },
+    { label: "Alto (Menor Teor)", prefix: "teor_inicial_alto" },
+    { label: "Alto (Maior Teor)", prefix: "teor_final_alto" },
+    { label: "Muito Alto (Maior que)", prefix: "maior_teor" },
+];
+
+export const rangeFieldsFor = (suffix: NutrientSuffix) => RANGE_FIELDS
+    .filter(({ prefix }) => !shouldHideRangeField(suffix, prefix))
+    .map(({ label, prefix }) => ({
+        label: getRangeLabel(suffix, prefix, label),
+        key: `${prefix}_${suffix}`,
+    }));
+
 const READ_SUFFIX_ALIASES: Partial<Record<NutrientSuffix, string[]>> = {
     aluminio_mais_hidrogenio: ["h_al", "hal", "aluminio_hidrogenio"],
     ctc_ph7: ["ctc_ph_7", "ctc_ph_7_0", "ctc_pH7"],
@@ -151,7 +168,7 @@ const READ_PREFIX_ALIASES: Record<string, string[]> = {
     maior_teor: ["maior_valor"],
 };
 
-const getRangeValue = (
+export const getRangeValue = (
     data: DiverseContentRangeResponseDto,
     prefix: string,
     suffix: NutrientSuffix
@@ -247,23 +264,7 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
   const renderInputs = () => {
       const suffix = selectedNutrient;
       
-      const fields = [
-          { label: "Muito Baixo (Menor que)", prefix: "menor_teor" },
-          { label: "Baixo (Menor Teor)", prefix: "teor_inicial_baixo" },
-          { label: "Baixo (Maior Teor)", prefix: "teor_final_baixo" },
-          { label: "Médio (Menor Teor)", prefix: "teor_inicial_medio" },
-          { label: "Médio (Maior Teor)", prefix: "teor_final_medio" },
-          { label: "Alto (Menor Teor)", prefix: "teor_inicial_alto" },
-          { label: "Alto (Maior Teor)", prefix: "teor_final_alto" },
-          { label: "Muito Alto (Maior que)", prefix: "maior_teor" },
-      ].filter(({ prefix }) => {
-          return !shouldHideRangeField(suffix, prefix);
-      }).map(({ label, prefix }) => {
-          return {
-              label: getRangeLabel(suffix, prefix, label),
-              key: `${prefix}_${suffix}`,
-          };
-      });
+      const fields = rangeFieldsFor(suffix);
 
       return (
           <Grid templateColumns={{ base: "1fr", sm: "1fr 1fr" }} gap={4} mt={4}>
