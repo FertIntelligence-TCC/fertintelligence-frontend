@@ -44,7 +44,7 @@ type NutrientOption = {
     value: NutrientSuffix;
 };
 
-const NUTRIENTS: NutrientOption[] = [
+export const NUTRIENTS: NutrientOption[] = [
     { label: "Al trocável (Al³+, mmolc/dm³)", value: "aluminio" },
     { label: "H+Al (mmolc/dm³)", value: "aluminio_mais_hidrogenio" },
     { label: "CTC (t) (mmolc/dm³)", value: "ctc_efetiva" },
@@ -55,6 +55,7 @@ const NUTRIENTS: NutrientOption[] = [
     { label: "Matéria Orgânica (g/dm³)", value: "materia_organica" },
     { label: "Cálcio (mmolc/dm³)", value: "calcio" },
     { label: "Magnésio (mmolc/dm³)", value: "magnesio" },
+    { label: "Potássio (mmolc/dm³)", value: "potassio" },
     { label: "Soma de Bases (mmolc/dm³)", value: "soma_bases" },
     { label: "Saturação por Alumínio - m (%)", value: "saturacao_aluminio" },
     { label: "Saturação por Bases - V (%)", value: "saturacao_bases" },
@@ -82,6 +83,7 @@ const RANGE_PREFIXES = [
 ];
 
 const NUTRIENTS_WITHOUT_EXTREME_RANGES: NutrientSuffix[] = [
+    "potassio",
     "boro",
     "cobre",
     "ferro",
@@ -95,7 +97,31 @@ const MICRONUTRIENT_HIDDEN_RANGE_PREFIXES = [
     "teor_final_alto",
     "maior_teor",
 ];
-const TEXT_FIELDS = ["observacoes", "fontes"];
+export const visibleRangeFields = (suffix: NutrientSuffix) => RANGE_PREFIXES
+    .filter(prefix => !shouldHideRangeField(suffix, prefix));
+
+export const buildDiverseContentRangePayload = (
+    form: Record<string, string>,
+    update: boolean,
+) => {
+    const payload: Record<string, number | string> = {};
+    NUTRIENTS.forEach(({ value: suffix }) => {
+        visibleRangeFields(suffix).forEach(prefix => {
+            const key = `${prefix}_${suffix}`;
+            if (suffix === "potassio" && !form[key]) return;
+            const parsed = parseNumericValue(form[key]);
+            payload[update ? `novo_${key}` : key] = parsed;
+        });
+    });
+    payload[update ? "novo_observacoes" : "observacoes"] = form.observacoes ?? "";
+    payload[update ? "novo_fontes" : "fontes"] = form.fontes ?? "";
+    return payload;
+};
+
+const parseNumericValue = (value?: string) => {
+    if (!value) return 0;
+    return parseFloat(value.replace(',', '.')) || 0;
+};
 
 const shouldHideRangeField = (suffix: NutrientSuffix, prefix: string) =>
     NUTRIENTS_WITHOUT_EXTREME_RANGES.includes(suffix) &&
@@ -193,46 +219,18 @@ export default function DiverseContentRangeModal({ isOpen, onClose, tableId, isR
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  const parse = (val: string) => {
-    if (!val) return 0;
-    return parseFloat(val.replace(',', '.')) || 0;
-  };
-
   const handleSave = async () => {
     setSaving(true);
     try {
       if (existingId) {
         // UPDATE (Prefixo "novo_")
-        const payload: any = {};
-        Object.keys(form).forEach(key => {
-            if (TEXT_FIELDS.includes(key)) return;
-            const matchingHiddenField = NUTRIENTS_WITHOUT_EXTREME_RANGES.some(suffix =>
-                MICRONUTRIENT_HIDDEN_RANGE_PREFIXES.some(prefix => key === `${prefix}_${suffix}`)
-            );
-            if (matchingHiddenField) return;
-            payload[`novo_${key}`] = parse(form[key]);
-        });
-        payload.novo_observacoes = form.observacoes ?? "";
-        payload.novo_fontes = form.fontes ?? "";
+        const payload = buildDiverseContentRangePayload(form, true);
         await updateDiverseContentRange(existingId, payload as DiverseContentRangePostRequestDto);
         toaster.create({ title: "Nutrientes atualizados!", type: "success" });
 
       } else {
         // CREATE (Sem prefixo)
-        const payload: any = {};
-        
-        // Garante que todos os campos de todos os nutrientes sejam enviados (mesmo que 0)
-        NUTRIENTS.forEach(n => {
-            const suffix = n.value;
-            const fields = RANGE_PREFIXES
-                .filter(prefix => !shouldHideRangeField(suffix, prefix))
-                .map(prefix => `${prefix}_${suffix}`);
-            fields.forEach(f => {
-                payload[f] = parse(form[f] || "0");
-            });
-        });
-        payload.observacoes = form.observacoes ?? "";
-        payload.fontes = form.fontes ?? "";
+        const payload = buildDiverseContentRangePayload(form, false);
 
         await createDiverseContentRange(tableId!, payload as DiverseContentRangeCreateRequestDto);
         toaster.create({ title: "Nutrientes configurados!", type: "success" });

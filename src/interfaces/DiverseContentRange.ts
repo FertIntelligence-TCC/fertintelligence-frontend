@@ -10,7 +10,7 @@ export interface DiverseContentRangeResponseDto {
 // Lista de Sufixos (usada para tipagem e iteração)
 export type NutrientSuffix = 
     | "aluminio" | "aluminio_mais_hidrogenio" | "ctc_efetiva" | "ctc_ph7"
-    | "ph_agua" | "ph_cacl2" | "carbono_organico" | "materia_organica" | "calcio" | "magnesio"
+    | "ph_agua" | "ph_cacl2" | "carbono_organico" | "materia_organica" | "calcio" | "magnesio" | "potassio"
     | "soma_bases" | "pst"
     | "saturacao_aluminio" | "saturacao_bases" | "boro" | "cobre"
     | "ferro" | "manganes" | "zinco";

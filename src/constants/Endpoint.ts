@@ -70,14 +70,8 @@ export const ENDPOINT = {
   UPDATE_SULFUR_DOSE: "sulfur-dose/update",
 
   // --- Potassium Content and Dose Endpoints ---
-  GET_BY_TABLE_POTASSIUM_CONTENT_AND_DOSE: "potassium-content-and-dose/get-by-table",
-  CREATE_POTASSIUM_CONTENT_AND_DOSE: "potassium-content-and-dose/register",
-  UPDATE_POTASSIUM_CONTENT_AND_DOSE: "potassium-content-and-dose/update",
 
   // --- Phosphorus Clay Content and Phosphate Dose Endpoints ---
-  GET_BY_TABLE_PHOSPHORUS_CLAY_CONTENT_AND_PHOSPHATE_DOSE: "phosphorus-clay-content-and-phosphate-dose/get-by-table",
-  CREATE_PHOSPHORUS_CLAY_CONTENT_AND_PHOSPHATE_DOSE: "phosphorus-clay-content-and-phosphate-dose/register",
-  UPDATE_PHOSPHORUS_CLAY_CONTENT_AND_PHOSPHATE_DOSE: "phosphorus-clay-content-and-phosphate-dose/update",
 
   // --- Corrective P2O5 Fertilization Endpoints ---
   GET_BY_TABLE_CORRECTIVE_P2O5_FERTILIZATION: "corrective-p2o5-fertilization/get-by-table",

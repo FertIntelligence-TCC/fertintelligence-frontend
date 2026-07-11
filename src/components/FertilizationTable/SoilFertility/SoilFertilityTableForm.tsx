@@ -29,8 +29,6 @@ import AvailableSModal from "./AvailableSModal";
 import DiverseContentRangeModal from "./DiverseContentRangeModal";
 import ExchangeableSodiumModal from "./ExchangeableSodiumModal";
 import SulfurDoseModal from "./SulfurDoseModal";
-import PotassiumContentAndDoseModal from "./PotassiumContentAndDoseModal";
-import PhosphorusClayContentAndPhosphateDoseModal from "./PhosphorusClayContentAndPhosphateDoseModal";
 import CorrectiveP2O5FertilizationModal from "./CorrectiveP2O5FertilizationModal";
 import CorrectiveK2OFertilizationModal from "./CorrectiveK2OFertilizationModal";
 import MicronutrientDoseModal from "./MicronutrientDoseModal";
@@ -52,8 +50,6 @@ const auxiliaryTableLabels = {
     availablePResin: "Fósforo (P) Disponível com Extrator Resina de Troca Aniônica - mg/dm³",
     availableS: "Enxofre (S) Disponível - mg/dm³",
     sulfurDose: "Doses de Enxofre (S) - kg/ha",
-    potassiumContentAndDose: "Teores e Doses de Potássio (K) - mg/dm³ e kg/ha",
-    phosphorusClayContentAndPhosphateDose: "Teores de Fósforo (P) e Argila (g/kg), e Doses de Fosfato (PO₄³⁻)",
     correctiveP2O5Fertilization: "Adubação Corretiva de Fósforo (P₂O₅)",
     correctiveK2OFertilization: "Adubação Corretiva de Potássio (K₂O)",
     micronutrientDose: "Doses de Micronutrientes - kg/ha",
@@ -72,8 +68,6 @@ const auxiliaryTableOrder: AuxiliaryTableKey[] = [
     "availablePResin",
     "availableS",
     "sulfurDose",
-    "potassiumContentAndDose",
-    "phosphorusClayContentAndPhosphateDose",
     "correctiveP2O5Fertilization",
     "correctiveK2OFertilization",
     "micronutrientDose",
@@ -94,8 +88,6 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
     const [isDiverseContentOpen, setIsDiverseContentOpen] = useState(false);
     const [isExchangeableSodiumOpen, setIsExchangeableSodiumOpen] = useState(false);
     const [isSulfurDoseOpen, setIsSulfurDoseOpen] = useState(false);
-    const [isPotassiumContentAndDoseOpen, setIsPotassiumContentAndDoseOpen] = useState(false);
-    const [isPhosphorusClayContentAndPhosphateDoseOpen, setIsPhosphorusClayContentAndPhosphateDoseOpen] = useState(false);
     const [isCorrectiveP2O5FertilizationOpen, setIsCorrectiveP2O5FertilizationOpen] = useState(false);
     const [isCorrectiveK2OFertilizationOpen, setIsCorrectiveK2OFertilizationOpen] = useState(false);
     const [isMicronutrientDoseOpen, setIsMicronutrientDoseOpen] = useState(false);
@@ -123,12 +115,6 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                 break;
             case "sulfurDose":
                 setIsSulfurDoseOpen(true);
-                break;
-            case "potassiumContentAndDose":
-                setIsPotassiumContentAndDoseOpen(true);
-                break;
-            case "phosphorusClayContentAndPhosphateDose":
-                setIsPhosphorusClayContentAndPhosphateDoseOpen(true);
                 break;
             case "correctiveP2O5Fertilization":
                 setIsCorrectiveP2O5FertilizationOpen(true);
@@ -347,20 +333,6 @@ export default function SoilFertilityTableForm({ form, setForm, readOnly, mode, 
                     <SulfurDoseModal
                         isOpen={isSulfurDoseOpen}
                         onClose={() => setIsSulfurDoseOpen(false)}
-                        tableId={tableId}
-                        isReadOnly={readOnly}
-                    />
-
-                    <PotassiumContentAndDoseModal
-                        isOpen={isPotassiumContentAndDoseOpen}
-                        onClose={() => setIsPotassiumContentAndDoseOpen(false)}
-                        tableId={tableId}
-                        isReadOnly={readOnly}
-                    />
-
-                    <PhosphorusClayContentAndPhosphateDoseModal
-                        isOpen={isPhosphorusClayContentAndPhosphateDoseOpen}
-                        onClose={() => setIsPhosphorusClayContentAndPhosphateDoseOpen(false)}
                         tableId={tableId}
                         isReadOnly={readOnly}
                     />
