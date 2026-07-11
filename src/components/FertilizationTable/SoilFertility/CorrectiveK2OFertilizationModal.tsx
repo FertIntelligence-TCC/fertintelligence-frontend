@@ -15,6 +15,7 @@ import {
 import { toaster } from "@/components/ui/toaster";
 import {
   createCorrectiveK2OFertilization,
+  deleteCorrectiveK2OFertilization,
   getCorrectiveK2OFertilizationByTable,
   updateCorrectiveK2OFertilization
 } from "@/services/correctiveK2OFertilizationService";
@@ -89,6 +90,7 @@ export default function CorrectiveK2OFertilizationModal({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [rows, setRows] = useState<CorrectiveK2ORowForm[]>([]);
+  const [removedRowIds, setRemovedRowIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (isOpen && tableId) {
@@ -103,6 +105,7 @@ export default function CorrectiveK2OFertilizationModal({
     try {
       const data = await getCorrectiveK2OFertilizationByTable(tableId!);
       setRows(data.map(toFormRow));
+      setRemovedRowIds([]);
     } catch (error) {
       console.error(error);
       toaster.create({
@@ -123,8 +126,15 @@ export default function CorrectiveK2OFertilizationModal({
     setRows((prev) => [...prev, createEmptyRow()]);
   };
 
-  const removeUnsavedRow = (localId: string) => {
-    setRows((prev) => prev.filter((row) => row.localId !== localId || row.id));
+  const removeLastRow = () => {
+    setRows((prev) => {
+      const lastRow = prev.at(-1);
+      if (!lastRow) return prev;
+      if (lastRow.id !== null) {
+        setRemovedRowIds((ids) => [...ids, lastRow.id!]);
+      }
+      return prev.slice(0, -1);
+    });
   };
 
   const buildCreatePayload = (row: CorrectiveK2ORowForm): CorrectiveK2OFertilizationCreateRequestDto => ({
@@ -151,11 +161,14 @@ export default function CorrectiveK2OFertilizationModal({
     setSaving(true);
     try {
       await Promise.all(
-        rows.map((row) =>
-          row.id
-            ? updateCorrectiveK2OFertilization(row.id, buildUpdatePayload(row))
-            : createCorrectiveK2OFertilization(tableId!, buildCreatePayload(row))
-        )
+        [
+          ...removedRowIds.map((id) => deleteCorrectiveK2OFertilization(id)),
+          ...rows.map((row) =>
+            row.id
+              ? updateCorrectiveK2OFertilization(row.id, buildUpdatePayload(row))
+              : createCorrectiveK2OFertilization(tableId!, buildCreatePayload(row))
+          )
+        ]
       );
       toaster.create({ title: "Adubação Corretiva de K2O salva!", type: "success" });
       await fetchData();
@@ -185,11 +198,6 @@ export default function CorrectiveK2OFertilizationModal({
         <Text fontWeight="semibold" color="green.700" _dark={{ color: "green.300" }}>
           Linha {index + 1}
         </Text>
-        {!isReadOnly && !row.id && (
-          <Button size="xs" variant="ghost" colorPalette="red" onClick={() => removeUnsavedRow(row.localId)}>
-            Remover
-          </Button>
-        )}
       </HStack>
 
       <Grid templateColumns={{ base: "1fr", md: "repeat(5, 1fr)" }} gap={4}>
@@ -234,7 +242,7 @@ export default function CorrectiveK2OFertilizationModal({
       <Dialog.Positioner>
         <Dialog.Content bg="white" _dark={{ bg: "gray.800" }} maxW="1100px">
           <Dialog.Header>
-            <Dialog.Title>Adubação Corretiva de K2O</Dialog.Title>
+            <Dialog.Title>Adubação Corretiva de K₂O</Dialog.Title>
           </Dialog.Header>
 
           <Dialog.Body>
@@ -245,13 +253,18 @@ export default function CorrectiveK2OFertilizationModal({
             ) : (
               <VStack align="stretch" gap={4}>
                 {!isReadOnly && (
-                  <HStack justify="space-between">
+                  <HStack justify="space-between" align="flex-start" flexWrap="wrap">
                     <Text fontSize="sm" color="gray.500" _dark={{ color: "gray.400" }}>
                       Configure faixas por CTC e K+ trocável, conforme contrato do backend.
                     </Text>
-                    <Button size="sm" colorPalette="green" variant="outline" onClick={addRow}>
-                      Adicionar linha
-                    </Button>
+                    <HStack flexWrap="wrap">
+                      <Button size="sm" colorPalette="red" variant="outline" onClick={removeLastRow} disabled={!rows.length}>
+                        Remover última linha
+                      </Button>
+                      <Button size="sm" colorPalette="green" variant="outline" onClick={addRow}>
+                        Adicionar linha
+                      </Button>
+                    </HStack>
                   </HStack>
                 )}
                 {rows.length ? rows.map(renderRow) : (
@@ -268,7 +281,7 @@ export default function CorrectiveK2OFertilizationModal({
               Fechar
             </Button>
             {!isReadOnly && (
-              <Button colorPalette="green" onClick={handleSave} loading={saving} disabled={!rows.length}>
+              <Button colorPalette="green" onClick={handleSave} loading={saving} disabled={!rows.length && !removedRowIds.length}>
                 Salvar Configuração
               </Button>
             )}

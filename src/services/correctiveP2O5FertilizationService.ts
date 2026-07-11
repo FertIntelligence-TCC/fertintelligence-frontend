@@ -43,3 +43,9 @@ export const updateCorrectiveP2O5Fertilization = async (
   });
   return data;
 };
+
+export const deleteCorrectiveP2O5Fertilization = async (criterionId: number) => {
+  await api.delete(ENDPOINT.DELETE_CORRECTIVE_P2O5_FERTILIZATION, {
+    params: { criterionId }
+  });
+};

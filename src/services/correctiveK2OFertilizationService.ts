@@ -43,3 +43,9 @@ export const updateCorrectiveK2OFertilization = async (
   });
   return data;
 };
+
+export const deleteCorrectiveK2OFertilization = async (criterionId: number) => {
+  await api.delete(ENDPOINT.DELETE_CORRECTIVE_K2O_FERTILIZATION, {
+    params: { criterionId }
+  });
+};

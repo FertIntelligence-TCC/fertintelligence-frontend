@@ -83,11 +83,13 @@ export const ENDPOINT = {
   GET_BY_TABLE_CORRECTIVE_P2O5_FERTILIZATION: "corrective-p2o5-fertilization/get-by-table",
   CREATE_CORRECTIVE_P2O5_FERTILIZATION: "corrective-p2o5-fertilization/register",
   UPDATE_CORRECTIVE_P2O5_FERTILIZATION: "corrective-p2o5-fertilization/update",
+  DELETE_CORRECTIVE_P2O5_FERTILIZATION: "corrective-p2o5-fertilization/delete",
 
   // --- Corrective K2O Fertilization Endpoints ---
   GET_BY_TABLE_CORRECTIVE_K2O_FERTILIZATION: "corrective-k2o-fertilization/get-by-table",
   CREATE_CORRECTIVE_K2O_FERTILIZATION: "corrective-k2o-fertilization/register",
   UPDATE_CORRECTIVE_K2O_FERTILIZATION: "corrective-k2o-fertilization/update",
+  DELETE_CORRECTIVE_K2O_FERTILIZATION: "corrective-k2o-fertilization/delete",
 
   // --- Micronutrient Dose Endpoints ---
   GET_BY_TABLE_MICRONUTRIENT_DOSE: "micronutrient-dose/get-by-table",
