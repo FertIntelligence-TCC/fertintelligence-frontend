@@ -11,7 +11,10 @@ import type {
   RecommendationFertilizerLine,
   RecommendationOptionFertilizationPayload,
   RecommendationStructuredFertilizerLines,
+  RecommendationTableSection,
   ShoppingListResponse,
+  ShoppingListBlock,
+  ShoppingListItem,
   SulfurRecommendationFields,
 } from "@/interfaces/Recommendation";
 import {
@@ -3212,6 +3215,7 @@ function ShoppingListHeader({ document }: { document: ShoppingListResponse }) {
 
   return (
     <VStack align="stretch" gap={2}>
+      <Heading size="md">{getShoppingInputTitle(document)}</Heading>
       {headerItems.length > 0 ? (
         <SimpleGrid columns={{ base: 1, md: Math.min(headerItems.length, 2) }} gap={3}>
           {headerItems.map((item) => (
@@ -3224,6 +3228,80 @@ function ShoppingListHeader({ document }: { document: ShoppingListResponse }) {
           ))}
         </SimpleGrid>
       ) : null}
+    </VStack>
+  );
+}
+
+export const getShoppingInputTitle = (document?: ShoppingListResponse | null): string => {
+  const area = document
+    ? formatShoppingListArea(getFirstPresentValue(document, shoppingListAreaFields))
+    : "";
+  return area
+    ? `Lista de insumos para a área cultivada (${area})`
+    : "Lista de insumos para a área cultivada (área não informada)";
+};
+
+export type ShoppingInputSectionModel = {
+  title: string;
+  options: Array<{ title: string; mutuallyExclusive: boolean; items: ShoppingListItem[] }>;
+};
+
+export const buildShoppingInputSections = (
+  document?: ShoppingListResponse | null,
+): ShoppingInputSectionModel[] => {
+  const blocks = document?.blocos ?? document?.blocks ?? [];
+  return blocks.map((block: ShoppingListBlock) => ({
+    title: block.nome ?? block.name ?? "Seção sem identificação",
+    options: (block.opcoes ?? block.options ?? []).map((option) => ({
+      title: option.nome ?? option.name ?? "Opção sem identificação",
+      mutuallyExclusive: option.mutuamente_exclusiva ?? option.mutuallyExclusive ?? false,
+      items: option.itens ?? option.items ?? [],
+    })),
+  }));
+};
+
+const shoppingItemText = (item: ShoppingListItem, field: "source" | "dose" | "total") => {
+  if (field === "source") return item.insumo ?? item.inputName ?? "-";
+  if (field === "dose") return item.quantidade_por_hectare ?? item.quantityPerHectare ?? "-";
+  return item.total_area ?? item.totalForArea ?? "-";
+};
+
+function ShoppingInputList({ document }: { document: ShoppingListResponse }) {
+  const sections = buildShoppingInputSections(document);
+  if (sections.length === 0) {
+    return <Text color="fg.muted">Nenhum insumo com dose operacional foi calculado.</Text>;
+  }
+
+  return (
+    <VStack align="stretch" gap={4}>
+      {sections.map((section) => (
+        <VStack key={section.title} align="stretch" gap={3}>
+          <Heading size="sm">{section.title}</Heading>
+          {section.options.map((option) => (
+            <VStack key={`${section.title}-${option.title}`} align="stretch" gap={2}>
+              <HStack gap={2}>
+                <Text fontWeight="semibold">{option.title}</Text>
+                {option.mutuallyExclusive ? <Badge colorPalette="orange">Alternativa</Badge> : null}
+              </HStack>
+              {option.items.length > 0 ? (
+                <RecommendationTable
+                  columns={[
+                    { key: "source", header: "Fonte", minW: "220px" },
+                    { key: "dose", header: "Dose de aplicação", minW: "160px" },
+                    { key: "total", header: "Quantidade total", minW: "160px" },
+                  ]}
+                  rows={option.items}
+                  minW="620px"
+                  getRowKey={(item, index) => `${shoppingItemText(item, "source")}-${item.fase ?? item.phase ?? ""}-${item.opcao ?? item.option ?? ""}-${index}`}
+                  renderCell={(item, column) => shoppingItemText(item, column.key as "source" | "dose" | "total")}
+                />
+              ) : (
+                <Text color="fg.muted">Nenhum item calculado nesta opção.</Text>
+              )}
+            </VStack>
+          ))}
+        </VStack>
+      ))}
     </VStack>
   );
 }
@@ -4222,6 +4300,46 @@ export const buildCorrectiveSoilFertilizationPrintTableModels = (
   ].filter((table): table is CorrectiveSoilFertilizationPrintTableModel => Boolean(table));
 };
 
+export const buildStructuredCorrectiveTables = (
+  document?: RecommendationStructuredFertilizerLines | null,
+): Array<{ title: string; columns: string[]; rows: string[][] }> => {
+  const sections = document?.tabelas_estruturadas ?? document?.structuredTables ?? [];
+  return sections
+    .filter((section: RecommendationTableSection) =>
+      (section.chave_secao ?? section.sectionKey ?? "").startsWith("adubacao_corretiva_"))
+    .map((section) => ({
+      title: section.titulo ?? section.title ?? "Adubação corretiva do solo",
+      columns: section.colunas ?? section.columns ?? [],
+      rows: section.linhas ?? section.rows ?? [],
+    }))
+    .filter(({ columns, rows }) => columns.length > 0 && rows.length > 0);
+};
+
+function StructuredCorrectiveTables({
+  document,
+}: {
+  document?: RecommendationStructuredFertilizerLines | null;
+}) {
+  const tables = buildStructuredCorrectiveTables(document);
+  if (tables.length === 0) return null;
+  return (
+    <VStack align="stretch" gap={4}>
+      {tables.map((table) => (
+        <VStack key={table.title} align="stretch" gap={2}>
+          <Heading size="sm">{table.title}</Heading>
+          <RecommendationTable
+            columns={table.columns.map((header, index) => ({ key: String(index), header, minW: index === 2 ? "220px" : "140px" }))}
+            rows={table.rows}
+            minW="900px"
+            getRowKey={(row, index) => `${table.title}-${row[2] ?? ""}-${row[3] ?? ""}-${index}`}
+            renderCell={(row, column) => row[Number(column.key)] || "-"}
+          />
+        </VStack>
+      ))}
+    </VStack>
+  );
+}
+
 function CorrectiveSoilFertilizationSection({
   document,
   mode,
@@ -4269,6 +4387,8 @@ function CorrectiveSoilFertilizationSection({
 export const hasStructuredRecommendationContent = (
   document?: RecommendationStructuredFertilizerLines | null,
 ): boolean =>
+  buildShoppingInputSections(document as ShoppingListResponse | null).length > 0 ||
+  buildStructuredCorrectiveTables(document).length > 0 ||
   hasCorrectiveSoilFertilizationContent(document) ||
   hasEconomicFertilizerDecisionContent(document) ||
   hasFertilizationOptionContent(document) ||
@@ -4329,6 +4449,15 @@ export default function RecommendationStructuredFertilizerTables({
   const hasOptionContent = hasFertilizationOptionContent(displayDocument);
   const uniqueTechnicalWarnings = compactTextList(technicalWarnings);
 
+  if (viewMode === "shopping" && displayDocument) {
+    return (
+      <VStack align="stretch" gap={4}>
+        <ShoppingListHeader document={displayDocument as ShoppingListResponse} />
+        <ShoppingInputList document={displayDocument as ShoppingListResponse} />
+      </VStack>
+    );
+  }
+
   if (!hasStructuredRecommendationContent(displayDocument)) return null;
 
   return (
@@ -4339,6 +4468,7 @@ export default function RecommendationStructuredFertilizerTables({
       {uniqueTechnicalWarnings.map((warning) => (
         <TechnicalWarningBox key={warning} warning={warning} />
       ))}
+      <StructuredCorrectiveTables document={displayDocument} />
       <CorrectiveSoilFertilizationSection document={displayDocument} mode={viewMode} />
       <EconomicFertilizerDecisionSection document={displayDocument} mode={viewMode} />
       {hasOptionContent ? (

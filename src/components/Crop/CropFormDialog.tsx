@@ -30,6 +30,7 @@ import {
   NomeComum,
   PlantSpacingMode
 } from "@/interfaces/Crop";
+import { buildCropSpacingFields, getCropSpacingValidationMessage } from "./cropSpacing";
 import { createCrop, updateCrop } from "@/services/cropService";
 import { getPlotById } from "@/services/plotService";
 
@@ -196,7 +197,7 @@ export const CropFormDialog = ({
     setModoEspacamento(getCropPlantSpacingMode(crop));
     setDistanciaEntreLinhas(crop.distancia_entre_linhas?.toString() || "");
     setPlantasPorMetro(crop.numero_plantas_por_metro?.toString() || "");
-    setDistanciaEntrePlantas(crop.distancia_entre_plantas?.toString() || "");
+    setDistanciaEntrePlantas(crop.distancia_entre_covas?.toString() || "");
     setPlantasPorCova(crop.numero_plantas_por_cova?.toString() || "");
     setAreaUsada(crop.area_usada_no_talhao?.toString() || "");
     setProdutividadeEsperada(crop.produtividade_esperada?.toString() || "");
@@ -241,25 +242,37 @@ export const CropFormDialog = ({
       return;
     }
 
+    const spacingValidationMessage = getCropSpacingValidationMessage(
+      modoEspacamento,
+      distanciaEntreLinhas,
+      distanciaEntrePlantas,
+      plantasPorCova,
+      plantasPorMetro,
+    );
+    if (spacingValidationMessage) {
+      toaster.create({ title: "Espaçamento inválido", description: spacingValidationMessage, type: "error" });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const computedPlantsPerMeter = modoEspacamento === "holes"
-        ? Number(plantasPorCova) / Number(distanciaEntrePlantas)
-        : Number(plantasPorMetro);
+      const spacingFields = buildCropSpacingFields(
+        modoEspacamento,
+        distanciaEntrePlantas,
+        plantasPorCova,
+        plantasPorMetro,
+        currentCrop,
+      );
       const commonData = {
         nome: nome as NomeComum,
         variedade,
         tipo_cultivo: tipoCultivo as CultivationType,
         ciclo: Number(ciclo) || 0,
         distancia_entre_linhas: Number(distanciaEntreLinhas) || 0,
-        numero_plantas_por_metro: Number.isFinite(computedPlantsPerMeter) ? computedPlantsPerMeter : 0,
+        numero_plantas_por_metro: spacingFields.numero_plantas_por_metro,
         modo_espacamento: modoEspacamento,
-        distancia_entre_plantas: modoEspacamento === "holes"
-          ? Number(distanciaEntrePlantas) || 0
-          : currentCrop?.distancia_entre_plantas ?? null,
-        numero_plantas_por_cova: modoEspacamento === "holes"
-          ? Number(plantasPorCova) || 0
-          : currentCrop?.numero_plantas_por_cova ?? null,
+        distancia_entre_covas: spacingFields.distancia_entre_covas,
+        numero_plantas_por_cova: spacingFields.numero_plantas_por_cova,
         area_usada_no_talhao: Number(areaUsada) || 0,
         produtividade_esperada: Number(produtividadeEsperada) || 0,
         produtividade_obtida: Number(produtividadeObtida) || 0,
@@ -282,7 +295,7 @@ export const CropFormDialog = ({
           novo_distancia_entre_linhas: commonData.distancia_entre_linhas,
           novo_numero_plantas_por_metro: commonData.numero_plantas_por_metro,
           novo_modo_espacamento: commonData.modo_espacamento,
-          novo_distancia_entre_plantas: commonData.distancia_entre_plantas,
+          novo_distancia_entre_covas: commonData.distancia_entre_covas,
           novo_numero_plantas_por_cova: commonData.numero_plantas_por_cova,
           novo_area_usada_no_talhao: commonData.area_usada_no_talhao,
           novo_produtividade_esperada: commonData.produtividade_esperada,

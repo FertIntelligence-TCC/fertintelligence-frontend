@@ -40,7 +40,7 @@ export interface CropDate {
     distancia_entre_linhas: number;
     numero_plantas_por_metro: number;
     modo_espacamento?: PlantSpacingMode | null;
-    distancia_entre_plantas?: number | null;
+    distancia_entre_covas?: number | null;
     numero_plantas_por_cova?: number | null;
     
     // Produtividade
@@ -66,7 +66,7 @@ export interface CropDate {
     distancia_entre_linhas: number;
     numero_plantas_por_metro: number;
     modo_espacamento?: PlantSpacingMode;
-    distancia_entre_plantas?: number | null;
+    distancia_entre_covas?: number | null;
     numero_plantas_por_cova?: number | null;
     
     produtividade_esperada: number;
@@ -91,7 +91,7 @@ export interface CropDate {
     novo_distancia_entre_linhas?: number;
     novo_numero_plantas_por_metro?: number;
     novo_modo_espacamento?: PlantSpacingMode;
-    novo_distancia_entre_plantas?: number | null;
+    novo_distancia_entre_covas?: number | null;
     novo_numero_plantas_por_cova?: number | null;
     
     novo_produtividade_esperada?: number;

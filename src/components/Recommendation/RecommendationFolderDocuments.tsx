@@ -135,11 +135,18 @@ export const hasDirectNpkFertilizerRows = (
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+export const removeDirectFertilizationObservations = (content: string): string => {
+  const heading = "Observações sobre adubação";
+  const headingIndex = content.indexOf(heading);
+  return headingIndex < 0 ? content : content.slice(0, headingIndex).trimEnd();
+};
+
 const getDisplayDocumentContent = (
   selectedDocument?: RecommendationDocumentView,
   summaryRecommendationDocument?: SummaryRecommendationResponse | null,
 ): string => {
   const content = selectedDocument?.content ?? "";
+  if (selectedDocument?.key === "direct") return removeDirectFertilizationObservations(content);
   if (selectedDocument?.key !== "summary") return content;
 
   const calculatedMicronutrients = getCalculatedMicronutrientLabels(summaryRecommendationDocument);

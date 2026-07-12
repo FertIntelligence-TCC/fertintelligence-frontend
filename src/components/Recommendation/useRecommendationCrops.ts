@@ -48,7 +48,7 @@ const buildSpacingFormState = (crop: CropResponseDto | null): CropSpacingFormSta
     return {
       rowDistance: String(crop.distancia_entre_linhas ?? ""),
       plantSpacingMode: "holes",
-      plantSpacingValue: String(crop.distancia_entre_plantas ?? ""),
+      plantSpacingValue: String(crop.distancia_entre_covas ?? ""),
       plantsPerHole: String(crop.numero_plantas_por_cova ?? ""),
     };
   }

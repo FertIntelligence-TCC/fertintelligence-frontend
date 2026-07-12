@@ -375,6 +375,8 @@ export type BioFertilizerRecommendationLine = RecommendationFertilizerLine;
 type NullableRecommendationLineArray<T> = T[] | null;
 
 export interface RecommendationStructuredFertilizerLines extends GypsumRecommendationFields, SulfurRecommendationFields, EconomicFertilizerDecisionFields, CorrectiveSoilFertilizationRecommendationFields {
+  tabelas_estruturadas?: RecommendationTableSection[] | null;
+  structuredTables?: RecommendationTableSection[] | null;
   adubos_solidos_micronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
   adubosSolidosMicronutrientes?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
   solidFertilizersWithMicronutrients?: NullableRecommendationLineArray<SolidFertilizerWithMicronutrientsLine>;
@@ -465,6 +467,17 @@ export interface RecommendationStructuredFertilizerLines extends GypsumRecommend
   recommendationLines?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
   itens?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
   items?: NullableRecommendationLineArray<RecommendationFertilizerLine>;
+}
+
+export interface RecommendationTableSection {
+  titulo?: string | null;
+  title?: string | null;
+  chave_secao?: string | null;
+  sectionKey?: string | null;
+  colunas?: string[] | null;
+  columns?: string[] | null;
+  linhas?: string[][] | null;
+  rows?: string[][] | null;
 }
 
 export interface RecommendationOptionFertilizationPayload {
@@ -851,6 +864,41 @@ export interface ShoppingListResponse
   data_plantio?: { day?: number | string; month?: number | string; year?: number | string } | string | null;
   dataPlantio?: { day?: number | string; month?: number | string; year?: number | string } | string | null;
   plantingDate?: { day?: number | string; month?: number | string; year?: number | string } | string | null;
+  blocos?: ShoppingListBlock[] | null;
+  blocks?: ShoppingListBlock[] | null;
+}
+
+export interface ShoppingListItem {
+  insumo?: string | null;
+  inputName?: string | null;
+  quantidade_por_hectare?: string | null;
+  quantityPerHectare?: string | null;
+  total_area?: string | null;
+  totalForArea?: string | null;
+  fase?: string | null;
+  phase?: string | null;
+  opcao?: string | null;
+  option?: string | null;
+}
+
+export interface ShoppingListOption {
+  codigo?: string | null;
+  code?: string | null;
+  nome?: string | null;
+  name?: string | null;
+  mutuamente_exclusiva?: boolean | null;
+  mutuallyExclusive?: boolean | null;
+  itens?: ShoppingListItem[] | null;
+  items?: ShoppingListItem[] | null;
+}
+
+export interface ShoppingListBlock {
+  codigo?: string | null;
+  code?: string | null;
+  nome?: string | null;
+  name?: string | null;
+  opcoes?: ShoppingListOption[] | null;
+  options?: ShoppingListOption[] | null;
 }
 
 export const getRecommendationReportText = (
