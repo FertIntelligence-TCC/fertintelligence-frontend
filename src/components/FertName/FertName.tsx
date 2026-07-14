@@ -1,4 +1,5 @@
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Text, HStack, Image } from "@chakra-ui/react";
+import logo from "../../assets/fertintelligence-logo.svg";
 
 type FertNameProps = {
   subtitle?: string;
@@ -7,15 +8,26 @@ type FertNameProps = {
 export default function FertName({ subtitle }: FertNameProps) {
   return (
     <Box position="fixed" top={4} left={4} zIndex={1}>
-      <Text fontWeight="bold" fontSize="xl" color="white">
-        FertIntelligence, sistema de recomendação para adubação.
-        <br />
-        {subtitle && (
-          <Text as="span" fontSize="md" fontWeight="normal">
-            {subtitle}
+      <HStack gap={3} align="center">
+        <Image
+          src={logo}
+          alt="Logo FertIntelligence"
+          boxSize="52px"
+          objectFit="contain"
+        />
+
+        <Box>
+          <Text fontWeight="bold" fontSize="xl" color="white">
+            FertIntelligence, sistema de recomendação para adubação.
           </Text>
-        )}
-      </Text>
+
+          {subtitle && (
+            <Text fontSize="md" color="white">
+              {subtitle}
+            </Text>
+          )}
+        </Box>
+      </HStack>
     </Box>
   );
 }
