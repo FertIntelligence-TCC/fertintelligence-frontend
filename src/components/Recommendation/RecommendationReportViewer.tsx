@@ -6,6 +6,7 @@ import RecommendationTable, { type RecommendationTableColumn } from "./Recommend
 type RecommendationReportViewerProps = {
   reportText: string;
   sectionExtras?: Partial<Record<RecommendationReportSectionKey, ReactNode>>;
+  structuredTablesAvailable?: boolean;
 };
 
 type RecommendationReportSectionKey = "chemicalDiagnosis" | "foliarDiagnosis" | "summarySoilDiagnosis";
@@ -230,7 +231,10 @@ export const sanitizeRecommendationPlainTextLine = (line: string) => {
     .replace(/`([^`]+)`/g, "$1");
 };
 
-export const parseRecommendationReportBlocks = (reportText: string): ReportBlock[] => {
+export const parseRecommendationReportBlocks = (
+  reportText: string,
+  structuredTablesAvailable = false,
+): ReportBlock[] => {
   const lines = reportText.split("\n");
   const blocks: ReportBlock[] = [];
   let foundInvalidTableLikeContent = false;
@@ -259,7 +263,7 @@ export const parseRecommendationReportBlocks = (reportText: string): ReportBlock
     blocks.push(notice ? { type: "notice", ...notice } : { type: "text", content: cleanLine });
   }
 
-  if (foundInvalidTableLikeContent) {
+  if (foundInvalidTableLikeContent && !structuredTablesAvailable) {
     blocks.unshift({
       type: "warning",
       content:
@@ -319,12 +323,13 @@ function RecommendationNoticeBlock({
 export default function RecommendationReportViewer({
   reportText,
   sectionExtras = {},
+  structuredTablesAvailable = false,
 }: RecommendationReportViewerProps) {
   if (!reportText?.trim()) {
     return <Text>Nenhum laudo retornado.</Text>;
   }
 
-  const blocks = parseRecommendationReportBlocks(reportText);
+  const blocks = parseRecommendationReportBlocks(reportText, structuredTablesAvailable);
   let activeSectionKey: RecommendationReportSectionKey | null = null;
   const renderedSectionExtras = new Set<RecommendationReportSectionKey>();
 
