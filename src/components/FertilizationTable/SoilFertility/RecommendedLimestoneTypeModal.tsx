@@ -28,10 +28,8 @@ interface Props {
   isReadOnly?: boolean;
 }
 
-const INITIAL_STATE = {
+export const INITIAL_STATE = {
   relacao_ca_mg_baixa: "",
-  relacao_ca_mg_media_menor_valor: "",
-  relacao_ca_mg_media_maior_valor: "",
   relacao_ca_mg_alta: "",
   observacoes: "",
   fontes: ""
@@ -45,26 +43,16 @@ const NUMERIC_FIELDS = Object.keys(INITIAL_STATE).filter(
   (key): key is NumericRecommendedLimestoneTypeField => key !== "observacoes" && key !== "fontes"
 );
 
-const FIELDS = [
+export const RECOMMENDED_LIMESTONE_TYPE_FIELDS = [
   {
     label: "Relação Ca/Mg Baixa",
     key: "relacao_ca_mg_baixa",
-    legend: "Calcário Calcídico (Teor de MgO menor que 5%)"
-  },
-  {
-    label: "Relação Ca/Mg Média (Menor Valor)",
-    key: "relacao_ca_mg_media_menor_valor",
-    legend: "Calcário Magnesiano (Teor de MgO entre 5% e 12%)"
-  },
-  {
-    label: "Relação Ca/Mg Média (Maior Valor)",
-    key: "relacao_ca_mg_media_maior_valor",
-    legend: "Calcário Magnesiano (Teor de MgO entre 5% e 12%)"
+    legend: "Calcário Calcítico (Teor de MgO menor que 5%)"
   },
   {
     label: "Relação Ca/Mg Alta",
     key: "relacao_ca_mg_alta",
-    legend: "Calcário Dolomítico (Teor de MgO maior que 12%)"
+    legend: "Calcário Dolomítico (Teor de MgO igual ou maior que 5%)"
   }
 ] as const satisfies readonly {
   label: string;
@@ -73,9 +61,28 @@ const FIELDS = [
 }[];
 
 const parseNumber = (value: string) => {
-  if (!value) return 0;
-  return parseFloat(value.replace(",", ".")) || 0;
+  if (!value.trim()) return null;
+  const parsed = Number(value.replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
 };
+
+export const buildRecommendedLimestoneTypeCreatePayload = (
+  form: RecommendedLimestoneTypeForm,
+): RecommendedLimestoneTypeCreateRequestDto => ({
+  relacao_ca_mg_baixa: parseNumber(form.relacao_ca_mg_baixa),
+  relacao_ca_mg_alta: parseNumber(form.relacao_ca_mg_alta),
+  observacoes: form.observacoes,
+  fontes: form.fontes,
+});
+
+export const buildRecommendedLimestoneTypeUpdatePayload = (
+  form: RecommendedLimestoneTypeForm,
+): RecommendedLimestoneTypePostRequestDto => ({
+  novo_relacao_ca_mg_baixa: parseNumber(form.relacao_ca_mg_baixa),
+  novo_relacao_ca_mg_alta: parseNumber(form.relacao_ca_mg_alta),
+  novo_observacoes: form.observacoes,
+  novo_fontes: form.fontes,
+});
 
 export default function RecommendedLimestoneTypeModal({
   isOpen,
@@ -128,23 +135,11 @@ export default function RecommendedLimestoneTypeModal({
   };
 
   const buildCreatePayload = (): RecommendedLimestoneTypeCreateRequestDto => {
-    const payload = {} as RecommendedLimestoneTypeCreateRequestDto;
-    NUMERIC_FIELDS.forEach((key) => {
-      payload[key] = parseNumber(form[key]);
-    });
-    payload.observacoes = form.observacoes;
-    payload.fontes = form.fontes;
-    return payload;
+    return buildRecommendedLimestoneTypeCreatePayload(form);
   };
 
   const buildUpdatePayload = (): RecommendedLimestoneTypePostRequestDto => {
-    const payload: RecommendedLimestoneTypePostRequestDto = {};
-    NUMERIC_FIELDS.forEach((key) => {
-      payload[`novo_${key}`] = parseNumber(form[key]);
-    });
-    payload.novo_observacoes = form.observacoes;
-    payload.novo_fontes = form.fontes;
-    return payload;
+    return buildRecommendedLimestoneTypeUpdatePayload(form);
   };
 
   const handleSave = async () => {
@@ -183,7 +178,7 @@ export default function RecommendedLimestoneTypeModal({
             ) : (
               <>
                 <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4}>
-                  {FIELDS.map((field) => (
+                  {RECOMMENDED_LIMESTONE_TYPE_FIELDS.map((field) => (
                     <Field.Root key={field.key}>
                       <Field.Label fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
                         {field.label}

@@ -1519,8 +1519,8 @@ export default function Recommendation() {
             	))
             	: null}
           	<Box>
-            	<Text fontSize="sm" mb={1}>Quais adubos usar?</Text>
-            	<NativeSelect value={normalizeFertilizerSourceOption(fertilizerSourceOption)} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
+              <Text fontSize="sm" mb={1}>Qual relação de adubos usar?</Text>
+              <NativeSelect value={normalizeFertilizerSourceOption(fertilizerSourceOption)} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Qual relação de adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
           	</Box>
           	<Box>
             	<Text fontSize="sm" mb={1}>Utilizar adubo orgânico?</Text>
