@@ -2021,7 +2021,12 @@ const getSulfurPayload = (
   const hasFlatSulfurField = [
     ...sulfurRecommendedFields,
     ...Object.values(sulfurValueFields).flat(),
-  ].some((field) => record[field] !== null && record[field] !== undefined && record[field] !== "");
+  ].some((field) => {
+    const value = record[field];
+    if (value === null || value === undefined || value === "") return false;
+    if (Array.isArray(value)) return value.length > 0;
+    return true;
+  });
 
   return hasFlatSulfurField ? record : null;
 };

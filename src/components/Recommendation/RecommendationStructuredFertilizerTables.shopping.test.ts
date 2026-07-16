@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type { SulfurRecommendationFields } from "@/interfaces/Recommendation";
+
 import {
   buildShoppingInputSections,
   buildStructuredCorrectiveTables,
+  getSulfurRecommendationModel,
   getShoppingInputTitle,
 } from "./RecommendationStructuredFertilizerTables";
 
@@ -78,5 +81,51 @@ describe("lista de insumos estruturada", () => {
     ]);
     expect(tables[0].rows[2]).toContain("4.00 kg/ha");
     expect(tables[0].rows[2]).toContain("observação Cu");
+  });
+});
+
+describe("estado estruturado de enxofre", () => {
+  it("não confunde arrays estruturais vazios com dados de enxofre", () => {
+    const normalizedDocument = { items: [] } as unknown as SulfurRecommendationFields;
+    expect(getSulfurRecommendationModel(normalizedDocument)).toBeNull();
+  });
+
+  it("mantém recomendação calculada sem aviso de ausência", () => {
+    expect(getSulfurRecommendationModel({
+      recomendacao_enxofre: {
+        recommended: true,
+        sulfurDoseKgHa: 40,
+        interpretation: "Médio",
+      },
+    })).toMatchObject({
+      recommended: true,
+      dose: "40 kg/ha",
+      deficiencyLevel: "Médio",
+      technicalWarning: "",
+    });
+  });
+
+  it("preserva o estado atendido pela gessagem sem criar o aviso genérico", () => {
+    expect(getSulfurRecommendationModel({
+      recomendacao_enxofre: {
+        recommended: false,
+        technicalWarning: "A necessidade adicional de enxofre foi considerada atendida pela gessagem.",
+      },
+    })).toMatchObject({
+      recommended: false,
+      technicalWarning: "A necessidade adicional de enxofre foi considerada atendida pela gessagem.",
+    });
+  });
+
+  it("preserva aviso específico quando os dados realmente estão indisponíveis", () => {
+    expect(getSulfurRecommendationModel({
+      recomendacao_enxofre: {
+        recommended: false,
+        technicalWarning: "Tabela de doses de enxofre não configurada.",
+      },
+    })).toMatchObject({
+      recommended: false,
+      technicalWarning: "Tabela de doses de enxofre não configurada.",
+    });
   });
 });
