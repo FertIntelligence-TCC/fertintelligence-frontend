@@ -58,9 +58,9 @@ export interface FertilityExtractFormData {
     materiaOrganica: number;
     
     // Micronutrientes
-    boro: number | string | null;
-    cobre: number | string | null;
-    ferro: number | string | null;
-    manganes: number | string | null;
-    zinco: number | string | null;
+    boro: number;
+    cobre: number;
+    ferro: number;
+    manganes: number;
+    zinco: number;
 }

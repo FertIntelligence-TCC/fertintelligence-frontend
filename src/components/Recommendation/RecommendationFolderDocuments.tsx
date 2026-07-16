@@ -376,9 +376,6 @@ function RecommendationDocumentPanel({
             <RecommendationReportViewer
               reportText={displayDocumentContent}
               sectionExtras={recommendationReportSectionExtras}
-              structuredTablesAvailable={
-                showGeneralStructuredContent || showSummaryStructuredContent || showDirectStructuredNpkContent
-              }
             />
           ) : null}
           {selectedDocumentTechnicalWarnings.map((warning) => (
@@ -630,11 +627,6 @@ export default function RecommendationFolderDocuments({
                       <RecommendationReportViewer
                         reportText={fullscreenDisplayDocumentContent}
                         sectionExtras={fullscreenReportSectionExtras}
-                        structuredTablesAvailable={
-                          (selectedDocument.key === "general" && hasStructuredRecommendationContent(selectedRecommendation)) ||
-                          (selectedDocument.key === "summary" && hasStructuredRecommendationContent(summaryRecommendationDocument)) ||
-                          (selectedDocument.key === "direct" && hasStructuredRecommendationContent(directRecommendationDocument))
-                        }
                       />
                     ) : null}
                     {fullscreenDocumentTechnicalWarnings.map((warning) => (

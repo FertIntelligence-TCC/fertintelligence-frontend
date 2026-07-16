@@ -18,8 +18,7 @@ type LocalizedDoseFields = {
 export const LOCALIZED_APPLICATION_COLUMN_LABEL = "Aplicação localizada";
 
 const formatter = new Intl.NumberFormat("pt-BR", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
+  maximumFractionDigits: 4,
 });
 
 const invalidDisplayValueRegex = /^(?:nan|null|undefined|[-+]?infinity)$/i;
@@ -30,12 +29,7 @@ export const normalizeRecommendationText = (value: unknown): string => {
   if (typeof value === "number") return Number.isFinite(value) ? formatter.format(value) : "";
   if (typeof value === "string") {
     const text = value.trim();
-    if (invalidDisplayValueRegex.test(text) || absentDisplayValueRegex.test(text) || /\bNaN\b/i.test(text)) return "";
-    if (/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(text)) {
-      const numericValue = Number(text);
-      return Number.isFinite(numericValue) ? formatter.format(numericValue) : "";
-    }
-    return text;
+    return invalidDisplayValueRegex.test(text) || absentDisplayValueRegex.test(text) || /\bNaN\b/i.test(text) ? "" : text;
   }
   return "";
 };

@@ -40,11 +40,11 @@ export interface FertilityAnalysisExtractResponse {
     fosforo_resina: number;
     enxofre: number;
     materia_organica: number;
-    boro: number | null;
-    cobre: number | null;
-    ferro: number | null;
-    manganes: number | null;
-    zinco: number | null;
+    boro: number;
+    cobre: number;
+    ferro: number;
+    manganes: number;
+    zinco: number;
 }
 
 export interface FertilityAnalysisExtractCreatePayload {
@@ -66,11 +66,11 @@ export interface FertilityAnalysisExtractCreatePayload {
     fosforo_resina?: number;
     enxofre?: number;
     materia_organica?: number;
-    boro?: number | null;
-    cobre?: number | null;
-    ferro?: number | null;
-    manganes?: number | null;
-    zinco?: number | null;
+    boro?: number;
+    cobre?: number;
+    ferro?: number;
+    manganes?: number;
+    zinco?: number;
 }
 
 export interface FertilityAnalysisExtractUpdatePayload {
@@ -92,9 +92,9 @@ export interface FertilityAnalysisExtractUpdatePayload {
     novo_fosforo_resina?: number;
     novo_enxofre?: number;
     nova_materia_organica?: number;
-    novo_boro?: number | null;
-    novo_cobre?: number | null;
-    novo_ferro?: number | null;
-    novo_manganes?: number | null;
-    novo_zinco?: number | null;
+    novo_boro?: number;
+    novo_cobre?: number;
+    novo_ferro?: number;
+    novo_manganes?: number;
+    novo_zinco?: number;
 }

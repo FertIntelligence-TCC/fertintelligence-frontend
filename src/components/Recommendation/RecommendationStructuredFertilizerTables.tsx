@@ -4315,56 +4315,6 @@ export const buildStructuredCorrectiveTables = (
     .filter(({ columns, rows }) => columns.length > 0 && rows.length > 0);
 };
 
-const supportedSummaryTableKeys = new Set(["fertilizantes_recomendados", "custo_oportunidade"]);
-
-export const buildStructuredSummaryTables = (
-  document?: RecommendationStructuredFertilizerLines | null,
-): Array<{ key: string; title: string; columns: string[]; rows: string[][] }> => {
-  const sections = document?.tabelas_estruturadas ?? document?.structuredTables ?? [];
-  return sections
-    .map((section) => ({
-      key: section.chave_secao ?? section.sectionKey ?? "",
-      title: section.titulo ?? section.title ?? "Tabela da recomendação",
-      columns: section.colunas ?? section.columns ?? [],
-      rows: section.linhas ?? section.rows ?? [],
-    }))
-    .filter(({ key, columns, rows }) => supportedSummaryTableKeys.has(key) && columns.length > 0 && rows.length > 0);
-};
-
-function StructuredSummaryTables({
-  document,
-}: {
-  document?: RecommendationStructuredFertilizerLines | null;
-}) {
-  const tables = buildStructuredSummaryTables(document);
-  if (tables.length === 0) return null;
-
-  return (
-    <VStack align="stretch" gap={4}>
-      {tables.map((table) => (
-        <VStack key={`${table.key}-${table.title}`} align="stretch" gap={2}>
-          <Heading size="sm">{table.title}</Heading>
-          <RecommendationTable
-            columns={table.columns.map((header, index) => ({
-              key: String(index),
-              header,
-              minW: index === table.columns.length - 1 ? "240px" : "140px",
-            }))}
-            rows={table.rows}
-            minW={table.key === "custo_oportunidade" ? "980px" : "900px"}
-            getRowKey={(row, index) => `${table.key}-${row.join("-")}-${index}`}
-            renderCell={(row, column) => (
-              <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
-                {row[Number(column.key)] || "-"}
-              </Text>
-            )}
-          />
-        </VStack>
-      ))}
-    </VStack>
-  );
-}
-
 function StructuredCorrectiveTables({
   document,
 }: {
@@ -4519,7 +4469,6 @@ export default function RecommendationStructuredFertilizerTables({
         <TechnicalWarningBox key={warning} warning={warning} />
       ))}
       <StructuredCorrectiveTables document={displayDocument} />
-      <StructuredSummaryTables document={displayDocument} />
       <CorrectiveSoilFertilizationSection document={displayDocument} mode={viewMode} />
       <EconomicFertilizerDecisionSection document={displayDocument} mode={viewMode} />
       {hasOptionContent ? (

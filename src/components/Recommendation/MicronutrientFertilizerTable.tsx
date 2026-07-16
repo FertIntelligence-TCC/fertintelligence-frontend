@@ -192,7 +192,7 @@ export const buildMicronutrientFertilizerTableModel = (
   const localizedColumnLabel = getLocalizedColumnLabel(localizedDoses);
 
   return {
-    title: "Adubação complementar de micronutrientes com outras fontes (usar na adubação corretiva ou na de plantio)",
+    title: "Fontes orgânicas, organominerais e micronutrientes",
     headers: [
       "Tipo de fonte",
       "Nutriente/objetivo",
@@ -257,7 +257,7 @@ export default function MicronutrientFertilizerTable({
   return (
     <VStack align="stretch" gap={3}>
       <Heading size="sm">
-        {variant === "shopping" ? "Micronutrientes" : "Adubação complementar de micronutrientes com outras fontes (usar na adubação corretiva ou na de plantio)"}
+        {variant === "shopping" ? "Micronutrientes" : "Fontes orgânicas, organominerais e micronutrientes"}
       </Heading>
       <RecommendationTable
         columns={columns}

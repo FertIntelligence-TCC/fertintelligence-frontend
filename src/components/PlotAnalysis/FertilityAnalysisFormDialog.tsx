@@ -67,8 +67,6 @@ const FERTILITY_FIELD_ORDER: Array<keyof FertilityExtractFormData> = [
     "zinco",
 ];
 
-const MICRONUTRIENT_FIELDS = new Set<keyof FertilityExtractFormData>(["boro", "cobre", "ferro", "manganes", "zinco"]);
-
 const getKeyboardNavInputs = (scope: string) => Array.from(
     document.querySelectorAll<HTMLInputElement>(
         `input[data-keyboard-nav-scope="${scope}"]:not([readonly]):not(:disabled)`
@@ -201,7 +199,7 @@ const formatBackendCalculatedValue = (value?: number | null, suffix = "") => {
     })}${suffix}`;
 };
 
-export const parseDecimalInputOrNull = (value: unknown): number | null => {
+const parseDecimalInputOrNull = (value: unknown): number | null => {
     if (value === undefined || value === null) return null;
     if (typeof value === "string" && value.trim() === "") return null;
 
@@ -211,7 +209,6 @@ export const parseDecimalInputOrNull = (value: unknown): number | null => {
 };
 
 const numberForPayload = (value: unknown) => parseDecimalInputOrNull(value) ?? 0;
-export const micronutrientNumberForPayload = (value: unknown) => parseDecimalInputOrNull(value);
 
 const divideOrNull = (dividend: number | null, divisor: number | null) => {
     if (dividend === null || divisor === null || divisor === 0) return null;
@@ -318,7 +315,6 @@ const NumericField = ({
     return (
         <Field
             label={label}
-            placeholder={MICRONUTRIENT_FIELDS.has(field) ? "Não analisado" : undefined}
             type="text"
             inputMode="decimal"
             value={displayValue}
@@ -490,7 +486,7 @@ export const FertilityAnalysisFormDialog = ({
             phAgua: 0, phCacl2: 0, calcio: 0, magnesio: 0, potassio: 0, enxofre: 0, sodio: 0, 
             aluminio: 0, aluminioMaisHidrogenio: 0, somaBases: null, ctcEfetiva: null, ctcPh7: null, 
             saturacaoBasesV: null, saturacaoAluminioM: null, pst: null, fosforoMehlich1: 0, fosforoResina: 0, 
-            materiaOrganica: 0, boro: null, cobre: null, ferro: null, manganes: null, zinco: null
+            materiaOrganica: 0, boro: 0, cobre: 0, ferro: 0, manganes: 0, zinco: 0
         };
         const updated = [...extracts, newExtract];
         if (mode === 'LAYER') recalculateSubLayers(updated);
@@ -560,6 +556,11 @@ export const FertilityAnalysisFormDialog = ({
                 extract.fosforoResina,
                 extract.enxofre,
                 extract.materiaOrganica,
+                extract.boro,
+                extract.cobre,
+                extract.ferro,
+                extract.manganes,
+                extract.zinco,
             ].some((value) => parseDecimalInputOrNull(value) === null)
         );
         if (invalidNumericValue) {
@@ -666,11 +667,11 @@ export const FertilityAnalysisFormDialog = ({
                     fosforo_resina: numberForPayload(ext.fosforoResina), 
                     enxofre: numberForPayload(ext.enxofre), 
                     materia_organica: numberForPayload(ext.materiaOrganica), 
-                    boro: micronutrientNumberForPayload(ext.boro),
-                    cobre: micronutrientNumberForPayload(ext.cobre),
-                    ferro: micronutrientNumberForPayload(ext.ferro),
-                    manganes: micronutrientNumberForPayload(ext.manganes),
-                    zinco: micronutrientNumberForPayload(ext.zinco)
+                    boro: numberForPayload(ext.boro),
+                    cobre: numberForPayload(ext.cobre),
+                    ferro: numberForPayload(ext.ferro),
+                    manganes: numberForPayload(ext.manganes),
+                    zinco: numberForPayload(ext.zinco)
                 };
 
                 if (ext.databaseId) {
