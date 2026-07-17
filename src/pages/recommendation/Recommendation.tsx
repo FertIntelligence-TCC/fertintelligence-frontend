@@ -1481,7 +1481,7 @@ export default function Recommendation() {
             	formatLimingNeed={formatAdjustedLimingNeed}
           	/>
           	<Box>
-            	<Text fontSize="sm" mb={1}>Adubação Corretiva do Solo</Text>
+            	<Text fontSize="sm" mb={1}>Adubação Corretiva do Solo:</Text>
             	<NativeSelect
               	value={correctiveSoilFertilization.adubacaoCorretivaSolo ? "true" : "false"}
               	onChange={(e) => {
@@ -1519,7 +1519,7 @@ export default function Recommendation() {
             	))
             	: null}
           	<Box>
-                <Text fontSize="sm" mb={1}>Qual relação de adubos usar</Text>
+                <Text fontSize="sm" mb={1}>Qual relação de adubos usar?</Text>
                 <NativeSelect value={normalizeFertilizerSourceOption(fertilizerSourceOption)} onChange={(e) => setFertilizerSourceOption(e.target.value as FertilizerSourceOption)} aria-label="Quais adubos usar?">{fertilizerOriginOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
           	</Box>
           	<Box>
@@ -1541,7 +1541,7 @@ export default function Recommendation() {
           	</Box>
           	{useOrganicFertilizer ? (
             	<Box>
-              	<Text fontSize="sm" mb={1}>Nutriente de referência do adubo orgânico</Text>
+              	<Text fontSize="sm" mb={1}>Nutriente de referência do adubo orgânico:</Text>
               	<NativeSelect
                 	value={organicFertilizerReferenceNutrient}
                 	onChange={(e) =>
@@ -1549,7 +1549,7 @@ export default function Recommendation() {
                 	}
                 	aria-label="Nutriente de referência do adubo orgânico"
               	>
-                	<option value="">Selecione o nutriente de referência</option>
+                	<option value="">Selecione o nutriente de referência:</option>
                 	{organicFertilizerReferenceNutrientOptions.map((option) => (
                   	<option key={option.value} value={option.value}>
                     	{option.label}
@@ -1599,7 +1599,7 @@ export default function Recommendation() {
           	</Box>
           	{useGreenFertilizer ? (
             	<Box>
-              	<Text fontSize="sm" mb={1}>Adubo verde</Text>
+              	<Text fontSize="sm" mb={1}>Adubo verde:</Text>
               	<NativeSelect
                 	value={greenFertilizerId}
                 	onChange={(e) => setGreenFertilizerId(e.target.value)}
