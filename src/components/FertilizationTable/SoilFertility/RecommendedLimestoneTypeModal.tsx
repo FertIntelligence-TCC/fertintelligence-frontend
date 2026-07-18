@@ -45,12 +45,12 @@ const NUMERIC_FIELDS = Object.keys(INITIAL_STATE).filter(
 
 export const RECOMMENDED_LIMESTONE_TYPE_FIELDS = [
   {
-    label: "Relação Ca/Mg Baixa",
+    label: "Relação Ca/Mg é baixa se menor que:",
     key: "relacao_ca_mg_baixa",
     legend: "Calcário Calcítico (Teor de MgO menor que 5%)"
   },
   {
-    label: "Relação Ca/Mg Alta",
+    label: "Relação Ca/Mg é alta se maior que:",
     key: "relacao_ca_mg_alta",
     legend: "Calcário Dolomítico (Teor de MgO igual ou maior que 5%)"
   }

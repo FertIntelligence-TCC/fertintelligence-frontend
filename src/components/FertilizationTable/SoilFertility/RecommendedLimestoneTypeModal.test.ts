@@ -17,8 +17,8 @@ describe("RecommendedLimestoneTypeModal contract", () => {
   it("exposes only the low and high fields with the established 5 percent boundary", () => {
     expect(RECOMMENDED_LIMESTONE_TYPE_FIELDS).toHaveLength(2);
     expect(RECOMMENDED_LIMESTONE_TYPE_FIELDS.map((field) => field.label)).toEqual([
-      "Relação Ca/Mg Baixa",
-      "Relação Ca/Mg Alta",
+      "Relação Ca/Mg é baixa se menor que:",
+      "Relação Ca/Mg é alta se maior que:",
     ]);
     expect(RECOMMENDED_LIMESTONE_TYPE_FIELDS[0].legend).toContain("Calcário Calcítico");
     expect(RECOMMENDED_LIMESTONE_TYPE_FIELDS[1].legend).toContain("igual ou maior que 5%");

@@ -19,6 +19,8 @@ describe("lista de insumos estruturada", () => {
           {
             nome: "Opção 1 - formulado corretivo e FTE",
             mutuamente_exclusiva: true,
+            custo_total_estimado: "R$ 1.250,00",
+            itens_sem_preco: 1,
             itens: [
               { insumo: "NPK 00-20-20", quantidade_por_hectare: "500.00 kg/ha", total_area: "25000.00 kg", fase: "Formulado corretivo" },
               { insumo: "FTE BR-12", quantidade_por_hectare: "16.67 kg/ha", total_area: "833.50 kg", fase: "FTE" },
@@ -53,6 +55,8 @@ describe("lista de insumos estruturada", () => {
     ]);
     expect(sections[0].options[0].items[0].quantidade_por_hectare).toBe("500.00 kg/ha");
     expect(sections[0].options[0].items[0].total_area).toBe("25000.00 kg");
+    expect(sections[0].options[0].estimatedTotalCost).toBe("R$ 1.250,00");
+    expect(sections[0].options[0].itemsWithoutPrice).toBe(1);
     expect(sections[0].options[1].items[0].insumo).toBe("Superfosfato Simples");
   });
 

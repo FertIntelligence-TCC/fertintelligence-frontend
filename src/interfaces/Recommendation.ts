@@ -866,6 +866,10 @@ export interface ShoppingListResponse
   plantingDate?: { day?: number | string; month?: number | string; year?: number | string } | string | null;
   blocos?: ShoppingListBlock[] | null;
   blocks?: ShoppingListBlock[] | null;
+  observacao_estimativa_custos?: string | null;
+  costEstimateObservation?: string | null;
+  itens_sem_preco?: number | null;
+  itemsWithoutPrice?: number | null;
 }
 
 export interface ShoppingListItem {
@@ -875,6 +879,14 @@ export interface ShoppingListItem {
   quantityPerHectare?: string | null;
   total_area?: string | null;
   totalForArea?: string | null;
+  preco_unidade_comercial?: string | null;
+  commercialUnitPrice?: string | null;
+  custo_estimado_insumo_ha?: string | null;
+  estimatedInputCostPerHectare?: string | null;
+  quantidade_total_comercial?: string | null;
+  totalCommercialQuantity?: string | null;
+  custo_total_estimado?: string | null;
+  estimatedTotalCost?: string | null;
   fase?: string | null;
   phase?: string | null;
   opcao?: string | null;
@@ -890,6 +902,10 @@ export interface ShoppingListOption {
   mutuallyExclusive?: boolean | null;
   itens?: ShoppingListItem[] | null;
   items?: ShoppingListItem[] | null;
+  custo_total_estimado?: string | null;
+  estimatedTotalCost?: string | null;
+  itens_sem_preco?: number | null;
+  itemsWithoutPrice?: number | null;
 }
 
 export interface ShoppingListBlock {

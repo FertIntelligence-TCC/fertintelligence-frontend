@@ -3248,7 +3248,13 @@ export const getShoppingInputTitle = (document?: ShoppingListResponse | null): s
 
 export type ShoppingInputSectionModel = {
   title: string;
-  options: Array<{ title: string; mutuallyExclusive: boolean; items: ShoppingListItem[] }>;
+  options: Array<{
+    title: string;
+    mutuallyExclusive: boolean;
+    items: ShoppingListItem[];
+    estimatedTotalCost?: string | null;
+    itemsWithoutPrice: number;
+  }>;
 };
 
 export const buildShoppingInputSections = (
@@ -3261,14 +3267,22 @@ export const buildShoppingInputSections = (
       title: option.nome ?? option.name ?? "Opção sem identificação",
       mutuallyExclusive: option.mutuamente_exclusiva ?? option.mutuallyExclusive ?? false,
       items: option.itens ?? option.items ?? [],
+      estimatedTotalCost: option.custo_total_estimado ?? option.estimatedTotalCost,
+      itemsWithoutPrice: option.itens_sem_preco ?? option.itemsWithoutPrice ?? 0,
     })),
   }));
 };
 
-const shoppingItemText = (item: ShoppingListItem, field: "source" | "dose" | "total") => {
+type ShoppingColumn = "source" | "dose" | "price" | "costPerHa" | "total" | "commercialQuantity" | "totalCost";
+
+const shoppingItemText = (item: ShoppingListItem, field: ShoppingColumn) => {
   if (field === "source") return item.insumo ?? item.inputName ?? "-";
   if (field === "dose") return item.quantidade_por_hectare ?? item.quantityPerHectare ?? "-";
-  return item.total_area ?? item.totalForArea ?? "-";
+  if (field === "price") return item.preco_unidade_comercial ?? item.commercialUnitPrice ?? "Não informado";
+  if (field === "costPerHa") return item.custo_estimado_insumo_ha ?? item.estimatedInputCostPerHectare ?? "Não calculado";
+  if (field === "total") return item.total_area ?? item.totalForArea ?? "-";
+  if (field === "commercialQuantity") return item.quantidade_total_comercial ?? item.totalCommercialQuantity ?? "Não calculado";
+  return item.custo_total_estimado ?? item.estimatedTotalCost ?? "Não calculado";
 };
 
 function ShoppingInputList({ document }: { document: ShoppingListResponse }) {
@@ -3279,6 +3293,10 @@ function ShoppingInputList({ document }: { document: ShoppingListResponse }) {
 
   return (
     <VStack align="stretch" gap={4}>
+      <Text fontSize="sm" color="fg.muted">
+        {document.observacao_estimativa_custos ?? document.costEstimateObservation
+          ?? "Os valores representam apenas a estimativa dos custos dos insumos recomendados, sem incluir transporte, armazenamento ou aplicação."}
+      </Text>
       {sections.map((section) => (
         <VStack key={section.title} align="stretch" gap={3}>
           <Heading size="sm">{section.title}</Heading>
@@ -3292,17 +3310,29 @@ function ShoppingInputList({ document }: { document: ShoppingListResponse }) {
                 <RecommendationTable
                   columns={[
                     { key: "source", header: "Fonte", minW: "220px" },
-                    { key: "dose", header: "Dose de aplicação", minW: "160px" },
-                    { key: "total", header: "Quantidade total", minW: "160px" },
+                    { key: "dose", header: "Dose de aplicação (DA, kg/ha)", minW: "180px" },
+                    { key: "price", header: "Preço da unidade comercial (PUC, R$/sc ou R$/t)", minW: "220px" },
+                    { key: "costPerHa", header: "Custo estimado do insumo (CEI, R$/ha)", minW: "210px" },
+                    { key: "total", header: "Quantidade total teórica (QTT, kg)", minW: "200px" },
+                    { key: "commercialQuantity", header: "Quantidade total comercial (QTC, sc ou t)", minW: "220px" },
+                    { key: "totalCost", header: "Custo total estimado (CTE, R$)", minW: "190px" },
                   ]}
                   rows={option.items}
-                  minW="620px"
+                  minW="1440px"
                   getRowKey={(item, index) => `${shoppingItemText(item, "source")}-${item.fase ?? item.phase ?? ""}-${item.opcao ?? item.option ?? ""}-${index}`}
-                  renderCell={(item, column) => shoppingItemText(item, column.key as "source" | "dose" | "total")}
+                  renderCell={(item, column) => shoppingItemText(item, column.key as ShoppingColumn)}
                 />
               ) : (
                 <Text color="fg.muted">Nenhum item calculado nesta opção.</Text>
               )}
+              {option.items.length > 0 ? (
+                <Text fontSize="sm" fontWeight="semibold">
+                  Custo total estimado dos insumos recomendados nesta opção: {option.estimatedTotalCost ?? "Não calculado"}
+                  {option.itemsWithoutPrice > 0
+                    ? ` — Estimativa parcial: ${option.itemsWithoutPrice} insumo(s) sem preço cadastrado.`
+                    : ""}
+                </Text>
+              ) : null}
             </VStack>
           ))}
         </VStack>
