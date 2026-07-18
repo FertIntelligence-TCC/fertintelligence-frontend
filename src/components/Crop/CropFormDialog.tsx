@@ -31,6 +31,7 @@ import {
   PlantSpacingMode
 } from "@/interfaces/Crop";
 import { buildCropSpacingFields, getCropSpacingValidationMessage } from "./cropSpacing";
+import { calculateHarvestDate, clearInvalidLaterDates, validatePhenologyDates } from "./cropPhenologyDates";
 import { createCrop, updateCrop } from "@/services/cropService";
 import { getPlotById } from "@/services/plotService";
 
@@ -152,6 +153,25 @@ export const CropFormDialog = ({
   const [dataFlorescimento, setDataFlorescimento] = useState("");
   const [dataColheita, setDataColheita] = useState("");
 
+  const applyChronologicalDates = (dates: Parameters<typeof clearInvalidLaterDates>[0]) => {
+    const valid = clearInvalidLaterDates(dates);
+    setDataPlantio(valid.planting);
+    setDataEmergencia(valid.emergence);
+    setDataBotonamento(valid.buttoning);
+    setDataFlorescimento(valid.flowering);
+    setDataColheita(valid.harvest);
+  };
+
+  const updatePlantingDate = (planting: string) => applyChronologicalDates({
+    planting, emergence: dataEmergencia, buttoning: dataBotonamento, flowering: dataFlorescimento,
+    harvest: calculateHarvestDate(planting, ciclo),
+  });
+
+  const updateCycle = (cycle: string) => {
+    setCiclo(cycle);
+    setDataColheita(calculateHarvestDate(dataPlantio, cycle));
+  };
+
   // Cálculos Automáticos
   const population = useMemo(() => {
     const dist = parseFloat(distanciaEntreLinhas);
@@ -251,6 +271,15 @@ export const CropFormDialog = ({
     );
     if (spacingValidationMessage) {
       toaster.create({ title: "Espaçamento inválido", description: spacingValidationMessage, type: "error" });
+      return;
+    }
+
+    const dateValidationMessage = validatePhenologyDates({
+      planting: dataPlantio, emergence: dataEmergencia, buttoning: dataBotonamento,
+      flowering: dataFlorescimento, harvest: dataColheita,
+    });
+    if (dateValidationMessage) {
+      toaster.create({ title: "Cronograma inválido", description: dateValidationMessage, type: "error" });
       return;
     }
 
@@ -415,7 +444,7 @@ export const CropFormDialog = ({
                     </Field>
 
                     <Field label="Ciclo (dias)">
-                      <Input type="number" value={ciclo} onChange={(e) => setCiclo(e.target.value)} />
+                      <Input type="number" value={ciclo} onChange={(e) => updateCycle(e.target.value)} />
                     </Field>
                   </SimpleGrid>
                 </VStack>
@@ -538,19 +567,19 @@ export const CropFormDialog = ({
                   <Heading size="sm" color="gray.600">Cronograma</Heading>
                   <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
                     <Field label="Data de Plantio" required>
-                      <Input type="date" value={dataPlantio} onChange={(e) => setDataPlantio(e.target.value)} />
+                      <Input type="date" value={dataPlantio} onChange={(e) => updatePlantingDate(e.target.value)} />
                     </Field>
                     <Field label="Data de Emergência">
-                      <Input type="date" value={dataEmergencia} onChange={(e) => setDataEmergencia(e.target.value)} />
+                      <Input type="date" min={dataPlantio || undefined} value={dataEmergencia} onChange={(e) => applyChronologicalDates({ planting: dataPlantio, emergence: e.target.value, buttoning: dataBotonamento, flowering: dataFlorescimento, harvest: dataColheita })} />
                     </Field>
                     <Field label="Data de Abotoamento">
-                      <Input type="date" value={dataBotonamento} onChange={(e) => setDataBotonamento(e.target.value)} />
+                      <Input type="date" min={dataEmergencia || dataPlantio || undefined} value={dataBotonamento} onChange={(e) => applyChronologicalDates({ planting: dataPlantio, emergence: dataEmergencia, buttoning: e.target.value, flowering: dataFlorescimento, harvest: dataColheita })} />
                     </Field>
                     <Field label="Data de Florescimento">
-                      <Input type="date" value={dataFlorescimento} onChange={(e) => setDataFlorescimento(e.target.value)} />
+                      <Input type="date" min={dataBotonamento || dataEmergencia || dataPlantio || undefined} value={dataFlorescimento} onChange={(e) => applyChronologicalDates({ planting: dataPlantio, emergence: dataEmergencia, buttoning: dataBotonamento, flowering: e.target.value, harvest: dataColheita })} />
                     </Field>
                     <Field label="Data de Colheita">
-                      <Input type="date" value={dataColheita} onChange={(e) => setDataColheita(e.target.value)} />
+                      <Input type="date" min={dataFlorescimento || dataBotonamento || dataEmergencia || dataPlantio || undefined} value={dataColheita} onChange={(e) => setDataColheita(e.target.value)} />
                     </Field>
                   </SimpleGrid>
                 </VStack>
