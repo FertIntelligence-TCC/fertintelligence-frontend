@@ -37,6 +37,16 @@ export default function OrganoMineralFertilizerFormFields({ form, onChange, read
                 </Grid>
             </Box>
 
+            <Box>
+                <FormSectionHeader title="Taxa de Mineralização (%)" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="1° ano (%)" value={form.taxaMineralizacaoAno1} onChange={(v) => onChange("taxaMineralizacaoAno1", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="2° ano (%)" value={form.taxaMineralizacaoAno2} onChange={(v) => onChange("taxaMineralizacaoAno2", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="3° ano (%)" value={form.taxaMineralizacaoAno3} onChange={(v) => onChange("taxaMineralizacaoAno3", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="4° ano (%)" value={form.taxaMineralizacaoAno4} onChange={(v) => onChange("taxaMineralizacaoAno4", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
+
             {/* Macronutrientes */}
             <Box>
                 <FormSectionHeader title="Macronutrientes (%)" colorScheme={color} />

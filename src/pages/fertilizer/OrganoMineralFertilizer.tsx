@@ -28,7 +28,8 @@ import {
     getFertilizerPhotoIds,
     fertilizerCommercialPriceResponseToForm,
     fertilizerCommercialPriceFormToCreatePayload,
-    fertilizerCommercialPriceFormToUpdatePayload
+    fertilizerCommercialPriceFormToUpdatePayload,
+    optionalFertilizerDecimal
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -46,7 +47,7 @@ import OrganoMineralFertilizerCard from "@/components/Fertilizers/Cards/OrganoMi
 
 const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
-const mapResponseToForm = (dto: OrganoMineralFertilizerResponseDto): OrganoMineralFertilizerFormState => ({
+export const mapOrganoMineralResponseToForm = (dto: OrganoMineralFertilizerResponseDto): OrganoMineralFertilizerFormState => ({
   nome: dto.nome_adubo,
   fotoIds: getFertilizerPhotoIds(dto),
   ...fertilizerCommercialPriceResponseToForm(dto),
@@ -67,10 +68,14 @@ const mapResponseToForm = (dto: OrganoMineralFertilizerResponseDto): OrganoMiner
   zn: String(dto.zn ?? 0),
   indiceSalino: String(dto.indice_salino ?? 0),
   indiceAcidez: String(dto.indice_acidez ?? 0),
+  taxaMineralizacaoAno1: dto.taxa_mineralizacao_primeiro_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_primeiro_ano_percentual),
+  taxaMineralizacaoAno2: dto.taxa_mineralizacao_segundo_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_segundo_ano_percentual),
+  taxaMineralizacaoAno3: dto.taxa_mineralizacao_terceiro_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_terceiro_ano_percentual),
+  taxaMineralizacaoAno4: dto.taxa_mineralizacao_quarto_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_quarto_ano_percentual),
   publico: dto.publico ? "sim" : "nao",
 });
 
-const mapFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerCreateRequestDto => ({
+export const mapOrganoMineralFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
@@ -91,10 +96,14 @@ const mapFormToCreatePayload = (form: OrganoMineralFertilizerFormState): OrganoM
     zn: num(form.zn),
     indice_salino: num(form.indiceSalino),
     indice_acidez: num(form.indiceAcidez),
+    taxa_mineralizacao_primeiro_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno1),
+    taxa_mineralizacao_segundo_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno2),
+    taxa_mineralizacao_terceiro_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno3),
+    taxa_mineralizacao_quarto_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno4),
     publico: form.publico === "sim"
 });
 
-const mapFormToUpdatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerPostRequestDto => ({
+export const mapOrganoMineralFormToUpdatePayload = (form: OrganoMineralFertilizerFormState): OrganoMineralFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
@@ -115,6 +124,10 @@ const mapFormToUpdatePayload = (form: OrganoMineralFertilizerFormState): OrganoM
     novo_zn: num(form.zn),
     novo_indice_salino: num(form.indiceSalino),
     novo_indice_acidez: num(form.indiceAcidez),
+    novo_taxa_mineralizacao_primeiro_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno1),
+    novo_taxa_mineralizacao_segundo_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno2),
+    novo_taxa_mineralizacao_terceiro_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno3),
+    novo_taxa_mineralizacao_quarto_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno4),
     novo_publico: form.publico === "sim"
 });
 
@@ -181,7 +194,7 @@ export default function OrganoMineralFertilizer() {
   const handleOpen = (newMode: Mode, item?: OrganoMineralFertilizerResponseDto) => {
     setMode(newMode);
     setActiveItem(item || null);
-    setForm(item ? mapResponseToForm(item) : DEFAULT_ORGANO_MINERAL_FORM_STATE);
+    setForm(item ? mapOrganoMineralResponseToForm(item) : DEFAULT_ORGANO_MINERAL_FORM_STATE);
     setIsModalOpen(true);
   };
 
@@ -192,10 +205,10 @@ export default function OrganoMineralFertilizer() {
     }
 
     if (mode === "create") {
-      const payload = mapFormToCreatePayload(form);
+      const payload = mapOrganoMineralFormToCreatePayload(form);
       createMutation.mutate(payload);
     } else if (mode === "edit" && activeItem) {
-      const payload = mapFormToUpdatePayload(form);
+      const payload = mapOrganoMineralFormToUpdatePayload(form);
       updateMutation.mutate({ id: activeItem.id, payload });
     }
   };

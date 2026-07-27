@@ -627,6 +627,10 @@ export interface OrganoMineralFertilizerResponseDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
+    taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    taxa_mineralizacao_terceiro_ano_percentual?: number | null;
+    taxa_mineralizacao_quarto_ano_percentual?: number | null;
     ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
@@ -654,6 +658,10 @@ export interface OrganoMineralFertilizerCreateRequestDto {
     zn: number;
     indice_salino: number;
     indice_acidez: number;
+    taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    taxa_mineralizacao_terceiro_ano_percentual?: number | null;
+    taxa_mineralizacao_quarto_ano_percentual?: number | null;
 }
 
 // PUT /update (prefixo "novo_")
@@ -678,6 +686,10 @@ export interface OrganoMineralFertilizerPostRequestDto {
     novo_zn: number;
     novo_indice_salino: number;
     novo_indice_acidez: number;
+    novo_taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    novo_taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    novo_taxa_mineralizacao_terceiro_ano_percentual?: number | null;
+    novo_taxa_mineralizacao_quarto_ano_percentual?: number | null;
 }
 
 // Estado do Formulário
@@ -702,6 +714,10 @@ export interface OrganoMineralFertilizerFormState {
     zn: string;
     indiceSalino: string;
     indiceAcidez: string;
+    taxaMineralizacaoAno1: string;
+    taxaMineralizacaoAno2: string;
+    taxaMineralizacaoAno3: string;
+    taxaMineralizacaoAno4: string;
 }
 
 export const DEFAULT_ORGANO_MINERAL_FORM_STATE: OrganoMineralFertilizerFormState = {
@@ -714,6 +730,10 @@ export const DEFAULT_ORGANO_MINERAL_FORM_STATE: OrganoMineralFertilizerFormState
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",
     indiceSalino: "", indiceAcidez: "",
+    taxaMineralizacaoAno1: "",
+    taxaMineralizacaoAno2: "",
+    taxaMineralizacaoAno3: "",
+    taxaMineralizacaoAno4: "",
     publico: "nao"
 };
 
@@ -725,6 +745,7 @@ export interface GreenFertilizerResponseDto {
     publico?: boolean;
     nome_criador?: string;
     nome_adubo: string;
+    umidade_incorporacao_percentual?: number | null;
     c: number; // Carbono
     n: number;
     p2o5: number;
@@ -739,9 +760,13 @@ export interface GreenFertilizerResponseDto {
     mo: number;
     zn: number;
     produtividade_esperada: number;
-    taxa_mineralizacao_ano_1: number;
-    taxa_mineralizacao_ano_2: number;
-    taxa_mineralizacao_ano_3: number;
+    taxa_mineralizacao_ano_1?: number;
+    taxa_mineralizacao_ano_2?: number;
+    taxa_mineralizacao_ano_3?: number;
+    taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    taxa_mineralizacao_terceiro_ano_percentual?: number | null;
+    taxa_mineralizacao_quarto_ano_percentual?: number | null;
     ids_fotos?: FertilizerPhotoIds;
     observacao?: string;
     fonte?: string;
@@ -754,6 +779,7 @@ export interface GreenFertilizerCreateRequestDto {
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
+    umidade_incorporacao_percentual?: number | null;
     c: number;
     n: number;
     p2o5: number;
@@ -771,6 +797,7 @@ export interface GreenFertilizerCreateRequestDto {
     taxa_mineralizacao_ano_1: number;
     taxa_mineralizacao_ano_2: number;
     taxa_mineralizacao_ano_3: number;
+    taxa_mineralizacao_quarto_ano_percentual?: number | null;
 }
 
 // PUT /update (prefixo "novo_")
@@ -780,6 +807,7 @@ export interface GreenFertilizerPostRequestDto {
     novo_observacao?: string;
     novo_fonte?: string;
     novo_nome_adubo: string;
+    novo_umidade_incorporacao_percentual?: number | null;
     novo_c: number;
     novo_n: number;
     novo_p2o5: number;
@@ -797,6 +825,7 @@ export interface GreenFertilizerPostRequestDto {
     novo_taxa_mineralizacao_ano_1: number;
     novo_taxa_mineralizacao_ano_2: number;
     novo_taxa_mineralizacao_ano_3: number;
+    novo_taxa_mineralizacao_quarto_ano_percentual?: number | null;
 }
 
 // Estado do Formulário (Strings para inputs controlados)
@@ -806,6 +835,7 @@ export interface GreenFertilizerFormState {
     observacao: string;
     fonte: string;
     nome: string;
+    umidadeIncorporacao: string;
     c: string;
     n: string;
     p2o5: string;
@@ -823,11 +853,13 @@ export interface GreenFertilizerFormState {
     taxaMineralizacaoAno1: string;
     taxaMineralizacaoAno2: string;
     taxaMineralizacaoAno3: string;
+    taxaMineralizacaoAno4: string;
 }
 
 export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
     ...DEFAULT_FERTILIZER_COMMERCIAL_PRICE_FORM_FIELDS,
     nome: "",
+    umidadeIncorporacao: "",
     fotoIds: [],
     observacao: "",
     fonte: "",
@@ -838,6 +870,7 @@ export const DEFAULT_GREEN_FERTILIZER_FORM_STATE: GreenFertilizerFormState = {
     taxaMineralizacaoAno1: "",
     taxaMineralizacaoAno2: "",
     taxaMineralizacaoAno3: "",
+    taxaMineralizacaoAno4: "",
     publico: "nao"
 };
 
@@ -856,6 +889,17 @@ export interface OrganicFertilizerResponseDto {
     taxa_mineralizacao_ano_1?: number;
     taxa_mineralizacao_ano_2?: number;
     taxa_mineralizacao_ano_3?: number;
+    taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    taxa_mineralizacao_terceiro_ano_percentual?: number | null;
+    taxa_mineralizacao_quarto_ano_percentual?: number | null;
+    arsenio_mg_kg?: number | null;
+    cadmio_mg_kg?: number | null;
+    cromio_mg_kg?: number | null;
+    chumbo_mg_kg?: number | null;
+    mercurio_mg_kg?: number | null;
+    niquel_mg_kg?: number | null;
+    selenio_mg_kg?: number | null;
     n: number;
     p2o5: number;
     k2o: number;
@@ -886,6 +930,14 @@ export interface OrganicFertilizerCreateRequestDto {
     taxa_mineralizacao_ano_1: number;
     taxa_mineralizacao_ano_2: number;
     taxa_mineralizacao_ano_3: number;
+    taxa_mineralizacao_quarto_ano_percentual?: number | null;
+    arsenio_mg_kg?: number | null;
+    cadmio_mg_kg?: number | null;
+    cromio_mg_kg?: number | null;
+    chumbo_mg_kg?: number | null;
+    mercurio_mg_kg?: number | null;
+    niquel_mg_kg?: number | null;
+    selenio_mg_kg?: number | null;
     n: number;
     p2o5: number;
     k2o: number;
@@ -913,6 +965,14 @@ export interface OrganicFertilizerPostRequestDto {
     novo_taxa_mineralizacao_ano_1: number;
     novo_taxa_mineralizacao_ano_2: number;
     novo_taxa_mineralizacao_ano_3: number;
+    novo_taxa_mineralizacao_quarto_ano_percentual?: number | null;
+    novo_arsenio_mg_kg?: number | null;
+    novo_cadmio_mg_kg?: number | null;
+    novo_cromio_mg_kg?: number | null;
+    novo_chumbo_mg_kg?: number | null;
+    novo_mercurio_mg_kg?: number | null;
+    novo_niquel_mg_kg?: number | null;
+    novo_selenio_mg_kg?: number | null;
     novo_n: number;
     novo_p2o5: number;
     novo_k2o: number;
@@ -940,6 +1000,14 @@ export interface OrganicFertilizerFormState {
     taxaMineralizacaoAno1: string;
     taxaMineralizacaoAno2: string;
     taxaMineralizacaoAno3: string;
+    taxaMineralizacaoAno4: string;
+    arsenio: string;
+    cadmio: string;
+    cromio: string;
+    chumbo: string;
+    mercurio: string;
+    niquel: string;
+    selenio: string;
     n: string;
     p2o5: string;
     k2o: string;
@@ -965,6 +1033,9 @@ export const DEFAULT_ORGANIC_FERTILIZER_FORM_STATE: OrganicFertilizerFormState =
     taxaMineralizacaoAno1: "",
     taxaMineralizacaoAno2: "",
     taxaMineralizacaoAno3: "",
+    taxaMineralizacaoAno4: "",
+    arsenio: "", cadmio: "", cromio: "", chumbo: "",
+    mercurio: "", niquel: "", selenio: "",
     n: "", p2o5: "", k2o: "",
     ca: "", mg: "", s: "",
     b: "", cu: "", fe: "", mn: "", mo: "", zn: "",

@@ -12,16 +12,17 @@ export default function GreenFertilizerFormFields({ form, onChange, readOnly }: 
     const color = "green";
     
     // Cálculo dinâmico da Relação C/N
-    const cVal = parseFloat(form.c) || 0;
-    const nVal = parseFloat(form.n) || 0;
+    const cVal = Number(form.c.replace(",", ".")) || 0;
+    const nVal = Number(form.n.replace(",", ".")) || 0;
     const cnRatio = nVal > 0 ? (cVal / nVal).toFixed(2) : "-";
 
     return (
         <VStack gap={5} align="stretch" py={2}>
             <Box>
                 <FormSectionHeader title="Identificação e Relação C/N" colorScheme={color} />
-                <Grid templateColumns={{ base: "1fr", md: "2fr 1fr 1fr 1fr" }} gap={3}>
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "2fr repeat(4, 1fr)" }} gap={3}>
                     <FertilizerInputField label="Nome do Adubo *" type="text" value={form.nome} onChange={(v) => onChange("nome", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="Umidade (%) na incorporação" value={form.umidadeIncorporacao} onChange={(v) => onChange("umidadeIncorporacao", v)} readOnly={readOnly} colorScheme={color} />
                     <FertilizerInputField label="Carbono (%) *" value={form.c} onChange={(v) => onChange("c", v)} readOnly={readOnly} colorScheme={color} />
                     <FertilizerInputField label="Nitrogênio (%) *" value={form.n} onChange={(v) => onChange("n", v)} readOnly={readOnly} colorScheme={color} />
                     <Box>
@@ -36,10 +37,11 @@ export default function GreenFertilizerFormFields({ form, onChange, readOnly }: 
 
             <Box>
                 <FormSectionHeader title="Taxa de Mineralização (%)" colorScheme={color} />
-                <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={3}>
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={3}>
                     <FertilizerInputField label="1° ano (%)" value={form.taxaMineralizacaoAno1} onChange={(v) => onChange("taxaMineralizacaoAno1", v)} readOnly={readOnly} colorScheme={color} />
                     <FertilizerInputField label="2° ano (%)" value={form.taxaMineralizacaoAno2} onChange={(v) => onChange("taxaMineralizacaoAno2", v)} readOnly={readOnly} colorScheme={color} />
                     <FertilizerInputField label="3° ano (%)" value={form.taxaMineralizacaoAno3} onChange={(v) => onChange("taxaMineralizacaoAno3", v)} readOnly={readOnly} colorScheme={color} />
+                    <FertilizerInputField label="4° ano (%)" value={form.taxaMineralizacaoAno4} onChange={(v) => onChange("taxaMineralizacaoAno4", v)} readOnly={readOnly} colorScheme={color} />
                 </Grid>
             </Box>
 

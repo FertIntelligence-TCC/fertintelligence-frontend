@@ -28,7 +28,8 @@ import {
     getFertilizerPhotoIds,
     fertilizerCommercialPriceResponseToForm,
     fertilizerCommercialPriceFormToCreatePayload,
-    fertilizerCommercialPriceFormToUpdatePayload
+    fertilizerCommercialPriceFormToUpdatePayload,
+    optionalFertilizerDecimal
 } from "@/interfaces/Fertilizer";
 
 import { 
@@ -46,8 +47,9 @@ import GreenFertilizerCard from "@/components/Fertilizers/Cards/GreenFertilizerC
 
 const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
-const mapResponseToForm = (dto: GreenFertilizerResponseDto): GreenFertilizerFormState => ({
+export const mapGreenResponseToForm = (dto: GreenFertilizerResponseDto): GreenFertilizerFormState => ({
   nome: dto.nome_adubo,
+  umidadeIncorporacao: dto.umidade_incorporacao_percentual == null ? "" : String(dto.umidade_incorporacao_percentual),
   fotoIds: getFertilizerPhotoIds(dto),
   ...fertilizerCommercialPriceResponseToForm(dto),
   observacao: dto.observacao ?? "",
@@ -66,15 +68,17 @@ const mapResponseToForm = (dto: GreenFertilizerResponseDto): GreenFertilizerForm
   mo: String(dto.mo ?? 0),
   zn: String(dto.zn ?? 0),
   produtividadeEsperada: String(dto.produtividade_esperada ?? 0),
-  taxaMineralizacaoAno1: String(dto.taxa_mineralizacao_ano_1 ?? 0),
-  taxaMineralizacaoAno2: String(dto.taxa_mineralizacao_ano_2 ?? 0),
-  taxaMineralizacaoAno3: String(dto.taxa_mineralizacao_ano_3 ?? 0),
+  taxaMineralizacaoAno1: String(dto.taxa_mineralizacao_primeiro_ano_percentual ?? dto.taxa_mineralizacao_ano_1 ?? 0),
+  taxaMineralizacaoAno2: String(dto.taxa_mineralizacao_segundo_ano_percentual ?? dto.taxa_mineralizacao_ano_2 ?? 0),
+  taxaMineralizacaoAno3: String(dto.taxa_mineralizacao_terceiro_ano_percentual ?? dto.taxa_mineralizacao_ano_3 ?? 0),
+  taxaMineralizacaoAno4: dto.taxa_mineralizacao_quarto_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_quarto_ano_percentual),
   publico: dto.publico ? "sim" : "nao",
 });
 
 // Create DTO (para o Backend)
-const mapFormToCreatePayload = (form: GreenFertilizerFormState): GreenFertilizerCreateRequestDto => ({
+export const mapGreenFormToCreatePayload = (form: GreenFertilizerFormState): GreenFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
+    umidade_incorporacao_percentual: optionalFertilizerDecimal(form.umidadeIncorporacao),
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
     fonte: form.fonte,
@@ -96,12 +100,14 @@ const mapFormToCreatePayload = (form: GreenFertilizerFormState): GreenFertilizer
     taxa_mineralizacao_ano_1: num(form.taxaMineralizacaoAno1),
     taxa_mineralizacao_ano_2: num(form.taxaMineralizacaoAno2),
     taxa_mineralizacao_ano_3: num(form.taxaMineralizacaoAno3),
+    taxa_mineralizacao_quarto_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno4),
     publico: form.publico === "sim"
 });
 
 // Update DTO (para o Backend, com prefixo 'novo_')
-const mapFormToUpdatePayload = (form: GreenFertilizerFormState): GreenFertilizerPostRequestDto => ({
+export const mapGreenFormToUpdatePayload = (form: GreenFertilizerFormState): GreenFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
+    novo_umidade_incorporacao_percentual: optionalFertilizerDecimal(form.umidadeIncorporacao),
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
     novo_fonte: form.fonte,
@@ -123,6 +129,7 @@ const mapFormToUpdatePayload = (form: GreenFertilizerFormState): GreenFertilizer
     novo_taxa_mineralizacao_ano_1: num(form.taxaMineralizacaoAno1),
     novo_taxa_mineralizacao_ano_2: num(form.taxaMineralizacaoAno2),
     novo_taxa_mineralizacao_ano_3: num(form.taxaMineralizacaoAno3),
+    novo_taxa_mineralizacao_quarto_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno4),
     novo_publico: form.publico === "sim"
 });
 
@@ -189,7 +196,7 @@ export default function GreenFertilizer() {
   const handleOpen = (newMode: Mode, item?: GreenFertilizerResponseDto) => {
     setMode(newMode);
     setActiveItem(item || null);
-    setForm(item ? mapResponseToForm(item) : DEFAULT_GREEN_FERTILIZER_FORM_STATE);
+    setForm(item ? mapGreenResponseToForm(item) : DEFAULT_GREEN_FERTILIZER_FORM_STATE);
     setIsModalOpen(true);
   };
 
@@ -200,10 +207,10 @@ export default function GreenFertilizer() {
     }
 
     if (mode === "create") {
-      const payload = mapFormToCreatePayload(form);
+      const payload = mapGreenFormToCreatePayload(form);
       createMutation.mutate(payload);
     } else if (mode === "edit" && activeItem) {
-      const payload = mapFormToUpdatePayload(form);
+      const payload = mapGreenFormToUpdatePayload(form);
       updateMutation.mutate({ id: activeItem.id, payload });
     }
   };

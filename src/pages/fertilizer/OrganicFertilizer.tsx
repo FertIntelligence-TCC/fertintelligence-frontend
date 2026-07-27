@@ -30,7 +30,8 @@ import {
     fertilizerCommercialPriceResponseToForm,
     fertilizerCommercialPriceFormToCreatePayload,
     fertilizerCommercialPriceFormToUpdatePayload,
-    getOrganicMatterContent
+    getOrganicMatterContent,
+    optionalFertilizerDecimal
 } from "@/interfaces/Fertilizer";
 
 import {
@@ -46,7 +47,7 @@ import OrganicFertilizerCard from "@/components/Fertilizers/Cards/OrganicFertili
 
 const num = (val: string) => (val ? parseFloat(val) : 0.0);
 
-const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizerFormState => ({
+export const mapOrganicResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizerFormState => ({
   nome: dto.nome_adubo,
   c: String(calculateOrganicCarbon(getOrganicMatterContent(dto))),
   fotoIds: getFertilizerPhotoIds(dto),
@@ -55,9 +56,17 @@ const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizer
   fonte: dto.fonte ?? "",
   teorUmidade: String(dto.teor_umidade ?? 0),
   teorMateriaOrganica: String(getOrganicMatterContent(dto)),
-  taxaMineralizacaoAno1: String(dto.taxa_mineralizacao_ano_1 ?? 0),
-  taxaMineralizacaoAno2: String(dto.taxa_mineralizacao_ano_2 ?? 0),
-  taxaMineralizacaoAno3: String(dto.taxa_mineralizacao_ano_3 ?? 0),
+  taxaMineralizacaoAno1: String(dto.taxa_mineralizacao_primeiro_ano_percentual ?? dto.taxa_mineralizacao_ano_1 ?? 0),
+  taxaMineralizacaoAno2: String(dto.taxa_mineralizacao_segundo_ano_percentual ?? dto.taxa_mineralizacao_ano_2 ?? 0),
+  taxaMineralizacaoAno3: String(dto.taxa_mineralizacao_terceiro_ano_percentual ?? dto.taxa_mineralizacao_ano_3 ?? 0),
+  taxaMineralizacaoAno4: dto.taxa_mineralizacao_quarto_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_quarto_ano_percentual),
+  arsenio: dto.arsenio_mg_kg == null ? "" : String(dto.arsenio_mg_kg),
+  cadmio: dto.cadmio_mg_kg == null ? "" : String(dto.cadmio_mg_kg),
+  cromio: dto.cromio_mg_kg == null ? "" : String(dto.cromio_mg_kg),
+  chumbo: dto.chumbo_mg_kg == null ? "" : String(dto.chumbo_mg_kg),
+  mercurio: dto.mercurio_mg_kg == null ? "" : String(dto.mercurio_mg_kg),
+  niquel: dto.niquel_mg_kg == null ? "" : String(dto.niquel_mg_kg),
+  selenio: dto.selenio_mg_kg == null ? "" : String(dto.selenio_mg_kg),
   n: String(dto.n ?? 0),
   p2o5: String(dto.p2o5 ?? 0),
   k2o: String(dto.k2o ?? 0),
@@ -73,7 +82,7 @@ const mapResponseToForm = (dto: OrganicFertilizerResponseDto): OrganicFertilizer
   publico: dto.publico ? "sim" : "nao",
 });
 
-const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerCreateRequestDto => ({
+export const mapOrganicFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerCreateRequestDto => ({
     nome_adubo: form.nome,
     ids_fotos: form.fotoIds,
     observacao: form.observacao,
@@ -85,6 +94,14 @@ const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertil
     taxa_mineralizacao_ano_1: num(form.taxaMineralizacaoAno1),
     taxa_mineralizacao_ano_2: num(form.taxaMineralizacaoAno2),
     taxa_mineralizacao_ano_3: num(form.taxaMineralizacaoAno3),
+    taxa_mineralizacao_quarto_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno4),
+    arsenio_mg_kg: optionalFertilizerDecimal(form.arsenio),
+    cadmio_mg_kg: optionalFertilizerDecimal(form.cadmio),
+    cromio_mg_kg: optionalFertilizerDecimal(form.cromio),
+    chumbo_mg_kg: optionalFertilizerDecimal(form.chumbo),
+    mercurio_mg_kg: optionalFertilizerDecimal(form.mercurio),
+    niquel_mg_kg: optionalFertilizerDecimal(form.niquel),
+    selenio_mg_kg: optionalFertilizerDecimal(form.selenio),
     n: num(form.n),
     p2o5: num(form.p2o5),
     k2o: num(form.k2o),
@@ -100,7 +117,7 @@ const mapFormToCreatePayload = (form: OrganicFertilizerFormState): OrganicFertil
     publico: form.publico === "sim"
 });
 
-const mapFormToUpdatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerPostRequestDto => ({
+export const mapOrganicFormToUpdatePayload = (form: OrganicFertilizerFormState): OrganicFertilizerPostRequestDto => ({
     novo_nome_adubo: form.nome,
     novos_ids_fotos: form.fotoIds,
     novo_observacao: form.observacao,
@@ -112,6 +129,14 @@ const mapFormToUpdatePayload = (form: OrganicFertilizerFormState): OrganicFertil
     novo_taxa_mineralizacao_ano_1: num(form.taxaMineralizacaoAno1),
     novo_taxa_mineralizacao_ano_2: num(form.taxaMineralizacaoAno2),
     novo_taxa_mineralizacao_ano_3: num(form.taxaMineralizacaoAno3),
+    novo_taxa_mineralizacao_quarto_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno4),
+    novo_arsenio_mg_kg: optionalFertilizerDecimal(form.arsenio),
+    novo_cadmio_mg_kg: optionalFertilizerDecimal(form.cadmio),
+    novo_cromio_mg_kg: optionalFertilizerDecimal(form.cromio),
+    novo_chumbo_mg_kg: optionalFertilizerDecimal(form.chumbo),
+    novo_mercurio_mg_kg: optionalFertilizerDecimal(form.mercurio),
+    novo_niquel_mg_kg: optionalFertilizerDecimal(form.niquel),
+    novo_selenio_mg_kg: optionalFertilizerDecimal(form.selenio),
     novo_n: num(form.n),
     novo_p2o5: num(form.p2o5),
     novo_k2o: num(form.k2o),
@@ -189,7 +214,7 @@ export default function OrganicFertilizer() {
   const handleOpen = (newMode: Mode, item?: OrganicFertilizerResponseDto) => {
     setMode(newMode);
     setActiveItem(item || null);
-    setForm(item ? mapResponseToForm(item) : DEFAULT_ORGANIC_FERTILIZER_FORM_STATE);
+    setForm(item ? mapOrganicResponseToForm(item) : DEFAULT_ORGANIC_FERTILIZER_FORM_STATE);
     setIsModalOpen(true);
   };
 
@@ -200,9 +225,9 @@ export default function OrganicFertilizer() {
     }
 
     if (mode === "create") {
-      createMutation.mutate(mapFormToCreatePayload(form));
+      createMutation.mutate(mapOrganicFormToCreatePayload(form));
     } else if (mode === "edit" && activeItem) {
-      updateMutation.mutate({ id: activeItem.id, payload: mapFormToUpdatePayload(form) });
+      updateMutation.mutate({ id: activeItem.id, payload: mapOrganicFormToUpdatePayload(form) });
     }
   };
 
