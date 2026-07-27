@@ -3,6 +3,12 @@ import type { ReactNode } from "react";
 
 import RecommendationTable, { type RecommendationTableColumn } from "./RecommendationTable";
 
+export const foliarAlternativeRowVisualState = (row: string[]) => {
+  if (row.some((cell) => cell.startsWith("SELECTED —"))) return "selected" as const;
+  if (row.some((cell) => cell.startsWith("NOT_SELECTED —"))) return "not-selected" as const;
+  return "undetermined" as const;
+};
+
 type RecommendationReportViewerProps = {
   reportText: string;
   sectionExtras?: Partial<Record<RecommendationReportSectionKey, ReactNode>>;
@@ -404,7 +410,13 @@ export default function RecommendationReportViewer({
                 rows={block.rows}
                 minW={`${Math.max(block.headers.length * 150, 720)}px`}
                 renderCell={(row, _column, _rowIndex, columnIndex) => (
-                  <Text whiteSpace="pre-wrap" overflowWrap="anywhere">
+                  <Text
+                    whiteSpace="pre-wrap"
+                    overflowWrap="anywhere"
+                    fontWeight={foliarAlternativeRowVisualState(row) === "selected" ? "700" : "normal"}
+                    color={foliarAlternativeRowVisualState(row) === "not-selected" ? "red.600" : undefined}
+                    _dark={foliarAlternativeRowVisualState(row) === "not-selected" ? { color: "red.300" } : undefined}
+                  >
                     {row[columnIndex] || "-"}
                   </Text>
                 )}
