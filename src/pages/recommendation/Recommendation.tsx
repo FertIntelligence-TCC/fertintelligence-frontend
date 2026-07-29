@@ -94,6 +94,7 @@ import RecommendationFolderDocuments, {
   type RecommendationDocumentView,
 } from "@/components/Recommendation/RecommendationFolderDocuments";
 import RecommendationHistoryList from "@/components/Recommendation/RecommendationHistoryList";
+import FertAiPanel from "@/components/FertAi/FertAiPanel";
 import { writePrintableReport } from "@/components/Recommendation/RecommendationPrintDocument";
 import {
   hasEconomicFertilizerDecisionContent,
@@ -1800,6 +1801,12 @@ export default function Recommendation() {
         	onFullscreenOpenChange={handleFullscreenOpenChange}
       	/>
     	</SimpleGrid>
+
+      <FertAiPanel
+        recommendations={recommendationsHistory}
+        loadingRecommendations={loadingHistory}
+        recommendationsError={historyErrorMessage}
+      />
 
     	<RecommendationHistoryList
       	recommendations={recommendationsHistory}
