@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge, Box, Button, Flex, Heading, Spinner, Text, VStack } from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, Heading, SimpleGrid, Spinner, Text, VStack } from "@chakra-ui/react";
 
 import { toaster } from "@/components/ui/toaster";
 import { propertyAccessRequestService } from "@/services/propertyAccessRequestService";
@@ -16,15 +16,12 @@ import type { PlotResponse } from "@/interfaces/Plot";
 import type { AccessCardStatus, AuthorizationRoleMode, NormalizedPlotPermission } from "@/interfaces/Authorization";
 import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import type { PermissionType } from "@/interfaces/PlotAccessRequest";
+import AccessStatusBadge, {
+  getAccessStatusPresentation,
+} from "@/components/Authorizations/AccessStatusBadge";
 
 type Props = {
   roleOverride?: Extract<AuthorizationRoleMode, "RESIDENT" | "CONSULTANT" | "SECRETARY">;
-};
-
-const cardColor = (status: AccessCardStatus) => {
-  if (status === "APPROVED") return "green.100";
-  if (status === "PENDING") return "yellow.100";
-  return "red.100";
 };
 
 const normalizeRequest = (item: any): NormalizedPlotPermission => ({
@@ -42,6 +39,7 @@ const normalizeRequest = (item: any): NormalizedPlotPermission => ({
 const requestStatus = (requests: NormalizedPlotPermission[]): AccessCardStatus => {
   if (requests.some((r) => r.status === "APPROVED")) return "APPROVED";
   if (requests.some((r) => r.status === "PENDING")) return "PENDING";
+  if (requests.some((r) => r.status === "REJECTED")) return "REJECTED";
   return "NONE";
 };
 
@@ -161,56 +159,98 @@ export default function MakePlotSolicitation({ roleOverride }: Props) {
   }
 
   return (
-    <VStack align="stretch" gap={4}>
-      <Button alignSelf="flex-start" variant="outline" onClick={() => navigate("/fertintelligence/home")}>
+    <VStack
+      align="stretch"
+      gap={5}
+      maxW="1100px"
+      mx="auto"
+      p={{ base: 4, md: 6 }}
+      borderWidth="1px"
+      borderColor="gray.600"
+      borderRadius="lg"
+      bg="blackAlpha.600"
+      color="gray.100"
+      boxShadow="md"
+    >
+      <Button
+        alignSelf="flex-start"
+        variant="outline"
+        colorPalette="gray"
+        color="gray.100"
+        borderColor="gray.500"
+        _hover={{ bg: "whiteAlpha.200" }}
+        onClick={() => navigate("/fertintelligence/home")}
+      >
         Voltar para o painel
       </Button>
       <Heading size="md">Fazer solicitação</Heading>
       {loading ? (
-        <Flex justify="center" py={8}>
-          <Spinner />
+        <Flex justify="center" align="center" py={8} role="status" aria-live="polite">
+          <Spinner color="gray.100" />
+          <Text srOnly>Carregando solicitações</Text>
         </Flex>
       ) : (
         <>
-          <Text fontSize="sm" color="gray.600">
+          <Text fontSize="sm" color="gray.300">
             Selecione as permissões a solicitar ao gerente para os recursos internos da propriedade.
           </Text>
 
-          <Flex gap={3} wrap="wrap">
+          <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={4}>
             {properties.map((property) => {
               const status = residentPropertyStatus(property.id);
+              const isSelected = selectedProperty?.id === property.id;
+              const presentation = getAccessStatusPresentation(status);
               return (
                 <Box
                   key={property.id}
                   p={4}
                   borderWidth="1px"
-                  borderRadius="md"
-                  bg={isResident ? cardColor(status) : "gray.50"}
-                  _dark={{ bg: isResident ? cardColor(status) : "gray.700" }}
+                  borderLeftWidth={isResident ? "4px" : "1px"}
+                  borderLeftColor={isResident ? presentation.borderColor : undefined}
+                  borderRadius="lg"
+                  bg={isSelected ? "gray.600" : "gray.700"}
+                  borderColor={isSelected ? "blue.400" : "gray.600"}
+                  color="gray.100"
                   cursor="pointer"
+                  minH="132px"
+                  transition="background 0.2s, border-color 0.2s, transform 0.2s"
+                  _hover={{ bg: "gray.600", borderColor: isSelected ? "blue.300" : "gray.500" }}
+                  _focusVisible={{ outline: "2px solid", outlineColor: "blue.300", outlineOffset: "2px" }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
                   onClick={async () => {
                     setSelectedProperty(property);
                     if (!isResident) await loadPlots(property.id);
                   }}
+                  onKeyDown={async (event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key !== "Enter" && event.key !== " ") return;
+                    event.preventDefault();
+                    setSelectedProperty(property);
+                    if (!isResident) await loadPlots(property.id);
+                  }}
                 >
-                  <Text fontWeight="bold">{property.nome}</Text>
-                  {isResident && <Badge mt={2}>{status}</Badge>}
-                  {selectedProperty?.id === property.id && <Badge mt={2}>Selecionada</Badge>}
+                  <Text fontWeight="bold" color="gray.50">{property.nome}</Text>
+                  <Flex mt={3} gap={2} wrap="wrap">
+                    {isResident && <AccessStatusBadge status={status} />}
+                    {isSelected && <Badge colorPalette="blue" variant="subtle">Selecionada</Badge>}
+                  </Flex>
 
-                  {isResident && selectedProperty?.id === property.id && (
-                    <Flex mt={3}>
+                  {isResident && isSelected && (
+                    <Flex mt={4}>
                       {status === "APPROVED" && (
-                        <Button colorPalette="red" onClick={() => submitAction(() => revokeByStatus(property.id, "APPROVED"))}>
+                        <Button size="sm" colorPalette="red" variant="outline" onClick={() => submitAction(() => revokeByStatus(property.id, "APPROVED"))}>
                           Renunciar acesso
                         </Button>
                       )}
                       {status === "PENDING" && (
-                        <Button onClick={() => submitAction(() => revokeByStatus(property.id, "PENDING"))}>
+                        <Button size="sm" colorPalette="orange" variant="outline" onClick={() => submitAction(() => revokeByStatus(property.id, "PENDING"))}>
                           Cancelar pedido de acesso
                         </Button>
                       )}
-                      {status === "NONE" && (
-                        <Button colorPalette="green" onClick={() => submitAction(() => requestForProperty(property.id))}>
+                      {(status === "NONE" || status === "REJECTED") && (
+                        <Button size="sm" colorPalette="green" onClick={() => submitAction(() => requestForProperty(property.id))}>
                           Pedir acesso ao gerente
                         </Button>
                       )}
@@ -219,34 +259,57 @@ export default function MakePlotSolicitation({ roleOverride }: Props) {
                 </Box>
               );
             })}
-          </Flex>
+          </SimpleGrid>
+          {properties.length === 0 && (
+            <Text color="gray.300" role="status">
+              Nenhuma propriedade aprovada disponível.
+            </Text>
+          )}
 
           {!isResident && selectedProperty && (
-            <Box borderWidth="1px" borderRadius="md" p={4}>
+            <Box borderWidth="1px" borderColor="gray.600" borderRadius="lg" p={{ base: 3, md: 4 }} bg="blackAlpha.300">
               <Heading size="sm" mb={3}>
                 Talhões de {selectedProperty.nome}
               </Heading>
-              <Flex gap={3} wrap="wrap">
+              <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={4}>
                 {plots.map((plot) => {
                   const status = plotStatus(selectedProperty.id, plot.id);
+                  const presentation = getAccessStatusPresentation(status);
                   return (
-                    <Box key={plot.id} p={3} borderWidth="1px" borderRadius="md" bg={cardColor(status)} minW="220px">
-                      <Text fontWeight="bold">{plot.identificacao}</Text>
-                      <Badge mt={2}>{status}</Badge>
+                    <Box
+                      key={plot.id}
+                      p={4}
+                      borderWidth="1px"
+                      borderLeftWidth="4px"
+                      borderColor="gray.600"
+                      borderLeftColor={presentation.borderColor}
+                      borderRadius="lg"
+                      bg="gray.700"
+                      color="gray.100"
+                      minW={0}
+                      minH="150px"
+                      display="flex"
+                      flexDirection="column"
+                      _hover={{ bg: "gray.600", borderColor: "gray.500", borderLeftColor: presentation.borderColor }}
+                    >
+                      <Text fontWeight="bold" color="gray.50">{plot.identificacao}</Text>
+                      <Box mt={3}>
+                        <AccessStatusBadge status={status} />
+                      </Box>
 
-                      <Flex mt={3}>
+                      <Flex mt="auto" pt={4}>
                         {status === "APPROVED" && (
-                          <Button colorPalette="red" onClick={() => submitAction(() => revokeByStatus(selectedProperty.id, "APPROVED", plot.id))}>
+                          <Button size="sm" w="full" colorPalette="red" variant="outline" onClick={() => submitAction(() => revokeByStatus(selectedProperty.id, "APPROVED", plot.id))}>
                             Renunciar acesso
                           </Button>
                         )}
                         {status === "PENDING" && (
-                          <Button onClick={() => submitAction(() => revokeByStatus(selectedProperty.id, "PENDING", plot.id))}>
+                          <Button size="sm" w="full" colorPalette="orange" variant="outline" onClick={() => submitAction(() => revokeByStatus(selectedProperty.id, "PENDING", plot.id))}>
                             Cancelar pedido de acesso
                           </Button>
                         )}
-                        {status === "NONE" && (
-                          <Button colorPalette="green" onClick={() => submitAction(() => requestForPlot(selectedProperty.id, plot.id))}>
+                        {(status === "NONE" || status === "REJECTED") && (
+                          <Button size="sm" w="full" colorPalette="green" onClick={() => submitAction(() => requestForPlot(selectedProperty.id, plot.id))}>
                             Pedir acesso ao gerente
                           </Button>
                         )}
@@ -254,7 +317,12 @@ export default function MakePlotSolicitation({ roleOverride }: Props) {
                     </Box>
                   );
                 })}
-              </Flex>
+              </SimpleGrid>
+              {plots.length === 0 && (
+                <Text color="gray.300" role="status">
+                  Nenhum talhão encontrado nesta propriedade.
+                </Text>
+              )}
             </Box>
           )}
         </>

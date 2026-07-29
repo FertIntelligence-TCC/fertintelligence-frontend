@@ -9,7 +9,7 @@ export default function ConsultantAgronomistMakePlotSolicitations() {
     <UserLayout>
       <FertName subtitle="Fazer solicitação" />
       <ConfigMenu />
-      <Box p={8} mt={8}>
+      <Box px={{ base: 0, md: 8 }} py={{ base: 4, md: 8 }} mt={{ base: 4, md: 8 }} w={{ base: "calc(100vw - 48px)", md: "auto" }} maxW="100%">
         <MakePlotSolicitation roleOverride="CONSULTANT" />
       </Box>
     </UserLayout>

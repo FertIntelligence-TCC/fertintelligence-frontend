@@ -4,7 +4,7 @@ import type {
   PlotAccessRequestStatus,
 } from "@/interfaces/PlotAccessRequest";
 
-export type AccessCardStatus = "NONE" | "PENDING" | "APPROVED";
+export type AccessCardStatus = "NONE" | "PENDING" | "APPROVED" | "REJECTED";
 
 export type AuthorizationRoleMode =
   | "SUPREME"
