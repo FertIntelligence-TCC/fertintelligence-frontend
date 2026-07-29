@@ -1,46 +1,36 @@
-# Getting Started with Create React App
+# FertIntelligence Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Cliente React, TypeScript e Vite do FertIntelligence.
 
-## Available Scripts
+## Variáveis de ambiente
 
-In the project directory, you can run:
+Copie `.env.example` para `.env.local` e ajuste:
 
-### `npm start`
+- `VITE_API_URL`: URL base da API principal.
+- `VITE_IMAGE_MANAGER_URL`: URL base do gerenciador de imagens.
+- `VITE_FERT_AI_API_URL`: URL base do Fert-IA, sem `/api/ai/chat`.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Variáveis `VITE_*` são públicas e incorporadas ao bundle durante o build. Nunca
+coloque segredos nelas. Depois de alterar uma variável no Render, faça um novo
+deploy para reconstruir o site.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Desenvolvimento e validação
 
-### `npm test`
+```bash
+npm ci
+npm run dev
+npm run build
+npm test
+npm run lint
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+O servidor local do Vite usa `http://localhost:5173`.
 
-### `npm run build`
+## Render Blueprint
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+O `render.yaml` cria o Static Site `fertintelligence-client`, publica `dist` e
+configura o rewrite de SPA para `/index.html`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+No Render Dashboard, escolha **New + > Blueprint**, conecte este repositório,
+selecione a branch `m-fertilization`, revise o `render.yaml` e aplique. Alterações
+posteriores nas variáveis de build exigem novo deploy.
