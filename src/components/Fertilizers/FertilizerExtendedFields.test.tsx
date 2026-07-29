@@ -69,6 +69,7 @@ describe("cadastros estendidos de fertilizantes", () => {
     expect(screen.getByText("Taxa de Mineralização")).toBeInTheDocument();
     expect(screen.getByText("Micronutrientes (%)")).toBeInTheDocument();
     expect(screen.getByText("Metais Pesados (mg/kg)")).toBeInTheDocument();
+    expect(screen.getByText("Valor do frete até a fazenda (R$/t)")).toBeInTheDocument();
     for (const label of ["Arsênio", "Cádmio", "Crômio", "Chumbo", "Mercúrio", "Níquel", "Selênio"]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
@@ -77,6 +78,8 @@ describe("cadastros estendidos de fertilizantes", () => {
   it("mantém metais vazios nulos e zero explícito no payload orgânico", () => {
     const empty = mapOrganicFormToCreatePayload(DEFAULT_ORGANIC_FERTILIZER_FORM_STATE);
     expect(empty.taxa_mineralizacao_quarto_ano_percentual).toBeNull();
+    expect(empty.taxa_mineralizacao_primeiro_ano_percentual).toBeNull();
+    expect(empty.valor_frete_tonelada).toBeNull();
     expect(empty.arsenio_mg_kg).toBeNull();
     expect(empty.selenio_mg_kg).toBeNull();
 
@@ -85,11 +88,15 @@ describe("cadastros estendidos de fertilizantes", () => {
       taxaMineralizacaoAno4: "8,5",
       arsenio: "0",
       cadmio: "0,125",
+      taxaMineralizacaoAno1: "42,5",
+      valorFreteTonelada: "0",
     };
     const payload = mapOrganicFormToCreatePayload(filled);
     expect(payload.taxa_mineralizacao_quarto_ano_percentual).toBe(8.5);
     expect(payload.arsenio_mg_kg).toBe(0);
     expect(payload.cadmio_mg_kg).toBe(0.125);
+    expect(payload.taxa_mineralizacao_primeiro_ano_percentual).toBe(42.5);
+    expect(payload.valor_frete_tonelada).toBe(0);
     expect(mapOrganicResponseToForm({ nome_adubo: "Antigo" } as never).arsenio).toBe("");
   });
 

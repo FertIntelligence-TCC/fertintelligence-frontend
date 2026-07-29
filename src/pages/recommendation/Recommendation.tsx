@@ -19,7 +19,7 @@ import { toaster } from "@/components/ui/toaster";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
 import type { AnnualCropFolderResponseDto } from "@/interfaces/AnnualCropFolder";
-import type { GreenFertilizerResponseDto } from "@/interfaces/Fertilizer";
+import type { GreenFertilizerResponseDto, OrganicFertilizerResponseDto } from "@/interfaces/Fertilizer";
 import { TipoExtrato, type SoilAnalysisResponse } from "@/interfaces/SoilAnalysis";
 import {
   type RecommendationLimingCriteria,
@@ -65,6 +65,11 @@ import {
   fetchGreenFertilizers,
   fetchPublicGreenFertilizers,
 } from "@/services/greenFertilizerService";
+import {
+  fetchDefaultOrganicFertilizers,
+  fetchOrganicFertilizers,
+  fetchPublicOrganicFertilizers,
+} from "@/services/organicFertilizerService";
 import {
   buildRecommendationCreatePayload,
   deleteRecommendation,
@@ -260,6 +265,8 @@ const defaultCorrectiveSoilFertilization: CorrectiveSoilFertilizationPayload = {
 const getGreenFertilizerLabel = (fertilizer: GreenFertilizerResponseDto) => fertilizer.nome_adubo;
 
 const deduplicateGreenFertilizers = (fertilizers: GreenFertilizerResponseDto[]) =>
+  Array.from(new Map(fertilizers.map((fertilizer) => [fertilizer.id, fertilizer])).values());
+const deduplicateOrganicFertilizers = (fertilizers: OrganicFertilizerResponseDto[]) =>
   Array.from(new Map(fertilizers.map((fertilizer) => [fertilizer.id, fertilizer])).values());
 
 const initialCropSpacingForm: CropSpacingFormState = {
@@ -463,6 +470,7 @@ export default function Recommendation() {
   const [cropFoliarAnalysisInterpretationTableId, setCropFoliarAnalysisInterpretationTableId] = useState("");
   const [fertilizerSourceOption, setFertilizerSourceOption] = useState<FertilizerSourceOption>("ALL");
   const [useOrganicFertilizer, setUseOrganicFertilizer] = useState(false);
+  const [organicFertilizerId, setOrganicFertilizerId] = useState("");
   const [organicFertilizerReferenceNutrient, setOrganicFertilizerReferenceNutrient] =
     useState<OrganicFertilizerReferenceNutrient | "">("");
   const [useOrganoMineralFertilizer, setUseOrganoMineralFertilizer] = useState(false);
@@ -486,6 +494,7 @@ export default function Recommendation() {
   const [soilFertilityTables, setSoilFertilityTables] = useState<TableOption[]>([]);
   const [foliarInterpretationTables, setFoliarInterpretationTables] = useState<TableOption[]>([]);
   const [greenFertilizers, setGreenFertilizers] = useState<GreenFertilizerResponseDto[]>([]);
+  const [organicFertilizers, setOrganicFertilizers] = useState<OrganicFertilizerResponseDto[]>([]);
   const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendationResponse | null>(null);
   const [recommendationsHistory, setRecommendationsHistory] = useState<RecommendationResponse[]>([]);
 
@@ -495,6 +504,7 @@ export default function Recommendation() {
   const [loadingAnnualCropFolders, setLoadingAnnualCropFolders] = useState(false);
   const [loadingTables, setLoadingTables] = useState(false);
   const [loadingGreenFertilizers, setLoadingGreenFertilizers] = useState(false);
+  const [loadingOrganicFertilizers, setLoadingOrganicFertilizers] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyErrorMessage, setHistoryErrorMessage] = useState<string | null>(null);
@@ -729,6 +739,40 @@ export default function Recommendation() {
 	};
 	loadFoliarTables();
   }, [cropFoliarAnalysisInterpretationTableGroup]);
+
+  useEffect(() => {
+    const loadOrganicFertilizers = async () => {
+      if (!useOrganicFertilizer) {
+        setOrganicFertilizers([]);
+        setOrganicFertilizerId("");
+        return;
+      }
+      setLoadingOrganicFertilizers(true);
+      setOrganicFertilizerId("");
+      try {
+        const normalizedSource = normalizeFertilizerSourceOption(fertilizerSourceOption);
+        const fertilizers = normalizedSource === "PUBLIC"
+          ? await fetchPublicOrganicFertilizers()
+          : normalizedSource === "DEFAULT"
+            ? await fetchDefaultOrganicFertilizers()
+            : normalizedSource === "PRIVATE"
+              ? await fetchOrganicFertilizers()
+              : deduplicateOrganicFertilizers((await Promise.all([
+                  fetchOrganicFertilizers(),
+                  fetchPublicOrganicFertilizers(),
+                  fetchDefaultOrganicFertilizers(),
+                ])).flat());
+        setOrganicFertilizers(fertilizers ?? []);
+      } catch (error) {
+        console.error(error);
+        setOrganicFertilizers([]);
+        toaster.create({ title: "Falha ao carregar adubos orgânicos.", type: "error" });
+      } finally {
+        setLoadingOrganicFertilizers(false);
+      }
+    };
+    void loadOrganicFertilizers();
+  }, [fertilizerSourceOption, useOrganicFertilizer]);
 
   useEffect(() => {
 	const loadGreenFertilizers = async () => {
@@ -987,6 +1031,14 @@ export default function Recommendation() {
   }, [selectedPlotId]);
 
   const handleGenerate = async () => {
+    if (useOrganicFertilizer && !organicFertilizerId) {
+      toaster.create({
+        title: "Selecione o adubo orgânico.",
+        description: "A recomendação orgânica exige a seleção explícita de um produto.",
+        type: "warning",
+      });
+      return;
+    }
 	const validation = validateRecommendationGeneration({
   	recommendationType,
   	propertyId: selectedPropertyId,
@@ -1038,6 +1090,7 @@ export default function Recommendation() {
     	recommendationFolderName,
     	texturalClassification: validation.texturalClassification,
     	useOrganicFertilizer,
+        organicFertilizerId,
     	organicFertilizerReferenceNutrient,
     	useOrganoMineralFertilizer,
     	useBioFertilizer,
@@ -1531,6 +1584,7 @@ export default function Recommendation() {
                 	setUseOrganicFertilizer(shouldUseOrganicFertilizer);
                 	if (!shouldUseOrganicFertilizer) {
                   	setOrganicFertilizerReferenceNutrient("");
+                    setOrganicFertilizerId("");
                 	}
               	}}
               	aria-label="Utilizar adubo orgânico?"
@@ -1539,6 +1593,30 @@ export default function Recommendation() {
               	<option value="true">Sim</option>
             	</NativeSelect>
           	</Box>
+            {useOrganicFertilizer ? (
+              <Box>
+                <Text fontSize="sm" mb={1}>Adubo orgânico:</Text>
+                <NativeSelect
+                  value={organicFertilizerId}
+                  onChange={(e) => setOrganicFertilizerId(e.target.value)}
+                  disabled={loadingOrganicFertilizers || !organicFertilizers.length}
+                  aria-label="Adubo orgânico"
+                >
+                  <option value="">
+                    {loadingOrganicFertilizers
+                      ? "Carregando adubos orgânicos..."
+                      : organicFertilizers.length
+                        ? "Selecione o adubo orgânico"
+                        : "Nenhum adubo orgânico disponível para a origem selecionada"}
+                  </option>
+                  {organicFertilizers.map((fertilizer) => (
+                    <option key={fertilizer.id} value={fertilizer.id}>
+                      {fertilizer.nome_adubo} — N {fertilizer.n ?? "-"}%, P₂O₅ {fertilizer.p2o5 ?? "-"}%, K₂O {fertilizer.k2o ?? "-"}%
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Box>
+            ) : null}
           	{useOrganicFertilizer ? (
             	<Box>
               	<Text fontSize="sm" mb={1}>Nutriente de referência do adubo orgânico:</Text>

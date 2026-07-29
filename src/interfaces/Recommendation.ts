@@ -599,6 +599,8 @@ export function withEmptyRecommendationStructuredArrays<T extends Recommendation
 
 export interface RecommendationFertilizerModalityPayload {
   usar_adubo_organico?: boolean;
+  id_adubo_organico?: number;
+  organicFertilizerId?: number;
   nutriente_referencia_adubo_organico?: OrganicFertilizerReferenceNutrient;
   usar_adubo_organomineral?: boolean;
   usar_biofertilizante?: boolean;

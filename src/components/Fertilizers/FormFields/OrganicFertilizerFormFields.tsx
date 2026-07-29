@@ -11,9 +11,11 @@ type Props = {
 export default function OrganicFertilizerFormFields({ form, onChange, readOnly }: Props) {
     const color = "green";
     const organicCarbon = formatOrganicCarbon(form.teorMateriaOrganica);
-    const carbonValue = Number(organicCarbon.replace(",", "."));
+    const carbonValue = organicCarbon === "-" ? null : Number(organicCarbon.replace(",", "."));
     const nitrogenValue = Number(form.n.replace(",", "."));
-    const cnRatio = nitrogenValue > 0 ? (carbonValue / nitrogenValue).toFixed(2).replace(".", ",") : "-";
+    const cnRatio = carbonValue != null && nitrogenValue > 0
+        ? (carbonValue / nitrogenValue).toFixed(2).replace(".", ",")
+        : "-";
 
     return (
         <VStack gap={5} align="stretch" py={2}>
@@ -89,6 +91,12 @@ export default function OrganicFertilizerFormFields({ form, onChange, readOnly }
                 </Grid>
             </Box>
             <FertilizerCommercialPriceFields form={form} onChange={(field, value) => onChange(field, value)} readOnly={readOnly} colorScheme={color} />
+            <Box>
+                <FormSectionHeader title="Frete" colorScheme={color} />
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3}>
+                    <FertilizerInputField label="Valor do frete até a fazenda (R$/t)" value={form.valorFreteTonelada} onChange={(v) => onChange("valorFreteTonelada", v)} readOnly={readOnly} colorScheme={color} />
+                </Grid>
+            </Box>
 
 
             <Box>

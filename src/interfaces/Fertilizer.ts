@@ -15,19 +15,21 @@ export const getFertilizerPhotoIds = (item?: FertilizerPhotoCarrier): Fertilizer
     return photoIds.filter(Boolean).slice(0, 5);
 };
 
-export const calculateOrganicCarbon = (organicMatter: string | number): number => {
+export const calculateOrganicCarbon = (organicMatter: string | number): number | null => {
+    if (organicMatter === "") return null;
     const value = typeof organicMatter === "number" ? organicMatter : parseFloat(organicMatter);
-    return Number.isFinite(value) ? Number((value / 1.724).toFixed(1)) : 0;
+    return Number.isFinite(value) ? value / 1.724 : null;
 };
 
 export const formatOrganicCarbon = (organicMatter: string | number): string =>
-    calculateOrganicCarbon(organicMatter).toFixed(1).replace(".", ",");
+    calculateOrganicCarbon(organicMatter)?.toFixed(2).replace(".", ",") ?? "-";
 
 export const getOrganicMatterContent = (item: {
     teor_materia_organica?: number | null;
+    teor_materia_organica_percentual?: number | null;
     teor_cinzas?: number | null;
     c?: number | null;
-}): number => item.teor_materia_organica ?? item.teor_cinzas ?? ((item.c ?? 0) * 1.724);
+}): number | null => item.teor_materia_organica_percentual ?? item.teor_materia_organica ?? item.teor_cinzas ?? (item.c == null ? null : item.c * 1.724);
 
 export interface FertilizerCommercialPriceResponseFields {
     data_tomada_preco?: string | null;
@@ -794,9 +796,9 @@ export interface GreenFertilizerCreateRequestDto {
     mo: number;
     zn: number;
     produtividade_esperada: number;
-    taxa_mineralizacao_ano_1: number;
-    taxa_mineralizacao_ano_2: number;
-    taxa_mineralizacao_ano_3: number;
+    taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    taxa_mineralizacao_terceiro_ano_percentual?: number | null;
     taxa_mineralizacao_quarto_ano_percentual?: number | null;
 }
 
@@ -822,9 +824,9 @@ export interface GreenFertilizerPostRequestDto {
     novo_mo: number;
     novo_zn: number;
     novo_produtividade_esperada: number;
-    novo_taxa_mineralizacao_ano_1: number;
-    novo_taxa_mineralizacao_ano_2: number;
-    novo_taxa_mineralizacao_ano_3: number;
+    novo_taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    novo_taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    novo_taxa_mineralizacao_terceiro_ano_percentual?: number | null;
     novo_taxa_mineralizacao_quarto_ano_percentual?: number | null;
 }
 
@@ -885,6 +887,7 @@ export interface OrganicFertilizerResponseDto {
     c: number;
     teor_umidade: number;
     teor_materia_organica?: number;
+    teor_materia_organica_percentual?: number | null;
     teor_cinzas?: number;
     taxa_mineralizacao_ano_1?: number;
     taxa_mineralizacao_ano_2?: number;
@@ -893,6 +896,9 @@ export interface OrganicFertilizerResponseDto {
     taxa_mineralizacao_segundo_ano_percentual?: number | null;
     taxa_mineralizacao_terceiro_ano_percentual?: number | null;
     taxa_mineralizacao_quarto_ano_percentual?: number | null;
+    teor_carbono_organico_percentual?: number | null;
+    relacao_carbono_nitrogenio?: number | null;
+    valor_frete_tonelada?: number | null;
     arsenio_mg_kg?: number | null;
     cadmio_mg_kg?: number | null;
     cromio_mg_kg?: number | null;
@@ -924,13 +930,14 @@ export interface OrganicFertilizerCreateRequestDto {
     observacao?: string;
     fonte?: string;
     nome_adubo: string;
-    c: number;
-    teor_umidade: number;
-    teor_materia_organica: number;
-    taxa_mineralizacao_ano_1: number;
-    taxa_mineralizacao_ano_2: number;
-    taxa_mineralizacao_ano_3: number;
+    c?: number | null;
+    teor_umidade?: number | null;
+    teor_materia_organica_percentual?: number | null;
+    taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    taxa_mineralizacao_terceiro_ano_percentual?: number | null;
     taxa_mineralizacao_quarto_ano_percentual?: number | null;
+    valor_frete_tonelada?: number | null;
     arsenio_mg_kg?: number | null;
     cadmio_mg_kg?: number | null;
     cromio_mg_kg?: number | null;
@@ -959,13 +966,14 @@ export interface OrganicFertilizerPostRequestDto {
     novo_observacao?: string;
     novo_fonte?: string;
     novo_nome_adubo: string;
-    novo_c: number;
-    novo_teor_umidade: number;
-    novo_teor_materia_organica: number;
-    novo_taxa_mineralizacao_ano_1: number;
-    novo_taxa_mineralizacao_ano_2: number;
-    novo_taxa_mineralizacao_ano_3: number;
+    novo_c?: number | null;
+    novo_teor_umidade?: number | null;
+    novo_teor_materia_organica_percentual?: number | null;
+    novo_taxa_mineralizacao_primeiro_ano_percentual?: number | null;
+    novo_taxa_mineralizacao_segundo_ano_percentual?: number | null;
+    novo_taxa_mineralizacao_terceiro_ano_percentual?: number | null;
     novo_taxa_mineralizacao_quarto_ano_percentual?: number | null;
+    novo_valor_frete_tonelada?: number | null;
     novo_arsenio_mg_kg?: number | null;
     novo_cadmio_mg_kg?: number | null;
     novo_cromio_mg_kg?: number | null;
@@ -1001,6 +1009,7 @@ export interface OrganicFertilizerFormState {
     taxaMineralizacaoAno2: string;
     taxaMineralizacaoAno3: string;
     taxaMineralizacaoAno4: string;
+    valorFreteTonelada: string;
     arsenio: string;
     cadmio: string;
     cromio: string;
@@ -1034,6 +1043,7 @@ export const DEFAULT_ORGANIC_FERTILIZER_FORM_STATE: OrganicFertilizerFormState =
     taxaMineralizacaoAno2: "",
     taxaMineralizacaoAno3: "",
     taxaMineralizacaoAno4: "",
+    valorFreteTonelada: "",
     arsenio: "", cadmio: "", cromio: "", chumbo: "",
     mercurio: "", niquel: "", selenio: "",
     n: "", p2o5: "", k2o: "",

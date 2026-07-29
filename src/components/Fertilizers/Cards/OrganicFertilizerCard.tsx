@@ -31,7 +31,7 @@ export default function OrganicFertilizerCard(props: Props) {
                 Umidade: {item.teor_umidade}% | Matéria orgânica: {organicMatter}%
             </Text>
             <Text fontSize="xs" color="gray.500" mt={1}>
-                Carbono orgânico: <Text as="span" fontWeight="bold" color="green.600">{formatOrganicCarbon(organicMatter)}%</Text>
+                Carbono orgânico: <Text as="span" fontWeight="bold" color="green.600">{organicMatter == null ? "-" : `${formatOrganicCarbon(organicMatter)}%`}</Text>
             </Text>
             <Text fontSize="xs" color="gray.500" mt={1}>
                 Mineralização: 1° ano {item.taxa_mineralizacao_primeiro_ano_percentual ?? item.taxa_mineralizacao_ano_1 ?? 0}% | 2° ano {item.taxa_mineralizacao_segundo_ano_percentual ?? item.taxa_mineralizacao_ano_2 ?? 0}% | 3° ano {item.taxa_mineralizacao_terceiro_ano_percentual ?? item.taxa_mineralizacao_ano_3 ?? 0}% | 4° ano {item.taxa_mineralizacao_quarto_ano_percentual ?? 0}%

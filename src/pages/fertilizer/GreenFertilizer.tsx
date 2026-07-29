@@ -68,9 +68,9 @@ export const mapGreenResponseToForm = (dto: GreenFertilizerResponseDto): GreenFe
   mo: String(dto.mo ?? 0),
   zn: String(dto.zn ?? 0),
   produtividadeEsperada: String(dto.produtividade_esperada ?? 0),
-  taxaMineralizacaoAno1: String(dto.taxa_mineralizacao_primeiro_ano_percentual ?? dto.taxa_mineralizacao_ano_1 ?? 0),
-  taxaMineralizacaoAno2: String(dto.taxa_mineralizacao_segundo_ano_percentual ?? dto.taxa_mineralizacao_ano_2 ?? 0),
-  taxaMineralizacaoAno3: String(dto.taxa_mineralizacao_terceiro_ano_percentual ?? dto.taxa_mineralizacao_ano_3 ?? 0),
+  taxaMineralizacaoAno1: dto.taxa_mineralizacao_primeiro_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_primeiro_ano_percentual),
+  taxaMineralizacaoAno2: dto.taxa_mineralizacao_segundo_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_segundo_ano_percentual),
+  taxaMineralizacaoAno3: dto.taxa_mineralizacao_terceiro_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_terceiro_ano_percentual),
   taxaMineralizacaoAno4: dto.taxa_mineralizacao_quarto_ano_percentual == null ? "" : String(dto.taxa_mineralizacao_quarto_ano_percentual),
   publico: dto.publico ? "sim" : "nao",
 });
@@ -97,9 +97,9 @@ export const mapGreenFormToCreatePayload = (form: GreenFertilizerFormState): Gre
     mo: num(form.mo),
     zn: num(form.zn),
     produtividade_esperada: num(form.produtividadeEsperada),
-    taxa_mineralizacao_ano_1: num(form.taxaMineralizacaoAno1),
-    taxa_mineralizacao_ano_2: num(form.taxaMineralizacaoAno2),
-    taxa_mineralizacao_ano_3: num(form.taxaMineralizacaoAno3),
+    taxa_mineralizacao_primeiro_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno1),
+    taxa_mineralizacao_segundo_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno2),
+    taxa_mineralizacao_terceiro_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno3),
     taxa_mineralizacao_quarto_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno4),
     publico: form.publico === "sim"
 });
@@ -126,9 +126,9 @@ export const mapGreenFormToUpdatePayload = (form: GreenFertilizerFormState): Gre
     novo_mo: num(form.mo),
     novo_zn: num(form.zn),
     novo_produtividade_esperada: num(form.produtividadeEsperada),
-    novo_taxa_mineralizacao_ano_1: num(form.taxaMineralizacaoAno1),
-    novo_taxa_mineralizacao_ano_2: num(form.taxaMineralizacaoAno2),
-    novo_taxa_mineralizacao_ano_3: num(form.taxaMineralizacaoAno3),
+    novo_taxa_mineralizacao_primeiro_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno1),
+    novo_taxa_mineralizacao_segundo_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno2),
+    novo_taxa_mineralizacao_terceiro_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno3),
     novo_taxa_mineralizacao_quarto_ano_percentual: optionalFertilizerDecimal(form.taxaMineralizacaoAno4),
     novo_publico: form.publico === "sim"
 });
