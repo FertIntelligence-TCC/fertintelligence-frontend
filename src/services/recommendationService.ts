@@ -33,6 +33,9 @@ type BuildRecommendationCreatePayloadParams = {
   limingCriteria?: RecommendationLimingCriteria | null;
   fertilizerSourceOption: FertilizerSourceOption;
   recommendationFolderName?: string | null;
+  reportMunicipality?: string | null;
+  reportState?: string | null;
+  reportProfessionalRegistration?: string | null;
   texturalClassification?: RecommendationTexturalClassification | string | null;
   useOrganicFertilizer?: boolean;
   organicFertilizerId?: string | number | null;
@@ -85,6 +88,9 @@ export function buildRecommendationCreatePayload({
   limingCriteria = null,
   fertilizerSourceOption,
   recommendationFolderName,
+  reportMunicipality,
+  reportState,
+  reportProfessionalRegistration,
   texturalClassification,
   useOrganicFertilizer = false,
   organicFertilizerId,
@@ -141,6 +147,9 @@ export function buildRecommendationCreatePayload({
     classificacao_textural: normalizeTexturalClassification(texturalClassification),
     origem_adubos: fertilizerSourceOption,
     nome_pasta_recomendacao: recommendationFolderName?.trim() || null,
+    municipio_relatorio: reportMunicipality?.trim() || null,
+    uf_relatorio: reportState?.trim().toUpperCase() || null,
+    registro_profissional_relatorio: reportProfessionalRegistration?.trim() || null,
     adubacaoCorretivaSolo: correctiveSoilFertilization?.adubacaoCorretivaSolo ?? false,
     areaIncorporacaoConversaoRecente: correctiveSoilFertilization?.areaIncorporacaoConversaoRecente ?? false,
     areaDegradadaMaisDeCincoAnosSemAdubacao:

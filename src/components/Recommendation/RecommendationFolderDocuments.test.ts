@@ -2,8 +2,23 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildRecommendationDocumentViews,
+  canShowRecommendationPrintButton,
   removeDirectFertilizationObservations,
 } from "./RecommendationFolderDocuments";
+
+describe("impressão dos quatro documentos", () => {
+  it("permite qualquer documento gerado quando o cargo e o backend autorizam", () => {
+    for (const key of ["general", "summary", "direct", "shopping"]) {
+      expect(canShowRecommendationPrintButton(true, true, "generated"), key).toBe(true);
+    }
+  });
+
+  it("mantém bloqueio por cargo, backend e estado do documento", () => {
+    expect(canShowRecommendationPrintButton(false, true, "generated")).toBe(false);
+    expect(canShowRecommendationPrintButton(true, false, "generated")).toBe(false);
+    expect(canShowRecommendationPrintButton(true, true, "not_generated")).toBe(false);
+  });
+});
 
 describe("observações da recomendação direta", () => {
   it("remove a ocorrência textual anterior para manter apenas a seção estruturada final", () => {

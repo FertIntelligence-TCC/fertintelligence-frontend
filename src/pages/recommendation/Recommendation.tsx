@@ -15,6 +15,7 @@ import {
 import UserLayout from "@/components/Layouts/UserLayout";
 import FertName from "@/components/FertName/FertName";
 import ConfigMenu from "@/components/ConfigMenu/ConfigMenu";
+import reportLogoUrl from "@/assets/fertintelligence-logo.svg";
 import { toaster } from "@/components/ui/toaster";
 import type { PlotResponse } from "@/interfaces/Plot";
 import type { PropertyResponse } from "@/interfaces/Property";
@@ -27,6 +28,7 @@ import {
   type OrganicFertilizerReferenceNutrient,
   type DirectRecommendationResponse,
   type RecommendationResponse,
+  type RecommendationPrintResponse,
   type ShoppingListResponse,
   type SummaryRecommendationResponse,
   type RecommendationType,
@@ -482,6 +484,9 @@ export default function Recommendation() {
   const [textureClassificationSystem, setTextureClassificationSystem] =
     useState<TextureClassificationSystem>("BRASILEIRO");
   const [recommendationFolderName, setRecommendationFolderName] = useState("");
+  const [reportMunicipality, setReportMunicipality] = useState("");
+  const [reportState, setReportState] = useState("");
+  const [reportProfessionalRegistration, setReportProfessionalRegistration] = useState("");
   const [cropSpacingForm, setCropSpacingForm] = useState<CropSpacingFormState>(initialCropSpacingForm);
 
   const [properties, setProperties] = useState<PropertyResponse[]>([]);
@@ -1088,6 +1093,9 @@ export default function Recommendation() {
     	limingCriteria: null,
     	fertilizerSourceOption: validation.fertilizerSourceOption,
     	recommendationFolderName,
+      reportMunicipality,
+      reportState,
+      reportProfessionalRegistration,
     	texturalClassification: validation.texturalClassification,
     	useOrganicFertilizer,
         organicFertilizerId,
@@ -1150,7 +1158,21 @@ export default function Recommendation() {
 	try {
   	setPrinting(true);
   	const printableRecommendation = await preparePrintRecommendation(selectedRecommendation.id);
-  	const printableReportText = getRecommendationReportText(printableRecommendation);
+    const printableDocuments = printableRecommendation as RecommendationPrintResponse & {
+      recomendacao_resumida?: SummaryRecommendationResponse | string | null;
+      recomendacao_direta?: DirectRecommendationResponse | string | null;
+      lista_compras?: ShoppingListResponse | string | null;
+    };
+    const printableReportText = selectedDocumentKey === "general"
+      ? getRecommendationReportText(printableRecommendation)
+      : getRecommendationDocumentText(
+          selectedDocumentKey === "summary"
+            ? printableDocuments.recomendacao_resumida
+            : selectedDocumentKey === "direct"
+              ? printableDocuments.recomendacao_direta
+              : printableDocuments.lista_compras,
+          selectedDocumentKey,
+        );
 
   	if (!printableReportText?.trim()) {
     	toaster.create({
@@ -1171,7 +1193,13 @@ export default function Recommendation() {
     	return;
   	}
 
-  	writePrintableReport(printWindow, printableReportText, printableRecommendation);
+    writePrintableReport(
+      printWindow,
+      printableReportText,
+      printableRecommendation,
+      selectedDocumentKey,
+      reportLogoUrl,
+    );
   	printWindow.onload = () => {
     	printWindow.focus();
     	printWindow.print();
@@ -1699,6 +1727,43 @@ export default function Recommendation() {
               	</NativeSelect>
             	</Box>
           	) : null}
+            <Box borderWidth="1px" borderRadius="md" p={4}>
+              <Heading size="sm" mb={1}>Dados de identificação dos relatórios</Heading>
+              <Text fontSize="xs" color="fg.muted" mb={3}>
+                Cliente, propriedade, talhão, cultura, área, responsável técnico e emissão serão preenchidos automaticamente.
+              </Text>
+              <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+                <Box>
+                  <Text fontSize="sm" mb={1}>Município</Text>
+                  <Input
+                    value={reportMunicipality}
+                    maxLength={120}
+                    onChange={(event) => setReportMunicipality(event.target.value)}
+                    aria-label="Município do relatório"
+                  />
+                </Box>
+                <Box>
+                  <Text fontSize="sm" mb={1}>UF</Text>
+                  <Input
+                    value={reportState}
+                    maxLength={2}
+                    textTransform="uppercase"
+                    onChange={(event) => setReportState(event.target.value.replace(/[^A-Za-z]/g, "").toUpperCase())}
+                    aria-label="UF do relatório"
+                  />
+                </Box>
+                <Box>
+                  <Text fontSize="sm" mb={1}>Registro profissional</Text>
+                  <Input
+                    value={reportProfessionalRegistration}
+                    maxLength={120}
+                    placeholder="Ex.: CREA/PB nº 12345"
+                    onChange={(event) => setReportProfessionalRegistration(event.target.value)}
+                    aria-label="Registro profissional do relatório"
+                  />
+                </Box>
+              </SimpleGrid>
+            </Box>
           	<Box>
             	<Text fontSize="sm" mb={1}>Nome da pasta de recomendação?</Text>
             	<Input

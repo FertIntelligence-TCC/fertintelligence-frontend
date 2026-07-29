@@ -1,4 +1,5 @@
 import type { RecommendationPrintResponse } from "@/interfaces/Recommendation";
+import type { RecommendationDocumentKey } from "./RecommendationFolderDocuments";
 
 import {
   buildFormulatedPlantingFertilizerTableModels,
@@ -32,6 +33,28 @@ type StructuredPrintTableModel =
   | AlternativeFertilizerPrintTableModel
   | CorrectiveSoilFertilizationPrintTableModel
   | ReturnType<typeof buildFertilizationOptionPrintTableModels>[number];
+
+const getPrintableDocument = (
+  recommendation: RecommendationPrintResponse,
+  documentKey: RecommendationDocumentKey,
+): RecommendationPrintResponse => {
+  const documents = recommendation as RecommendationPrintResponse & {
+    recomendacao_resumida?: unknown;
+    recomendacao_direta?: unknown;
+    lista_compras?: unknown;
+  };
+  const nestedDocument =
+    documentKey === "summary"
+      ? documents.recomendacao_resumida
+      : documentKey === "direct"
+        ? documents.recomendacao_direta
+        : documentKey === "shopping"
+          ? documents.lista_compras
+          : recommendation;
+  return nestedDocument && typeof nestedDocument === "object"
+    ? nestedDocument as RecommendationPrintResponse
+    : recommendation;
+};
 
 const escapeHtml = (value: string) =>
   value
@@ -116,21 +139,24 @@ const getPrintableTechnicalWarnings = (recommendation: RecommendationPrintRespon
 
 const getStructuredPrintTableModels = (
   recommendation: RecommendationPrintResponse,
+  documentKey: RecommendationDocumentKey,
 ): StructuredPrintTableModel[] => {
-  const micronutrientTable = buildMicronutrientFertilizerTableModel(recommendation);
-  const correctiveTables = buildCorrectiveSoilFertilizationPrintTableModels(recommendation, "general");
-  if (hasFertilizationOptionContent(recommendation)) {
+  const printableDocument = getPrintableDocument(recommendation, documentKey);
+  const mode = documentKey === "shopping" ? "shopping" : documentKey;
+  const micronutrientTable = buildMicronutrientFertilizerTableModel(printableDocument);
+  const correctiveTables = buildCorrectiveSoilFertilizationPrintTableModels(printableDocument, mode);
+  if (hasFertilizationOptionContent(printableDocument)) {
     return [
       ...correctiveTables,
-      ...buildFertilizationOptionPrintTableModels(recommendation, "general"),
+      ...buildFertilizationOptionPrintTableModels(printableDocument, mode),
     ];
   }
 
   return [
     ...correctiveTables,
-    ...buildFormulatedPlantingFertilizerTableModels(recommendation),
-    ...buildFormulatedTopDressingFertilizerTableModels(recommendation),
-    ...buildAlternativeFertilizerTableModels(recommendation),
+    ...buildFormulatedPlantingFertilizerTableModels(printableDocument),
+    ...buildFormulatedTopDressingFertilizerTableModels(printableDocument),
+    ...buildAlternativeFertilizerTableModels(printableDocument),
     ...(micronutrientTable ? [micronutrientTable] : []),
   ];
 };
@@ -179,8 +205,14 @@ const renderStructuredTableHtml = (model: StructuredPrintTableModel) => {
   return `<h2>${escapeHtml(model.title)}</h2><table>${headerHtml}${bodyHtml}</table>${notesHtml}${warningsHtml}`;
 };
 
-const renderGypsumHtml = (recommendation: RecommendationPrintResponse) => {
-  const model = buildGypsumRecommendationPrintModel(recommendation, "general");
+const renderGypsumHtml = (
+  recommendation: RecommendationPrintResponse,
+  documentKey: RecommendationDocumentKey,
+) => {
+  const model = buildGypsumRecommendationPrintModel(
+    getPrintableDocument(recommendation, documentKey),
+    documentKey,
+  );
   if (!model) return "";
 
   const warningHtml = model.warning
@@ -193,8 +225,14 @@ const renderGypsumHtml = (recommendation: RecommendationPrintResponse) => {
   return `<h2>${escapeHtml(model.title)}</h2>${warningHtml}${linesHtml}`;
 };
 
-const renderSulfurHtml = (recommendation: RecommendationPrintResponse) => {
-  const model = buildSulfurRecommendationPrintModel(recommendation, "general");
+const renderSulfurHtml = (
+  recommendation: RecommendationPrintResponse,
+  documentKey: RecommendationDocumentKey,
+) => {
+  const model = buildSulfurRecommendationPrintModel(
+    getPrintableDocument(recommendation, documentKey),
+    documentKey,
+  );
   if (!model) return "";
 
   const warningHtml = model.warning
@@ -258,10 +296,118 @@ const renderReportTextHtml = (text: string) => {
     .join("");
 };
 
+const normalizeOptionalPrintText = (value: unknown): string => {
+  if (value === null || value === undefined) return "";
+  const text = String(value).trim();
+  return text && text !== "null" && text !== "undefined" ? text : "";
+};
+
+const formatPrintDate = (value: unknown): string => {
+  if (!value) return "";
+  if (typeof value === "string") {
+    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return isoMatch ? `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}` : value;
+  }
+  if (typeof value !== "object") return "";
+  const date = value as { day?: number; month?: number; year?: number };
+  if (!date.day || !date.month || !date.year) return "";
+  return `${String(date.day).padStart(2, "0")}/${String(date.month).padStart(2, "0")}/${date.year}`;
+};
+
+export const getRecommendationTypeLabel = (type?: string | null): string => {
+  if (type === "FERTILIZATION") return "ADUBAÇÃO";
+  if (type === "ACIDITY_OR_SALINITY_CORRECTION") return "CORREÇÃO DO SOLO";
+  if (type === "BOTH") return "ADUBAÇÃO E CORREÇÃO DO SOLO";
+  return "";
+};
+
+const reportTitlePrefix: Record<RecommendationDocumentKey, string> = {
+  general: "RELATÓRIO GERAL DA RECOMENDAÇÃO",
+  summary: "RELATÓRIO RESUMIDO DA RECOMENDAÇÃO",
+  direct: "RELATÓRIO DIRETO DA RECOMENDAÇÃO",
+  shopping: "LISTA DE COMPRAS DA RECOMENDAÇÃO",
+};
+
+const renderOptionalLine = (label: string, value: unknown): string => {
+  const normalized = normalizeOptionalPrintText(value);
+  return normalized
+    ? `<div class="identification-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(normalized)}</div>`
+    : "";
+};
+
+export const buildReportPrintHeaderHtml = (
+  recommendation: RecommendationPrintResponse,
+  logoUrl: string,
+): string => {
+  const details = [
+    renderOptionalLine("Nome", recommendation.responsavel_tecnico_relatorio),
+    renderOptionalLine("Telefone/WhatsApp", recommendation.telefone_responsavel_relatorio),
+    renderOptionalLine("E-mail", recommendation.email_responsavel_relatorio),
+  ].filter(Boolean).join("");
+
+  return `<header class="report-print-header">
+    <img src="${escapeHtml(logoUrl)}" alt="FertIntelligence" />
+    <div class="report-print-header-details">${details}</div>
+  </header>`;
+};
+
+export const buildReportIdentificationHtml = (
+  recommendation: RecommendationPrintResponse,
+  documentKey: RecommendationDocumentKey,
+): string => {
+  const typeLabel = getRecommendationTypeLabel(
+    recommendation.tipo_recomendacao ?? recommendation.tipoRecomendacao,
+  );
+  const title = typeLabel
+    ? `${reportTitlePrefix[documentKey]} DE ${typeLabel}`
+    : reportTitlePrefix[documentKey];
+  const municipality = normalizeOptionalPrintText(recommendation.municipio_relatorio);
+  const state = normalizeOptionalPrintText(recommendation.uf_relatorio);
+  const municipalityState = municipality && state
+    ? `${municipality} – ${state}`
+    : municipality || state;
+  const area = recommendation.area_avaliada_ha_relatorio;
+  const areaLabel = typeof area === "number"
+    ? `${area.toLocaleString("pt-BR", { maximumFractionDigits: 4 })} ha`
+    : "";
+
+  const rows = [
+    renderOptionalLine("Cliente/Produtor", recommendation.cliente_produtor_relatorio),
+    renderOptionalLine("Propriedade", recommendation.propriedade_relatorio ?? recommendation.nome_propriedade),
+    renderOptionalLine("Município/UF", municipalityState),
+    renderOptionalLine("Talhão Nº", recommendation.talhao_relatorio ?? recommendation.identificacao_talhao),
+    renderOptionalLine("Área avaliada", areaLabel),
+    renderOptionalLine("Cultura prevista", recommendation.cultura),
+    renderOptionalLine("Safra/Safrinha", recommendation.ano_safra),
+    renderOptionalLine("Data de plantio", formatPrintDate(recommendation.data_plantio)),
+    renderOptionalLine("Responsável técnico", recommendation.responsavel_tecnico_relatorio),
+    renderOptionalLine("Registro profissional", recommendation.registro_profissional_relatorio),
+    renderOptionalLine("Data de emissão", formatPrintDate(recommendation.data_emissao_relatorio)),
+  ].filter(Boolean).join("");
+
+  return `<section class="report-identification">
+    <h1>${escapeHtml(title)}</h1>
+    <div class="report-identification-grid">${rows}</div>
+  </section>`;
+};
+
+export const buildReportSignatureHtml = (
+  recommendation: RecommendationPrintResponse,
+): string => {
+  const author = normalizeOptionalPrintText(recommendation.autor_assinatura_relatorio);
+  if (!author) return "";
+  return `<section class="report-signature">
+    <div class="signature-line"></div>
+    <div>${escapeHtml(author)}</div>
+  </section>`;
+};
+
 export const writePrintableReport = (
   printWindow: Window,
   text: string,
   printableRecommendation: RecommendationPrintResponse,
+  documentKey: RecommendationDocumentKey = "general",
+  logoUrl = "",
 ) => {
   const contentHtml = renderReportTextHtml(text);
   const renderedReportWarningKeys = new Set(
@@ -273,15 +419,18 @@ export const writePrintableReport = (
     .filter((warning) => !renderedReportWarningKeys.has(normalizeComparableText(warning)))
     .map((warning) => `<p class="technical-warning"><strong>Aviso técnico:</strong> ${escapeHtml(warning)}</p>`)
     .join("");
-  const structuredTablesHtml = getStructuredPrintTableModels(printableRecommendation)
+  const structuredTablesHtml = getStructuredPrintTableModels(printableRecommendation, documentKey)
     .map(renderStructuredTableHtml)
     .filter(Boolean)
     .join("");
-  const gypsumHtml = renderGypsumHtml(printableRecommendation);
-  const sulfurHtml = renderSulfurHtml(printableRecommendation);
+  const gypsumHtml = renderGypsumHtml(printableRecommendation, documentKey);
+  const sulfurHtml = renderSulfurHtml(printableRecommendation, documentKey);
   const structuredContentHtml = structuredTablesHtml || gypsumHtml || sulfurHtml
     ? `<div class="spacing"></div>${sulfurHtml}${gypsumHtml}${structuredTablesHtml}`
     : "";
+  const headerHtml = buildReportPrintHeaderHtml(printableRecommendation, logoUrl);
+  const identificationHtml = buildReportIdentificationHtml(printableRecommendation, documentKey);
+  const signatureHtml = buildReportSignatureHtml(printableRecommendation);
 
   const doc = printWindow.document;
   doc.open();
@@ -291,9 +440,10 @@ export const writePrintableReport = (
     <meta charset="UTF-8" />
     <title>Laudo Técnico</title>
     <style>
-      body { font-family: Aptos, Calibri, Arial, sans-serif; padding: 32px; line-height: 1.55; color: #000; font-size: 10pt; }
+      @page { size: A4 portrait; margin: 12mm 15mm 18mm; }
+      body { font-family: Aptos, Calibri, Arial, sans-serif; margin: 0; line-height: 1.55; color: #000; font-size: 10pt; }
       .recommendation-print-document { font-family: Aptos, Calibri, Arial, sans-serif; font-size: 10pt; }
-      h1 { margin: 0 0 24px; font-size: 14pt; }
+      h1 { margin: 0 0 14px; font-size: 14pt; text-align: center; }
       h2 { margin: 20px 0 8px; font-size: 12pt; }
       p { margin: 0; white-space: pre-wrap; }
       .technical-warning { color: #c2410c; font-size: 9pt; margin: 6px 0; }
@@ -303,7 +453,21 @@ export const writePrintableReport = (
       table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9pt; }
       th, td { border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top; white-space: pre-wrap; }
       th { font-weight: 700; background: #f2f2f2; }
-      .footer { margin-top: 36px; }
+      .report-page-frame { width: 100%; border: 0; border-collapse: collapse; margin: 0; font-size: inherit; }
+      .report-page-frame > thead { display: table-header-group; }
+      .report-page-frame > thead > tr > td,
+      .report-page-frame > tbody > tr > td { border: 0; padding: 0; }
+      .report-page-frame > tbody > tr { break-inside: auto; page-break-inside: auto; }
+      .report-print-header { height: 20mm; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #777; padding-bottom: 2mm; margin-bottom: 5mm; background: #fff; }
+      .report-print-header img { width: 18mm; height: 18mm; object-fit: contain; }
+      .report-print-header-details { text-align: right; font-size: 8.5pt; line-height: 1.35; }
+      .report-identification { border: 1px solid #777; padding: 12px; margin-bottom: 18px; break-inside: avoid; page-break-inside: avoid; }
+      .report-identification-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+      .identification-row { min-width: 0; }
+      .report-signature { width: 75mm; margin: 16mm 0 0 auto; text-align: center; break-inside: avoid; page-break-inside: avoid; }
+      .signature-line { border-top: 1px solid #000; margin-bottom: 5px; }
+      h1, h2 { break-after: avoid; page-break-after: avoid; }
+      table, tr, .table-notes, .technical-warning { break-inside: avoid; page-break-inside: avoid; }
       @media print {
         body, .recommendation-print-document { font-family: Aptos, Calibri, Arial, sans-serif; font-size: 10pt; }
         table { font-size: 10pt; }
@@ -311,9 +475,14 @@ export const writePrintableReport = (
     </style>
   </head>
   <body>
-    <h1>Laudo Técnico de Recomendação Agrícola</h1>
-    <div class="recommendation-print-document">${contentHtml}${technicalWarningsHtml}${structuredContentHtml}</div>
-    <div class="footer">Documento emitido pelo sistema FertIntelligence.</div>
+    <table class="report-page-frame">
+      <thead><tr><td>${headerHtml}</td></tr></thead>
+      <tbody><tr><td>
+        ${identificationHtml}
+        <div class="recommendation-print-document">${contentHtml}${technicalWarningsHtml}${structuredContentHtml}</div>
+      </td></tr></tbody>
+    </table>
+    ${signatureHtml}
   </body>
 </html>`);
   doc.close();

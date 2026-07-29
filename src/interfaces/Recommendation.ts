@@ -646,6 +646,9 @@ export interface RecommendationCreatePayload extends RecommendationFertilizerMod
   classificacao_textural: RecommendationTexturalClassification;
   origem_adubos: FertilizerSourceOption;
   nome_pasta_recomendacao?: string | null;
+  municipio_relatorio?: string | null;
+  uf_relatorio?: string | null;
+  registro_profissional_relatorio?: string | null;
   adubacaoCorretivaSolo: CorrectiveSoilFertilizationPayload["adubacaoCorretivaSolo"];
   areaIncorporacaoConversaoRecente: CorrectiveSoilFertilizationPayload["areaIncorporacaoConversaoRecente"];
   areaDegradadaMaisDeCincoAnosSemAdubacao: CorrectiveSoilFertilizationPayload["areaDegradadaMaisDeCincoAnosSemAdubacao"];
@@ -706,6 +709,20 @@ export interface RecommendationResponse extends RecommendationFertigramFields, G
   technicalReport?: string;
 
   printable?: boolean;
+
+  cliente_produtor_relatorio?: string | null;
+  propriedade_relatorio?: string | null;
+  municipio_relatorio?: string | null;
+  uf_relatorio?: string | null;
+  talhao_relatorio?: string | null;
+  area_avaliada_ha_relatorio?: number | null;
+  responsavel_tecnico_relatorio?: string | null;
+  registro_profissional_relatorio?: string | null;
+  telefone_responsavel_relatorio?: string | null;
+  email_responsavel_relatorio?: string | null;
+  data_emissao_relatorio?: string | null;
+  autor_assinatura_relatorio?: string | null;
+  data_plantio?: { day?: number; month?: number; year?: number } | null;
 
   criado_em?: string;
   atualizado_em?: string;

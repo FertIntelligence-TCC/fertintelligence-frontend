@@ -48,6 +48,12 @@ import RecommendationFertigramCharts from "./RecommendationFertigramCharts";
 export type RecommendationDocumentKey = "general" | "summary" | "direct" | "shopping";
 export type RecommendationDocumentStatus = "generated" | "not_generated" | "loading" | "error";
 
+export const canShowRecommendationPrintButton = (
+  userCanPrint: boolean,
+  recommendationPrintable: boolean | undefined,
+  documentStatus: RecommendationDocumentStatus | undefined,
+) => userCanPrint && recommendationPrintable !== false && documentStatus === "generated";
+
 export type RecommendationDocumentView = {
   key: RecommendationDocumentKey;
   title: string;
@@ -543,7 +549,11 @@ export default function RecommendationFolderDocuments({
                     {improvingNarrative ? "Melhorando..." : "Melhorar Texto do Laudo"}
                   </Button>
                 ) : null}
-                {userCanPrint && selectedRecommendation.printable !== false && selectedDocument?.key === "general" ? (
+                {canShowRecommendationPrintButton(
+                  userCanPrint,
+                  selectedRecommendation.printable,
+                  selectedDocument?.status,
+                ) ? (
                   <Button colorPalette="blue" loading={printing} onClick={onPrintRecommendation}>
                     Imprimir Laudo
                   </Button>
@@ -586,7 +596,7 @@ export default function RecommendationFolderDocuments({
             </Text>
             {!userCanPrint ? (
               <Box borderWidth="1px" borderRadius="md" borderColor="orange.200" bg="orange.50" p={3} fontSize="sm">
-                Apenas agrônomos residentes ou consultores podem emitir laudo formal para assinatura.
+                Apenas agrônomos residentes, consultores ou usuários supremos podem emitir laudo formal para assinatura.
               </Box>
             ) : null}
           </VStack>
