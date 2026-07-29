@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -94,7 +94,7 @@ import RecommendationFolderDocuments, {
   type RecommendationDocumentView,
 } from "@/components/Recommendation/RecommendationFolderDocuments";
 import RecommendationHistoryList from "@/components/Recommendation/RecommendationHistoryList";
-import FertAiPanel from "@/components/FertAi/FertAiPanel";
+import FertAiAccessButton from "@/components/FertAi/FertAiAccessButton";
 import { writePrintableReport } from "@/components/Recommendation/RecommendationPrintDocument";
 import {
   hasEconomicFertilizerDecisionContent,
@@ -503,6 +503,7 @@ export default function Recommendation() {
   const [organicFertilizers, setOrganicFertilizers] = useState<OrganicFertilizerResponseDto[]>([]);
   const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendationResponse | null>(null);
   const [recommendationsHistory, setRecommendationsHistory] = useState<RecommendationResponse[]>([]);
+  const historyRequestRef = useRef<Promise<void> | null>(null);
 
   const [loadingProperties, setLoadingProperties] = useState(false);
   const [loadingPlots, setLoadingPlots] = useState(false);
@@ -621,16 +622,32 @@ export default function Recommendation() {
 	setLoadingDocumentKey(null);
   }, [selectedRecommendation?.id]);
   const loadHistory = async () => {
-	setLoadingHistory(true);
-	try {
-  	setHistoryErrorMessage(null);
-  	setRecommendationsHistory(await getMyRecommendations());
-	} catch (error) {
-  	console.error(error);
-  	setRecommendationsHistory([]);
-  	setHistoryErrorMessage("Não foi possível carregar seu histórico de recomendações agora. Tente novamente em instantes.");
-  	toaster.create({ title: "Falha ao carregar histórico.", type: "error" });
-	} finally { setLoadingHistory(false); }
+    if (historyRequestRef.current) {
+      return historyRequestRef.current;
+    }
+
+    const request = (async () => {
+      setLoadingHistory(true);
+      try {
+        setHistoryErrorMessage(null);
+        setRecommendationsHistory(await getMyRecommendations());
+      } catch (error) {
+        console.error(error);
+        setRecommendationsHistory([]);
+        setHistoryErrorMessage("Não foi possível carregar seu histórico de recomendações agora. Tente novamente em instantes.");
+        toaster.create({ title: "Falha ao carregar histórico.", type: "error" });
+      } finally {
+        setLoadingHistory(false);
+      }
+    })();
+    historyRequestRef.current = request;
+    try {
+      await request;
+    } finally {
+      if (historyRequestRef.current === request) {
+        historyRequestRef.current = null;
+      }
+    }
   };
 
   useEffect(() => {
@@ -1776,37 +1793,34 @@ export default function Recommendation() {
           	<Button colorPalette="blue" onClick={handleGenerate} loading={generating}>Gerar Recomendação</Button>
         	</VStack>
       	</Box>
-      	<RecommendationFolderDocuments
-        	selectedRecommendation={selectedRecommendation}
-        	selectedDocument={selectedDocument}
-        	selectedDocumentKey={selectedDocumentKey}
-        	recommendationDocuments={recommendationDocuments}
-        	selectedDocumentError={selectedDocumentError}
-        	summaryRecommendationDocument={summaryRecommendationDocument}
-        	directRecommendationDocument={directRecommendationDocument}
-        	shoppingListDocument={shoppingListDocument}
-        	documentTechnicalWarnings={documentTechnicalWarnings}
-        	loadingDocumentKey={loadingDocumentKey}
-        	userCanPrint={userCanPrint}
-        	printing={printing}
-        	improvingNarrative={improvingNarrative}
-        	isFullscreenOpen={isFullscreenOpen}
-        	propertyLabel={selectedRecommendation?.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation?.id_propriedade ?? "-"}
-        	plotLabel={selectedRecommendation?.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation?.id_talhao ?? "-"}
-        	folderName={selectedRecommendation ? getRecommendationFolderName(selectedRecommendation) : ""}
-        	onSelectDocument={(document) => { void handleSelectDocument(document); }}
-        	onCopyDocument={() => { void handleCopySelectedDocument(); }}
-        	onImproveNarrative={handleImproveNarrative}
-        	onPrintRecommendation={handlePrintRecommendation}
-        	onFullscreenOpenChange={handleFullscreenOpenChange}
-      	/>
+        <VStack align="stretch" gap={3}>
+          <FertAiAccessButton />
+          <RecommendationFolderDocuments
+            selectedRecommendation={selectedRecommendation}
+            selectedDocument={selectedDocument}
+            selectedDocumentKey={selectedDocumentKey}
+            recommendationDocuments={recommendationDocuments}
+            selectedDocumentError={selectedDocumentError}
+            summaryRecommendationDocument={summaryRecommendationDocument}
+            directRecommendationDocument={directRecommendationDocument}
+            shoppingListDocument={shoppingListDocument}
+            documentTechnicalWarnings={documentTechnicalWarnings}
+            loadingDocumentKey={loadingDocumentKey}
+            userCanPrint={userCanPrint}
+            printing={printing}
+            improvingNarrative={improvingNarrative}
+            isFullscreenOpen={isFullscreenOpen}
+            propertyLabel={selectedRecommendation?.nome_propriedade ?? selectedProperty?.nome ?? selectedRecommendation?.id_propriedade ?? "-"}
+            plotLabel={selectedRecommendation?.identificacao_talhao ?? selectedPlot?.identificacao ?? selectedRecommendation?.id_talhao ?? "-"}
+            folderName={selectedRecommendation ? getRecommendationFolderName(selectedRecommendation) : ""}
+            onSelectDocument={(document) => { void handleSelectDocument(document); }}
+            onCopyDocument={() => { void handleCopySelectedDocument(); }}
+            onImproveNarrative={handleImproveNarrative}
+            onPrintRecommendation={handlePrintRecommendation}
+            onFullscreenOpenChange={handleFullscreenOpenChange}
+          />
+        </VStack>
     	</SimpleGrid>
-
-      <FertAiPanel
-        recommendations={recommendationsHistory}
-        loadingRecommendations={loadingHistory}
-        recommendationsError={historyErrorMessage}
-      />
 
     	<RecommendationHistoryList
       	recommendations={recommendationsHistory}

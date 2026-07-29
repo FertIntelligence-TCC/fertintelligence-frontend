@@ -61,6 +61,7 @@ import ResidentAgronomistMakePlotSolicitations from "@/pages/make-plot-access-so
 import ConsultantAgronomistMakePlotSolicitations from "@/pages/make-plot-access-solicitation/ConsultantAgronomistMakePlotSolicitations";
 import SecretaryMakePlotSolicitations from "@/pages/make-plot-access-solicitation/SecretaryMakePlotSolicitations";
 import Recommendation from "@/pages/recommendation/Recommendation";
+import FertAi from "@/pages/recommendation/FertAi";
 
 
 export const PublicRoutes: RouteObject[] = [
@@ -324,6 +325,10 @@ export const PublicRoutes: RouteObject[] = [
       {
         path: "/fertintelligence/recommendation",
         element: <Recommendation />,
+      },
+      {
+        path: "/fertintelligence/recommendation/fert-ai",
+        element: <FertAi />,
       },
     ],
   },
