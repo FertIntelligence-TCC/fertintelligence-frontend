@@ -53,7 +53,7 @@ export default function ActiveCargoSelector() {
       borderRadius="md"
       boxShadow="md"
       p={8}
-      w={{ base: "100%", md: "calc(70% + 2rem)" }}
+      w="100%"
       bg={{ base: "white", _dark: "gray.700" }}
       aria-busy={pendingCargo !== null}
     >
@@ -65,11 +65,17 @@ export default function ActiveCargoSelector() {
       </Text>
 
       {currentCargo === Cargo.USUARIO_SUPREMO ? (
-        <Button aria-pressed="true" colorScheme="green" disabled>
+        <Button aria-pressed="true" colorScheme="green" disabled w="100%" h="50px">
           Usuário Supremo
         </Button>
       ) : (
-        <Flex gap={3} flexWrap="wrap" role="group" aria-label="Cargos disponíveis">
+        <Flex
+          direction="column"
+          gap={3}
+          role="group"
+          aria-label="Cargos disponíveis"
+          data-orientation="vertical"
+        >
           {SELECTABLE_CARGOS.map(({ value, label }) => {
             const selected = currentCargo === value;
             return (
@@ -80,6 +86,8 @@ export default function ActiveCargoSelector() {
                 variant={selected ? "solid" : "outline"}
                 disabled={pendingCargo !== null}
                 onClick={() => handleChange(value)}
+                w="100%"
+                h="50px"
               >
                 {pendingCargo === value ? "Alterando…" : label}
               </Button>

@@ -113,39 +113,49 @@ export default function Home() {
         gap={8}
         mt={16}
         px={4}
-        flexWrap={{ base: "wrap", md: "nowrap" }}
+        direction={{ base: "column", md: "row" }}
       >
-        {/* BLOCO 1 */}
-        <Box
-          borderWidth="1px"
-          borderRadius="md"
-          boxShadow="md"
-          p={8}
+        <Flex
+          direction="column"
+          gap={8}
           w={{ base: "100%", md: "35%" }}
-          bg={{ base: "white", _dark: "gray.700" }}
+          minW={0}
+          data-testid="home-left-column"
         >
-          <Heading as="h2" size="md" mb={6}>
-            Minhas propriedades e cultivos
-          </Heading>
+          {/* BLOCO 1 */}
+          <Box
+            borderWidth="1px"
+            borderRadius="md"
+            boxShadow="md"
+            p={8}
+            w="100%"
+            bg={{ base: "white", _dark: "gray.700" }}
+          >
+            <Heading as="h2" size="md" mb={6}>
+              Minhas propriedades e cultivos
+            </Heading>
 
-          <Flex direction="column" gap={4}>
-            <Button colorScheme="green" onClick={handleManageProperties} h="50px" fontSize="md">
-              Gerenciar propriedades
-            </Button>
+            <Flex direction="column" gap={4}>
+              <Button colorScheme="green" onClick={handleManageProperties} h="50px" fontSize="md">
+                Gerenciar propriedades
+              </Button>
 
-            <Button colorScheme="blue" onClick={() => go(ROUTES.FERTILIZATION_TABLES)} h="50px" fontSize="md">
-              Tabelas de adubação
-            </Button>
+              <Button colorScheme="blue" onClick={() => go(ROUTES.FERTILIZATION_TABLES)} h="50px" fontSize="md">
+                Tabelas de adubação
+              </Button>
 
-            <Button colorScheme="blue" onClick={() => go(ROUTES.FERTILIZERS)} h="50px" fontSize="md">
-              Gerenciar adubos
-            </Button>
+              <Button colorScheme="blue" onClick={() => go(ROUTES.FERTILIZERS)} h="50px" fontSize="md">
+                Gerenciar adubos
+              </Button>
 
-            <Button colorScheme="blue" onClick={() => go(ROUTES.MAKE_RECOMMENDATION)} h="50px" fontSize="md">
-              Fazer recomendação
-            </Button>
-          </Flex>
-        </Box>
+              <Button colorScheme="blue" onClick={() => go(ROUTES.MAKE_RECOMMENDATION)} h="50px" fontSize="md">
+                Fazer recomendação
+              </Button>
+            </Flex>
+          </Box>
+
+          <ActiveCargoSelector />
+        </Flex>
 
         {/* BLOCO 2 */}
         {(!isSupervisor) && (<Box
@@ -154,6 +164,7 @@ export default function Home() {
           boxShadow="md"
           p={8}
           w={{ base: "100%", md: "35%" }}
+          alignSelf="flex-start"
           bg={{ base: "white", _dark: "gray.700" }}
         >
           <Heading as="h2" size="md" mb={6}>
@@ -175,10 +186,6 @@ export default function Home() {
           </Flex>
         </Box>)}
 
-      </Flex>
-
-      <Flex justifyContent="center" mt={8} px={4}>
-        <ActiveCargoSelector />
       </Flex>
     </UserLayout>
   );
