@@ -31,6 +31,7 @@ import type {
 } from "@/interfaces/Recommendation";
 
 import RecommendationReportViewer from "./RecommendationReportViewer";
+import RecommendationReportHeader from "./RecommendationReportHeader";
 import RecommendationStructuredFertilizerTables, {
   GypsumRecommendationSection,
   hasCorrectiveSoilFertilizationContent,
@@ -378,6 +379,12 @@ function RecommendationDocumentPanel({
     <Box fontSize="sm" borderWidth="1px" borderRadius="md" p={4} maxH="600px" overflowY="auto">
       {selectedDocument?.status === "generated" ? (
         <VStack align="stretch" gap={4}>
+          {selectedRecommendation && selectedDocument ? (
+            <RecommendationReportHeader
+              recommendation={selectedRecommendation}
+              documentKey={selectedDocument.key}
+            />
+          ) : null}
           {shouldRenderTextContent ? (
             <RecommendationReportViewer
               reportText={displayDocumentContent}
@@ -631,6 +638,12 @@ export default function RecommendationFolderDocuments({
               >
                 {selectedDocument?.status === "generated" ? (
                   <VStack align="stretch" gap={4}>
+                    {selectedRecommendation ? (
+                      <RecommendationReportHeader
+                        recommendation={selectedRecommendation}
+                        documentKey={selectedDocument.key}
+                      />
+                    ) : null}
                     {fullscreenDisplayDocumentContent.trim() &&
                     !(selectedDocument.key === "shopping" &&
                       hasStructuredRecommendationContent(shoppingListDocument)) ? (

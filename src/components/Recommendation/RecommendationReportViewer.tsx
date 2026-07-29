@@ -72,6 +72,62 @@ export const cleanRecommendationDocumentText = (value: string): string => {
   return text;
 };
 
+const legacyIdentificationLabels =
+  /^(?:endereco|telefone(?:\/whatsapp)?|e-mail|email|ceo|nome|cliente\/produtor|propriedade|municipio\/uf|talhao(?: n[oº.]*)?|area avaliada|cultura prevista|safra\/safrinha|data de plantio|responsavel tecnico|registro profissional|data de emissao)$/;
+
+const getLegacyPresentationField = (line: string) => {
+  const plainLine = line
+    .replace(/^\s*[-*+]\s*/, "")
+    .replace(/\*\*/g, "")
+    .trim();
+  const fieldMatch = plainLine.match(/^([^:]+):\s*(.*)$/);
+  if (!fieldMatch) return null;
+  const normalizedLabel = normalizeComparableText(fieldMatch[1]);
+  if (!legacyIdentificationLabels.test(normalizedLabel)) return null;
+  return { normalizedLabel, value: fieldMatch[2].trim() };
+};
+
+const isLegacyPresentationLine = (line: string): boolean => {
+  if (/^\s*(?:\*\*)?FertIntelligence(?:\*\*)?\s*$/i.test(line)) return true;
+  const field = getLegacyPresentationField(line);
+  if (!field) return false;
+  if (["endereco", "telefone/whatsapp", "e-mail", "email", "ceo"].includes(field.normalizedLabel)) {
+    return true;
+  }
+  return isRecommendationNonInformativeText(field.value);
+};
+
+const normalizeLegacyHeading = (line: string) =>
+  normalizeComparableText(
+    line
+      .replace(markdownHeadingRegex, "")
+      .replace(/^\s*\d+[.)]\s*/, "")
+      .replace(/\*\*/g, ""),
+  );
+
+export const normalizeRecommendationReportText = (reportText: string): string => {
+  const lines = reportText
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .split("\n");
+  const result: string[] = [];
+  let skippingLegacyIdentification = false;
+
+  for (const line of lines) {
+    const normalizedHeading = normalizeLegacyHeading(line);
+    if (normalizedHeading === "identificacao") {
+      skippingLegacyIdentification = true;
+      continue;
+    }
+    if (skippingLegacyIdentification) {
+      if (!line.trim() || getLegacyPresentationField(line)) continue;
+      skippingLegacyIdentification = false;
+    }
+    if (!isLegacyPresentationLine(line)) result.push(line);
+  }
+
+  return result.join("\n");
+};
+
 const getSectionKeyFromText = (content: string): RecommendationReportSectionKey | null => {
   const normalizedContent = normalizeSectionText(content);
 
@@ -237,7 +293,7 @@ export const sanitizeRecommendationPlainTextLine = (line: string) => {
 };
 
 export const parseRecommendationReportBlocks = (reportText: string): ReportBlock[] => {
-  const lines = reportText.split("\n");
+  const lines = normalizeRecommendationReportText(reportText).split("\n");
   const blocks: ReportBlock[] = [];
   let foundInvalidTableLikeContent = false;
 

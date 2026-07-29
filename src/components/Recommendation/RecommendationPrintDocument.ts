@@ -26,6 +26,13 @@ import {
   parseRecommendationReportBlocks,
 } from "./RecommendationReportViewer";
 import { formatRecommendationTableCell } from "./recommendationColumnDecision";
+import {
+  getReportHeaderRows,
+  getReportIdentification,
+  normalizeReportOptionalValue,
+} from "./RecommendationReportPresentation";
+
+export { getRecommendationTypeLabel } from "./RecommendationReportPresentation";
 
 type StructuredPrintTableModel =
   | RecommendationPrintTableModel
@@ -296,40 +303,8 @@ const renderReportTextHtml = (text: string) => {
     .join("");
 };
 
-const normalizeOptionalPrintText = (value: unknown): string => {
-  if (value === null || value === undefined) return "";
-  const text = String(value).trim();
-  return text && text !== "null" && text !== "undefined" ? text : "";
-};
-
-const formatPrintDate = (value: unknown): string => {
-  if (!value) return "";
-  if (typeof value === "string") {
-    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    return isoMatch ? `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}` : value;
-  }
-  if (typeof value !== "object") return "";
-  const date = value as { day?: number; month?: number; year?: number };
-  if (!date.day || !date.month || !date.year) return "";
-  return `${String(date.day).padStart(2, "0")}/${String(date.month).padStart(2, "0")}/${date.year}`;
-};
-
-export const getRecommendationTypeLabel = (type?: string | null): string => {
-  if (type === "FERTILIZATION") return "ADUBAÇÃO";
-  if (type === "ACIDITY_OR_SALINITY_CORRECTION") return "CORREÇÃO DO SOLO";
-  if (type === "BOTH") return "ADUBAÇÃO E CORREÇÃO DO SOLO";
-  return "";
-};
-
-const reportTitlePrefix: Record<RecommendationDocumentKey, string> = {
-  general: "RELATÓRIO GERAL DA RECOMENDAÇÃO",
-  summary: "RELATÓRIO RESUMIDO DA RECOMENDAÇÃO",
-  direct: "RELATÓRIO DIRETO DA RECOMENDAÇÃO",
-  shopping: "LISTA DE COMPRAS DA RECOMENDAÇÃO",
-};
-
 const renderOptionalLine = (label: string, value: unknown): string => {
-  const normalized = normalizeOptionalPrintText(value);
+  const normalized = normalizeReportOptionalValue(value);
   return normalized
     ? `<div class="identification-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(normalized)}</div>`
     : "";
@@ -339,11 +314,9 @@ export const buildReportPrintHeaderHtml = (
   recommendation: RecommendationPrintResponse,
   logoUrl: string,
 ): string => {
-  const details = [
-    renderOptionalLine("Nome", recommendation.responsavel_tecnico_relatorio),
-    renderOptionalLine("Telefone/WhatsApp", recommendation.telefone_responsavel_relatorio),
-    renderOptionalLine("E-mail", recommendation.email_responsavel_relatorio),
-  ].filter(Boolean).join("");
+  const details = getReportHeaderRows(recommendation)
+    .map((row) => renderOptionalLine(row.label, row.value))
+    .join("");
 
   return `<header class="report-print-header">
     <img src="${escapeHtml(logoUrl)}" alt="FertIntelligence" />
@@ -355,38 +328,11 @@ export const buildReportIdentificationHtml = (
   recommendation: RecommendationPrintResponse,
   documentKey: RecommendationDocumentKey,
 ): string => {
-  const typeLabel = getRecommendationTypeLabel(
-    recommendation.tipo_recomendacao ?? recommendation.tipoRecomendacao,
-  );
-  const title = typeLabel
-    ? `${reportTitlePrefix[documentKey]} DE ${typeLabel}`
-    : reportTitlePrefix[documentKey];
-  const municipality = normalizeOptionalPrintText(recommendation.municipio_relatorio);
-  const state = normalizeOptionalPrintText(recommendation.uf_relatorio);
-  const municipalityState = municipality && state
-    ? `${municipality} – ${state}`
-    : municipality || state;
-  const area = recommendation.area_avaliada_ha_relatorio;
-  const areaLabel = typeof area === "number"
-    ? `${area.toLocaleString("pt-BR", { maximumFractionDigits: 4 })} ha`
-    : "";
-
-  const rows = [
-    renderOptionalLine("Cliente/Produtor", recommendation.cliente_produtor_relatorio),
-    renderOptionalLine("Propriedade", recommendation.propriedade_relatorio ?? recommendation.nome_propriedade),
-    renderOptionalLine("Município/UF", municipalityState),
-    renderOptionalLine("Talhão Nº", recommendation.talhao_relatorio ?? recommendation.identificacao_talhao),
-    renderOptionalLine("Área avaliada", areaLabel),
-    renderOptionalLine("Cultura prevista", recommendation.cultura),
-    renderOptionalLine("Safra/Safrinha", recommendation.ano_safra),
-    renderOptionalLine("Data de plantio", formatPrintDate(recommendation.data_plantio)),
-    renderOptionalLine("Responsável técnico", recommendation.responsavel_tecnico_relatorio),
-    renderOptionalLine("Registro profissional", recommendation.registro_profissional_relatorio),
-    renderOptionalLine("Data de emissão", formatPrintDate(recommendation.data_emissao_relatorio)),
-  ].filter(Boolean).join("");
+  const identification = getReportIdentification(recommendation, documentKey);
+  const rows = identification.rows.map((row) => renderOptionalLine(row.label, row.value)).join("");
 
   return `<section class="report-identification">
-    <h1>${escapeHtml(title)}</h1>
+    <h1>${escapeHtml(identification.title)}</h1>
     <div class="report-identification-grid">${rows}</div>
   </section>`;
 };
@@ -394,7 +340,7 @@ export const buildReportIdentificationHtml = (
 export const buildReportSignatureHtml = (
   recommendation: RecommendationPrintResponse,
 ): string => {
-  const author = normalizeOptionalPrintText(recommendation.autor_assinatura_relatorio);
+  const author = normalizeReportOptionalValue(recommendation.autor_assinatura_relatorio);
   if (!author) return "";
   return `<section class="report-signature">
     <div class="signature-line"></div>
