@@ -64,9 +64,13 @@ export type UpdateUserPayload = {
   novo_telefone?: Telefone;
   nova_formacao?: Formacao;
   nova_profissao?: string;
-  novo_cargo?: Cargo;
   nova_senha?: string;
   novo_idfoto?: string;
+};
+
+export type ActiveCargoUpdateResponse = {
+  cargo: Cargo;
+  token: string;
 };
 
 export type DataNascDto = {

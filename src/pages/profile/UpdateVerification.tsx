@@ -11,7 +11,6 @@ import type {
   Telefone,
   Genero,
   Formacao,
-  Cargo,
 } from "../../interfaces/User";
 
 const UPDATE_PROFILE_DATA_KEY = "fertintelligence_update_profile_data";
@@ -31,7 +30,6 @@ function normalizeFromSession(parsed: any) {
       genero: p.genero as keyof typeof Genero,
       formacao: p.formacao as keyof typeof Formacao,
       profissao: String(p.profissao ?? ""),
-      cargo: p.cargo as keyof typeof Cargo,
       foto: String(p.idfoto ?? p.foto ?? ""),
     };
   }
@@ -48,7 +46,6 @@ function normalizeFromSession(parsed: any) {
     genero: parsed.novo_genero as keyof typeof Genero,
     formacao: parsed.nova_formacao as keyof typeof Formacao,
     profissao: String(parsed.nova_profissao ?? ""),
-    cargo: parsed.novo_cargo as keyof typeof Cargo,
     foto: String(parsed.novo_idfoto ?? parsed.id_nova_foto ?? parsed.nova_foto ?? ""),
   };
 }
@@ -85,7 +82,6 @@ export default function UpdateVerification() {
       novo_genero: unified.genero,       // keyof typeof Genero
       nova_formacao: unified.formacao,   // keyof typeof Formacao
       nova_profissao: unified.profissao,
-      novo_cargo: unified.cargo,         // keyof typeof Cargo
       novo_idfoto: unified.foto,           
       nova_senha: password,              // senha atual para validação no backend
     } as UpdateUserPayload;
@@ -111,7 +107,6 @@ export default function UpdateVerification() {
           genero: (unified.genero as any) ?? (currentUser as any).genero,
           formacao: (unified.formacao as any) ?? (currentUser as any).formacao,
           profissao: unified.profissao ?? (currentUser as any).profissao,
-          cargo: (unified.cargo as any) ?? (currentUser as any).cargo,
           // Mantemos compat com id_foto legado
           idfoto: unified.foto ?? (currentUser as any).id_foto,
           // Caso seu `User` possua um campo `foto`, também setamos:

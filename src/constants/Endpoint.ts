@@ -7,6 +7,7 @@ export const ENDPOINT = {
   CREATE_NEW_USER: "user/register",
   GET_USER: "user/get",
   UPDATE_USER: "user/update",
+  UPDATE_ACTIVE_CARGO: "user/active-cargo",
   DELETE_USER: "user/delete",
 
   // --- Property Endpoints ---

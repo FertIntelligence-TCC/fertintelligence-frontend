@@ -8,6 +8,7 @@ import FertName from "@/components/FertName/FertName";
 import { toaster } from "@/components/ui/toaster";
 import { getAuthorizationRoleMode } from "@/interfaces/Authorization";
 import { useUserStore } from "@/stores/user/user.store";
+import ActiveCargoSelector from "@/components/ActiveCargoSelector/ActiveCargoSelector";
 
 const ROUTES = {
   OWNER_MANAGEMENT: "/fertintelligence/owner-property-management",
@@ -174,6 +175,10 @@ export default function Home() {
           </Flex>
         </Box>)}
 
+      </Flex>
+
+      <Flex justifyContent="center" mt={8} px={4}>
+        <ActiveCargoSelector />
       </Flex>
     </UserLayout>
   );

@@ -22,7 +22,6 @@ import {
   Telefone,
   Genero,
   Formacao,
-  Cargo,
 } from "@/interfaces/User";
 import {
   updateImageMongoDB,
@@ -73,10 +72,6 @@ export default function UpdateProfile() {
 
   const generoOptions = enumOptions(Genero);
   const formacaoOptions = enumOptions(Formacao);
-  const cargoOptions = enumOptions(Cargo).filter(
-    (cargo) => cargo !== Cargo.USUARIO_SUPREMO || user?.cargo === Cargo.USUARIO_SUPREMO
-  );
-
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
   const [profileForm, setProfileForm] = useState({
@@ -89,7 +84,6 @@ export default function UpdateProfile() {
     genero: "",
     formacao: "",
     profissao: "",
-    cargo: "",
     foto: "", // *** string (URL/base64/id) ***
   });
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +106,6 @@ export default function UpdateProfile() {
       genero: (user as any)?.genero ?? "",
       formacao: (user as any)?.formacao ?? "",
       profissao: (user as any)?.profissao ?? "",
-      cargo: (user as any)?.cargo ?? "",
       // aceita tanto user.foto (string) quanto id_foto legado
       foto: (user as any)?.foto ?? (user as any)?.id_foto ?? "",
     });
@@ -138,7 +131,6 @@ export default function UpdateProfile() {
       genero,
       formacao,
       profissao,
-      cargo,
       // foto pode ser opcional no update (mantenha se precisar exigir)
     } = profileForm;
 
@@ -151,8 +143,7 @@ export default function UpdateProfile() {
       !telefone ||
       !genero ||
       !formacao ||
-      !profissao ||
-      !cargo
+      !profissao
     ) {
       setError("Por favor, preencha todos os campos obrigatórios.");
       return false;
@@ -210,7 +201,6 @@ export default function UpdateProfile() {
         genero: profileForm.genero as Genero,
         formacao: profileForm.formacao as Formacao,
         profissao: profileForm.profissao,
-        cargo: profileForm.cargo as Cargo,
         idfoto: idFotoFinal,
       };
 
@@ -224,7 +214,6 @@ export default function UpdateProfile() {
         novo_genero: unifiedPayload.genero,
         nova_formacao: unifiedPayload.formacao,
         nova_profissao: unifiedPayload.profissao,
-        novo_cargo: unifiedPayload.cargo,
         novo_idfoto: idFotoFinal,
       };
 
@@ -341,15 +330,6 @@ export default function UpdateProfile() {
                   <Box>
                     <Text mb={1}>Profissão</Text>
                     <Input name="profissao" value={profileForm.profissao} onChange={handleInputChange} placeholder="Ex: Engenheiro Agrônomo" />
-                  </Box>
-                  <Box>
-                    <Text mb={1}>Cargo</Text>
-                    <NativeSelect name="cargo" value={profileForm.cargo} onChange={handleInputChange}>
-                      <option value="">Selecione seu cargo</option>
-                      {cargoOptions.map((c) => (
-                        <option key={c} value={c}>{String(c).replace(/_/g, " ")}</option>
-                      ))}
-                    </NativeSelect>
                   </Box>
                 </>
               )}

@@ -2,6 +2,7 @@ import { ENDPOINT } from "../constants/Endpoint";
 import axiosInstace from "./axios";
 // Importa a nova UserResponse
 import { UserResponse } from "../interfaces/ServiceResponse";
+import { ActiveCargoUpdateResponse, Cargo } from "@/interfaces/User";
 import {
   SignInPayload,
   SignUpPayload,
@@ -66,6 +67,15 @@ export const updateUser = async (body: UpdateUserPayload) => {
   const { data } = await axiosInstace.put<string>(
     ENDPOINT.UPDATE_USER,
     body
+  );
+
+  return data;
+};
+
+export const updateActiveCargo = async (cargo: Cargo) => {
+  const { data } = await axiosInstace.put<ActiveCargoUpdateResponse>(
+    ENDPOINT.UPDATE_ACTIVE_CARGO,
+    { cargo }
   );
 
   return data;
